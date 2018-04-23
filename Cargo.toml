@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["axect <edeftg@gmail.com>"]
 
 [dependencies]
+num-traits = "0.2"

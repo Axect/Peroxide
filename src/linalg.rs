@@ -1,28 +1,32 @@
-pub type Row = Vec<u64>;
-pub type Col = Vec<u64>;
-pub type Matrix = Vec<Vec<u64>>;
+extern crate num_traits;
 
-pub trait LinAlg {
-    fn trace(&self) -> u64;
-    fn transpose(&self) -> Matrix;
+use self::num_traits::Num;
+
+pub type Row<T> = Vec<T>;
+pub type Col<T> = Vec<T>;
+pub type Matrix<T> = Vec<Vec<T>>;
+
+pub trait LinAlg<T> {
+    fn trace(&self) -> T;
+    fn transpose(&self) -> Matrix<T>;
 }
 
-impl LinAlg for Matrix {
-    fn trace(&self) -> u64 {
-        let mut s: u64 = 0;
+impl<T: Num + Clone> LinAlg<T> for Matrix<T> {
+    fn trace(&self) -> T {
+        let mut s: T = T::zero();
         for i in 0..self.len() {
-            s += self[i][i];
+            s = s + self[i][i].clone();
         }
         s
     }
 
-    fn transpose(&self) -> Matrix {
+    fn transpose(&self) -> Matrix<T> {
         let m = self.len();
         let n = self[0].len();
-        let mut a: Matrix = vec![vec![0; m]; n];
+        let mut a: Matrix<T> = vec![vec![T::zero(); m]; n];
         for i in 0..m {
             for j in 0..n {
-                a[j][i] = self[i][j];
+                a[j][i] = self[i][j].clone();
             }
         }
         a
