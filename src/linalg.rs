@@ -138,3 +138,11 @@ pub fn swap<T: 'static + Num + Copy>(a: T, b: T) -> Box<Fn(Vec<T>) -> Vec<T>> {
             .collect()
     })
 }
+
+pub fn sgn(v: Col<i64>) -> i64 {
+    match v.as_slice() {
+        [] => 1,
+        [1, xs..] => sgn(xs.into_iter().map(|x| x - 1).collect()),
+        [x, xs..] => -1 * sgn(swap(1i64, *x)(vec![vec![*x], xs.to_vec()].concat())),
+    }
+}

@@ -1,9 +1,8 @@
+#![feature(slice_patterns)]
 mod linalg;
 
-use linalg::Matrix;
-use linalg::Ops;
-use linalg::LinAlg;
-use linalg::swap;
+use linalg::{Matrix, Ops, LinAlg};
+use linalg::{swap, sgn};
 
 fn main() {
     let a: Matrix<i64> = vec![vec![1, 2], vec![3, 4]];
@@ -17,5 +16,7 @@ fn main() {
     println!("{:?}", a.add(&1));
     println!("{:?}", a.mul(&b));
     println!("{:?}", a.mul(&2));
-    println!("{:?}", swap(1,2)(vec![1,2,3,4]));
+    println!("{:?}", swap(1, 2)(vec![1, 2, 3, 4]));
+    println!("{:?}", sgn(vec![1, 2, 3]));
+    println!("{:?}", sgn(vec![3, 2, 1]))
 }
