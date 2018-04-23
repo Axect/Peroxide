@@ -5,8 +5,8 @@ use linalg::Ops;
 use linalg::LinAlg;
 
 fn main() {
-    let a: Matrix<i64> = vec![vec![1,2], vec![3,4]];
-    let b: Matrix<i64> = vec![vec![-1, -2], vec![-3,-4]];
+    let a: Matrix<i64> = vec![vec![1, 2], vec![3, 4]];
+    let b: Matrix<i64> = vec![vec![-1, -2], vec![-3, -4]];
     println!("{:?}", a);
     println!("{:?}", a.trace());
     println!("{:?}", a.transpose());

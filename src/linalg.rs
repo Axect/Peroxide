@@ -67,7 +67,6 @@ impl<T: Num + Copy + Sum> Ops<Matrix<T>> for Matrix<T> {
         }
         a
     }
-
 }
 
 // Linear Algebra Trait
@@ -122,5 +121,5 @@ pub fn vec_mul<T: Num + Copy>(a: &Vec<T>, b: &Vec<T>) -> Vec<T> {
 }
 
 pub fn dot<T: Num + Copy + Sum>(a: &Vec<T>, b: &Vec<T>) -> T {
-    a.iter().zip(b.iter()).map(|(&x,&y)| x * y).sum()
+    a.iter().zip(b.iter()).map(|(&x, &y)| x * y).sum()
 }
