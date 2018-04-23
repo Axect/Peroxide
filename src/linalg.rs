@@ -7,11 +7,45 @@ pub type Col<T> = Vec<T>;
 pub type Matrix<T> = Vec<Vec<T>>;
 
 pub trait LinAlg<T> {
+    fn add(&self, other: &Matrix<T>) -> Matrix<T>;
+    fn col(&self, index: usize) -> Col<T>;
+    fn diag(&self) -> Row<T>;
     fn trace(&self) -> T;
     fn transpose(&self) -> Matrix<T>;
 }
 
 impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
+    fn add(&self, other: &Matrix<T>) -> Matrix<T> {
+        assert!(
+            (self.len(), self[0].len()) == (other.len(), (other[0].len())),
+            "Length does not match!"
+        );
+        let (m, n) = (self.len(), self[0].len());
+        let mut a: Matrix<T> = vec![vec![T::zero(); n]; m];
+        for i in 0..m {
+            for j in 0..n {
+                a[i][j] = self[i][j] + other[i][j];
+            }
+        }
+        a
+    }
+
+    fn col(&self, index: usize) -> Col<T> {
+        let mut a: Col<T> = Vec::new();
+        for i in 0..self.len() {
+            a.push(self[i][index]);
+        }
+        a
+    }
+
+    fn diag(&self) -> Row<T> {
+        let mut a: Row<T> = Vec::new();
+        for i in 0..self.len() {
+            a.push(self[i][i]);
+        }
+        a
+    }
+
     fn trace(&self) -> T {
         let mut s: T = T::zero();
         for i in 0..self.len() {
