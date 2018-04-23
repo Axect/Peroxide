@@ -1,18 +1,24 @@
 extern crate num_traits;
 
+// For generic
 use self::num_traits::Num;
+use std::iter::Sum;
 
+// Type Alias Zone
 pub type Row<T> = Vec<T>;
 pub type Col<T> = Vec<T>;
 pub type Matrix<T> = Vec<Vec<T>>;
 
-pub trait Add<RHS = Self> {
+// Ops Trait
+pub trait Ops<RHS = Self> {
     type Output;
 
     fn add(&self, rhs: &RHS) -> Self::Output;
+    fn mul(&self, rhs: &RHS) -> Self::Output;
 }
 
-impl<T: Num + Copy> Add<T> for Matrix<T> {
+// Scalar Operation
+impl<T: Num + Copy> Ops<T> for Matrix<T> {
     type Output = Matrix<T>;
 
     fn add(&self, other: &T) -> Matrix<T> {
@@ -20,9 +26,16 @@ impl<T: Num + Copy> Add<T> for Matrix<T> {
             .map(|x| x.into_iter().map(|t| *t + *other).collect::<Row<T>>())
             .collect::<Matrix<T>>()
     }
+
+    fn mul(&self, other: &T) -> Matrix<T> {
+        self.iter()
+            .map(|x| x.into_iter().map(|t| *t * *other).collect::<Row<T>>())
+            .collect::<Matrix<T>>()
+    }
 }
 
-impl<T: Num + Copy> Add<Matrix<T>> for Matrix<T> {
+// Matrix Operation
+impl<T: Num + Copy + Sum> Ops<Matrix<T>> for Matrix<T> {
     type Output = Matrix<T>;
 
     fn add(&self, other: &Matrix<T>) -> Matrix<T> {
@@ -39,8 +52,25 @@ impl<T: Num + Copy> Add<Matrix<T>> for Matrix<T> {
         }
         a
     }
+
+    fn mul(&self, other: &Matrix<T>) -> Matrix<T> {
+        assert!(
+            (self.len(), self[0].len()) == (other.len(), (other[0].len())),
+            "Length does not match!"
+        );
+        let (m, n) = (self.len(), self[0].len());
+        let mut a: Matrix<T> = vec![vec![T::zero(); n]; m];
+        for i in 0..m {
+            for j in 0..n {
+                a[i][j] = dot(&self[i], &other.col(j));
+            }
+        }
+        a
+    }
+
 }
 
+// Linear Algebra Trait
 pub trait LinAlg<T> {
     fn col(&self, index: usize) -> Col<T>;
     fn diag(&self) -> Row<T>;
@@ -84,4 +114,13 @@ impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
         }
         a
     }
+}
+
+// Useful Vector Function
+pub fn vec_mul<T: Num + Copy>(a: &Vec<T>, b: &Vec<T>) -> Vec<T> {
+    a.iter().zip(b.iter()).map(|(&x, &y)| x * y).collect()
+}
+
+pub fn dot<T: Num + Copy + Sum>(a: &Vec<T>, b: &Vec<T>) -> T {
+    a.iter().zip(b.iter()).map(|(&x,&y)| x * y).sum()
 }
