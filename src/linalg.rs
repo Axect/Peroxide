@@ -123,3 +123,18 @@ pub fn vec_mul<T: Num + Copy>(a: &Vec<T>, b: &Vec<T>) -> Vec<T> {
 pub fn dot<T: Num + Copy + Sum>(a: &Vec<T>, b: &Vec<T>) -> T {
     a.iter().zip(b.iter()).map(|(&x, &y)| x * y).sum()
 }
+
+// Useful Functions
+pub fn swap<T: 'static + Num + Copy>(a: T, b: T) -> Box<Fn(Vec<T>) -> Vec<T>> {
+    Box::new(move |x: Vec<T>| {
+        x.into_iter()
+            .map(|t| if t == a {
+                b
+            } else if t == b {
+                a
+            } else {
+                t
+            })
+            .collect()
+    })
+}

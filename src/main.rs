@@ -3,6 +3,7 @@ mod linalg;
 use linalg::Matrix;
 use linalg::Ops;
 use linalg::LinAlg;
+use linalg::swap;
 
 fn main() {
     let a: Matrix<i64> = vec![vec![1, 2], vec![3, 4]];
@@ -16,4 +17,5 @@ fn main() {
     println!("{:?}", a.add(&1));
     println!("{:?}", a.mul(&b));
     println!("{:?}", a.mul(&2));
+    println!("{:?}", swap(1,2)(vec![1,2,3,4]));
 }
