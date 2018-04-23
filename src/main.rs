@@ -1,6 +1,7 @@
 mod linalg;
 
 use linalg::Matrix;
+use linalg::Add;
 use linalg::LinAlg;
 
 fn main() {
@@ -12,4 +13,5 @@ fn main() {
     println!("{:?}", a.col(1));
     println!("{:?}", a.diag());
     println!("{:?}", a.add(&b));
+    println!("{:?}", a.add(&1));
 }

@@ -6,15 +6,25 @@ pub type Row<T> = Vec<T>;
 pub type Col<T> = Vec<T>;
 pub type Matrix<T> = Vec<Vec<T>>;
 
-pub trait LinAlg<T> {
-    fn add(&self, other: &Matrix<T>) -> Matrix<T>;
-    fn col(&self, index: usize) -> Col<T>;
-    fn diag(&self) -> Row<T>;
-    fn trace(&self) -> T;
-    fn transpose(&self) -> Matrix<T>;
+pub trait Add<RHS = Self> {
+    type Output;
+
+    fn add(&self, rhs: &RHS) -> Self::Output;
 }
 
-impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
+impl<T: Num + Copy> Add<T> for Matrix<T> {
+    type Output = Matrix<T>;
+
+    fn add(&self, other: &T) -> Matrix<T> {
+        self.iter()
+            .map(|x| x.into_iter().map(|t| *t + *other).collect::<Row<T>>())
+            .collect::<Matrix<T>>()
+    }
+}
+
+impl<T: Num + Copy> Add<Matrix<T>> for Matrix<T> {
+    type Output = Matrix<T>;
+
     fn add(&self, other: &Matrix<T>) -> Matrix<T> {
         assert!(
             (self.len(), self[0].len()) == (other.len(), (other[0].len())),
@@ -29,7 +39,16 @@ impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
         }
         a
     }
+}
 
+pub trait LinAlg<T> {
+    fn col(&self, index: usize) -> Col<T>;
+    fn diag(&self) -> Row<T>;
+    fn trace(&self) -> T;
+    fn transpose(&self) -> Matrix<T>;
+}
+
+impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
     fn col(&self, index: usize) -> Col<T> {
         let mut a: Col<T> = Vec::new();
         for i in 0..self.len() {
