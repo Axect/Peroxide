@@ -11,11 +11,11 @@ pub trait LinAlg<T> {
     fn transpose(&self) -> Matrix<T>;
 }
 
-impl<T: Num + Clone> LinAlg<T> for Matrix<T> {
+impl<T: Num + Copy> LinAlg<T> for Matrix<T> {
     fn trace(&self) -> T {
         let mut s: T = T::zero();
         for i in 0..self.len() {
-            s = s + self[i][i].clone();
+            s = s + self[i][i];
         }
         s
     }
@@ -26,7 +26,7 @@ impl<T: Num + Clone> LinAlg<T> for Matrix<T> {
         let mut a: Matrix<T> = vec![vec![T::zero(); m]; n];
         for i in 0..m {
             for j in 0..n {
-                a[j][i] = self[i][j].clone();
+                a[j][i] = self[i][j];
             }
         }
         a
