@@ -125,27 +125,3 @@ pub fn dot<T: Num + Copy + Sum>(a: &Vec<T>, b: &Vec<T>) -> T {
     a.iter().zip(b.iter()).map(|(&x, &y)| x * y).sum()
 }
 
-// Useful Functions
-pub fn swap<T: 'static + Num + Copy>(a: T, b: T) -> Box<Fn(Vec<T>) -> Vec<T>> {
-    Box::new(move |x: Vec<T>| {
-        x.into_iter()
-            .map(|t| if t == a {
-                b
-            } else if t == b {
-                a
-            } else {
-                t
-            })
-            .collect()
-    })
-}
-
-pub fn sgn(v: Col<i64>) -> i64 {
-    match v.as_slice() {
-        [] => 1,
-        [1, xs..] => sgn(xs.into_iter().map(|x| x - 1).collect()),
-        [x, xs..] => sgn(swap(1i64, *x)(vec![vec![*x], xs.to_vec()].concat())).neg(),
-    }
-}
-
-
