@@ -2,25 +2,75 @@ use std::convert;
 use std::fmt;
 pub use self::Shape::{Row, Col};
 
+/// To select matrices' binding.
+/// 
+/// Row - Row binding
+/// Col - Column binding
+///
+/// # Examples
+/// ```
+/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+/// println!("{}", a); // Similar to [[1,2],[3,4]]
+/// println!("{}", b); // Similar to [[1,3],[2,4]]
+/// ```
 #[derive(Debug)]
 pub enum Shape {
     Row,
     Col,
 }
 
-#[derive(Debug)]
-pub struct Matrix {
-    data: Vec<f64>,
-    row: usize,
-    col: usize,
-    shape: Shape,
+/// Print for Shape
+impl fmt::Display for Shape {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let to_disp = match self {
+            Row => "Row",
+            Col => "Col",
+        };
+        write!(f, "{}", to_disp)
+    }
 }
 
+/// R-like matrix structure
+///
+/// # Examples
+///
+/// ```
+/// let a = Matrix {
+///     data: vec![1f64,2,3,4],
+///     row: 2,
+///     col: 2,
+///     shape: Row,
+/// }; // [[1,2],[3,4]]
+/// ```
+#[derive(Debug)]
+pub struct Matrix {
+    pub data: Vec<f64>,
+    pub row: usize,
+    pub col: usize,
+    pub shape: Shape,
+}
+
+/// To convert generic vector to Matrix
 pub trait Generic<T: convert::Into<f64>> {
     fn new(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix;
 }
 
 impl<T> Generic<T> for Matrix where T: convert::Into<f64> {
+    /// Matrix generic constructor
+    ///
+    /// You can use any numeric type vector
+    /// e.g. `u32`, `i32`, `i64`, ...
+    ///
+    /// # Examples
+    /// ```
+    /// let a = Matrix::new(
+    ///     vec![1,2,3,4], // Can use any Into<f64> type
+    ///     2,
+    ///     2,
+    ///     Row,
+    /// );
+    /// ```
     fn new(v: Vec<T>, x: usize, y: usize, shape: Shape) -> Matrix {
         Matrix {
             data: v.into_iter().map(|x| x.into()).collect(),
@@ -31,6 +81,7 @@ impl<T> Generic<T> for Matrix where T: convert::Into<f64> {
     }
 }
 
+/// Pretty Print
 impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.spread())
@@ -39,7 +90,18 @@ impl fmt::Display for Matrix {
 
 #[allow(dead_code)]
 impl Matrix {
-    fn change_shape(&self) -> Matrix {
+    /// Change Bindings
+    ///
+    /// `Row` -> `Col` or `Col` -> `Row`
+    ///
+    /// # Examples
+    /// ```
+    /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+    /// assert_eq!(a.shape, Row);
+    /// let b = a.change_shape();
+    /// assert_eq!(b.shape, Col);
+    /// ```
+    pub fn change_shape(&self) -> Matrix {
         let r = self.row;
         let c = self.col;
         assert_eq!(r*c, self.data.len());
@@ -77,7 +139,18 @@ impl Matrix {
         }
     }
 
-    fn spread(&self) -> String {
+    /// Spread data(1D vector) to 2D formatted String
+    ///
+    /// # Examples
+    /// ```
+    /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+    /// println!("{}", a.spread()); // same as println!("{}", a);
+    /// // Result:
+    /// //       c[0] c[1]
+    /// // r[0]     1    3
+    /// // r[1]     2    4
+    /// ```
+    pub fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
         let _rows = self.row;
         let cols = self.col;
@@ -155,6 +228,10 @@ impl Matrix {
         return result;
     }
 }
+
+// =============================================================================
+// Back-end Utils
+// =============================================================================
 
 #[allow(unused_comparisons)]
 pub fn tab(s: &str) -> String {
