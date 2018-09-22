@@ -4,6 +4,6 @@ version = "0.1.0"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust Numeric Library"
 repository = "https://github.com/Axect/Peroxide"
-license = "BSD 3-clause"
+license = "BSD 3-Clause"
 
 [dependencies]
