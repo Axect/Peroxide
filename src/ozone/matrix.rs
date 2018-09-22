@@ -16,7 +16,7 @@ pub struct Matrix {
     shape: Shape,
 }
 
-trait Generic<T: convert::Into<f64>> {
+pub trait Generic<T: convert::Into<f64>> {
     fn new(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix;
 }
 
