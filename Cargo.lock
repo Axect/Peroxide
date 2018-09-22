@@ -1,14 +1,4 @@
 [[package]]
-name = "num-traits"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "peroxide"
 version = "0.1.0"
-dependencies = [
- "num-traits 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
-[metadata]
-"checksum num-traits 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dee092fcdf725aee04dd7da1d21debff559237d49ef1cb3e69bcb8ece44c7364"
