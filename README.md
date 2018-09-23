@@ -1,7 +1,9 @@
 # Peroxide
 
-![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)
+<!-- ![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master) -->
 
-Rust Scientific Computation Library.
+Rust numeric library with R Syntax.
 
-## TODO
+## Usage
+
+
