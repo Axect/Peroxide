@@ -7,4 +7,5 @@ fn main() {
     println!("{}", a);
     a = a.change_shape();
     println!("{}", a.shape);
+    println!("{}", a.transpose());
 }

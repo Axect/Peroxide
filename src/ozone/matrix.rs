@@ -227,6 +227,20 @@ impl Matrix {
         }
         return result;
     }
+
+    /// Transpose
+    ///
+    /// # Examples
+    /// ```
+    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+    /// println!("{}", a) /// [[1,3],[2,4]]
+    /// ```
+    pub fn transpose(&self) -> Matrix {
+        match self.shape {
+            Row => Matrix::new(self.data.clone(), self.col, self.row, Col),
+            Col => Matrix::new(self.data.clone(), self.col, self.row, Row)
+        }
+    }
 }
 
 // =============================================================================
