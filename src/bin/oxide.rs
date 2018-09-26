@@ -8,4 +8,6 @@ fn main() {
     a = a.change_shape();
     println!("{}", a.shape);
     println!("{}", a.transpose());
+    let b = Matrix::new(vec![1,1,1,1], 2, 2, Row);
+    println!("{}", a + b);
 }

@@ -1,5 +1,6 @@
 use std::convert;
 use std::fmt;
+use std::ops::Add;
 pub use self::Shape::{Row, Col};
 
 /// To select matrices' binding.
@@ -14,7 +15,7 @@ pub use self::Shape::{Row, Col};
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
 /// println!("{}", b); // Similar to [[1,3],[2,4]]
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Shape {
     Row,
     Col,
@@ -239,6 +240,25 @@ impl Matrix {
         match self.shape {
             Row => Matrix::new(self.data.clone(), self.col, self.row, Col),
             Col => Matrix::new(self.data.clone(), self.col, self.row, Row)
+        }
+    }
+}
+
+impl Add for Matrix {
+    type Output = Matrix;
+
+    fn add(self, other: Matrix) -> Matrix {
+        assert_eq!(&self.row, &other.row);
+        assert_eq!(&self.col, &other.col);
+        if self.shape == other.shape {
+            Matrix::new(
+                self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x + y).collect::<Vec<f64>>(),
+                self.row,
+                self.col,
+                self.shape,
+            )
+        } else {
+            self.transpose().add(other)
         }
     }
 }
