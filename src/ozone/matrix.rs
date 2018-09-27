@@ -244,6 +244,11 @@ impl Matrix {
     }
 }
 
+/// Element-wise addition of Matrix
+///
+/// # Caution
+/// > You should remember ownership.
+/// > If you use Matrix `a,b` then you can't use them after.
 impl Add for Matrix {
     type Output = Matrix;
 
