@@ -1,6 +1,6 @@
 use std::convert;
 use std::fmt;
-use std::ops::Add;
+use std::ops::{Add, Neg, Sub};
 pub use self::Shape::{Row, Col};
 
 /// To select matrices' binding.
@@ -15,7 +15,7 @@ pub use self::Shape::{Row, Col};
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
 /// println!("{}", b); // Similar to [[1,3],[2,4]]
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Shape {
     Row,
     Col,
@@ -44,7 +44,7 @@ impl fmt::Display for Shape {
 ///     shape: Row,
 /// }; // [[1,2],[3,4]]
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Matrix {
     pub data: Vec<f64>,
     pub row: usize,
@@ -258,8 +258,29 @@ impl Add for Matrix {
                 self.shape,
             )
         } else {
-            self.transpose().add(other)
+            self.change_shape().add(other)
         }
+    }
+}
+
+impl Neg for Matrix {
+    type Output = Matrix;
+    
+    fn neg(self) -> Matrix {
+        Matrix::new(
+            self.data.into_iter().map(|x:f64| -x).collect::<Vec<f64>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+}
+
+impl Sub for Matrix {
+    type Output = Matrix;
+
+    fn sub(self, other: Matrix) -> Matrix {
+        self.add(other.neg())
     }
 }
 
