@@ -1,6 +1,6 @@
 use std::convert;
 use std::fmt;
-use std::ops::{Add, Neg, Sub};
+use std::ops::{Add, Neg, Sub, Mul};
 pub use self::Shape::{Row, Col};
 
 /// To select matrices' binding.
@@ -268,6 +268,12 @@ impl Add for Matrix {
     }
 }
 
+/// Negation of Matrix
+///
+/// # Examples
+/// ```
+/// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+/// println!("{}", -a); // [[-1,-2],[-3,-4]]
 impl Neg for Matrix {
     type Output = Matrix;
     
@@ -286,6 +292,40 @@ impl Sub for Matrix {
 
     fn sub(self, other: Matrix) -> Matrix {
         self.add(other.neg())
+    }
+}
+
+impl Mul for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        assert_eq!(self.col, other.row);
+        if self.shape == Row && other.shape == Col {
+            let mut container: Vec<f64> = Vec::new();
+            for i in 0 .. self.row {
+                let p = self.data.clone().into_iter().skip(self.col * i).take(self.col).collect::<Vec<f64>>();
+                for j in 0 .. other.col {
+                    let q = other.data.clone().into_iter().skip(other.row * j).take(other.row).collect::<Vec<f64>>();
+                    let s: f64 = p.clone().into_iter().zip(&q).map(|(x, y)| x * y).fold(
+                        0f64,
+                        |x, y| x + y,
+                    );
+                    container.push(s);
+                }
+            }
+            Matrix::new(
+                container,
+                self.row,
+                other.col,
+                Row,
+            )
+        } else if self.shape == Col && other.shape == Row {
+            self.change_shape().mul(other.change_shape())
+        } else if self.shape == Col {
+            self.change_shape().mul(other)
+        } else {
+            self.mul(other.change_shape())
+        }
     }
 }
 
