@@ -272,11 +272,11 @@ impl Add<Matrix> for Matrix {
     }
 }
 
-impl Add<T> for Matrix where T: convert::Into<f64> {
+impl Add<f64> for Matrix {
     type Output = Matrix;
 
-    fn add<T>(self, other: T) -> Matrix {
-        self.fmap(|x| x + other.into())
+    fn add(self, other: f64) -> Matrix {
+        self.fmap(|x| x + other)
     }
 }
 
