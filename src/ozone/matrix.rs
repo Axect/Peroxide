@@ -253,7 +253,7 @@ impl Matrix {
 /// # Caution
 /// > You should remember ownership.
 /// > If you use Matrix `a,b` then you can't use them after.
-impl Add for Matrix {
+impl Add<Matrix> for Matrix {
     type Output = Matrix;
 
     fn add(self, other: Matrix) -> Matrix {
@@ -269,6 +269,14 @@ impl Add for Matrix {
         } else {
             self.change_shape().add(other)
         }
+    }
+}
+
+impl Add<T> for Matrix where T: convert::Into<f64> {
+    type Output = Matrix;
+
+    fn add<T>(self, other: T) -> Matrix {
+        self.fmap(|x| x + other.into())
     }
 }
 
@@ -291,7 +299,14 @@ impl Neg for Matrix {
     }
 }
 
-impl Sub for Matrix {
+/// Subtraction between Matrix
+///
+/// # Examples
+/// ```
+/// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+/// let b = Matrix::new(vec![1,2,3,4],2,2,Col);
+/// println!("{}", a - b); // [[0, -1], [1, 0]]
+impl Sub<Matrix> for Matrix {
     type Output = Matrix;
 
     fn sub(self, other: Matrix) -> Matrix {
@@ -299,7 +314,7 @@ impl Sub for Matrix {
     }
 }
 
-impl Mul for Matrix {
+impl Mul<Matrix> for Matrix {
     type Output = Matrix;
 
     fn mul(self, other: Matrix) -> Matrix {
