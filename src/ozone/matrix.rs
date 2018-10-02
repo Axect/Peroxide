@@ -341,6 +341,8 @@ pub trait FP {
     fn reduce<F, T>(&self, init: T, f: F) -> f64 
         where F: Fn(f64, f64) -> f64,
               T: convert::Into<f64>;
+    fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix 
+        where F: Fn(f64, f64) -> f64;
 }
 
 impl FP for Matrix {
@@ -360,6 +362,25 @@ impl FP for Matrix {
         self.data.clone().into_iter().fold(
             init.into(),
             |x,y| f(x,y),
+        )
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix 
+        where F: Fn(f64, f64) -> f64 {
+        assert_eq!(self.data.len(), other.data.len());
+        let mut a = other.clone();
+        if self.shape != other.shape {
+            a = a.change_shape();
+        }
+        let result = self.data.clone().into_iter()
+            .zip(a.data)
+            .map(|(x,y)| f(x,y))
+            .collect::<Vec<f64>>();
+        Matrix::new(
+            result,
+            self.row,
+            self.col,
+            self.shape,
         )
     }
 }
