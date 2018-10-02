@@ -1,5 +1,6 @@
 use std::convert;
 use std::fmt;
+use std::iter::FromIterator;
 use std::ops::{Add, Neg, Sub, Mul};
 pub use self::Shape::{Row, Col};
 
@@ -15,7 +16,7 @@ pub use self::Shape::{Row, Col};
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
 /// println!("{}", b); // Similar to [[1,3],[2,4]]
 /// ```
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Shape {
     Row,
     Col,
@@ -334,15 +335,99 @@ impl Mul for Matrix {
 }
 
 //TODO: Implement iterator for Matrix
+// pub struct MatrixIter {
+//     matrix: Matrix,
+//     index: usize,
+// }
+
+// impl IntoIterator for Matrix {
+//     type Item = Matrix;
+//     type IntoIter = MatrixIter;
+
+//     fn into_iter(self) -> Self::IntoIter {
+//         MatrixIter {
+//             matrix: self,
+//             index: 0,
+//         }
+//     }
+// }
+
+// impl Iterator for MatrixIter {
+//     type Item = Matrix;
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let mut result: Vec<f64> = Vec::new();
+//         match self.matrix.shape {
+//             Row => {
+//                 if self.index >= self.matrix.row {
+//                     return None;
+//                 }
+//                 result = self.matrix.data.clone().into_iter().skip(self.index * self.matrix.col).take(self.matrix.col).collect::<Vec<f64>>();
+//                 self.index += 1;
+//                 Some(
+//                     Matrix::new(
+//                         result,
+//                         1,
+//                         self.matrix.col,
+//                         Row,
+//                     )
+//                 )
+//             },
+//             Col => {
+//                 if self.index >= self.matrix.col {
+//                     return None;
+//                 }
+//                 result = self.matrix.data.clone().into_iter().skip(self.index * self.matrix.row).take(self.matrix.row).collect::<Vec<f64>>();
+//                 self.index += 1;
+//                 Some(
+//                     Matrix::new(
+//                         result,
+//                         self.matrix.row,
+//                         1,
+//                         Col,
+//                     )
+//                 )
+//             }
+//         }
+//     }
+// }
+
+// impl FromIterator<Matrix> for Matrix {
+//     fn from_iter<I: IntoIterator<Item=Matrix>(iter: I) -> Self {
+//         let 
+//     }
+// }
 
 // =============================================================================
-// Functional Tools
+// Functional Programming Tools (Hand-written)
 // =============================================================================
 pub trait FP {
-    fn map<F>(&self, f: F) -> Matrix where F: Fn(u64) -> u64;
-    fn 
+    fn fmap<F>(&self, f: F) -> Matrix where F: Fn(f64) -> f64;
+    fn reduce<F, T>(&self, init: T, f: F) -> f64 
+        where F: Fn(f64, f64) -> f64,
+              T: convert::Into<f64>;
 }
 
+impl FP for Matrix {
+    fn fmap<F>(&self, f: F) -> Matrix where F: Fn(f64) -> f64 {
+        let result = self.data.clone().into_iter().map(|x| f(x)).collect::<Vec<f64>>();
+        Matrix::new(
+            result,
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> f64 
+        where F: Fn(f64, f64) -> f64,
+              T: convert::Into<f64> {
+        self.data.clone().into_iter().fold(
+            init.into(),
+            |x,y| f(x,y),
+        )
+    }
+}
 
 // =============================================================================
 // Back-end Utils
