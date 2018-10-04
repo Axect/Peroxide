@@ -1,4 +1,4 @@
-pub mod ozone;
+pub mod matrix;
 
 #[allow(unused_imports)]
-pub use ozone::matrix::*;
+pub use matrix::*;

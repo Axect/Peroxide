@@ -1,9 +1,11 @@
 [package]
 name = "peroxide"
-version = "0.1.9"
+version = "0.2.0"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust Numeric Library"
 repository = "https://github.com/Axect/Peroxide"
 license = "BSD-3-Clause"
+readme = "README.md"
+documentation = "https://docs.rs/peroxide/"
 
 [dependencies]

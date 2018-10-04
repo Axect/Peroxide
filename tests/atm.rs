@@ -1,6 +1,6 @@
 extern crate peroxide;
 
-use peroxide::ozone::matrix::*;
+use peroxide::*;
 
 #[test]
 fn test_add_matrix() {
