@@ -1,6 +1,6 @@
 use std::convert;
 use std::fmt;
-use std::ops::{Add, Neg, Sub, Mul};
+use std::ops::{Add, Neg, Sub, Mul, Rem};
 pub use self::Shape::{Row, Col};
 
 /// To select matrices' binding.
@@ -359,6 +359,35 @@ impl Sub<f64> for Matrix {
     }
 }
 
+/// Element-wise matrix multiplication
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+/// println!("{}", a * b); // [[1,6],[6,16]]
+/// ```
+impl Mul<Matrix> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+        self.zip_with(|x,y| x * y, &other)
+    }
+}
+
+impl Mul<f64> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: f64) -> Matrix {
+        self.fmap(|x| x * other)
+    }
+}
+
 /// Matrix Multiplication
 ///
 /// # Examples
@@ -368,12 +397,12 @@ impl Sub<f64> for Matrix {
 ///
 /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
 /// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
-/// println!("{}", a * b); // [[5, 11], [11, 25]]
+/// println!("{}", a % b); // [[5, 11], [11, 25]]
 /// ```
-impl Mul<Matrix> for Matrix {
+impl Rem<Matrix> for Matrix {
     type Output = Matrix;
 
-    fn mul(self, other: Matrix) -> Matrix {
+    fn rem(self, other: Matrix) -> Matrix {
         assert_eq!(self.col, other.row);
         if self.shape == Row && other.shape == Col {
             let mut container: Vec<f64> = Vec::new();
@@ -395,22 +424,18 @@ impl Mul<Matrix> for Matrix {
                 Row,
             )
         } else if self.shape == Col && other.shape == Row {
-            self.change_shape().mul(other.change_shape())
+            self.change_shape().rem(other.change_shape())
         } else if self.shape == Col {
-            self.change_shape().mul(other)
+            self.change_shape().rem(other)
         } else {
-            self.mul(other.change_shape())
+            self.rem(other.change_shape())
         }
     }
 }
 
-impl Mul<f64> for Matrix {
-    type Output = Matrix;
-
-    fn mul(self, other: f64) -> Matrix {
-        self.fmap(|x| x * other)
-    }
-}
+// =============================================================================
+// 
+// =============================================================================
 
 // =============================================================================
 // Functional Programming Tools (Hand-written)

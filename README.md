@@ -48,6 +48,7 @@ a = matrix(1:4, 2, 2, T)
 b = matrix(1:4, 2, 2, F)
 print(a + b)
 print(a - b)
+print(a * b)
 print(a %*% b)
 ```
 
@@ -57,7 +58,9 @@ let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
 let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
 println!("{}", a.clone() + b.clone());
 println!("{}", a.clone() - b.clone());
-println!("{}", a * b); // Consume -> You can't use a,b anymore.
+println!("{}", a.clone() * b.clone()); // Element-wise multiplication
+println!("{}", a % b);  // Matrix multiplication
+// Consume -> You can't use a,b anymore.
 ```
 
 ### Functional Programming
