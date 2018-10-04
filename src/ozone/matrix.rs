@@ -10,6 +10,9 @@ pub use self::Shape::{Row, Col};
 ///
 /// # Examples
 /// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
 /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
 /// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
@@ -37,8 +40,11 @@ impl fmt::Display for Shape {
 /// # Examples
 ///
 /// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
 /// let a = Matrix {
-///     data: vec![1f64,2,3,4],
+///     data: vec![1f64,2f64,3f64,4f64],
 ///     row: 2,
 ///     col: 2,
 ///     shape: Row,
@@ -65,6 +71,9 @@ impl<T> Generic<T> for Matrix where T: convert::Into<f64> {
     ///
     /// # Examples
     /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
     /// let a = Matrix::new(
     ///     vec![1,2,3,4], // Can use any Into<f64> type
     ///     2,
@@ -89,6 +98,16 @@ impl fmt::Display for Matrix {
     }
 }
 
+impl PartialEq for Matrix {
+    fn eq(&self, other: &Matrix) -> bool {
+        if self.shape == other.shape {
+            (self.data == other.data && self.row == other.row)
+        } else {
+            (self.data == other.change_shape().data && self.row == other.row)
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl Matrix {
     /// Change Bindings
@@ -97,6 +116,9 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
     /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
     /// assert_eq!(a.shape, Row);
     /// let b = a.change_shape();
@@ -144,6 +166,9 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
     /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
     /// println!("{}", a.spread()); // same as println!("{}", a);
     /// // Result:
@@ -233,8 +258,11 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
     /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-    /// println!("{}", a) /// [[1,3],[2,4]]
+    /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
     pub fn transpose(&self) -> Matrix {
         match self.shape {
@@ -272,6 +300,7 @@ impl Add<Matrix> for Matrix {
     }
 }
 
+/// Element-wise addition between Matrix & f64
 impl Add<f64> for Matrix {
     type Output = Matrix;
 
@@ -284,8 +313,12 @@ impl Add<f64> for Matrix {
 ///
 /// # Examples
 /// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
 /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
 /// println!("{}", -a); // [[-1,-2],[-3,-4]]
+/// ```
 impl Neg for Matrix {
     type Output = Matrix;
     
@@ -303,9 +336,13 @@ impl Neg for Matrix {
 ///
 /// # Examples
 /// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
 /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
 /// let b = Matrix::new(vec![1,2,3,4],2,2,Col);
 /// println!("{}", a - b); // [[0, -1], [1, 0]]
+/// ```
 impl Sub<Matrix> for Matrix {
     type Output = Matrix;
 
@@ -314,6 +351,25 @@ impl Sub<Matrix> for Matrix {
     }
 }
 
+impl Sub<f64> for Matrix {
+    type Output = Matrix;
+
+    fn sub(self, other: f64) -> Matrix {
+        self.fmap(|x| x - other)
+    }
+}
+
+/// Matrix Multiplication
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+/// println!("{}", a * b); // [[5, 11], [11, 25]]
+/// ```
 impl Mul<Matrix> for Matrix {
     type Output = Matrix;
 
@@ -345,6 +401,14 @@ impl Mul<Matrix> for Matrix {
         } else {
             self.mul(other.change_shape())
         }
+    }
+}
+
+impl Mul<f64> for Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: f64) -> Matrix {
+        self.fmap(|x| x * other)
     }
 }
 

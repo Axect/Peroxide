@@ -13,4 +13,5 @@ fn main() {
     println!("{}", a.fmap(|x| x + 1f64));
     println!("{}", a.reduce(1, |x,y| x*y));
     println!("{}", a.zip_with(|x,y| x * y, &b));
+    println!("{}", a.clone() + 1f64);
 }
