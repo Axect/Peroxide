@@ -4,6 +4,10 @@
 
 Rust numeric library with R Syntax.
 
+## Latest README version
+
+Corresponds with `0.2.2`.
+
 ## Usage
 
 ### Matrix Declaration
