@@ -83,3 +83,7 @@ println!("{}", a.fmap(|x| x * 2.0));
 // r[0]     2    4
 // r[1]     6    8
 ```
+
+## TODO
+
+* Extract row & col operator
