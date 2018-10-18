@@ -18,4 +18,8 @@ fn main() {
 
     let c = seq(1,10,1);
     println!("{}", c);
+
+    println!("{}", a);
+    println!("{}", a.col(0));
+    println!("{}", a.col(1));
 }

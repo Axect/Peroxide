@@ -271,12 +271,37 @@ impl Matrix {
         }
     }
 
-    // pub fn col(&self, index: usize) -> Matrix {
-    //     assert!(index < self.col);
-    //     match self.shape {
-    //         Row => 
-    //     }
-    // }
+    /// Extract Column
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+    /// assert_eq!(a.col(1), Matrix::new(vec![1,3], 2, 1, Col));
+    /// ```
+    pub fn col(&self, index: usize) -> Matrix {
+        assert!(index < self.col);
+        let mut container: Vec<f64> = Vec::new();
+        match self.shape {
+            Row => {
+                let l: usize = self.row * self.col;
+                for i in 0 .. l {
+                    if i % self.col == index {
+                        container.push(self.data[i]);
+                    }
+                }
+            },
+            Col => {
+                let s: usize = self.row * index;
+                container = self.data.clone().into_iter()
+                    .skip(s)
+                    .take(self.col).collect::<Vec<f64>>();
+            }
+        }
+        Matrix::new(container, self.row, 1, Col)
+    }
 }
 
 // =============================================================================
