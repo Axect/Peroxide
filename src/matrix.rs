@@ -270,6 +270,34 @@ impl Matrix {
             Col => Matrix::new(self.data.clone(), self.col, self.row, Row)
         }
     }
+
+    // pub fn col(&self, index: usize) -> Matrix {
+    //     assert!(index < self.col);
+    //     match self.shape {
+    //         Row => 
+    //     }
+    // }
+}
+
+// =============================================================================
+// Seq Declaration
+// =============================================================================
+pub fn seq<T>(start: T, end: T, step: T) -> Matrix where T: convert::Into<f64> {
+    let s: f64 = start.into();
+    let e: f64 = end.into();
+    let step: f64 = step.into();
+
+    assert!(e > s);
+    
+    let factor: f64 = (e - s) / step;
+    let l: usize = factor as usize + 1;
+    let mut v: Vec<f64> = Vec::new();
+
+    for i in 0 .. l {
+        v.push(s + step * (i as f64));
+    }
+
+    return Matrix::new(v, l, 1, Col);
 }
 
 // =============================================================================
@@ -432,10 +460,6 @@ impl Rem<Matrix> for Matrix {
         }
     }
 }
-
-// =============================================================================
-// 
-// =============================================================================
 
 // =============================================================================
 // Functional Programming Tools (Hand-written)

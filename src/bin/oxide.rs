@@ -15,4 +15,7 @@ fn main() {
     println!("{}", a.zip_with(|x,y| x * y, &b));
     // println!("{}", a.clone() + 1f64);
     println!("{}", a.clone() % b.clone());
+
+    let c = seq(1,10,1);
+    println!("{}", c);
 }
