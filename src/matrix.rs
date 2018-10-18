@@ -302,6 +302,28 @@ impl Matrix {
         }
         Matrix::new(container, self.row, 1, Col)
     }
+
+    pub fn row(&self, index: usize) -> Matrix {
+        assert!(index < self.row);
+        let mut container: Vec<f64> = Vec::new();
+        match self.shape {
+            Row => {
+                let s: usize = self.col * index;
+                container = self.data.clone().into_iter()
+                    .skip(s)
+                    .take(self.row).collect::<Vec<f64>>();
+            },
+            Col => {
+                let l: usize = self.row * self.col;
+                for i in 0 .. l {
+                    if i % self.row == index {
+                        container.push(self.data[i]);
+                    }
+                }
+            }
+        }
+        Matrix::new(container, 1, self.col, Row)
+    }
 }
 
 // =============================================================================
