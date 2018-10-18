@@ -279,7 +279,7 @@ impl Matrix {
     /// use peroxide::*;
     ///
     /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-    /// assert_eq!(a.col(1), Matrix::new(vec![1,3], 2, 1, Col));
+    /// assert_eq!(a.col(0), Matrix::new(vec![1,3], 2, 1, Col));
     /// ```
     pub fn col(&self, index: usize) -> Matrix {
         assert!(index < self.col);
@@ -303,6 +303,16 @@ impl Matrix {
         Matrix::new(container, self.row, 1, Col)
     }
 
+    /// Extract Row
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+    /// assert_eq!(a.row(0), Matrix::new(vec![1,2], 1, 2, Row));
+    /// ```
     pub fn row(&self, index: usize) -> Matrix {
         assert!(index < self.row);
         let mut container: Vec<f64> = Vec::new();

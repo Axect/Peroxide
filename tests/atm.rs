@@ -30,3 +30,14 @@ fn test_add_f64() {
     );
     assert_eq!(a + 1.0, b);
 }
+
+#[test]
+fn test_col() {
+    let a = Matrix::new(
+        vec![1,2,3,4],
+        2,
+        2,
+        Row,
+    );
+    assert_eq!(a.col(0), Matrix::new(vec![1,3],2,1,Col));
+}
