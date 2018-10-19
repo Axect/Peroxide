@@ -3,3 +3,4 @@
 *.lock
 Cargo.lock
 .idea
+.idea/*
