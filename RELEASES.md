@@ -1,3 +1,9 @@
+# Release 0.2.4 (2018-10-19)
+
+* `matrix` function - Same as R
+* Fix `README.md`
+* More documentation
+
 # Release 0.2.3 (2018-10-18)
 
 * `seq` function - Same as R

@@ -6,9 +6,16 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.2.2`.
+Corresponds with `0.2.4`.
 
 ## Usage
+
+### Initial Import
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+```
 
 ### Matrix Declaration
 
@@ -19,7 +26,8 @@ a = matrix(1:4, 2, 2, True)
 
 ```rust
 // Peroxide
-let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+let a = Matrix::new(vec![1,2,3,4], 2, 2, Row); // Rust like
+let a = matrix(vec![1,2,3,4], 2, 2, Row); // R like
 ```
 
 ### Print
@@ -35,7 +43,7 @@ print(a)
 
 ```rust
 // Peroxide
-let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+let a = matrix(vec![1,2,3,4], 2, 2, Row);
 println!("{}", a);
 //       c[0] c[1]
 // r[0]     1    2
@@ -58,8 +66,8 @@ print(a %*% b)
 
 ```rust
 // Peroxide
-let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+let a = matrix(vec![1,2,3,4], 2, 2, Row);
+let b = matrix(vec![1,2,3,4], 2, 2, Col);
 println!("{}", a.clone() + b.clone());
 println!("{}", a.clone() - b.clone());
 println!("{}", a.clone() * b.clone()); // Element-wise multiplication
@@ -67,11 +75,30 @@ println!("{}", a % b);  // Matrix multiplication
 // Consume -> You can't use a,b anymore.
 ```
 
+### Extract Column or Row
+
+```R
+a = matrix(1:4, 2, 2, T)
+print(a[,1])
+print(a[,2])
+print(a[1,])
+print(a[2,])
+```
+
+```rust
+//Peroxide
+let a = matrix(vec![1,2,3,4], 2, 2, Row);
+println!("{}", a.col(0));
+println!("{}", a.col(1));
+println!("{}", a.row(0));
+println!("{}", a.row(1));
+```
+
 ### Functional Programming
 
 ```rust
 // Peroxide
-let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+let a = matrix(vec![1,2,3,4], 2, 2, Row);
 println!("{}", a.fmap(|x| x + 1.0));
 println!("{}", a.fmap(|x| x - 1.0));
 println!("{}", a.fmap(|x| x * 2.0));
@@ -93,4 +120,4 @@ println!("{}", a.fmap(|x| x * 2.0));
 
 ## TODO
 
-* Extract row & col operator
+* ~~Extract row & col operator~~

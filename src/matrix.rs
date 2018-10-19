@@ -27,11 +27,11 @@ pub enum Shape {
 /// Print for Shape
 impl fmt::Display for Shape {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let to_disp = match self {
+        let to_display = match self {
             Row => "Row",
             Col => "Col",
         };
-        write!(f, "{}", to_disp)
+        write!(f, "{}", to_display)
     }
 }
 
@@ -91,6 +91,19 @@ impl<T> Generic<T> for Matrix where T: convert::Into<f64> {
     }
 }
 
+/// R-like matrix constructor
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+/// ```
+pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
+    Matrix::new(v, x, y, shape)
+}
+
 /// Pretty Print
 impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -98,6 +111,7 @@ impl fmt::Display for Matrix {
     }
 }
 
+/// PartialEq implements
 impl PartialEq for Matrix {
     fn eq(&self, other: &Matrix) -> bool {
         if self.shape == other.shape {
@@ -108,6 +122,7 @@ impl PartialEq for Matrix {
     }
 }
 
+/// Main matrix structure
 #[allow(dead_code)]
 impl Matrix {
     /// Change Bindings
@@ -339,6 +354,16 @@ impl Matrix {
 // =============================================================================
 // Seq Declaration
 // =============================================================================
+/// R like seq function
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = seq(1, 4, 1);
+/// assert_eq!(a, matrix(vec![1,2,3,4], 4, 1, Col));
+/// ```
 pub fn seq<T>(start: T, end: T, step: T) -> Matrix where T: convert::Into<f64> {
     let s: f64 = start.into();
     let e: f64 = end.into();
@@ -431,7 +456,7 @@ impl Neg for Matrix {
 impl Sub<Matrix> for Matrix {
     type Output = Matrix;
 
-    fn sub(self, other: Matrix) -> Matrix {
+     fn sub(self, other: Matrix) -> Matrix {
         self.add(other.neg())
     }
 }
