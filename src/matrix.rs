@@ -543,6 +543,18 @@ impl Rem<Matrix> for Matrix {
     }
 }
 
+/// Index for Matrix
+///
+/// `(usize, usize) -> f64`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix(vec![1,2,3,4],2,2,Row);
+/// assert_eq!(a[(0,1)], 2f64);
+/// ```
 impl Index<(usize, usize)> for Matrix {
     type Output = f64;
 

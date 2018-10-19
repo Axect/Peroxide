@@ -9,11 +9,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d4411860-df82-4fb4-93d6-1f66bb631ff2" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.travis.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.travis.yml.old" beforeDir="false" />
-    </list>
+    <list default="true" id="d4411860-df82-4fb4-93d6-1f66bb631ff2" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,11 +48,11 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Markdown" value="581" />
+          <entry key="Markdown" value="583" />
           <entry key="PLAIN_TEXT" value="82" />
           <entry key="Rust" value="3009" />
           <entry key="TOML file" value="5" />
-          <entry key="YAML" value="4" />
+          <entry key="YAML" value="11" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages" />
@@ -64,23 +60,23 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="gitignore" value="18" />
-          <entry key="md" value="592" />
+          <entry key="md" value="594" />
           <entry key="old" value="1" />
           <entry key="rs" value="2998" />
           <entry key="toml" value="5" />
           <entry key="txt" value="63" />
-          <entry key="yml" value="4" />
+          <entry key="yml" value="11" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/matrix.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="642">
-              <caret line="631" column="58" selection-start-line="631" selection-start-column="58" selection-end-line="631" selection-end-column="58" />
+            <state relative-caret-position="2530">
+              <caret line="618" column="30" selection-start-line="618" selection-start-column="30" selection-end-line="618" selection-end-column="30" />
               <folding>
                 <element signature="e#0#17#0" />
                 <element signature="e#94#104#0" />
@@ -221,16 +217,18 @@
                 <element signature="e#16185#16629#0" />
                 <element signature="e#16314#16359#0" />
                 <element signature="e#16453#16460#0" />
+                <element signature="e#16910#16930#0" />
+                <element signature="e#17261#17688#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.travis.yml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="12" selection-start-line="12" selection-end-line="12" />
+            <state relative-caret-position="207">
+              <caret line="9" column="2" selection-start-line="9" selection-start-column="2" selection-end-line="9" selection-end-column="2" />
             </state>
           </provider>
         </entry>
@@ -269,8 +267,8 @@
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="654">
-                <caret line="122" column="31" selection-start-line="122" selection-start-column="31" selection-end-line="122" selection-end-column="31" />
+              <first_editor relative-caret-position="46">
+                <caret line="2" column="68" selection-start-line="2" selection-start-column="68" selection-end-line="2" selection-end-column="68" />
               </first_editor>
               <second_editor />
             </state>
@@ -293,7 +291,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/src/bin/oxide.rs" />
         <option value="$PROJECT_DIR$/src/matrix.rs" />
@@ -301,6 +298,7 @@
         <option value="$PROJECT_DIR$/RELEASES.md" />
         <option value="$PROJECT_DIR$/.travis.yml.old" />
         <option value="$PROJECT_DIR$/.travis.yml" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -401,7 +399,7 @@
       <workItem from="1539928170846" duration="4115000" />
       <workItem from="1539935839784" duration="1652000" />
       <workItem from="1539937519109" duration="677000" />
-      <workItem from="1539938614041" duration="6727000" />
+      <workItem from="1539938614041" duration="8012000" />
     </task>
     <task id="LOCAL-00001" summary="index ops">
       <created>1539946220652</created>
@@ -428,7 +426,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16682000" />
+    <option name="totallyTimeSpent" value="17967000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -441,8 +439,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="9" y="-16" width="2542" height="1422" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.122990355" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.122990355" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -454,7 +453,7 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3299611" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="9" visible="true" weight="0.3299611" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="9" visible="true" weight="0.3299611" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -498,16 +497,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="654">
-            <caret line="122" column="31" selection-start-line="122" selection-start-column="31" selection-end-line="122" selection-end-column="31" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="46">
@@ -525,10 +514,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="46">
+            <caret line="2" column="68" selection-start-line="2" selection-start-column="68" selection-end-line="2" selection-end-column="68" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.travis.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="207">
+          <caret line="9" column="2" selection-start-line="9" selection-start-column="2" selection-end-line="9" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/matrix.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="642">
-          <caret line="631" column="58" selection-start-line="631" selection-start-column="58" selection-end-line="631" selection-end-column="58" />
+        <state relative-caret-position="2530">
+          <caret line="618" column="30" selection-start-line="618" selection-start-column="30" selection-end-line="618" selection-end-column="30" />
           <folding>
             <element signature="e#0#17#0" />
             <element signature="e#94#104#0" />
@@ -669,14 +675,9 @@
             <element signature="e#16185#16629#0" />
             <element signature="e#16314#16359#0" />
             <element signature="e#16453#16460#0" />
+            <element signature="e#16910#16930#0" />
+            <element signature="e#17261#17688#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.travis.yml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="12" selection-start-line="12" selection-end-line="12" />
         </state>
       </provider>
     </entry>
