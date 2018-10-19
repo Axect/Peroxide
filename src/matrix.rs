@@ -617,6 +617,7 @@ pub trait LinearAlgebra {
 
 impl LinearAlgebra for Matrix {
     fn lu(&self) -> (Matrix, Matrix) {
+        assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
         let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
@@ -632,7 +633,7 @@ impl LinearAlgebra for Matrix {
             Col => {
                 for i in 0 .. n {
                     let j: usize = i * n;
-                    u_vec[i] = self.data[i];
+                    u_vec[j] = self.data[j];
                 }
             }
         }
@@ -643,16 +644,28 @@ impl LinearAlgebra for Matrix {
             l_vec[j] = 1f64;
         }
 
-//        for i in 0 .. n {
-//            for k in i .. n {
-//                let mut s = 0f64;
-//                for j in 0 .. i {
-//                    s +=
-//                }
-//            }
-//        }
+        for i in 0 .. n {
+            for k in i .. n {
+                let mut s = 0f64;
+                for j in 0 .. i {
+                    s += l_vec[i*n + j] * u_vec[j*n + k];
+                }
+                u_vec[i*n + k] = self[(i, k)] - s;
+            }
 
-        unimplemented!()
+            for k in (i+1) .. n {
+                let mut s = 0f64;
+                for j in 0 .. i {
+                    s += l_vec[k*n + j] * u_vec[j*n + i];
+                }
+                l_vec[k*n + i] = (self[(k, i)] - s) / u_vec[i*n + i];
+            }
+        }
+
+        let l = matrix(l_vec, n, n, Row);
+        let u = matrix(u_vec, n, n, Row);
+
+        return (l, u);
     }
 }
 

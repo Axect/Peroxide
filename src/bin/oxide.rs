@@ -28,4 +28,14 @@ fn main() {
     println!("{}", a[(0,1)]);
     println!("{}", a[(1,0)]);
     println!("{}", a[(1,1)]);
+
+    let lu = a.lu();
+    println!("{}", lu.0);
+    println!("{}", lu.1);
+
+    let d = matrix(vec![1,2,2,4,1,5,6,-2,3], 3, 3, Row);
+    let lu2 = d.lu();
+    println!("{}", lu2.0);
+    println!("{}", lu2.1);
+    println!("{}", lu2.0 % lu2.1);
 }
