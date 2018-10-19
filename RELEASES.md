@@ -1,3 +1,7 @@
+# Release 0.2.5 (2018-10-19)
+
+* LU Decomposition
+
 # Release 0.2.4 (2018-10-19)
 
 * `matrix` function - Same as R

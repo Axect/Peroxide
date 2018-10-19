@@ -612,10 +612,26 @@ impl FP for Matrix {
 // Linear Algebra
 // =============================================================================
 pub trait LinearAlgebra {
+    /// LU Decomposition Trait
     fn lu(&self) -> (Matrix, Matrix);
 }
 
 impl LinearAlgebra for Matrix {
+    /// LU Decomposition Implements
+    ///
+    /// # Caution
+    /// It returns tuple of matrices - (Matrix, Matrix)
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    /// let lu = a.lu();
+    /// assert_eq!(lu.0, matrix(vec![1,0,3,1], 2, 2, Row));
+    /// assert_eq!(lu.1, matrix(vec![1,2,0,-2], 2, 2, Row));
+    /// ```
     fn lu(&self) -> (Matrix, Matrix) {
         assert_eq!(self.col, self.row);
         let n = self.row;

@@ -10,8 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d4411860-df82-4fb4-93d6-1f66bb631ff2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/bin/oxide.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/oxide.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/matrix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/matrix.rs" afterDir="false" />
     </list>
@@ -53,8 +51,8 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="534" />
-          <entry key="PLAIN_TEXT" value="9" />
-          <entry key="Rust" value="1973" />
+          <entry key="PLAIN_TEXT" value="52" />
+          <entry key="Rust" value="2605" />
           <entry key="TOML file" value="2" />
         </counts>
       </usages-collector>
@@ -62,21 +60,22 @@
       <usages-collector id="statistics.cidr.testingFrameworks.usages" />
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="gitignore" value="9" />
+          <entry key="gitignore" value="18" />
           <entry key="md" value="545" />
-          <entry key="rs" value="1962" />
+          <entry key="rs" value="2594" />
           <entry key="toml" value="2" />
+          <entry key="txt" value="34" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/matrix.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="529">
-              <caret line="639" column="22" selection-start-line="639" selection-start-column="22" selection-end-line="639" selection-end-column="22" />
+            <state relative-caret-position="619">
+              <caret line="669" selection-start-line="669" selection-end-line="669" />
               <folding>
                 <element signature="e#0#17#0" />
                 <element signature="e#94#104#0" />
@@ -222,20 +221,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="92">
-              <caret line="4" column="4" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/bin/oxide.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="644">
-              <caret line="28" column="28" selection-start-line="28" selection-start-column="28" selection-end-line="28" selection-end-column="28" />
+            <state relative-caret-position="412">
+              <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
             </state>
           </provider>
         </entry>
@@ -292,9 +282,9 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/RELEASES.md" />
+        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/src/matrix.rs" />
         <option value="$PROJECT_DIR$/src/bin/oxide.rs" />
-        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -395,12 +385,27 @@
       <workItem from="1539928170846" duration="4115000" />
       <workItem from="1539935839784" duration="1652000" />
       <workItem from="1539937519109" duration="677000" />
-      <workItem from="1539938614041" duration="4455000" />
+      <workItem from="1539938614041" duration="5963000" />
     </task>
+    <task id="LOCAL-00001" summary="index ops">
+      <created>1539946220652</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1539946220652</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Remove idea">
+      <created>1539946275415</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1539946275415</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14410000" />
+    <option name="totallyTimeSpent" value="15918000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -413,6 +418,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="9" y="-16" width="2542" height="1422" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.122990355" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -441,6 +447,11 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="index ops" />
+    <MESSAGE value="Remove idea" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove idea" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src/libcore/ops/arith.rs">
@@ -477,17 +488,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="115">
+          <caret line="5" column="6" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/bin/oxide.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="644">
-          <caret line="28" column="28" selection-start-line="28" selection-start-column="28" selection-end-line="28" selection-end-column="28" />
+        <state relative-caret-position="412">
+          <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/matrix.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="529">
-          <caret line="639" column="22" selection-start-line="639" selection-start-column="22" selection-end-line="639" selection-end-column="22" />
+        <state relative-caret-position="619">
+          <caret line="669" selection-start-line="669" selection-end-line="669" />
           <folding>
             <element signature="e#0#17#0" />
             <element signature="e#94#104#0" />
@@ -629,13 +647,6 @@
             <element signature="e#16314#16359#0" />
             <element signature="e#16453#16460#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="92">
-          <caret line="4" column="4" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="4" />
         </state>
       </provider>
     </entry>
