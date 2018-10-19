@@ -24,4 +24,8 @@ fn main() {
     println!("{}", a.col(1));
     println!("{}", a.row(0));
     println!("{}", a.row(1));
+    println!("{}", a[(0,0)]);
+    println!("{}", a[(0,1)]);
+    println!("{}", a[(1,0)]);
+    println!("{}", a[(1,1)]);
 }

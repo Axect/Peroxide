@@ -1,6 +1,6 @@
 use std::convert;
 use std::fmt;
-use std::ops::{Add, Neg, Sub, Mul, Rem};
+use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
 pub use self::Shape::{Row, Col};
 
 /// To select matrices' binding.
@@ -543,6 +543,19 @@ impl Rem<Matrix> for Matrix {
     }
 }
 
+impl Index<(usize, usize)> for Matrix {
+    type Output = f64;
+
+    fn index(&self, pair: (usize, usize)) -> &f64 {
+        let i = pair.0;
+        let j = pair.1;
+        match self.shape {
+            Row => &self.data[i * self.col + j],
+            Col => &self.data[i + j * self.row]
+        }
+    }
+}
+
 // =============================================================================
 // Functional Programming Tools (Hand-written)
 // =============================================================================
@@ -594,6 +607,55 @@ impl FP for Matrix {
         )
     }
 }
+
+// =============================================================================
+// Linear Algebra
+// =============================================================================
+pub trait LinearAlgebra {
+    fn lu(&self) -> (Matrix, Matrix);
+}
+
+impl LinearAlgebra for Matrix {
+    fn lu(&self) -> (Matrix, Matrix) {
+        let n = self.row;
+        let len: usize = n * n;
+        let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
+        let mut u_vec: Vec<f64> = vec![0f64; len]; // Row based
+
+        // Initialize U
+        match self.shape {
+            Row => {
+                for i in 0 .. n {
+                    u_vec[i] = self.data[i];
+                }
+            },
+            Col => {
+                for i in 0 .. n {
+                    let j: usize = i * n;
+                    u_vec[i] = self.data[i];
+                }
+            }
+        }
+
+        // Initialize L
+        for i in 0 .. n {
+            let j = i * (n + 1);
+            l_vec[j] = 1f64;
+        }
+
+//        for i in 0 .. n {
+//            for k in i .. n {
+//                let mut s = 0f64;
+//                for j in 0 .. i {
+//                    s +=
+//                }
+//            }
+//        }
+
+        unimplemented!()
+    }
+}
+
 
 // =============================================================================
 // Back-end Utils
