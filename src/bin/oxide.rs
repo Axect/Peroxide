@@ -38,4 +38,7 @@ fn main() {
     println!("{}", lu2.0);
     println!("{}", lu2.1);
     println!("{}", lu2.0 % lu2.1);
+
+    let f = seq(1, 10, 1);
+    println!("{}", f);
 }

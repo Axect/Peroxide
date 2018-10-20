@@ -1,3 +1,9 @@
+# Release 0.3.0 (2018-10-20)
+
+* Vector
+* `seq` : moved from matrix to vector
+* Rename `Generic` trait - `CreateMatrix`
+
 # Release 0.2.5 (2018-10-19)
 
 * LU Decomposition

@@ -59,11 +59,11 @@ pub struct Matrix {
 }
 
 /// To convert generic vector to Matrix
-pub trait Generic<T: convert::Into<f64>> {
+pub trait CreateMatrix<T: convert::Into<f64>> {
     fn new(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix;
 }
 
-impl<T> Generic<T> for Matrix where T: convert::Into<f64> {
+impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
     /// Matrix generic constructor
     ///
     /// You can use any numeric type vector
@@ -352,37 +352,6 @@ impl Matrix {
 }
 
 // =============================================================================
-// Seq Declaration
-// =============================================================================
-/// R like seq function
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = seq(1, 4, 1);
-/// assert_eq!(a, matrix(vec![1,2,3,4], 4, 1, Col));
-/// ```
-pub fn seq<T>(start: T, end: T, step: T) -> Matrix where T: convert::Into<f64> {
-    let s: f64 = start.into();
-    let e: f64 = end.into();
-    let step: f64 = step.into();
-
-    assert!(e > s);
-    
-    let factor: f64 = (e - s) / step;
-    let l: usize = factor as usize + 1;
-    let mut v: Vec<f64> = Vec::new();
-
-    for i in 0 .. l {
-        v.push(s + step * (i as f64));
-    }
-
-    return Matrix::new(v, l, 1, Col);
-}
-
-// =============================================================================
 // Standard Operation for Matrix
 // =============================================================================
 
@@ -623,9 +592,11 @@ impl FP for Matrix {
 // =============================================================================
 // Linear Algebra
 // =============================================================================
+/// Linear algebra trait
 pub trait LinearAlgebra {
-    /// LU Decomposition Trait
     fn lu(&self) -> (Matrix, Matrix);
+    fn det(&self) -> Option<f64>;
+    fn inv(&self) -> Option<Matrix>;
 }
 
 impl LinearAlgebra for Matrix {
@@ -695,6 +666,12 @@ impl LinearAlgebra for Matrix {
 
         return (l, u);
     }
+    fn det(&self) -> Option<f64> {
+        unimplemented!()
+    }
+    fn inv(&self) -> Option<Matrix> {
+        unimplemented!()
+    }
 }
 
 
@@ -714,4 +691,8 @@ pub fn tab(s: &str) -> String {
         m += " ";
     }
     return m;
+}
+
+pub fn inv_l(m: &Matrix) -> Matrix {
+    unimplemented!()
 }
