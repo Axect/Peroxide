@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.2.4`.
+Corresponds with `0.3.1`.
 
 ## Usage
 
@@ -17,6 +17,20 @@ extern crate peroxide;
 use peroxide::*;
 ```
 
+### Vec\<f64\> Declaration
+
+```R
+# R
+a = c(1,2,3,4)
+b = seq(1,5,2) # (=c(1,3,5))
+```
+
+```rust
+// Peroxide
+let a = c!(1,2,3,4);
+let b = seq!(1,5,2) // (=c!(1,3,5))
+```
+
 ### Matrix Declaration
 
 ```R
@@ -25,9 +39,14 @@ a = matrix(1:4, 2, 2, True)
 ```
 
 ```rust
-// Peroxide
-let a = Matrix::new(vec![1,2,3,4], 2, 2, Row); // Rust like
-let a = matrix(vec![1,2,3,4], 2, 2, Row); // R like
+// Peroxide (All belows are same)
+// matrix function
+let a = matrix(vec![1,2,3,4], 2, 2, Row);
+let b = matrix(c!(1,2,3,4), 2, 2, Row);
+let c = matrix(seq!(1,4,1), 2, 2, Row);
+
+// matrix macro (More convenient)
+let c = matrix!(1;4;1, 2, 2, Row);
 ```
 
 ### Print
@@ -43,7 +62,7 @@ print(a)
 
 ```rust
 // Peroxide
-let a = matrix(vec![1,2,3,4], 2, 2, Row);
+let a = matrix!(1;4;1,  2, 2, Row);
 println!("{}", a);
 //       c[0] c[1]
 // r[0]     1    2
@@ -66,8 +85,8 @@ print(a %*% b)
 
 ```rust
 // Peroxide
-let a = matrix(vec![1,2,3,4], 2, 2, Row);
-let b = matrix(vec![1,2,3,4], 2, 2, Col);
+let a = matrix!(1;4;1, 2, 2, Row);
+let b = matrix!(1;4;1, 2, 2, Col);
 println!("{}", a.clone() + b.clone());
 println!("{}", a.clone() - b.clone());
 println!("{}", a.clone() * b.clone()); // Element-wise multiplication
@@ -87,7 +106,7 @@ print(a[2,])
 
 ```rust
 //Peroxide
-let a = matrix(vec![1,2,3,4], 2, 2, Row);
+let a = matrix!(1;4;1, 2, 2, Row);
 println!("{}", a.col(0));
 println!("{}", a.col(1));
 println!("{}", a.row(0));
@@ -98,7 +117,7 @@ println!("{}", a.row(1));
 
 ```rust
 // Peroxide
-let a = matrix(vec![1,2,3,4], 2, 2, Row);
+let a = matrix!(1;4;1, 2, 2, Row);
 println!("{}", a.fmap(|x| x + 1.0));
 println!("{}", a.fmap(|x| x - 1.0));
 println!("{}", a.fmap(|x| x * 2.0));

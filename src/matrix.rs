@@ -2,6 +2,7 @@ use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
 pub use self::Shape::{Row, Col};
+pub use vector_macro::*;
 
 /// To select matrices' binding.
 /// 
@@ -102,6 +103,52 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
 /// ```
 pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
     Matrix::new(v, x, y, shape)
+}
+
+/// More R like Matrix constructor (Macro)
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row); // start;end;step
+/// let b = matrix(c![1,2,3,4], 2, 2, Row);
+/// let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
+/// assert!(a == b && b == c);
+/// ```
+#[macro_export]
+macro_rules! matrix {
+//    ( c![ $($x:expr), * ],$row:expr,$col:expr,$shape:expr ) => {
+//        {
+//            CreateMatrix::new(
+//                c![$($x),*],
+//                $row,
+//                $col,
+//                $shape
+//            )
+//        }
+//    };
+//    ( c![ $($x:expr); * ],$row:expr,$col:expr,$shape:expr ) => {
+//        {
+//            from_vector(
+//                c![$($x);*],
+//                $row,
+//                $col,
+//                $shape
+//            )
+//        }
+//    };
+    ( $start:expr;$end:expr;$step:expr,$row:expr,$col:expr,$shape:expr ) => {
+        {
+            matrix(
+                seq!($start,$end,$step),
+                $row,
+                $col,
+                $shape
+            )
+        }
+    };
 }
 
 /// Pretty Print
@@ -535,6 +582,44 @@ impl Index<(usize, usize)> for Matrix {
             Col => &self.data[i + j * self.row]
         }
     }
+}
+
+// =============================================================================
+// Mix Matrix & Vector
+// =============================================================================
+/// Vector to Matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let v = seq!(1,4,1); // [1,2,3,4]
+/// let m = vec2mat(v, Row);
+/// assert_eq!(m, matrix(vec![1,2,3,4], 1, 4, Row));
+/// ```
+pub fn vec2mat(v: Vec<f64>, shape: Shape) -> Matrix {
+    match shape {
+        Row => matrix(v.clone(), 1, v.len(), Row),
+        Col => matrix(v.clone(), v.len(), 1, Col)
+    }
+}
+
+/// Single matrix to Vector
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let m = matrix(vec![1,2,3,4], 2, 2, Row);
+/// let n = m.col(0);
+/// let v = mat2vec(n);
+/// assert_eq!(v, c![1,3]);
+/// ```
+pub fn mat2vec(m: Matrix) -> Vec<f64> {
+    assert!(m.row == 1 || m.col == 1, "Can't convert non-single matrix");
+    m.data
 }
 
 // =============================================================================

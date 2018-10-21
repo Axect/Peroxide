@@ -16,8 +16,8 @@ fn main() {
     // println!("{}", a.clone() + 1f64);
     println!("{}", a.clone() % b.clone());
 
-    let c = seq(1,10,1);
-    println!("{}", c);
+    let c = seq!(1,10,1);
+    println!("{:?}", c);
 
     println!("{}", a);
     println!("{}", a.col(0));
@@ -39,6 +39,11 @@ fn main() {
     println!("{}", lu2.1);
     println!("{}", lu2.0 % lu2.1);
 
-    let f = seq(1, 10, 1);
-    println!("{}", f);
+    let f = seq!(1, 10, 1);
+    println!("{:?}, {}", f.clone(), f.len());
+
+    let g = c![1,2,3,4];
+    println!("{:?}, {}", g.clone(), g.len());
+    let h = c![g; g; g];
+    println!("{:?}, {}", h.clone(), h.len());
 }

@@ -1,3 +1,11 @@
+# Release 0.3.1 (2018-10-21)
+
+* Remove `Vector` struct
+    * Replace with `vector_macro`
+    * `c!` & `seq!`
+* Make R-like matrix macro
+    * `matrix!(1;4;1, 2, 2, Row)`
+
 # Release 0.3.0 (2018-10-20)
 
 * Vector
