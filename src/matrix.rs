@@ -119,26 +119,6 @@ pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: c
 /// ```
 #[macro_export]
 macro_rules! matrix {
-//    ( c![ $($x:expr), * ],$row:expr,$col:expr,$shape:expr ) => {
-//        {
-//            CreateMatrix::new(
-//                c![$($x),*],
-//                $row,
-//                $col,
-//                $shape
-//            )
-//        }
-//    };
-//    ( c![ $($x:expr); * ],$row:expr,$col:expr,$shape:expr ) => {
-//        {
-//            from_vector(
-//                c![$($x);*],
-//                $row,
-//                $col,
-//                $shape
-//            )
-//        }
-//    };
     ( $start:expr;$end:expr;$step:expr,$row:expr,$col:expr,$shape:expr ) => {
         {
             matrix(
@@ -340,10 +320,10 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::*;
     ///
-    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-    /// assert_eq!(a.col(0), Matrix::new(vec![1,3], 2, 1, Col));
+    /// let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    /// assert_eq!(a.col(0), c!(1,3));
     /// ```
-    pub fn col(&self, index: usize) -> Matrix {
+    pub fn col(&self, index: usize) -> Vector {
         assert!(index < self.col);
         let mut container: Vec<f64> = Vec::new();
         match self.shape {
@@ -362,7 +342,7 @@ impl Matrix {
                     .take(self.col).collect::<Vec<f64>>();
             }
         }
-        Matrix::new(container, self.row, 1, Col)
+        container
     }
 
     /// Extract Row
@@ -372,10 +352,10 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::*;
     ///
-    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-    /// assert_eq!(a.row(0), Matrix::new(vec![1,2], 1, 2, Row));
+    /// let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    /// assert_eq!(a.row(0), c!(1,2));
     /// ```
-    pub fn row(&self, index: usize) -> Matrix {
+    pub fn row(&self, index: usize) -> Vector {
         assert!(index < self.row);
         let mut container: Vec<f64> = Vec::new();
         match self.shape {
@@ -394,7 +374,28 @@ impl Matrix {
                 }
             }
         }
-        Matrix::new(container, 1, self.col, Row)
+        container
+    }
+
+    /// Extract diagonal components
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.diag(), c!(1,4));
+    /// ```
+    pub fn diag(&self) -> Vector {
+        let mut container: Vector = Vec::new();
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r, c);
+        for i in 0 .. r {
+            container.push(self.data[i * (c + 1)]);
+        }
+        container
     }
 }
 
@@ -585,44 +586,6 @@ impl Index<(usize, usize)> for Matrix {
 }
 
 // =============================================================================
-// Mix Matrix & Vector
-// =============================================================================
-/// Vector to Matrix
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let v = seq!(1,4,1); // [1,2,3,4]
-/// let m = vec2mat(v, Row);
-/// assert_eq!(m, matrix(vec![1,2,3,4], 1, 4, Row));
-/// ```
-pub fn vec2mat(v: Vec<f64>, shape: Shape) -> Matrix {
-    match shape {
-        Row => matrix(v.clone(), 1, v.len(), Row),
-        Col => matrix(v.clone(), v.len(), 1, Col)
-    }
-}
-
-/// Single matrix to Vector
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let m = matrix(vec![1,2,3,4], 2, 2, Row);
-/// let n = m.col(0);
-/// let v = mat2vec(n);
-/// assert_eq!(v, c![1,3]);
-/// ```
-pub fn mat2vec(m: Matrix) -> Vec<f64> {
-    assert!(m.row == 1 || m.col == 1, "Can't convert non-single matrix");
-    m.data
-}
-
-// =============================================================================
 // Functional Programming Tools (Hand-written)
 // =============================================================================
 pub trait FP {
@@ -680,7 +643,8 @@ impl FP for Matrix {
 /// Linear algebra trait
 pub trait LinearAlgebra {
     fn lu(&self) -> (Matrix, Matrix);
-    fn det(&self) -> Option<f64>;
+    fn det(&self) -> f64;
+    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
 }
 
@@ -751,9 +715,90 @@ impl LinearAlgebra for Matrix {
 
         return (l, u);
     }
-    fn det(&self) -> Option<f64> {
-        unimplemented!()
+
+    /// Determinant
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.det(), -2f64);
+    /// ```
+    fn det(&self) -> f64 {
+        assert_eq!(self.row, self.col);
+        let u = self.lu().1;
+        u.diag().reduce(1, |x,y| x * y)
     }
+
+    /// Block Partition
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;16;1, 4, 4, Row);
+    /// let (m1, m2, m3, m4) = a.block();
+    /// assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Row));
+    /// assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Row));
+    /// assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Row));
+    /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Row));
+    /// ```
+    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix) {
+        assert_eq!(self.row, self.col);
+        let r = self.row;
+        let l = (self.row / 2) as i32;
+
+        let mut v1 = vec![0f64; 2*l as usize];
+        let mut v2 = vec![0f64; l as usize * (r - l as usize)];
+        let mut v3 = vec![0f64; (r - l as usize) * l as usize];
+        let mut v4 = vec![0f64; (r - l as usize) * (r - l as usize)];
+
+        for i in 0 .. r*r {
+            let (quot, rem) = quot_rem(i, r);
+            match (quot, rem) {
+                (q, r) if (q < l) && (r < l) => {
+                    let idx = (q*l + r as i32) as usize;
+                    v1[idx] = self.data[i];
+                },
+                (q, r) if (q < l) && (r >= l) => {
+                    let idx = ((q - 1) * l + r as i32) as usize;
+                    v2[idx] = self.data[i];
+                },
+                (q, r) if (q >= l) && (r < l) => {
+                    let idx = ((q - l) * l + r as i32) as usize;
+                    v3[idx] = self.data[i];
+                },
+                (q, r) if (q >= l) && (r >= l) => {
+                    let idx = ((q - l - 1) * l + r as i32) as usize;
+                    v4[idx] = self.data[i];
+                },
+                _ => ()
+            }
+        }
+
+        match self.shape {
+            Row => {
+                let m1 = matrix(v1, l as usize, l as usize, Row);
+                let m2 = matrix(v2, l as usize, r - l as usize, Row);
+                let m3 = matrix(v3, r - l as usize, l as usize, Row);
+                let m4 = matrix(v4, r - l as usize, r - l as usize, Row);
+
+                (m1, m2, m3, m4) // Row direction
+            },
+            Col => {
+                let m1 = matrix(v1, l as usize, l as usize, Col);
+                let m2 = matrix(v2, r - l as usize, l as usize, Col);
+                let m3 = matrix(v3, l as usize, r - l as usize, Col);
+                let m4 = matrix(v4, r - l as usize, r - l as usize, Col);
+
+                (m1, m2, m3, m4) // Col direction
+            }
+        }
+    }
+
     fn inv(&self) -> Option<Matrix> {
         unimplemented!()
     }
@@ -776,6 +821,10 @@ pub fn tab(s: &str) -> String {
         m += " ";
     }
     return m;
+}
+
+pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
+    ((x / y) as i32, (x % y) as i32)
 }
 
 pub fn inv_l(m: &Matrix) -> Matrix {

@@ -1,4 +1,5 @@
 pub mod matrix;
+
 #[macro_use]
 pub mod vector_macro;
 

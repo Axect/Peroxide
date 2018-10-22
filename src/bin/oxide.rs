@@ -20,10 +20,10 @@ fn main() {
     println!("{:?}", c);
 
     println!("{}", a);
-    println!("{}", a.col(0));
-    println!("{}", a.col(1));
-    println!("{}", a.row(0));
-    println!("{}", a.row(1));
+    println!("{:?}", a.col(0));
+    println!("{:?}", a.col(1));
+    println!("{:?}", a.row(0));
+    println!("{:?}", a.row(1));
     println!("{}", a[(0,0)]);
     println!("{}", a[(0,1)]);
     println!("{}", a[(1,0)]);
@@ -46,4 +46,7 @@ fn main() {
     println!("{:?}, {}", g.clone(), g.len());
     let h = c![g; g; g];
     println!("{:?}, {}", h.clone(), h.len());
+
+    let e = matrix!(1;16;1, 4, 4, Row);
+    println!("{}", e.block().3);
 }

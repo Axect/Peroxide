@@ -1,3 +1,13 @@
+# Release 0.3.2 (2018-10-22)
+
+* Remove non-necessary comments
+* Remove `vec2mat, mat2vec`
+* Change `col`, `row` functions
+    * `col, row` returns `Vec<f64>`
+* Add `diag`
+* Add `det`
+* Add `reduce` in `vector_macro`
+
 # Release 0.3.1 (2018-10-21)
 
 * Remove `Vector` struct
