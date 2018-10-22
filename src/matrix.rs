@@ -745,6 +745,13 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Row));
     /// assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Row));
     /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Row));
+    ///
+    /// let b = matrix!(1;16;1, 4, 4, Col);
+    /// let (m1, m2, m3, m4) = b.block();
+    /// assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Col));
+    /// assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Col));
+    /// assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Col));
+    /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Col));
     /// ```
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix) {
         assert_eq!(self.row, self.col);

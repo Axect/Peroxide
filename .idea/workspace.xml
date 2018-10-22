@@ -10,14 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d4411860-df82-4fb4-93d6-1f66bb631ff2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RELEASES.md" beforeDir="false" afterPath="$PROJECT_DIR$/RELEASES.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bin/oxide.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/oxide.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/matrix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/matrix.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/vector_macro.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/vector_macro.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/atm.rs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/atm.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -60,7 +53,7 @@
         <counts>
           <entry key="Markdown" value="1572" />
           <entry key="PLAIN_TEXT" value="82" />
-          <entry key="Rust" value="13886" />
+          <entry key="Rust" value="13983" />
           <entry key="TOML file" value="12" />
           <entry key="YAML" value="11" />
         </counts>
@@ -72,7 +65,7 @@
           <entry key="gitignore" value="18" />
           <entry key="md" value="1592" />
           <entry key="old" value="1" />
-          <entry key="rs" value="13866" />
+          <entry key="rs" value="13963" />
           <entry key="toml" value="12" />
           <entry key="txt" value="63" />
           <entry key="yml" value="11" />
@@ -85,8 +78,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/matrix.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="449">
-              <caret line="759" column="45" lean-forward="true" selection-start-line="759" selection-start-column="45" selection-end-line="759" selection-end-column="45" />
+            <state relative-caret-position="610">
+              <caret line="760" column="46" lean-forward="true" selection-start-line="760" selection-start-column="46" selection-end-line="760" selection-end-column="46" />
               <folding>
                 <element signature="e#0#17#0" />
                 <element signature="e#46#78#0" />
@@ -369,8 +362,8 @@
         <option value="$PROJECT_DIR$/RELEASES.md" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
         <option value="$PROJECT_DIR$/src/vector_macro.rs" />
-        <option value="$PROJECT_DIR$/src/matrix.rs" />
         <option value="$PROJECT_DIR$/src/bin/oxide.rs" />
+        <option value="$PROJECT_DIR$/src/matrix.rs" />
       </list>
     </option>
   </component>
@@ -505,7 +498,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="47885000" />
+    <option name="totallyTimeSpent" value="48425000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -667,8 +660,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/matrix.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="449">
-          <caret line="759" column="45" lean-forward="true" selection-start-line="759" selection-start-column="45" selection-end-line="759" selection-end-column="45" />
+        <state relative-caret-position="610">
+          <caret line="760" column="46" lean-forward="true" selection-start-line="760" selection-start-column="46" selection-end-line="760" selection-end-column="46" />
           <folding>
             <element signature="e#0#17#0" />
             <element signature="e#46#78#0" />
