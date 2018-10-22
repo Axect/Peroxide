@@ -17,6 +17,12 @@ fn test_c() {
 }
 
 #[test]
+fn test_zeros() {
+    let v = zeros!(5);
+    assert_eq!(v, vec![0f64; 5]);
+}
+
+#[test]
 fn test_accumulation() {
     let v1 = c!(1,2,3,4);
     let v2 = seq!(5,8,1);

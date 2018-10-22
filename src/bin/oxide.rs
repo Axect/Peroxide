@@ -7,13 +7,7 @@ fn main() {
     println!("{}", a);
     let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
     println!("{}", b);
-    // println!("{}", a.clone() + b.clone());
-    // println!("{}", a.clone() - b.clone());
     println!("{}", a.clone() * b.clone());
-    // println!("{}", a.fmap(|x| x + 1f64));
-    // println!("{}", a.reduce(1, |x,y| x*y));
-    println!("{}", a.zip_with(|x,y| x * y, &b));
-    // println!("{}", a.clone() + 1f64);
     println!("{}", a.clone() % b.clone());
 
     let c = seq!(1,10,1);
@@ -39,14 +33,10 @@ fn main() {
     println!("{}", lu2.1);
     println!("{}", lu2.0 % lu2.1);
 
-    let f = seq!(1, 10, 1);
-    println!("{:?}, {}", f.clone(), f.len());
-
-    let g = c![1,2,3,4];
-    println!("{:?}, {}", g.clone(), g.len());
-    let h = c![g; g; g];
-    println!("{:?}, {}", h.clone(), h.len());
-
     let e = matrix!(1;16;1, 4, 4, Row);
-    println!("{}", e.block().3);
+    let m = e.block();
+    println!("{}", m.0);
+    println!("{}", m.1);
+    println!("{}", m.2);
+    println!("{}", m.3);
 }

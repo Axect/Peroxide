@@ -834,6 +834,58 @@ pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
     ((x / y) as i32, (x % y) as i32)
 }
 
+/// Combine separated matrix to one matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;16;1, 4, 4, Row);
+/// let (m1, m2, m3, m4) = a.block();
+/// let m = combine(m1,m2,m3,m4);
+/// assert_eq!(m, a);
+/// ```
+pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
+    let r1 = m1.col;
+    let r2 = m2.col;
+
+    let v1 = m1.data;
+    let v2 = m2.data;
+    let v3 = m3.data;
+    let v4 = m4.data;
+
+    let r = r1 + r2;
+    let l = (r / 2) as i32;
+
+    let mut v = vec![0f64; r*r];
+
+    for i in 0 .. r*r {
+        let (quot, rem) = quot_rem(i, r);
+        match (quot, rem) {
+            (q, r) if (q < l) && (r < l) => {
+                let idx = (q * l + r as i32) as usize;
+                v[i] = v1[idx];
+            },
+            (q, r) if (q < l) && (r >= l) => {
+                let idx = ((q - 1) * l + r as i32) as usize;
+                v[i] = v2[idx];
+            },
+            (q, r) if (q >= l) && (r < l) => {
+                let idx = ((q - l) * l + r as i32) as usize;
+                v[i] = v3[idx];
+            },
+            (q, r) if (q >= l) && (r >= l) => {
+                let idx = ((q - l - 1) * l + r as i32) as usize;
+                v[i] = v4[idx];
+            },
+            _ => (),
+        }
+    }
+
+    matrix(v, r, r, m1.shape)
+}
+
 pub fn inv_l(m: &Matrix) -> Matrix {
     unimplemented!()
 }
