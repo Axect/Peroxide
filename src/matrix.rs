@@ -763,27 +763,27 @@ impl LinearAlgebra for Matrix {
         let mut v3 = vec![0f64; (r - l as usize) * l as usize];
         let mut v4 = vec![0f64; (r - l as usize) * (r - l as usize)];
 
-        for i in 0 .. (r*r) {
-            let (quot, rem) = quot_rem(i, r);
+        for k in 0 .. (r*r) {
+            let (quot, rem) = quot_rem(k, r);
+            let r1 = r as i32;
             match (quot, rem) {
-                (q, r) if (q < l) && (r < l) => {
-                    let idx = (q*l + r as i32) as usize;
-                    v1[idx] = self.data[i];
+                (i, j) if (i < l) && (j < l) => {
+                    let idx = (i * l + j) as usize;
+                    v1[idx] = self.data[k];
                 },
-                (q, r) if (q < l) && (r >= l) => {
-                    let idx = ((q + 1) * (r as i32 - l)) as usize;
-                    v2[idx] = self.data[i];
+                (i, j) if (i < l) && (j >= l) => {
+                    let idx = (i * (r1 - l) + j - l) as usize;
+                    v2[idx] = self.data[k];
                 },
-                (q, r) if (q >= l) && (r < l) => {
-                    let idx = ((q - l) * l + r as i32) as usize;
-                    v3[idx] = self.data[i];
+                (i, j) if (i >= l) && (j < l) => {
+                    let idx = ((i - l) * l + j) as usize;
+                    v3[idx] = self.data[k];
                 },
-                _ => {
-                    let q = quot;
-                    let r = rem;
-                    let idx = ((q + 1 - l) * (r as i32 - l)) as usize;
-                    v4[idx] = self.data[i];
+                (i, j) if (i >= l) && (j >= l) => {
+                    let idx = ((i - l) * (r1 - l) + j - l) as usize;
+                    v4[idx] = self.data[k];
                 },
+                _ => (),
             }
         }
 
@@ -846,39 +846,45 @@ pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
 /// let (m1, m2, m3, m4) = a.block();
 /// let m = combine(m1,m2,m3,m4);
 /// assert_eq!(m, a);
+///
+/// let b = matrix!(1;16;1, 4, 4, Col);
+/// let (n1, n2, n3, n4) = b.block();
+/// let n = combine(n1,n2,n3,n4);
+/// assert_eq!(n, b);
 /// ```
 pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
-    let r1 = m1.col;
-    let r2 = m2.col;
+    let r1 = m1.row;
+    let c2 = m4.col;
 
     let v1 = m1.data;
     let v2 = m2.data;
     let v3 = m3.data;
     let v4 = m4.data;
 
-    let r = r1 + r2;
+    let r = r1 + c2;
     let l = (r / 2) as i32;
 
     let mut v = vec![0f64; r*r];
 
-    for i in 0 .. r*r {
-        let (quot, rem) = quot_rem(i, r);
+    for k in 0 .. (r*r) {
+        let (quot, rem) = quot_rem(k, r);
+        let r1 = r as i32;
         match (quot, rem) {
-            (q, r) if (q < l) && (r < l) => {
-                let idx = (q * l + r as i32) as usize;
-                v[i] = v1[idx];
+            (i, j) if (i < l) && (j < l) => {
+                let idx = (i * l + j) as usize;
+                v[k] = v1[idx];
             },
-            (q, r) if (q < l) && (r >= l) => {
-                let idx = ((q - 1) * l + r as i32) as usize;
-                v[i] = v2[idx];
+            (i, j) if (i < l) && (j >= l) => {
+                let idx = (i * (r1 - l) + j - l) as usize;
+                v[k] = v2[idx];
             },
-            (q, r) if (q >= l) && (r < l) => {
-                let idx = ((q - l) * l + r as i32) as usize;
-                v[i] = v3[idx];
+            (i, j) if (i >= l) && (j < l) => {
+                let idx = ((i - l) * l + j) as usize;
+                v[k] = v3[idx];
             },
-            (q, r) if (q >= l) && (r >= l) => {
-                let idx = ((q - l - 1) * l + r as i32) as usize;
-                v[i] = v4[idx];
+            (i, j) if (i >= l) && (j >= l) => {
+                let idx = ((i - l) * (r1 - l) + j - l) as usize;
+                v[k] = v4[idx];
             },
             _ => (),
         }
@@ -897,8 +903,8 @@ pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
 /// let a = matrix(c!(1,0,2,1), 2, 2, Row);
 /// assert_eq!(inv_l(a), matrix(c!(1,0,-2,1), 2, 2, Row));
 ///
-/// let b = matrix(c!(1,0,0,2,1,0,4,3,1), 2, 2, Row);
-/// println!("{}", b);
+/// let b = matrix(c!(1,0,0,2,1,0,4,3,1), 3, 3, Row);
+/// assert_eq!(inv_l(b), matrix(c!(1,0,0,-2,1,0,2,-3,1), 3, 3, Row));
 /// ```
 pub fn inv_l(l: Matrix) -> Matrix {
     let n = l.clone().data;
