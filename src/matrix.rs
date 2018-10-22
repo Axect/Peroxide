@@ -758,12 +758,12 @@ impl LinearAlgebra for Matrix {
         let r = self.row;
         let l = (self.row / 2) as i32;
 
-        let mut v1 = vec![0f64; 2*l as usize];
+        let mut v1 = vec![0f64; (l*l) as usize];
         let mut v2 = vec![0f64; l as usize * (r - l as usize)];
         let mut v3 = vec![0f64; (r - l as usize) * l as usize];
         let mut v4 = vec![0f64; (r - l as usize) * (r - l as usize)];
 
-        for i in 0 .. r*r {
+        for i in 0 .. (r*r) {
             let (quot, rem) = quot_rem(i, r);
             match (quot, rem) {
                 (q, r) if (q < l) && (r < l) => {
@@ -771,18 +771,19 @@ impl LinearAlgebra for Matrix {
                     v1[idx] = self.data[i];
                 },
                 (q, r) if (q < l) && (r >= l) => {
-                    let idx = ((q - 1) * l + r as i32) as usize;
+                    let idx = ((q + 1) * (r as i32 - l)) as usize;
                     v2[idx] = self.data[i];
                 },
                 (q, r) if (q >= l) && (r < l) => {
                     let idx = ((q - l) * l + r as i32) as usize;
                     v3[idx] = self.data[i];
                 },
-                (q, r) if (q >= l) && (r >= l) => {
-                    let idx = ((q - l - 1) * l + r as i32) as usize;
+                _ => {
+                    let q = quot;
+                    let r = rem;
+                    let idx = ((q + 1 - l) * (r as i32 - l)) as usize;
                     v4[idx] = self.data[i];
                 },
-                _ => ()
             }
         }
 
@@ -886,6 +887,42 @@ pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
     matrix(v, r, r, m1.shape)
 }
 
-pub fn inv_l(m: &Matrix) -> Matrix {
-    unimplemented!()
+/// Inverse of Lower matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix(c!(1,0,2,1), 2, 2, Row);
+/// assert_eq!(inv_l(a), matrix(c!(1,0,-2,1), 2, 2, Row));
+///
+/// let b = matrix(c!(1,0,0,2,1,0,4,3,1), 2, 2, Row);
+/// println!("{}", b);
+/// ```
+pub fn inv_l(l: Matrix) -> Matrix {
+    let n = l.clone().data;
+    let mut m = l.clone().data;
+
+    match l.row {
+        1 => l,
+        2 => {
+            m[2] = -n[2];
+            matrix(m, 2, 2, Row)
+        },
+        _ => {
+            let ls = l.block();
+            let l1 = ls.0;
+            let l2 = ls.1;
+            let l3 = ls.2;
+            let l4 = ls.3;
+
+            let m1 = inv_l(l1);
+            let m2 = l2;
+            let m4 = inv_l(l4);
+            let m3 = ((m4.clone() % l3) % m1.clone()) * (-1f64);
+
+            combine(m1, m2, m3, m4)
+        }
+    }
 }
