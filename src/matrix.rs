@@ -917,16 +917,61 @@ pub fn inv_l(l: Matrix) -> Matrix {
             matrix(m, 2, 2, Row)
         },
         _ => {
-            let ls = l.block();
-            let l1 = ls.0;
-            let l2 = ls.1;
-            let l3 = ls.2;
-            let l4 = ls.3;
+            let (l1, l2, l3, l4) = l.block();
 
             let m1 = inv_l(l1);
             let m2 = l2;
             let m4 = inv_l(l4);
             let m3 = ((m4.clone() % l3) % m1.clone()) * (-1f64);
+
+            combine(m1, m2, m3, m4)
+        }
+    }
+}
+
+/// Inverse of upper triangular matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let u = matrix(c!(2,2,0,1), 2, 2, Row);
+/// assert_eq!(inv_u(u), matrix(c!(0.5,-1,0,1), 2, 2, Row));
+/// ```
+pub fn inv_u(u: Matrix) -> Matrix {
+    let mut w = u.clone();
+
+    if w.shape == Col {
+        w = w.change_shape();
+    }
+
+    let mut m = w.clone().data;
+    let n = w.clone().data;
+
+    match u.row {
+        1 => {
+            m[0] = 1f64 / n[0];
+            matrix(m, 1, 1, Row)
+        },
+        2 => {
+            let a = n[0];
+            let b = n[1];
+            let c = n[3];
+            let d = a * c;
+
+            m[0] = 1f64 / a;
+            m[1] = -b / d;
+            m[3] = 1f64 / c;
+
+            matrix(m, 2, 2, Row)
+        },
+        _ => {
+            let (u1, u2, u3, u4) = u.block();
+            let m1 = inv_u(u1);
+            let m3 = u3;
+            let m4 = inv_u(u4);
+            let m2 = (m1.clone() % u2 % m4.clone()) * (-1f64);
 
             combine(m1, m2, m3, m4)
         }

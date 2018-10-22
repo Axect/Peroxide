@@ -11,7 +11,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d4411860-df82-4fb4-93d6-1f66bb631ff2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bin/oxide.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/bin/oxide.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/matrix.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/matrix.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -57,7 +56,7 @@
         <counts>
           <entry key="Markdown" value="1572" />
           <entry key="PLAIN_TEXT" value="82" />
-          <entry key="Rust" value="16974" />
+          <entry key="Rust" value="17904" />
           <entry key="TOML file" value="12" />
           <entry key="YAML" value="11" />
         </counts>
@@ -69,7 +68,7 @@
           <entry key="gitignore" value="18" />
           <entry key="md" value="1592" />
           <entry key="old" value="1" />
-          <entry key="rs" value="16954" />
+          <entry key="rs" value="17884" />
           <entry key="toml" value="12" />
           <entry key="txt" value="63" />
           <entry key="yml" value="11" />
@@ -86,8 +85,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/matrix.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="116">
-              <caret line="906" column="63" selection-start-line="906" selection-start-column="63" selection-end-line="906" selection-end-column="63" />
+            <state relative-caret-position="286">
+              <caret line="939" column="23" selection-start-line="939" selection-start-column="23" selection-end-line="939" selection-end-column="23" />
             </state>
           </provider>
         </entry>
@@ -250,7 +249,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1540233093525" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1540233952765" />
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -314,7 +313,7 @@
       <workItem from="1540204426754" duration="3907000" />
       <workItem from="1540208366385" duration="1579000" />
       <workItem from="1540218754430" duration="2855000" />
-      <workItem from="1540224095128" duration="5119000" />
+      <workItem from="1540224095128" duration="6012000" />
     </task>
     <task id="LOCAL-00001" summary="index ops">
       <created>1539946220652</created>
@@ -341,7 +340,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="63047000" />
+    <option name="totallyTimeSpent" value="63940000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -505,8 +504,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/matrix.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="116">
-          <caret line="906" column="63" selection-start-line="906" selection-start-column="63" selection-end-line="906" selection-end-column="63" />
+        <state relative-caret-position="286">
+          <caret line="939" column="23" selection-start-line="939" selection-start-column="23" selection-end-line="939" selection-end-column="23" />
         </state>
       </provider>
     </entry>
