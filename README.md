@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.3.1`.
+Corresponds with `0.4.0`.
 
 ## Usage
 
@@ -94,6 +94,40 @@ println!("{}", a % b);  // Matrix multiplication
 // Consume -> You can't use a,b anymore.
 ```
 
+### LU Decomposition
+
+```rust
+let a = matrix(c!(1,2,3,4), 2, 2, Row);
+let lu = a.lu();
+assert_eq!(lu.0, matrix(c!(1,0,3,1), 2, 2, Row));
+assert_eq!(lu.1, matrix(c!(1,2,0,-2), 2, 2, Row));
+```
+
+### Determinant
+
+* Determinant is implemented using by LU decomposition (O(n^3))
+
+```rust
+let a = matrix(c!(1,2,3,4), 2, 2, Row);
+assert_eq!(a.det(), -2f64);
+```
+
+### Inverse
+
+* Inverse is also implemented using by LU decomposition
+* To handle singularity, output type is `Option<Matrix>`
+    * To obtain inverse, you should use `unwrap` or pattern matching
+    
+ ```rust
+// Non-singular
+let a = matrix!(1;4;1, 2, 2, Row);
+assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+
+// Singular
+let b = matrix!(1;9;1, 3, 3, Row);
+assert_eq!(b.inv(), None);
+ ```
+
 ### Extract Column or Row
 
 ```R
@@ -137,6 +171,6 @@ println!("{}", a.fmap(|x| x * 2.0));
 // r[1]     6    8
 ```
 
-## TODO
+## Version Info
 
-* ~~Extract row & col operator~~
+To see [Release.md](./RELEASES.md)

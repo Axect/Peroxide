@@ -807,8 +807,33 @@ impl LinearAlgebra for Matrix {
         }
     }
 
+    /// Inverse of Matrix
+    ///
+    /// # Caution
+    ///
+    /// `inv` function returns `Option<Matrix>`
+    /// Thus, you should use pattern matching or `unwrap` to obtain inverse.
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// // Non-singular
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+    ///
+    /// // Singular
+    /// let b = matrix!(1;9;1, 3, 3, Row);
+    /// assert_eq!(b.inv(), None);
+    /// ```
     fn inv(&self) -> Option<Matrix> {
-        unimplemented!()
+        let (l, u) = self.lu();
+        if u.diag().into_iter().any(|x| x == 0f64) {
+            None
+        } else {
+            Some(inv_u(u) % inv_l(l))
+        }
     }
 }
 
