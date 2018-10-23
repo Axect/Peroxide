@@ -8,6 +8,7 @@
     * Use `nearly_eq` for `Matrix::eq`
 * Add `swap`
 * Make `PQLU` structure
+* Remove `pivot`, `to_perm`
 * Replace `plu` with `lu`
     * `lu` returns `Option<PQLU>`
 * Enhance error handling with `lu, det, inv`

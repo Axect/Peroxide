@@ -102,7 +102,7 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+/// let a = matrix(c!(1,2,3,4), 2, 2, Row);
 /// ```
 pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
     Matrix::new(v, x, y, shape)
@@ -116,7 +116,7 @@ pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: c
 /// use peroxide::*;
 ///
 /// let a = matrix!(1;4;1, 2, 2, Row); // start;end;step
-/// let b = matrix(c![1,2,3,4], 2, 2, Row);
+/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
 /// let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
 /// assert!(a == b && b == c);
 /// ```
@@ -167,7 +167,7 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::*;
     ///
-    /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+    /// let a = matrix(vec![1,2,3,4],2,2,Row);
     /// assert_eq!(a.shape, Row);
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
@@ -217,7 +217,7 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::*;
     ///
-    /// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+    /// let a = matrix(vec![1,2,3,4],2,2,Row);
     /// println!("{}", a.spread()); // same as println!("{}", a);
     /// // Result:
     /// //       c[0] c[1]
@@ -309,13 +309,13 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::*;
     ///
-    /// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
     /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
     pub fn transpose(&self) -> Matrix {
         match self.shape {
-            Row => Matrix::new(self.data.clone(), self.col, self.row, Col),
-            Col => Matrix::new(self.data.clone(), self.col, self.row, Row)
+            Row => matrix(self.data.clone(), self.col, self.row, Col),
+            Col => matrix(self.data.clone(), self.col, self.row, Row)
         }
     }
 
@@ -463,7 +463,7 @@ impl Add<Matrix> for Matrix {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
         if self.shape == other.shape {
-            Matrix::new(
+            matrix(
                 self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x + y).collect::<Vec<f64>>(),
                 self.row,
                 self.col,
@@ -491,14 +491,14 @@ impl Add<f64> for Matrix {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
+/// let a = matrix(vec![1,2,3,4],2,2,Row);
 /// println!("{}", -a); // [[-1,-2],[-3,-4]]
 /// ```
 impl Neg for Matrix {
     type Output = Matrix;
     
     fn neg(self) -> Matrix {
-        Matrix::new(
+        matrix(
             self.data.into_iter().map(|x:f64| -x).collect::<Vec<f64>>(),
             self.row,
             self.col,
@@ -514,8 +514,8 @@ impl Neg for Matrix {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = Matrix::new(vec![1,2,3,4],2,2,Row);
-/// let b = Matrix::new(vec![1,2,3,4],2,2,Col);
+/// let a = matrix(vec![1,2,3,4],2,2,Row);
+/// let b = matrix(vec![1,2,3,4],2,2,Col);
 /// println!("{}", a - b); // [[0, -1], [1, 0]]
 /// ```
 impl Sub<Matrix> for Matrix {
@@ -541,8 +541,8 @@ impl Sub<f64> for Matrix {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+/// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+/// let b = matrix(vec![1,2,3,4], 2, 2, Col);
 /// println!("{}", a * b); // [[1,6],[6,16]]
 /// ```
 impl Mul<Matrix> for Matrix {
@@ -570,9 +570,9 @@ impl Mul<f64> for Matrix {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
-/// println!("{}", a % b); // [[5, 11], [11, 25]]
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// let b = matrix!(1;4;1, 2, 2, Col);
+/// println!("{}", a % b); // [5, 11; 11, 15]
 /// ```
 impl Rem<Matrix> for Matrix {
     type Output = Matrix;
@@ -593,7 +593,7 @@ impl Rem<Matrix> for Matrix {
                     container.push(s);
                 }
             }
-            Matrix::new(
+            matrix(
                 container,
                 self.row,
                 other.col,
@@ -649,7 +649,7 @@ pub trait FP {
 impl FP for Matrix {
     fn fmap<F>(&self, f: F) -> Matrix where F: Fn(f64) -> f64 {
         let result = self.data.clone().into_iter().map(|x| f(x)).collect::<Vec<f64>>();
-        Matrix::new(
+        matrix(
             result,
             self.row,
             self.col,
@@ -677,7 +677,7 @@ impl FP for Matrix {
             .zip(a.data)
             .map(|(x,y)| f(x,y))
             .collect::<Vec<f64>>();
-        Matrix::new(
+        matrix(
             result,
             self.row,
             self.col,
@@ -1087,7 +1087,7 @@ pub fn inv_l(l: Matrix) -> Matrix {
             let m1 = inv_l(l1);
             let m2 = l2;
             let m4 = inv_l(l4);
-            let m3 = ((m4.clone() % l3) % m1.clone()) * (-1f64);
+            let m3 = -((m4.clone() % l3) % m1.clone());
 
             combine(m1, m2, m3, m4)
         }
@@ -1136,7 +1136,7 @@ pub fn inv_u(u: Matrix) -> Matrix {
             let m1 = inv_u(u1);
             let m3 = u3;
             let m4 = inv_u(u4);
-            let m2 = (m1.clone() % u2 % m4.clone()) * (-1f64);
+            let m2 = -(m1.clone() % u2 % m4.clone());
 
             combine(m1, m2, m3, m4)
         }
