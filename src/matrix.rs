@@ -671,6 +671,9 @@ impl LinearAlgebra for Matrix {
         let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
         let mut u_vec: Vec<f64> = vec![0f64; len]; // Row based
 
+        let c1 = self.col(0);
+
+
         // Initialize U
         match self.shape {
             Row => {
@@ -836,7 +839,6 @@ impl LinearAlgebra for Matrix {
         }
     }
 }
-
 
 // =============================================================================
 // Back-end Utils

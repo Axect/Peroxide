@@ -133,3 +133,29 @@ impl FPVector for Vector {
         )
     }
 }
+
+pub trait Algorithm {
+    fn rank(&self) -> Vec<usize>;
+}
+
+impl Algorithm for Vector {
+    /// Assign rank
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let v = c!(7, 5, 9, 2, 8);
+    /// assert_eq!(v.rank(), vec![2,3,0,4,1]);
+    /// ```
+    fn rank(&self) -> Vec<usize> {
+        let l = self.len();
+        let idx = seq!(1;l;1).into_iter().map(|x| x as usize).collect::<Vec<usize>>();
+
+        let mut vec_tup = self.clone().into_iter().zip(idx.clone()).collect::<Vec<(f64, usize)>>();
+        vec_tup.sort_by(|x,y| x.0.partial_cmp(&y.0).unwrap().reverse());
+        let indices = vec_tup.into_iter().map(|(_,y)| y).collect::<Vec<usize>>();
+        idx.into_iter().map(|x| indices.clone().into_iter().position(|t| t == x).unwrap()).collect::<Vec<usize>>()
+    }
+}

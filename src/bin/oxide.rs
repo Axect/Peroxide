@@ -3,25 +3,16 @@ extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    let e = matrix!(1;9;1, 3, 3, Row);
-    println!("{}", e);
-    let m = e.block();
-    println!("{}", m.0);
-    println!("{}", m.1);
-    println!("{}", m.2);
-    println!("{}", m.3);
+    let a = matrix(c!(1,2,2,4,5,1,7,2,9), 3, 3, Row);
+    let (l, u) = a.lu();
+    println!("{}\n{}", l, u);
 
-    let f = matrix!(1;9;1, 3, 3, Col);
-    println!("{}", f);
-    let n = f.block();
-    println!("{}", n.0);
-    println!("{}", n.1);
-    println!("{}", n.2);
-    println!("{}", n.3);
-
-    let mc = combine(m.0, m.1, m.2, m.3);
-    let nc = combine(n.0, n.1, n.2, n.3);
-
-    println!("{}", mc);
-    println!("{}", nc);
+    let mut m = a.data.clone();
+    m[0] -= 1.;
+    m[4] += 3.;
+    m[8] -= 23.;
+    let n = matrix(m, 3, 3, Row);
+    println!("{}", n);
+    let (l2, u2) = n.lu();
+    println!("{}\n{}", l2,u2);
 }
