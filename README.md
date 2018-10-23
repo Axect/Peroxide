@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.4.0`.
+Corresponds with `0.4.1`.
 
 ## Usage
 
@@ -96,11 +96,17 @@ println!("{}", a % b);  // Matrix multiplication
 
 ### LU Decomposition
 
+* Peroxide uses complete pivoting LU decomposition. - Very stable.
+* Also there are lots of error handling for LU, so, you should use `Option`
+
 ```rust
 let a = matrix(c!(1,2,3,4), 2, 2, Row);
-let lu = a.lu();
-assert_eq!(lu.0, matrix(c!(1,0,3,1), 2, 2, Row));
-assert_eq!(lu.1, matrix(c!(1,2,0,-2), 2, 2, Row));
+let pqlu = a.lu().unwrap(); // for singular matrix, returns None
+let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
+assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
+assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
 ```
 
 ### Determinant
