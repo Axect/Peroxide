@@ -1,4 +1,4 @@
-# Release 0.4.1 (2018-10-23)
+# Release 0.4.1 (2018-10-24)
 
 * Replace `lu` with `plu`
 * Make Algorithm trait for Vector
@@ -7,6 +7,12 @@
     * Add `nearly_eq` function
     * Use `nearly_eq` for `Matrix::eq`
 * Add `swap`
+* Make `PQLU` structure
+* Replace `plu` with `lu`
+    * `lu` returns `Option<PQLU>`
+* Enhance error handling with `lu, det, inv`
+* Complete Pivoting LU Decomposition
+* Fix error of `lu` - initialize `u`
 
 # Release 0.4.0 (2018-10-23)
 

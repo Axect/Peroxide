@@ -3,7 +3,9 @@ use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
 pub use self::Shape::{Row, Col};
 pub use vector_macro::*;
-use std::f64::{MAX};
+use std::f64::{MAX, MIN};
+
+pub type Perms = Vec<(usize, usize)>;
 
 /// To select matrices' binding.
 /// 
@@ -413,15 +415,15 @@ impl Matrix {
     /// assert_eq!(a.swap(0,1,Row), matrix(c!(3,4,1,2),2,2,Row));
     /// assert_eq!(a.swap(0,1,Col), matrix(c!(2,4,1,3),2,2,Col));
     /// ```
-    pub fn swap(&self, i: usize, j: usize, shape: Shape) -> Matrix {
+    pub fn swap(&self, idx1: usize, idx2: usize, shape: Shape) -> Matrix {
         match shape {
             Row => {
                 let mut v: Vector = Vec::new();
                 for k in 0 .. self.row {
-                    if k == i {
-                        v.extend(&self.row(j));
-                    } else if k == j {
-                        v.extend(&self.row(i));
+                    if k == idx1 {
+                        v.extend(&self.row(idx2));
+                    } else if k == idx2 {
+                        v.extend(&self.row(idx1));
                     } else {
                         v.extend(&self.row(k));
                     }
@@ -431,10 +433,10 @@ impl Matrix {
             Col => {
                 let mut v: Vector = Vec::new();
                 for k in 0 .. self.col {
-                    if k == i {
-                        v.extend(&self.col(j));
-                    } else if k == j {
-                        v.extend(&self.col(i));
+                    if k == idx1 {
+                        v.extend(&self.col(idx2));
+                    } else if k == idx2 {
+                        v.extend(&self.col(idx1));
                     } else {
                         v.extend(&self.col(k));
                     }
@@ -689,7 +691,7 @@ impl FP for Matrix {
 // =============================================================================
 /// Linear algebra trait
 pub trait LinearAlgebra {
-    fn plu(&self) -> (Matrix, Matrix, Matrix);
+    fn lu(&self) -> Option<PQLU>;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
@@ -704,11 +706,26 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
+#[derive(Debug, Clone)]
+pub struct PQLU {
+    pub p: Perms,
+    pub q: Perms,
+    pub l: Matrix,
+    pub u: Matrix,
+}
+
 impl LinearAlgebra for Matrix {
-    /// PLU Decomposition Implements
+    /// LU Decomposition Implements
+    ///
+    /// # Description
+    /// It use complete pivoting LU decomposition.
+    /// You can get two permutations, and LU matrices.
     ///
     /// # Caution
-    /// It returns tuple of matrices - (Matrix, Matrix, Matrix)
+    /// It returns `Option<PQLU>` - You should unwrap to obtain real value.
+    /// `PQLU` has four field - `p`, `q`, `l`, `u`.
+    /// `p`, `q` are permutations.
+    /// `l`, `u` are matrices.
     ///
     /// # Examples
     /// ```
@@ -716,20 +733,56 @@ impl LinearAlgebra for Matrix {
     /// use peroxide::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// let plu = a.plu();
-    /// //assert_eq!(plu.1, matrix(vec![1,0,3,1], 2, 2, Row));
-    /// //assert_eq!(plu.1, matrix(vec![1,2,0,-2], 2, 2, Row));
+    /// let pqlu = a.lu().unwrap();
+    /// let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+    /// assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
+    /// assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+    /// assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
+    /// assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
     /// ```
-    fn plu(&self) -> (Matrix, Matrix, Matrix) {
+    fn lu(&self) -> Option<PQLU> {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
         let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
         let mut u_vec: Vec<f64> = vec![0f64; len]; // Row based
 
-        let c1 = self.col(0);
-        let p = pivot(c1);
-        let reference = p.clone() % self.clone();
+        // ---------------------------------------
+        // Pivoting - Complete
+        // ---------------------------------------
+        // Permutations
+        let mut p: Perms = Vec::new();
+        let mut q: Perms = Vec::new();
+
+        let mut container = self.clone();
+
+        for k in 0 .. (n-1) {
+            // Initialize maximum & Position
+            let mut m = MIN;
+            let mut row_idx: usize = k;
+            let mut col_idx: usize = k;
+            // Find Maximum value & Position
+            for i in k .. n {
+                for j in k .. n {
+                    let temp = container[(i,j)];
+                    if temp > m {
+                        m = temp;
+                        row_idx = i;
+                        col_idx = j;
+                    }
+                }
+            }
+            if k != row_idx {
+                container = container.swap(k, row_idx, Row); // Row perm
+                p.push((k, row_idx));
+            }
+            if k != col_idx {
+                container = container.swap(k, col_idx, Col); // Col perm
+                q.push((k, col_idx));
+            }
+        }
+
+        let reference = container.clone();
 
         // Initialize U
         match reference.shape {
@@ -740,8 +793,7 @@ impl LinearAlgebra for Matrix {
             },
             Col => {
                 for i in 0 .. n {
-                    let j: usize = i * n;
-                    u_vec[j] = reference.data[j];
+                    u_vec[i] = reference.change_shape().data[i];
                 }
             }
         }
@@ -759,6 +811,10 @@ impl LinearAlgebra for Matrix {
                     s += l_vec[i*n + j] * u_vec[j*n + k];
                 }
                 u_vec[i*n + k] = reference[(i, k)] - s;
+                // Check non-zero diagonal
+                if nearly_eq(u_vec[i*(n+1)], 0) {
+                    return None;
+                }
             }
 
             for k in (i+1) .. n {
@@ -766,14 +822,21 @@ impl LinearAlgebra for Matrix {
                 for j in 0 .. i {
                     s += l_vec[k*n + j] * u_vec[j*n + i];
                 }
-                l_vec[k*n + i] = (reference[(k, i)] - s) / u_vec[i*n + i];
+                l_vec[k*n + i] = (reference[(k, i)] - s) / u_vec[i*(n+1)];
             }
         }
 
         let l = matrix(l_vec, n, n, Row);
         let u = matrix(u_vec, n, n, Row);
 
-        return (p, l, u);
+        Some(
+            PQLU {
+                p: p,
+                q: q,
+                l: l,
+                u: u,
+            }
+        )
     }
 
     /// Determinant
@@ -788,9 +851,18 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn det(&self) -> f64 {
         assert_eq!(self.row, self.col);
-        let (p, _l, u) = self.plu();
-        let sgn = to_perm(p).sign();
-        u.diag().reduce(1, |x,y| x * y) * sgn
+        match self.lu() {
+            None => 0f64,
+            Some(pqlu) => {
+                let (p, q, _l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+
+                // sgn of perms
+                let sgn_p = 2.0 * (p.len() % 2) as f64 - 1.0;
+                let sgn_q = 2.0 * (q.len() % 2) as f64 - 1.0;
+
+                u.diag().reduce(1f64, |x,y| x * y) * sgn_p * sgn_q
+            }
+        }
     }
 
     /// Block Partition
@@ -889,11 +961,19 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(b.inv(), None);
     /// ```
     fn inv(&self) -> Option<Matrix> {
-        let (p, l, u) = self.plu();
-        if u.diag().into_iter().any(|x| x == 0f64) {
-            None
-        } else {
-            Some(inv_u(u) % inv_l(l) % p)
+        match self.lu() {
+            None => None,
+            Some(pqlu) => {
+                let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+                let mut m = inv_u(u) % inv_l(l);
+                for (idx1, idx2) in q.into_iter() {
+                    m = m.swap(idx1, idx2, Row);
+                }
+                for (idx1, idx2) in p.into_iter() {
+                    m = m.swap(idx1, idx2, Col);
+                }
+                Some(m)
+            }
         }
     }
 }
@@ -1061,62 +1141,6 @@ pub fn inv_u(u: Matrix) -> Matrix {
             combine(m1, m2, m3, m4)
         }
     }
-}
-
-/// Generate Pivot Matrix
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = c!(0,1);
-/// assert_eq!(pivot(a), matrix(c!(0,1,1,0),2,2,Row));
-/// ```
-pub fn pivot(v: Vector) -> Matrix {
-    let c = v.len();
-    let rank1 = v.rank();
-
-    let mut data = vec![0f64; c*c];
-
-    let mut j: usize = 0;
-
-    for i in rank1.into_iter() {
-        let idx = i * c + j;
-        data[idx] = 1f64;
-        j += 1;
-    }
-    matrix(data, c, c, Row)
-}
-
-/// Pivot to permutation
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let p = pivot(c!(1,3,2)); // [0 1 0; 0 0 1; 1 0 0]
-/// let pm = to_perm(p);
-/// assert_eq!(pm, c!(1,3,2).rank().into_iter().map(|x:usize| x as f64).collect::<Vec<f64>>());
-/// ```
-pub fn to_perm(p: Matrix) -> Vec<f64> {
-    let mut m = p.clone();
-    if m.shape != Col {
-        m = m.change_shape();
-    }
-    let v = m.data;
-    let mut container: Vec<f64> = Vec::new();
-    for (i, x) in v.into_iter().enumerate() {
-        if x == 1f64 {
-            container.push((i % p.col) as f64);
-        }
-    }
-    return container;
-}
-
-pub fn det_p(p: Matrix) -> Matrix {
-    unimplemented!()
 }
 
 /// near equal
