@@ -401,6 +401,48 @@ impl Matrix {
         }
         container
     }
+
+    /// Swap row or col
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.swap(0,1,Row), matrix(c!(3,4,1,2),2,2,Row));
+    /// assert_eq!(a.swap(0,1,Col), matrix(c!(2,4,1,3),2,2,Col));
+    /// ```
+    pub fn swap(&self, i: usize, j: usize, shape: Shape) -> Matrix {
+        match shape {
+            Row => {
+                let mut v: Vector = Vec::new();
+                for k in 0 .. self.row {
+                    if k == i {
+                        v.extend(&self.row(j));
+                    } else if k == j {
+                        v.extend(&self.row(i));
+                    } else {
+                        v.extend(&self.row(k));
+                    }
+                }
+                matrix(v, self.row, self.col, Row)
+            },
+            Col => {
+                let mut v: Vector = Vec::new();
+                for k in 0 .. self.col {
+                    if k == i {
+                        v.extend(&self.col(j));
+                    } else if k == j {
+                        v.extend(&self.col(i));
+                    } else {
+                        v.extend(&self.col(k));
+                    }
+                }
+                matrix(v, self.row, self.col, Col)
+            }
+        }
+    }
 }
 
 // =============================================================================
