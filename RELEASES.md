@@ -6,6 +6,7 @@
 * Change `PartialEq` for `Matrix`
     * Add `nearly_eq` function
     * Use `nearly_eq` for `Matrix::eq`
+* Add `swap`
 
 # Release 0.4.0 (2018-10-23)
 
