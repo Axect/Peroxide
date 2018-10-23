@@ -1,3 +1,12 @@
+# Release 0.4.1 (2018-10-23)
+
+* Replace `lu` with `plu`
+* Make Algorithm trait for Vector
+    * `rank, sign, arg_max`
+* Change `PartialEq` for `Matrix`
+    * Add `nearly_eq` function
+    * Use `nearly_eq` for `Matrix::eq`
+
 # Release 0.4.0 (2018-10-23)
 
 * Remove non-necessary comments

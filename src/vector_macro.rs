@@ -1,4 +1,5 @@
 use std::convert;
+use std::f64::{MIN};
 
 pub type Vector = Vec<f64>;
 
@@ -136,6 +137,8 @@ impl FPVector for Vector {
 
 pub trait Algorithm {
     fn rank(&self) -> Vec<usize>;
+    fn sign(&self) -> f64;
+    fn arg_max(&self) -> usize;
 }
 
 impl Algorithm for Vector {
@@ -157,5 +160,55 @@ impl Algorithm for Vector {
         vec_tup.sort_by(|x,y| x.0.partial_cmp(&y.0).unwrap().reverse());
         let indices = vec_tup.into_iter().map(|(_,y)| y).collect::<Vec<usize>>();
         idx.into_iter().map(|x| indices.clone().into_iter().position(|t| t == x).unwrap()).collect::<Vec<usize>>()
+    }
+
+    /// Sign of Permutation
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = c!(1,0,2);
+    /// let b = c!(1,2,0);
+    /// let c = c!(0,1,2);
+    ///
+    /// assert_eq!((a.sign(), b.sign(), c.sign()), (-1f64, 1f64, 1f64));
+    /// ```
+    fn sign(&self) -> f64 {
+        let l = self.len();
+        let mut v = self.clone();
+        let mut sgn = 1f64;
+
+        for i in 0 .. (l-1) {
+            for j in 0 .. (l - 1 - i) {
+                if v[j] > v[j+1] {
+                    sgn *= -1f64;
+                    let (a, b) = (v[j], v[j+1]);
+                    v[j] = b;
+                    v[j+1] = a;
+                }
+            }
+        }
+        return sgn;
+    }
+
+    /// arg max
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let v = c!(1,3,2,4,3,7);
+    /// assert_eq!(v.arg_max(),5);
+    ///
+    /// let v2 = c!(1,3,2,5,6,6);
+    /// assert_eq!(v2.arg_max(),4);
+    /// ```
+    fn arg_max(&self) -> usize {
+        let v = self.clone();
+        let m = self.clone().into_iter().fold(MIN, |x,y| x.max(y));
+        v.into_iter().position(|x| x == m).unwrap()
     }
 }
