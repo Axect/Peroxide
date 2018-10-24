@@ -4,6 +4,7 @@ use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
 pub use self::Shape::{Row, Col};
 pub use vector_macro::*;
 use std::f64::{MAX, MIN};
+use std::cmp::{max, min};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -226,79 +227,52 @@ impl Matrix {
     /// ```
     pub fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
-        let _rows = self.row;
-        let cols = self.col;
-        
+        let r = self.row;
+        let c = self.col;
+
+        // Find maximum length of data
+        let sample = self.data.clone();
+        let mut space: usize = sample.into_iter()
+            .map(|x|
+                min(
+                    format!("{:.4}", x).len(),
+                    x.to_string().len(),
+                ) // Choose minimum of approx vs normal
+            )
+            .fold(0, |x, y| max(x,y)) + 1;
+
+        if space < 5 {
+            space = 5;
+        }
+
         let mut result = String::new();
-        result += &tab("");
 
-        // Make header
-        for i in 0 .. cols {
-            let s = format!("c[{}]", i);
-            result += &tab(&s);
-            result += &s;
+        result.push_str(&tab("", 5));
+        for i in 0 .. c {
+            result.push_str(&tab(&format!("c[{}]", i), space)); // Header
         }
-        result += "\n";
+        result.push('\n');
 
-        match self.shape {
-            Row => {
-                let data = self.data.clone();
-                let temp: Vec<String> = data.into_iter().map(|x| x.to_string()).collect();
-                let ts: Vec<String> = temp.clone().into_iter().take(cols).collect();
-                let mut ss: Vec<String> = temp.into_iter().skip(cols).collect();
-                let mut n: usize = 0;
-                let s = format!("r[{}]", n);
-                result += &s;
-                result += &tab(&s);
-                for txt in ts.into_iter() {
-                    result += &tab(&txt);
-                    result += &txt;
+        for i in 0 .. r {
+            result.push_str(&tab(&format!("r[{}]", i), 5));
+            for j in 0 .. c {
+                let st1 = format!("{:.4}",self[(i, j)]); // Round at fourth position
+                let st2 = self[(i,j)].to_string();       // Normal string
+                let mut st = st2.clone();
+
+                // Select more small thing
+                if st1.len() < st2.len() {
+                    st = st1;
                 }
-                while ss.len() >= cols {
-                    result += "\n";
-                    let ts: Vec<String> = ss.clone().into_iter().take(cols).collect();
-                    n += 1;
-                    let s = format!("r[{}]", n);
-                    result += &s;
-                    result += &tab(&s);
-                    let tl = ts.len();
-                    for i in 0 .. tl {
-                        result += &tab(&ts[i]);
-                        result += &ts[i];
-                    }
-                    ss = ss.into_iter().skip(cols).collect();
-                }
-            },
-            Col => {
-                let mat = self.change_shape();
-                let data = mat.data.clone();
-                let temp: Vec<String> = data.into_iter().map(|x| x.to_string()).collect();
-                let ts: Vec<String> = temp.clone().into_iter().take(cols).collect();
-                let mut ss: Vec<String> = temp.into_iter().skip(cols).collect();
-                let mut n: usize = 0;
-                let s = format!("r[{}]", n);
-                result += &s;
-                result += &tab(&s);
-                for txt in ts.into_iter() {
-                    result += &tab(&txt);
-                    result += &txt;
-                }
-                while ss.len() >= cols {
-                    result += "\n";
-                    let ts: Vec<String> = ss.clone().into_iter().take(cols).collect();
-                    n += 1;
-                    let s = format!("r[{}]", n);
-                    result += &s;
-                    result += &tab(&s);
-                    let tl = ts.len();
-                    for i in 0 .. tl {
-                        result += &tab(&ts[i]);
-                        result += &ts[i];
-                    }
-                    ss = ss.into_iter().skip(cols).collect();
-                }
+
+                result.push_str(&tab(&st, space));
             }
+            if i == (r-1) {
+                break;
+            }
+            result.push('\n');
         }
+
         return result;
     }
 
@@ -345,7 +319,7 @@ impl Matrix {
                 let s: usize = self.row * index;
                 container = self.data.clone().into_iter()
                     .skip(s)
-                    .take(self.col).collect::<Vec<f64>>();
+                    .take(self.row).collect::<Vec<f64>>();
             }
         }
         container
@@ -369,7 +343,7 @@ impl Matrix {
                 let s: usize = self.col * index;
                 container = self.data.clone().into_iter()
                     .skip(s)
-                    .take(self.row).collect::<Vec<f64>>();
+                    .take(self.col).collect::<Vec<f64>>();
             },
             Col => {
                 let l: usize = self.row * self.col;
@@ -983,16 +957,11 @@ impl LinearAlgebra for Matrix {
 // =============================================================================
 
 #[allow(unused_comparisons)]
-pub fn tab(s: &str) -> String {
+pub fn tab(s: &str, space: usize) -> String {
     let l = s.len();
     let mut m: String = String::new();
-    if (5 - l) >= 0 {
-        for _i in 0 .. (5 - l) {
-            m += " ";
-        }
-    } else {
-        m += " ";
-    }
+    let fs = format!("{}{}", " ".repeat(space - l), s);
+    m.push_str(&fs);
     return m;
 }
 

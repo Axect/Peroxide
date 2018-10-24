@@ -1,3 +1,11 @@
+# Release 0.4.3 (2018-10-24)
+
+* Add `stat.rs`
+    * `mean, var, sd`
+* Modify `spread`
+    * Fix bugs of all cases
+    * Use modern syntax
+
 # Release 0.4.2 (2018-10-24)
 
 * Fix `Cargo.toml`

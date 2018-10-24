@@ -8,6 +8,7 @@ pub trait Statistics {
     fn mean(&self) -> Self::Value;
     fn var(&self) -> Self::Value;
     fn sd(&self) -> Self::Value;
+    fn cov(&self) -> Self::Array;
 }
 
 impl Statistics for Vector {
@@ -65,6 +66,10 @@ impl Statistics for Vector {
     fn sd(&self) -> f64 {
         self.var().sqrt()
     }
+
+    fn cov(&self) -> Vector {
+        unimplemented!()
+    }
 }
 
 impl Statistics for Matrix {
@@ -83,9 +88,9 @@ impl Statistics for Matrix {
     /// ```
     fn mean(&self) -> Vector {
         let mut container: Vector = Vec::new();
-        let r = self.row;
+        let c = self.col;
 
-        for i in 0 .. r {
+        for i in 0 .. c {
             container.push(self.col(i).mean());
         }
         container
@@ -93,9 +98,9 @@ impl Statistics for Matrix {
 
     fn var(&self) -> Vector {
         let mut container: Vector = Vec::new();
-        let r = self.row;
+        let c = self.col;
 
-        for i in 0 .. r {
+        for i in 0 .. c {
             container.push(self.col(i).var());
         }
         container
@@ -103,11 +108,54 @@ impl Statistics for Matrix {
 
     fn sd(&self) -> Vector {
         let mut container: Vector = Vec::new();
-        let r = self.row;
+        let c = self.col;
 
-        for i in 0 .. r {
+        for i in 0 .. c {
             container.push(self.col(i).sd());
         }
         container
     }
+
+    fn cov(&self) -> Matrix {
+        let c = self.col;
+
+        let mut m: Vector = Vec::new();
+
+        for i in 0 .. c {
+            let m1 = self.col(i);
+            for j in 0 .. c {
+                let m2 = self.col(j);
+                m.push(cov(m1.clone(), m2));
+            }
+        }
+        matrix(m, c, c, Row)
+    }
 }
+
+/// Covariance (to Value)
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let v1 = c!(1,2,3);
+/// let v2 = c!(3,2,1);
+/// assert!(nearly_eq(cov(v1,v2), -1f64));
+/// ```
+pub fn cov(v1: Vector, v2: Vector) -> f64 {
+    let mut ss = 0f64;
+    let mut sx = 0f64;
+    let mut sy = 0f64;
+    let mut l = 0f64;
+
+    for (x, y) in v1.into_iter().zip(&v2) {
+        ss += x * y;
+        sx += x;
+        sy += y;
+        l += 1f64;
+    }
+    assert_ne!(l, 1f64);
+    (ss / l - (sx * sy) / (l.powf(2f64))) * l / (l - 1f64)
+}
+
