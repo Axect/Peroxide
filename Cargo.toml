@@ -1,12 +1,17 @@
 [package]
 name = "peroxide"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["axect <edeftg@gmail.com>"]
-description = "Rust Numeric Library"
+description = "Rust Numeric Library with R syntax & Pure Rust"
 repository = "https://github.com/Axect/Peroxide"
 license = "BSD-3-Clause"
 categories = ["science"]
 readme = "README.md"
 documentation = "https://docs.rs/peroxide/"
+keywords = ["Numeric", "R", "Scientific"]
+
+[badges]
+travis-ci = { repository = "Axect/Peroxide", branch = "master" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]

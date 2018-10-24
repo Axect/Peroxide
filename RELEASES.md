@@ -1,3 +1,7 @@
+# Release 0.4.2 (2018-10-24)
+
+* Fix `Cargo.toml`
+
 # Release 0.4.1 (2018-10-24)
 
 * Replace `lu` with `plu`
