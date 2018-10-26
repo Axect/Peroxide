@@ -3,10 +3,14 @@ extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    println!("{}", a);
-    println!("{:?}", a.col(0));
-    println!("{:?}", a.col(1));
-    println!("{}", a.cov());
-    println!("{}", cov(c!(1,2,3),c!(3,2,1)));
+    let a = matrix(c!(1,2,2,7,1,5,3,4,2), 3, 3, Row);
+    let pqlu = a.lu();
+    match pqlu {
+        None => println!("None!"),
+        Some(m) => {
+            println!("{:?}\n{:?}\n{}\n{}", m.p, m.q, m.l, m.u);
+            println!("{}", a.det());
+            println!("{}", a.inv().unwrap());
+        }
+    }
 }
