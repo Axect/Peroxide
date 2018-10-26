@@ -1,3 +1,9 @@
+# Release 0.4.5 (2018-10-26)
+
+* More add R-like macro
+    * `cbind`
+    * `rbind`
+
 # Release 0.4.4 (2018-10-26)
 
 * Refactor structure

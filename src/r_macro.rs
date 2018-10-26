@@ -179,3 +179,63 @@ macro_rules! cbind {
         }
     };
 }
+
+/// R like cbind
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// let b = matrix(c!(5,6),1, 2, Row);
+/// let c = matrix(c!(7,8),1, 2, Row);
+/// assert_eq!(rbind!(a.clone(),b.clone()), matrix!(1;6;1, 3, 2, Row));
+/// assert_eq!(rbind!(a,b,c), matrix!(1;8;1, 4, 2, Row));
+/// ```
+#[macro_export]
+macro_rules! rbind {
+    // Two
+    ( $x:expr, $y:expr ) => {
+        {
+            let mut temp = $x;
+            if temp.shape != Row {
+                temp = temp.change_shape();
+            }
+
+            let mut v: Vec<f64> = temp.data;
+            let c: usize = temp.col;
+            let mut r: usize = temp.row;
+
+            assert_eq!(c, $y.col);
+            v.extend(&$y.data.clone());
+            r += &$y.row;
+            matrix(v, r, c, Row)
+        }
+    };
+
+    // Multi
+    ( $x0:expr, $( $x: expr ),* ) => {
+        {
+            let mut temp0 = $x0;
+            if temp0.shape != Row {
+                temp0 = temp0.change_shape();
+            }
+            let mut v: Vec<f64> = temp0.data;
+            let c: usize = temp0.col;
+            let mut r: usize = temp0.row;
+            $(
+                let mut temp = $x;
+                if temp.shape != Row {
+                    temp = temp.change_shape();
+                }
+                // Must equal row
+                assert_eq!(c, temp.col);
+                // Add column
+                r += temp.row;
+                v.extend(&temp.data.clone());
+            )*
+            matrix(v, r, c, Row)
+        }
+    };
+}
