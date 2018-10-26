@@ -2,7 +2,7 @@ use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
 pub use self::Shape::{Row, Col};
-pub use vector_macro::*;
+pub use vector::*;
 use std::f64::{MAX, MIN};
 use std::cmp::{max, min};
 
@@ -107,32 +107,6 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
 /// ```
 pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
     Matrix::new(v, x, y, shape)
-}
-
-/// More R like Matrix constructor (Macro)
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = matrix!(1;4;1, 2, 2, Row); // start;end;step
-/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
-/// let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
-/// assert!(a == b && b == c);
-/// ```
-#[macro_export]
-macro_rules! matrix {
-    ( $start:expr;$end:expr;$step:expr,$row:expr,$col:expr,$shape:expr ) => {
-        {
-            matrix(
-                seq!($start,$end,$step),
-                $row,
-                $col,
-                $shape
-            )
-        }
-    };
 }
 
 /// Pretty Print

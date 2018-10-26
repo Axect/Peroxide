@@ -1,3 +1,8 @@
+# Release 0.4.4 (2018-10-26)
+
+* Refactor structure
+    * Move all macro to `r_macro.rs`
+
 # Release 0.4.3 (2018-10-24)
 
 * Add `stat.rs`

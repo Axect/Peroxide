@@ -1,5 +1,5 @@
 pub use matrix::*;
-pub use vector_macro::*;
+pub use vector::*;
 
 pub trait Statistics {
     type Array;
