@@ -119,3 +119,63 @@ macro_rules! zeros {
         vec![0f64; $n]
     };
 }
+
+/// R like cbind
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Col);
+/// let b = matrix(c!(5,6),2, 1, Col);
+/// let c = matrix(c!(7,8),2,1,Col);
+/// assert_eq!(cbind!(a.clone(),b.clone()), matrix!(1;6;1,2,3,Col));
+/// assert_eq!(cbind!(a,b,c), matrix!(1;8;1, 2, 4, Col));
+/// ```
+#[macro_export]
+macro_rules! cbind {
+    // Two
+    ( $x:expr, $y:expr ) => {
+        {
+            let mut temp = $x;
+            if temp.shape != Col {
+                temp = temp.change_shape();
+            }
+
+            let mut v: Vec<f64> = temp.data;
+            let mut c: usize = temp.col;
+            let r: usize = temp.row;
+
+            assert_eq!(r, $y.row);
+            v.extend(&$y.data.clone());
+            c += &$y.col;
+            matrix(v, r, c, Col)
+        }
+    };
+
+    // Multi
+    ( $x0:expr, $( $x: expr ),* ) => {
+        {
+            let mut temp0 = $x0;
+            if temp0.shape != Col {
+                temp0 = temp0.change_shape();
+            }
+            let mut v: Vec<f64> = temp0.data;
+            let mut c: usize = temp0.col;
+            let r: usize = temp0.row;
+            $(
+                let mut temp = $x;
+                if temp.shape != Col {
+                    temp = temp.change_shape();
+                }
+                // Must equal row
+                assert_eq!(r, temp.row);
+                // Add column
+                c += temp.col;
+                v.extend(&temp.data.clone());
+            )*
+            matrix(v, r, c, Col)
+        }
+    };
+}
