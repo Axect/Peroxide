@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.4.1`.
+Corresponds with `0.4.5`.
 
 ## Usage
 
@@ -28,14 +28,14 @@ b = seq(1,5,2) # (=c(1,3,5))
 ```rust
 // Peroxide
 let a = c!(1,2,3,4);
-let b = seq!(1,5,2) // (=c!(1,3,5))
+let b = seq!(1,5,2); // (=c!(1,3,5))
 ```
 
 ### Matrix Declaration
 
 ```R
 # R
-a = matrix(1:4, 2, 2, True)
+a = matrix(1:4, 2, 2, T)
 ```
 
 ```rust
@@ -53,7 +53,7 @@ let c = matrix!(1;4;1, 2, 2, Row);
 
 ```R
 # R
-a = matrix(1:4, 2, 2, True)
+a = matrix(1:4, 2, 2, T)
 print(a)
 #      [,1] [,2]
 # [1,]    1    2
@@ -67,6 +67,66 @@ println!("{}", a);
 //       c[0] c[1]
 // r[0]     1    2
 // r[1]     3    4
+```
+
+
+### Concatenate
+
+**1. Vector + Vector => Vector**
+```R
+# R
+a = c(1,2,3)
+b = c(4,5,6)
+
+c = c(a, b) # c(1,2,3,4,5,6)
+```
+
+```rust
+// Peroxide
+let a = c!(1,2,3);
+let b = c!(4,5,6);
+let c = c!(a; b); // Must use semi-colon btw vectors
+```
+
+**2. Matrix + Matrix => Matrix**
+```R
+# R
+# cbind
+a = matrix(1:4, 2, 2, F)
+b = matrix(c(5,6), 2, 1, F)
+c = cbind(a, b)
+#     [,1] [,2] [,3]
+#[1,]    1    3    5
+#[2,]    2    4    6
+
+# rbind
+a = matrix(1:4, 2, 2, T)
+b = matrix(c(5,6), 1, 2, T)
+c = rbind(a,b)
+#     [,1] [,2]
+#[1,]    1    2
+#[2,]    3    4
+#[3,]    5    6
+```
+
+```rust
+// Peroxide
+// cbind
+let a = matrix!(1;4;1, 2, 2, Col);
+let b = matrix(c!(5,6), 2, 1, Col);
+let c = cbind!(a, b);
+//      c[0] c[1] c[2]
+// r[0]    1    3    5
+// r[1]    2    4    6
+
+// rbind
+let a = matrix!(1;4;1, 2, 2, Row);
+let b = matrix(c!(5,6),1, 2, Row);
+let c = rbind!(a, b);
+//      c[0] c[1]
+// r[0]    1    2
+// r[1]    3    4
+// r[2]    5    6
 ```
 
 ### Matrix operation
@@ -100,6 +160,7 @@ println!("{}", a % b);  // Matrix multiplication
 * Also there are lots of error handling for LU, so, you should use `Option`
 
 ```rust
+// Peroxide
 let a = matrix(c!(1,2,3,4), 2, 2, Row);
 let pqlu = a.lu().unwrap(); // for singular matrix, returns None
 let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
@@ -114,6 +175,7 @@ assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
 * Determinant is implemented using by LU decomposition (O(n^3))
 
 ```rust
+// Peroxide
 let a = matrix(c!(1,2,3,4), 2, 2, Row);
 assert_eq!(a.det(), -2f64);
 ```
@@ -124,7 +186,9 @@ assert_eq!(a.det(), -2f64);
 * To handle singularity, output type is `Option<Matrix>`
     * To obtain inverse, you should use `unwrap` or pattern matching
     
- ```rust
+```rust
+// Peroxide
+ 
 // Non-singular
 let a = matrix!(1;4;1, 2, 2, Row);
 assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
@@ -137,6 +201,7 @@ assert_eq!(b.inv(), None);
 ### Extract Column or Row
 
 ```R
+# R
 a = matrix(1:4, 2, 2, T)
 print(a[,1])
 print(a[,2])

@@ -180,7 +180,7 @@ macro_rules! cbind {
     };
 }
 
-/// R like cbind
+/// R like rbind
 ///
 /// # Examples
 /// ```

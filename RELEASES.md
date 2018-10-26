@@ -3,6 +3,7 @@
 * More add R-like macro
     * `cbind`
     * `rbind`
+* README update
 
 # Release 0.4.4 (2018-10-26)
 
