@@ -15,6 +15,8 @@ fn main() {
 //    }
     let a = matrix!(1;4;1, 2, 2, Row);
     let b = matrix(c!(5,6),1, 2, Row);
-    let c = rbind!(a, b);
+    let c = rbind!(a.clone(), b.clone());
     println!("{}", c);
+    let d = rbind!(a, b, c);
+    println!("{}", d);
 }
