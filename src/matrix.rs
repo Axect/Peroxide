@@ -601,6 +601,19 @@ impl Index<(usize, usize)> for Matrix {
     }
 }
 
+/// IndexMut for Matrix (Assign)
+///
+/// `(usize, usize) -> f64`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let mut a = matrix!(1;4;1, 2, 2, Row);
+/// a[(1,1)] = 10.0;
+/// assert_eq!(a, matrix(c!(1,2,3,10), 2, 2, Row));
+/// ```
 impl IndexMut<(usize, usize)> for Matrix {
     fn index_mut<'a>(&'a mut self, pair: (usize, usize)) -> &'a mut f64 {
         let i = pair.0;
