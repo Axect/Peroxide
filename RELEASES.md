@@ -1,3 +1,8 @@
+# Release 0.4.6 (2018-10-29)
+
+* Fixed `block` & `combine`
+  * Only squared matrices -> Every matrices
+
 # Release 0.4.5 (2018-10-26)
 
 * More add R-like macro
