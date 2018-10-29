@@ -557,6 +557,21 @@ impl Rem<Matrix> for Matrix {
     }
 }
 
+//impl Rem<Matrix> for Matrix {
+//    type Output = Matrix;
+//
+//    fn rem(self, other: Matrix) -> Matrix {
+//        let r_self = self.row;
+//        let c_self = self.col;
+//        let r_other = other.row;
+//        let c_other = other.col;
+//
+//        assert_eq!(c_self, r_other);
+//
+//        if
+//    }
+//}
+
 /// Index for Matrix
 ///
 /// `(usize, usize) -> f64`
