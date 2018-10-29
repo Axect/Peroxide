@@ -1,3 +1,9 @@
+# Release 0.4.7 (2018-10-30)
+
+* Add `IndexMut` implementation for `Matrix`
+* Modify `Rem`
+  * Just using `IndexMut`
+
 # Release 0.4.6 (2018-10-29)
 
 * Fixed `block` & `combine`
