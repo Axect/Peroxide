@@ -1,6 +1,6 @@
 use std::convert;
 use std::fmt;
-use std::ops::{Add, Neg, Sub, Mul, Rem, Index};
+use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
 pub use self::Shape::{Row, Col};
 pub use vector::*;
 use std::f64::{MAX, MIN};
@@ -523,54 +523,58 @@ impl Mul<f64> for Matrix {
 /// println!("{}", a % b); // [5, 11; 11, 15]
 /// ```
 impl Rem<Matrix> for Matrix {
-    type Output = Matrix;
+   type Output = Matrix;
 
-    // TODO: Not use change shape!
-    fn rem(self, other: Matrix) -> Matrix {
-        assert_eq!(self.col, other.row);
-        if self.shape == Row && other.shape == Col {
-            let mut container: Vec<f64> = Vec::new();
-            for i in 0 .. self.row {
-                let p = self.data.clone().into_iter().skip(self.col * i).take(self.col).collect::<Vec<f64>>();
-                for j in 0 .. other.col {
-                    let q = other.data.clone().into_iter().skip(other.row * j).take(other.row).collect::<Vec<f64>>();
-                    let s: f64 = p.clone().into_iter().zip(&q).map(|(x, y)| x * y).fold(
-                        0f64,
-                        |x, y| x + y,
-                    );
-                    container.push(s);
-                }
-            }
-            matrix(
-                container,
-                self.row,
-                other.col,
-                Row,
-            )
-        } else if self.shape == Col && other.shape == Row {
-            self.change_shape().rem(other.change_shape())
-        } else if self.shape == Col {
-            self.change_shape().rem(other)
-        } else {
-            self.rem(other.change_shape())
-        }
-    }
+   //TODO: Not use change shape!
+   fn rem(self, other: Matrix) -> Matrix {
+       assert_eq!(self.col, other.row);
+       if self.shape == Row && other.shape == Col {
+           let mut container: Vec<f64> = Vec::new();
+           for i in 0 .. self.row {
+               let p = self.data.clone().into_iter().skip(self.col * i).take(self.col).collect::<Vec<f64>>();
+               for j in 0 .. other.col {
+                   let q = other.data.clone().into_iter().skip(other.row * j).take(other.row).collect::<Vec<f64>>();
+                   let s: f64 = p.clone().into_iter().zip(&q).map(|(x, y)| x * y).fold(
+                       0f64,
+                       |x, y| x + y,
+                   );
+                   container.push(s);
+               }
+           }
+           matrix(
+               container,
+               self.row,
+               other.col,
+               Row,
+           )
+       } else if self.shape == Col && other.shape == Row {
+           self.change_shape().rem(other.change_shape())
+       } else if self.shape == Col {
+           self.change_shape().rem(other)
+       } else {
+           self.rem(other.change_shape())
+       }
+   }
 }
 
-//impl Rem<Matrix> for Matrix {
-//    type Output = Matrix;
+// impl Rem<Matrix> for Matrix {
+    // type Output = Matrix;
 //
-//    fn rem(self, other: Matrix) -> Matrix {
-//        let r_self = self.row;
-//        let c_self = self.col;
-//        let r_other = other.row;
-//        let c_other = other.col;
+    // fn rem(self, other: Matrix) -> Matrix {
+        // let r_self = self.row;
+        // let c_self = self.col;
+        // let r_other = other.row;
+        // let c_other = other.col;
 //
-//        assert_eq!(c_self, r_other);
+        // assert_eq!(c_self, r_other);
 //
-//        if
-//    }
-//}
+        // let r_new = r_self;
+        // let c_new = c_other;
+//
+        // let mut container: Vec<f64> = vec![0f64; r_new * c_new];
+        // unimplemented!();
+    // }
+// }
 
 /// Index for Matrix
 ///
@@ -593,6 +597,25 @@ impl Index<(usize, usize)> for Matrix {
         match self.shape {
             Row => &self.data[i * self.col + j],
             Col => &self.data[i + j * self.row]
+        }
+    }
+}
+
+impl IndexMut<(usize, usize)> for Matrix {
+    fn index_mut<'a>(&'a mut self, pair: (usize, usize)) -> &'a mut f64 {
+        let i = pair.0;
+        let j = pair.1;
+        let r = self.row;
+        let c = self.col;
+        match self.shape {
+            Row => {
+                let idx = i * c + j;
+                &mut self.data[idx]
+            },
+            Col => {
+                let idx = i + j * r;
+                &mut self.data[idx]
+            }
         }
     }
 }
