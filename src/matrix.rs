@@ -520,61 +520,36 @@ impl Mul<f64> for Matrix {
 ///
 /// let a = matrix!(1;4;1, 2, 2, Row);
 /// let b = matrix!(1;4;1, 2, 2, Col);
-/// println!("{}", a % b); // [5, 11; 11, 15]
+/// assert_eq!(a % b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
 /// ```
 impl Rem<Matrix> for Matrix {
-   type Output = Matrix;
+    type Output = Matrix;
 
-   //TODO: Not use change shape!
-   fn rem(self, other: Matrix) -> Matrix {
-       assert_eq!(self.col, other.row);
-       if self.shape == Row && other.shape == Col {
-           let mut container: Vec<f64> = Vec::new();
-           for i in 0 .. self.row {
-               let p = self.data.clone().into_iter().skip(self.col * i).take(self.col).collect::<Vec<f64>>();
-               for j in 0 .. other.col {
-                   let q = other.data.clone().into_iter().skip(other.row * j).take(other.row).collect::<Vec<f64>>();
-                   let s: f64 = p.clone().into_iter().zip(&q).map(|(x, y)| x * y).fold(
-                       0f64,
-                       |x, y| x + y,
-                   );
-                   container.push(s);
-               }
-           }
-           matrix(
-               container,
-               self.row,
-               other.col,
-               Row,
-           )
-       } else if self.shape == Col && other.shape == Row {
-           self.change_shape().rem(other.change_shape())
-       } else if self.shape == Col {
-           self.change_shape().rem(other)
-       } else {
-           self.rem(other.change_shape())
-       }
-   }
+    fn rem(self, other: Matrix) -> Matrix {
+        let r_self = self.row;
+        let c_self = self.col;
+        let r_other = other.row;
+        let c_other = other.col;
+
+        assert_eq!(c_self, r_other);
+
+        let r_new = r_self;
+        let c_new = c_other;
+
+        let mut result = matrix(vec![0f64; r_new * c_new], r_new, c_new, self.shape);
+
+        for i in 0 .. r_new {
+            for j in 0 .. c_new {
+                let mut s = 0f64;
+                for k in 0 .. c_self {
+                    s += self[(i, k)] * other[(k, j)];
+                }
+                result[(i, j)] = s;
+            }
+        }
+        result
+    }
 }
-
-// impl Rem<Matrix> for Matrix {
-    // type Output = Matrix;
-//
-    // fn rem(self, other: Matrix) -> Matrix {
-        // let r_self = self.row;
-        // let c_self = self.col;
-        // let r_other = other.row;
-        // let c_other = other.col;
-//
-        // assert_eq!(c_self, r_other);
-//
-        // let r_new = r_self;
-        // let c_new = c_other;
-//
-        // let mut container: Vec<f64> = vec![0f64; r_new * c_new];
-        // unimplemented!();
-    // }
-// }
 
 /// Index for Matrix
 ///
