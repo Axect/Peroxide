@@ -3,7 +3,7 @@ extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    let a = matrix!(1;6;1, 2, 3, Row);
+    let a = matrix!(1;6;1, 3, 2, Row);
     let blocks = a.block();
     println!("{}", blocks.0);
     println!("{}", blocks.1);

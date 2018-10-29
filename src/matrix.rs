@@ -845,60 +845,84 @@ impl LinearAlgebra for Matrix {
     /// let b = matrix!(1;16;1, 4, 4, Col);
     /// let (m1, m2, m3, m4) = b.block();
     /// assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Col));
-    /// assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Col));
-    /// assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Col));
+    /// assert_eq!(m3, matrix(c!(3,4,7,8), 2, 2, Col));
+    /// assert_eq!(m2, matrix(c!(9,10,13,14), 2, 2, Col));
     /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Col));
     /// ```
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix) {
-        assert_eq!(self.row, self.col);
         let r = self.row;
-        let l = (self.row / 2) as i32;
+        let c = self.col;
+        let l = min(self.row / 2, self.col / 2) as i32;
+        let r1 = r as i32;
+        let c1 = c as i32;
 
         let mut v1 = vec![0f64; (l*l) as usize];
-        let mut v2 = vec![0f64; l as usize * (r - l as usize)];
+        let mut v2 = vec![0f64; (l as usize) * (c - l as usize)];
         let mut v3 = vec![0f64; (r - l as usize) * l as usize];
-        let mut v4 = vec![0f64; (r - l as usize) * (r - l as usize)];
-
-        for k in 0 .. (r*r) {
-            let (quot, rem) = quot_rem(k, r);
-            let r1 = r as i32;
-            match (quot, rem) {
-                (i, j) if (i < l) && (j < l) => {
-                    let idx = (i * l + j) as usize;
-                    v1[idx] = self.data[k];
-                },
-                (i, j) if (i < l) && (j >= l) => {
-                    let idx = (i * (r1 - l) + j - l) as usize;
-                    v2[idx] = self.data[k];
-                },
-                (i, j) if (i >= l) && (j < l) => {
-                    let idx = ((i - l) * l + j) as usize;
-                    v3[idx] = self.data[k];
-                },
-                (i, j) if (i >= l) && (j >= l) => {
-                    let idx = ((i - l) * (r1 - l) + j - l) as usize;
-                    v4[idx] = self.data[k];
-                },
-                _ => (),
-            }
-        }
+        let mut v4 = vec![0f64; (r - l as usize) * (c - l as usize)];
 
         match self.shape {
             Row => {
-                let m1 = matrix(v1, l as usize, l as usize, Row);
-                let m2 = matrix(v2, l as usize, r - l as usize, Row);
-                let m3 = matrix(v3, r - l as usize, l as usize, Row);
-                let m4 = matrix(v4, r - l as usize, r - l as usize, Row);
+                for k in 0 .. (r*c) {
+                    let (quot, rem) = quot_rem(k, c);
+                    match (quot, rem) {
+                        (i, j) if (i < l) && (j < l) => {
+                            let idx = (i * l + j) as usize;
+                            v1[idx] = self.data[k];
+                        },
+                        (i, j) if (i < l) && (j >= l) => {
+                            let idx = (i * (c1 - l) + j - l) as usize;
+                            v2[idx] = self.data[k];
+                        },
+                        (i, j) if (i >= l) && (j < l) => {
+                            let idx = ((i - l) * l + j) as usize;
+                            v3[idx] = self.data[k];
+                        },
+                        (i, j) if (i >= l) && (j >= l) => {
+                            let idx = ((i - l) * (c1 - l) + j - l) as usize;
+                            v4[idx] = self.data[k];
+                        },
+                        _ => (),
+                    }
+                }
 
-                (m1, m2, m3, m4) // Row direction
+                let m1 = matrix(v1, l as usize, l as usize, Row);
+                let m2 = matrix(v2, l as usize, c - l as usize, Row);
+                let m3 = matrix(v3, r - l as usize, l as usize, Row);
+                let m4 = matrix(v4, r - l as usize, c - l as usize, Row);
+
+                (m1, m2, m3, m4)
             },
             Col => {
-                let m1 = matrix(v1, l as usize, l as usize, Col);
-                let m2 = matrix(v2, r - l as usize, l as usize, Col);
-                let m3 = matrix(v3, l as usize, r - l as usize, Col);
-                let m4 = matrix(v4, r - l as usize, r - l as usize, Col);
+                for k in 0 .. (r*c) {
+                    let (quot, rem) = quot_rem(k, r);
+                    match (quot, rem) { // (Col, Row)
+                        (j, i) if (i < l) && (j < l) => {
+                            let idx = (i + j*l) as usize;
+                            v1[idx] = self.data[k];
+                        },
+                        (j, i) if (i >= l) && (j < l) => {
+                            let idx = (i - l + j * (r1 - l)) as usize;
+                            v3[idx] = self.data[k];
+                        },
+                        (j, i) if (i < l) && (j >= l) => {
+                            let idx = (i + (j - l) * l) as usize;
+                            v2[idx] = self.data[k];
+                        },
+                        (j, i) if (i >= l) && (j >= l) => {
+                            let idx = (i - l + (j - l) * (r1 - l)) as usize;
+                            v4[idx] = self.data[k];
+                        },
+                        _ => (),
+                    }
+                }
 
-                (m1, m2, m3, m4) // Col direction
+                let m1 = matrix(v1, l as usize, l as usize, Col);
+                let m3 = matrix(v3, r - l as usize, l as usize, Col);
+                let m2 = matrix(v2, l as usize, c - l as usize, Col);
+                let m4 = matrix(v4, r - l as usize, c - l as usize, Col);
+
+                (m1, m2, m3, m4)
             }
         }
     }
@@ -976,44 +1000,75 @@ pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
 /// assert_eq!(n, b);
 /// ```
 pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
-    let r1 = m1.row;
-    let c2 = m4.col;
+    let l = m1.col;
+    let c_l = m2.col;
+    let r_l = m3.row;
 
     let v1 = m1.data;
     let v2 = m2.data;
     let v3 = m3.data;
     let v4 = m4.data;
 
-    let r = r1 + c2;
-    let l = (r / 2) as i32;
+    let r = l + r_l;
+    let c = l + c_l;
+    let r1 = r as i32;
+    let c1 = c as i32;
+    let l = l as i32;
 
-    let mut v = vec![0f64; r*r];
+    let mut v = vec![0f64; r*c];
 
-    for k in 0 .. (r*r) {
-        let (quot, rem) = quot_rem(k, r);
-        let r1 = r as i32;
-        match (quot, rem) {
-            (i, j) if (i < l) && (j < l) => {
-                let idx = (i * l + j) as usize;
-                v[k] = v1[idx];
-            },
-            (i, j) if (i < l) && (j >= l) => {
-                let idx = (i * (r1 - l) + j - l) as usize;
-                v[k] = v2[idx];
-            },
-            (i, j) if (i >= l) && (j < l) => {
-                let idx = ((i - l) * l + j) as usize;
-                v[k] = v3[idx];
-            },
-            (i, j) if (i >= l) && (j >= l) => {
-                let idx = ((i - l) * (r1 - l) + j - l) as usize;
-                v[k] = v4[idx];
-            },
-            _ => (),
-        }
+    match m1.shape {
+        Row => {
+            for k in 0 .. (r*c) {
+                let (quot, rem) = quot_rem(k, c);
+                match (quot, rem) {
+                    (i, j) if (i < l) && (j < l) => {
+                        let idx = (i * l + j) as usize;
+                        v[k] = v1[idx];
+                    },
+                    (i, j) if (i < l) && (j >= l) => {
+                        let idx = (i * (c1 - l) + j - l) as usize;
+                        v[k] = v2[idx];
+                    },
+                    (i, j) if (i >= l) && (j < l) => {
+                        let idx = ((i - l) * l + j) as usize;
+                        v[k] = v3[idx];
+                    },
+                    (i, j) if (i >= l) && (j >= l) => {
+                        let idx = ((i - l) * (c1 - l) + j - l) as usize;
+                        v[k] = v4[idx];
+                    },
+                    _ => (),
+                }
+            }
+        },
+        Col => {
+            for k in 0 .. (r*c) {
+                let (quot, rem) = quot_rem(k, r);
+                match (quot, rem) { // (Col, Row)
+                    (j, i) if (i < l) && (j < l) => {
+                        let idx = (i + j*l) as usize;
+                        v[k] = v1[idx];
+                    },
+                    (j, i) if (i >= l) && (j < l) => {
+                        let idx = (i - l + j * (r1 - l)) as usize;
+                        v[k] = v3[idx];
+                    },
+                    (j, i) if (i < l) && (j >= l) => {
+                        let idx = (i + (j - l) * l) as usize;
+                        v[k] = v2[idx];
+                    },
+                    (j, i) if (i >= l) && (j >= l) => {
+                        let idx = (i - l + (j - l) * (r1 - l)) as usize;
+                        v[k] = v4[idx];
+                    },
+                    _ => (),
+                }
+            }
+        },
     }
 
-    matrix(v, r, r, m1.shape)
+    matrix(v, r, c, m1.shape)
 }
 
 /// Inverse of Lower matrix
