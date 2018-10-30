@@ -718,8 +718,11 @@ impl LinearAlgebra for Matrix {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
-        let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
-        let mut u_vec: Vec<f64> = vec![0f64; len]; // Row based
+//        let mut l_vec: Vec<f64> = vec![0f64; len]; // Row based
+//        let mut u_vec: Vec<f64> = vec![0f64; len]; // Row based
+
+        let mut l: Matrix = matrix(vec![0f64; len], n, n, self.shape);
+        let mut u: Matrix = matrix(vec![0f64; len], n, n, self.shape);
 
         // ---------------------------------------
         // Pivoting - Complete
@@ -756,37 +759,30 @@ impl LinearAlgebra for Matrix {
             }
         }
 
+        // ---------------------------------------
+        // Obtain L & U
+        // ---------------------------------------
         let reference = container.clone();
 
         // Initialize U
-        match reference.shape {
-            Row => {
-                for i in 0 .. n {
-                    u_vec[i] = reference.data[i];
-                }
-            },
-            Col => {
-                for i in 0 .. n {
-                    u_vec[i] = reference.change_shape().data[i];
-                }
-            }
+        for i in 0 .. n {
+            u[(0, i)] = reference[(i, 0)];
         }
 
         // Initialize L
         for i in 0 .. n {
-            let j = i * (n + 1);
-            l_vec[j] = 1f64;
+            l[(i, i)] = 1f64;
         }
 
         for i in 0 .. n {
             for k in i .. n {
                 let mut s = 0f64;
                 for j in 0 .. i {
-                    s += l_vec[i*n + j] * u_vec[j*n + k];
+                    s += l[(i, j)] * u[(j, k)];
                 }
-                u_vec[i*n + k] = reference[(i, k)] - s;
+                u[(i, k)] = reference[(i, k)] - s;
                 // Check non-zero diagonal
-                if nearly_eq(u_vec[i*(n+1)], 0) {
+                if nearly_eq(u[(i, i)], 0) {
                     return None;
                 }
             }
@@ -794,14 +790,11 @@ impl LinearAlgebra for Matrix {
             for k in (i+1) .. n {
                 let mut s = 0f64;
                 for j in 0 .. i {
-                    s += l_vec[k*n + j] * u_vec[j*n + i];
+                    s += l[(k, j)] * u[(j, i)];
                 }
-                l_vec[k*n + i] = (reference[(k, i)] - s) / u_vec[i*(n+1)];
+                l[(k, i)] = (reference[(k, i)] - s) / u[(i, i)];
             }
         }
-
-        let l = matrix(l_vec, n, n, Row);
-        let u = matrix(u_vec, n, n, Row);
 
         Some(
             PQLU {

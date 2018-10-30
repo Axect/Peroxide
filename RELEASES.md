@@ -1,3 +1,8 @@
+# Release 0.4.8 (2018-10-30)
+
+* Modify `lu`
+    * Just change code style
+
 # Release 0.4.7 (2018-10-30)
 
 * Add `IndexMut` implementation for `Matrix`
