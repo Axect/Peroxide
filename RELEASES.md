@@ -8,6 +8,7 @@
 * Add `IndexMut` implementation for `Matrix`
 * Modify `Rem`
   * Just using `IndexMut`
+  * Very fast!
 
 # Release 0.4.6 (2018-10-29)
 
