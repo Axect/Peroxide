@@ -91,7 +91,7 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
             data: v.into_iter().map(|x| x.into()).collect(),
             row: x,
             col: y,
-            shape: shape,
+            shape,
         }
     }
 }
@@ -796,10 +796,10 @@ impl LinearAlgebra for Matrix {
 
         Some(
             PQLU {
-                p: p,
-                q: q,
-                l: l,
-                u: u,
+                p,
+                q,
+                l,
+                u,
             }
         )
     }
