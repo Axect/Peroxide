@@ -158,4 +158,3 @@ pub fn cov(v1: Vector, v2: Vector) -> f64 {
     assert_ne!(l, 1f64);
     (ss / l - (sx * sy) / (l.powf(2f64))) * l / (l - 1f64)
 }
-
