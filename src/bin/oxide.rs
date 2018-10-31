@@ -3,6 +3,7 @@ extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    let a = matrix!(1;4;1, 2, 2, Row);
-    println!("{}", a.inv().unwrap());
+    let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    println!("{:?}", m.var());
+    println!("{:?}", m.sd());
 }

@@ -1,6 +1,9 @@
 pub use matrix::*;
 pub use vector::*;
 
+/// Statistics Trait
+///
+/// It contains `mean`, `var`, `sd`, `cov`
 pub trait Statistics {
     type Array;
     type Value;
@@ -96,6 +99,16 @@ impl Statistics for Matrix {
         container
     }
 
+    /// Column variance
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    /// assert!(nearly_eq(m.var()[0], 1));
+    /// ```
     fn var(&self) -> Vector {
         let mut container: Vector = Vec::new();
         let c = self.col;
@@ -106,6 +119,16 @@ impl Statistics for Matrix {
         container
     }
 
+    /// Column Standard Deviation
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    /// assert!(nearly_eq(m.sd()[0], 1));
+    /// ```
     fn sd(&self) -> Vector {
         let mut container: Vector = Vec::new();
         let c = self.col;
@@ -116,6 +139,21 @@ impl Statistics for Matrix {
         container
     }
 
+
+    /// Covariance Matrix (Column based)
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    /// println!("{}", m.cov());
+    ///
+    /// //         c[0]    c[1]
+    /// // r[0]  1.0000 -1.0000
+    /// // r[1] -1.0000  1.0000
+    /// ```
     fn cov(&self) -> Matrix {
         let c = self.col;
 
