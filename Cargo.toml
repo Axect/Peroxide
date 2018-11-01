@@ -15,3 +15,4 @@ travis-ci = { repository = "Axect/Peroxide", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+csv = "1"

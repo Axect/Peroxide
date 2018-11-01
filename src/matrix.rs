@@ -1,3 +1,5 @@
+extern crate csv;
+
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
@@ -5,6 +7,8 @@ pub use self::Shape::{Row, Col};
 pub use vector::*;
 use std::f64::{MAX, MIN};
 use std::cmp::{max, min};
+use std::error::Error;
+use self::csv::WriterBuilder;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -392,6 +396,21 @@ impl Matrix {
                 matrix(v, self.row, self.col, Col)
             }
         }
+    }
+    
+    pub fn write(&self, file_path: &str) -> Result<(), Box<Error>> {
+        let mut wtr = WriterBuilder::new().from_path(file_path)?;
+        let r = self.row;
+        let c = self.col;
+        for i in 0 .. r {
+            let mut record: Vec<String> = vec!["".to_string(); c];
+            for j in 0 .. c {
+                record[j] = self[(i, j)].to_string();
+            }
+            wtr.write_record(record)?;
+        }
+        wtr.flush()?;
+        Ok(())
     }
 }
 
