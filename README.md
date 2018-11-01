@@ -246,14 +246,14 @@ println!("{}", a.fmap(|x| x * 2.0));
 
 You can write matrix to csv by two ways.
 
-1. Just write
+* Just write
 ```rust
 // Peroxide
 let a = matrix!(1;4;1, 2, 2, Row);
 a.write("test.csv"); // It will save a to test.csv
 ```
 
-2. Error Handling
+* Error Handling
 ```rust
 // Peroxide
 extern crate peroxide;
