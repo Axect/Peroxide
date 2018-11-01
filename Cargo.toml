@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.4.9"
+version = "0.5.0"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust Numeric Library with R syntax & Pure Rust"
 repository = "https://github.com/Axect/Peroxide"

@@ -1,3 +1,8 @@
+# Release 0.5.0 (2018-11-01)
+
+* Add `write` for `Matrix`
+  * Can write matrix to csv!
+
 # Release 0.4.9 (2018-10-30)
 
 * Modify `block`, `inv_u`, `combine`

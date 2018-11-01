@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.4.5`.
+Corresponds with `0.5.0`.
 
 ## Usage
 
@@ -240,6 +240,31 @@ println!("{}", a.fmap(|x| x * 2.0));
 //       c[0] c[1]
 // r[0]     2    4
 // r[1]     6    8
+```
+
+### Write to CSV
+
+You can write matrix to csv by two ways.
+
+1. Just write
+```rust
+// Peroxide
+let a = matrix!(1;4;1, 2, 2, Row);
+a.write("test.csv"); // It will save a to test.csv
+```
+
+2. Error Handling
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide:: *;
+use std::process; // You must type this
+
+let a = matrix!(1;4;1, 2, 2, Row);
+if let Err(err) = a.write("test.csv") {
+  println!("{}", err);
+  process::exit(1);
+}
 ```
 
 ## Version Info
