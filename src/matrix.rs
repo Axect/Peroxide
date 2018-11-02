@@ -7,8 +7,8 @@ pub use self::Shape::{Row, Col};
 pub use vector::*;
 use std::f64::{MAX, MIN};
 use std::cmp::{max, min};
-use std::error::Error;
-use self::csv::WriterBuilder;
+pub use std::error::Error;
+use self::csv::{WriterBuilder, ReaderBuilder, StringRecord};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -397,7 +397,17 @@ impl Matrix {
             }
         }
     }
-    
+
+    /// Write to CSV
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    /// a.write("test.csv");
+    /// ```
     pub fn write(&self, file_path: &str) -> Result<(), Box<Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -412,6 +422,46 @@ impl Matrix {
         wtr.flush()?;
         Ok(())
     }
+}
+
+/// Read from CSV
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+/// use std::process;
+///
+/// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+/// a.write("test.csv");
+///
+/// let b = read("test.csv", false); // header = false
+/// match b {
+///     Ok(mat) => println!("{}", mat),
+///     Err(err) => {
+///         println!("{}", err);
+///         process::exit(1);
+///     }
+/// }
+/// ```
+pub fn read(file_path: &str, header: bool) -> Result<Matrix, Box<Error>> {
+    let mut rdr = ReaderBuilder::new().has_headers(header).from_path(file_path)?;
+
+    let records = rdr.records().collect::<Result<Vec<StringRecord>, csv::Error>>()?;
+    let result = records;
+
+    let l_row = result.len();
+    let l_col = result[0].len();
+
+    let mut m = matrix(vec![0f64; l_row * l_col], l_row, l_col, Row);
+
+    for i in 0 .. l_row {
+        for j in 0 .. l_col {
+            m[(i, j)] = result[i][j].parse::<f64>().unwrap();
+        }
+    }
+
+    Ok(m)
 }
 
 // =============================================================================

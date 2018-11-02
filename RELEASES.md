@@ -1,7 +1,14 @@
+# Release 0.5.1 (2018-11-02)
+
+* Add `read`
+    * Can read matrix from csv
+* Add comment to `write`, `read`
+* Fix all README
+
 # Release 0.5.0 (2018-11-01)
 
 * Add `write` for `Matrix`
-  * Can write matrix to csv!
+    * Can write matrix to csv!
 
 # Release 0.4.9 (2018-10-30)
 
@@ -17,13 +24,13 @@
 
 * Add `IndexMut` implementation for `Matrix`
 * Modify `Rem`
-  * Just using `IndexMut`
-  * Very fast!
+    * Just using `IndexMut`
+    * Very fast!
 
 # Release 0.4.6 (2018-10-29)
 
 * Fixed `block` & `combine`
-  * Only squared matrices -> Every matrices
+    * Only squared matrices -> Every matrices
 
 # Release 0.4.5 (2018-10-26)
 

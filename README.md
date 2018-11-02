@@ -27,8 +27,13 @@ b = seq(1,5,2) # (=c(1,3,5))
 
 ```rust
 // Peroxide
-let a = c!(1,2,3,4);
-let b = seq!(1,5,2); // (=c!(1,3,5))
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = c!(1,2,3,4);
+    let b = seq!(1,5,2); // (=c!(1,3,5))
+}
 ```
 
 ### Matrix Declaration
@@ -40,13 +45,18 @@ a = matrix(1:4, 2, 2, T)
 
 ```rust
 // Peroxide (All belows are same)
-// matrix function
-let a = matrix(vec![1,2,3,4], 2, 2, Row);
-let b = matrix(c!(1,2,3,4), 2, 2, Row);
-let c = matrix(seq!(1,4,1), 2, 2, Row);
+extern crate peroxide;
+use peroxide::*;
 
-// matrix macro (More convenient)
-let c = matrix!(1;4;1, 2, 2, Row);
+fn main() {
+    // matrix function
+    let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    let b = matrix(c!(1,2,3,4), 2, 2, Row);
+    let c = matrix(seq!(1,4,1), 2, 2, Row);
+    
+    // matrix macro (More convenient)
+    let c = matrix!(1;4;1, 2, 2, Row);
+}
 ```
 
 ### Print
@@ -62,8 +72,13 @@ print(a)
 
 ```rust
 // Peroxide
-let a = matrix!(1;4;1,  2, 2, Row);
-println!("{}", a);
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix!(1;4;1,  2, 2, Row);
+    println!("{}", a);
+}
 //       c[0] c[1]
 // r[0]     1    2
 // r[1]     3    4
@@ -83,9 +98,14 @@ c = c(a, b) # c(1,2,3,4,5,6)
 
 ```rust
 // Peroxide
-let a = c!(1,2,3);
-let b = c!(4,5,6);
-let c = c!(a; b); // Must use semi-colon btw vectors
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = c!(1,2,3);
+    let b = c!(4,5,6);
+    let c = c!(a; b); // Must use semi-colon btw vectors
+}
 ```
 
 **2. Matrix + Matrix => Matrix**
@@ -111,22 +131,27 @@ c = rbind(a,b)
 
 ```rust
 // Peroxide
-// cbind
-let a = matrix!(1;4;1, 2, 2, Col);
-let b = matrix(c!(5,6), 2, 1, Col);
-let c = cbind!(a, b);
-//      c[0] c[1] c[2]
-// r[0]    1    3    5
-// r[1]    2    4    6
+extern crate peroxide;
+use peroxide::*;
 
-// rbind
-let a = matrix!(1;4;1, 2, 2, Row);
-let b = matrix(c!(5,6),1, 2, Row);
-let c = rbind!(a, b);
-//      c[0] c[1]
-// r[0]    1    2
-// r[1]    3    4
-// r[2]    5    6
+fn main() {
+    // cbind
+    let a = matrix!(1;4;1, 2, 2, Col);
+    let b = matrix(c!(5,6), 2, 1, Col);
+    let c = cbind!(a, b);
+    //      c[0] c[1] c[2]
+    // r[0]    1    3    5
+    // r[1]    2    4    6
+    
+    // rbind
+    let a = matrix!(1;4;1, 2, 2, Row);
+    let b = matrix(c!(5,6),1, 2, Row);
+    let c = rbind!(a, b);
+    //      c[0] c[1]
+    // r[0]    1    2
+    // r[1]    3    4
+    // r[2]    5    6
+}
 ```
 
 ### Matrix operation
@@ -145,13 +170,18 @@ print(a %*% b)
 
 ```rust
 // Peroxide
-let a = matrix!(1;4;1, 2, 2, Row);
-let b = matrix!(1;4;1, 2, 2, Col);
-println!("{}", a.clone() + b.clone());
-println!("{}", a.clone() - b.clone());
-println!("{}", a.clone() * b.clone()); // Element-wise multiplication
-println!("{}", a % b);  // Matrix multiplication
-// Consume -> You can't use a,b anymore.
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix!(1;4;1, 2, 2, Row);
+    let b = matrix!(1;4;1, 2, 2, Col);
+    println!("{}", a.clone() + b.clone());
+    println!("{}", a.clone() - b.clone());
+    println!("{}", a.clone() * b.clone()); // Element-wise multiplication
+    println!("{}", a % b);  // Matrix multiplication
+    // Consume -> You can't use a,b anymore.
+}
 ```
 
 ### LU Decomposition
@@ -161,13 +191,18 @@ println!("{}", a % b);  // Matrix multiplication
 
 ```rust
 // Peroxide
-let a = matrix(c!(1,2,3,4), 2, 2, Row);
-let pqlu = a.lu().unwrap(); // for singular matrix, returns None
-let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
-assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
-assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
-assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    let pqlu = a.lu().unwrap(); // for singular matrix, returns None
+    let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+    assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
+    assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+    assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
+    assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+}
 ```
 
 ### Determinant
@@ -176,8 +211,13 @@ assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
 
 ```rust
 // Peroxide
-let a = matrix(c!(1,2,3,4), 2, 2, Row);
-assert_eq!(a.det(), -2f64);
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    assert_eq!(a.det(), -2f64);
+}
 ```
 
 ### Inverse
@@ -188,14 +228,18 @@ assert_eq!(a.det(), -2f64);
     
 ```rust
 // Peroxide
- 
-// Non-singular
-let a = matrix!(1;4;1, 2, 2, Row);
-assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+extern crate peroxide;
+use peroxide::*;
 
-// Singular
-let b = matrix!(1;9;1, 3, 3, Row);
-assert_eq!(b.inv(), None);
+fn main() {
+    // Non-singular
+    let a = matrix!(1;4;1, 2, 2, Row);
+    assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+    
+    // Singular
+    let b = matrix!(1;9;1, 3, 3, Row);
+    assert_eq!(b.inv(), None);
+ }
  ```
 
 ### Extract Column or Row
@@ -211,21 +255,31 @@ print(a[2,])
 
 ```rust
 //Peroxide
-let a = matrix!(1;4;1, 2, 2, Row);
-println!("{}", a.col(0));
-println!("{}", a.col(1));
-println!("{}", a.row(0));
-println!("{}", a.row(1));
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix!(1;4;1, 2, 2, Row);
+    println!("{}", a.col(0));
+    println!("{}", a.col(1));
+    println!("{}", a.row(0));
+    println!("{}", a.row(1));
+}
 ```
 
 ### Functional Programming
 
 ```rust
 // Peroxide
-let a = matrix!(1;4;1, 2, 2, Row);
-println!("{}", a.fmap(|x| x + 1.0));
-println!("{}", a.fmap(|x| x - 1.0));
-println!("{}", a.fmap(|x| x * 2.0));
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = matrix!(1;4;1, 2, 2, Row);
+    println!("{}", a.fmap(|x| x + 1.0));
+    println!("{}", a.fmap(|x| x - 1.0));
+    println!("{}", a.fmap(|x| x * 2.0));
+}
 
 // Results
 //
@@ -246,24 +300,50 @@ println!("{}", a.fmap(|x| x * 2.0));
 
 You can write matrix to csv by two ways.
 
-* Just write
-```rust
-// Peroxide
-let a = matrix!(1;4;1, 2, 2, Row);
-a.write("test.csv"); // It will save a to test.csv
-```
-
-* Error Handling
 ```rust
 // Peroxide
 extern crate peroxide;
-use peroxide:: *;
-use std::process; // You must type this
+use peroxide::*;
+use std::process; // for error handling
 
-let a = matrix!(1;4;1, 2, 2, Row);
-if let Err(err) = a.write("test.csv") {
-  println!("{}", err);
-  process::exit(1);
+fn main() {
+    // 1. Just write
+    let a = matrix!(1;4;1, 2, 2, Row);
+    a.write("test.csv"); // It will save a to test.csv
+
+    // 2. Error Handling
+    let b = matrix!(1;4;1, 2, 2, Row);
+    if let Err(err) = b.write("test.csv") {
+      println!("{}", err);
+      process::exit(1);
+    }
+}
+```
+
+### Read from CSV
+
+You can read matrix with error handling
+
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide::*;
+use std::process;
+
+fn main() {
+    let m = read("test.csv");
+    // Error handling
+    match m {
+        Ok(mat) => println!("{}", mat),
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
+    }
+    
+    // Just write
+    let n = read("test.csv").unwrap();
+    println!("{}", n);
 }
 ```
 
