@@ -1,3 +1,6 @@
+extern crate rand;
+pub use self::rand::prelude::*;
+
 #[allow(unused_imports)]
 use matrix::*;
 #[allow(unused_imports)]
@@ -236,6 +239,42 @@ macro_rules! rbind {
                 v.extend(&temp.data.clone());
             )*
             matrix(v, r, c, Row)
+        }
+    };
+}
+
+/// R like random uniform
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = runif!(5, -1, 1);
+/// println!("{:?}", a);
+///
+/// let b = runif!(5); // same as runif!(5,0,1)
+/// println!("{:?}", b);
+/// ```
+#[macro_export]
+macro_rules! runif {
+    ( $x0:expr, $start:expr, $end:expr ) => {
+        {
+            let n: usize = $x0;
+            let mut v = vec![0f64; n];
+
+            let mut rng = thread_rng();
+
+            for i in 0 .. n {
+                v[i] = rng.gen_range($start as f64, $end as f64);
+            }
+            v
+        }
+    };
+
+    ( $x0:expr ) => {
+        {
+            runif!($x0, 0, 1)
         }
     };
 }

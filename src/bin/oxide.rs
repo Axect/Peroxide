@@ -6,20 +6,6 @@ use std::process;
 
 #[allow(unused_must_use)]
 fn main() {
-//    let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-//    //println!("{:?}", m.var());
-//    //println!("{:?}", m.sd());
-//    if let Err(err) = m.write("test.csv") {
-//        println!("{}", err);
-//        process::exit(1);
-//    }
-//    //m.write("test.csv");
-    let m = read("test.csv", false);
-    match m {
-        Ok(mat) => println!("{}", mat),
-        Err(err) => {
-            println!("{}", err);
-            process::exit(1);
-        }
-    }
+    let a = runif!(5);
+    println!("{:?}", a);
 }

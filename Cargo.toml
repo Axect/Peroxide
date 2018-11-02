@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust Numeric Library with R syntax & Pure Rust"
 repository = "https://github.com/Axect/Peroxide"
@@ -16,3 +16,4 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 csv = "1"
+rand = "0.5"
