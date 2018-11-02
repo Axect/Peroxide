@@ -331,7 +331,7 @@ use peroxide::*;
 use std::process;
 
 fn main() {
-    let m = read("test.csv");
+    let m = read("test.csv", false); // no header
     // Error handling
     match m {
         Ok(mat) => println!("{}", mat),
@@ -342,7 +342,7 @@ fn main() {
     }
     
     // Just write
-    let n = read("test.csv").unwrap();
+    let n = read("test.csv", false).unwrap(); // no header
     println!("{}", n);
 }
 ```
