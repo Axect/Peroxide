@@ -55,7 +55,7 @@ fn main() {
     let c = matrix(seq!(1,4,1), 2, 2, Row);
     
     // matrix macro (More convenient)
-    let c = matrix!(1;4;1, 2, 2, Row);
+    let d = matrix!(1;4;1, 2, 2, Row);
 }
 ```
 
