@@ -144,9 +144,9 @@ fn main() {
     // r[1]    2    4    6
     
     // rbind
-    let a = matrix!(1;4;1, 2, 2, Row);
-    let b = matrix(c!(5,6),1, 2, Row);
-    let c = rbind!(a, b);
+    let d = matrix!(1;4;1, 2, 2, Row);
+    let e = matrix(c!(5,6),1, 2, Row);
+    let f = rbind!(a, b);
     //      c[0] c[1]
     // r[0]    1    2
     // r[1]    3    4
