@@ -6,7 +6,7 @@ use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
 
-/// MATLAB like zeros
+/// MATLAB like zeros - zero matrix
 ///
 /// # Examples
 /// ```
@@ -23,7 +23,7 @@ macro_rules! zeros {
     };
 }
 
-/// MATLAB like rand
+/// MATLAB like rand - random matrix
 ///
 /// # Examples
 /// ```
@@ -50,3 +50,29 @@ macro_rules! rand {
         }
     };
 }
+
+/// MATLAB like eyes - identity matrix
+///
+/// # Examples
+///
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let i = eyes!(2);
+/// assert_eq!(i, matrix(c!(1,0,0,1), 2, 2, Row));
+/// ```
+#[macro_export]
+macro_rules! eyes {
+    ( $n:expr ) => {
+        {
+            let n = $n;
+            let mut m = matrix(vec![0f64; n * n], n, n, Row);
+            for i in 0 .. n {
+                m[(i, i)] = 1f64;
+            }
+            m
+        }
+    };
+}
+
