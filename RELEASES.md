@@ -1,3 +1,7 @@
+# Release 0.5.2 (2018-11-03)
+
+* Add `matlab_macro`
+
 # Release 0.5.1 (2018-11-02)
 
 * Add `read`
