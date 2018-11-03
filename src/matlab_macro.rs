@@ -15,11 +15,21 @@ use vector::*;
 ///
 /// let a = zeros!(4);
 /// assert_eq!(a, c!(0,0,0,0));
+///
+/// let b = zeros!(3, 2);
+/// assert_eq!(b, matrix(c!(0,0,0,0,0,0), 3, 2, Row));
 /// ```
 #[macro_export]
 macro_rules! zeros {
     ( $n:expr ) => {
         vec![0f64; $n]
+    };
+
+    ( $r:expr, $c:expr ) => {
+        {
+            let (r, c) = ($r, $c);
+            matrix(vec![0f64; r*c], r, c, Row)
+        }
     };
 }
 
