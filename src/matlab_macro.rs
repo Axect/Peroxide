@@ -61,7 +61,7 @@ macro_rules! rand {
     };
 }
 
-/// MATLAB like eyes - identity matrix
+/// MATLAB like eye - identity matrix
 ///
 /// # Examples
 ///
@@ -69,11 +69,11 @@ macro_rules! rand {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let i = eyes!(2);
+/// let i = eye!(2);
 /// assert_eq!(i, matrix(c!(1,0,0,1), 2, 2, Row));
 /// ```
 #[macro_export]
-macro_rules! eyes {
+macro_rules! eye {
     ( $n:expr ) => {
         {
             let n = $n;
