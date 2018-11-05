@@ -98,7 +98,7 @@ macro_rules! seq {
 /// ```
 #[macro_export]
 macro_rules! matrix {
-    ( $start:expr;$end:expr;$step:expr,$row:expr,$col:expr,$shape:expr ) => {
+    ( $start:expr;$end:expr;$step:expr, $row:expr, $col:expr, $shape:expr ) => {
         {
             matrix(
                 seq!($start,$end,$step),
@@ -272,6 +272,23 @@ macro_rules! runif {
     };
 }
 
+/// R like lm
+///
+/// # Caution
+/// Should use single token to use this macro
+/// * `lm(y ~ x)` can be accepted
+/// * `lm(c!(1,2,3,4) ~ c!(1,2,3,4))` is not allowed!
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;5;1, 5, 1, Col);
+/// let b = matrix(c!(3.7, 4.2, 4.9, 5.7, 6.0), 5, 1, Col);
+///
+/// assert_eq!(lm!(b ~ a), matrix(c!(3.0700, 0.6100), 2, 1, Col));
+/// ```
 #[macro_export]
 macro_rules! lm {
     ( $y:tt ~ $x:tt ) => {

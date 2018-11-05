@@ -231,6 +231,9 @@ pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
     cov(v1, v2) / (v1.sd() * v2.sd())
 }
 
+/// R like linear regression
+///
+/// # Examples
 pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     let x_temp = input.clone();
     let mut ones = vec![1f64; x_temp.row * x_temp.col];
