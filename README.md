@@ -1,7 +1,7 @@
 # Peroxide
 
-![crates](https://crates.io/crates/peroxide)
-![docs](https://docs.rs/peroxide)
+[![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
+[![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
 ![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)
 
 Rust numeric library with R Syntax.
