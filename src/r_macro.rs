@@ -5,6 +5,8 @@ pub use self::rand::prelude::*;
 use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
+#[allow(unused_imports)]
+use stat::*;
 
 /// R like concatenate (Type: Vec\<f64\>)
 ///
@@ -90,6 +92,9 @@ macro_rules! seq {
 /// let b = matrix(c!(1,2,3,4), 2, 2, Row);
 /// let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
 /// assert!(a == b && b == c);
+///
+/// let m = matrix!(0, 2, 2, Row);
+/// assert_eq!(m, zeros!(2, 2));
 /// ```
 #[macro_export]
 macro_rules! matrix {
@@ -101,6 +106,12 @@ macro_rules! matrix {
                 $col,
                 $shape
             )
+        }
+    };
+
+    ( $value:expr, $row:expr, $col:expr, $shape:expr ) => {
+        {
+            matrix(vec![$value as f64; $row * $col], $row, $col, $shape)
         }
     };
 }
@@ -258,5 +269,12 @@ macro_rules! runif {
         {
             runif!($x0, 0, 1)
         }
+    };
+}
+
+#[macro_export]
+macro_rules! lm {
+    ( $y:tt ~ $x:tt ) => {
+        lm(&$x, &$y)
     };
 }

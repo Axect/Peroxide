@@ -1,3 +1,9 @@
+# Release 0.5.5 (2018-11-06) (Candidate)
+
+* Extend `matrix` macro to single valued matrix
+* Make `lm`
+* And also make `lm` macro - `lm(y ~ x)`
+
 # Release 0.5.4 (2018-11-05)
 
 * Add badges to README

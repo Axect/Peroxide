@@ -403,6 +403,16 @@ fn main() {
 }
 ```
 
+### Linear Regression
+
+* `lm(x, y)`
+
+```r
+# R
+a = 
+
+```
+
 ### MATLAB like macro
 
 * `zeros` - zero vector or matrix

@@ -231,16 +231,12 @@ pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
     cov(v1, v2) / (v1.sd() * v2.sd())
 }
 
-pub trait ML {
-    type Value;
-
-    fn lm(input: &Self::Value, target: &Self::Value) -> Self::Value;
+pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
+    let x_temp = input.clone();
+    let mut ones = vec![1f64; x_temp.row * x_temp.col];
+    ones.extend(&x_temp.data);
+    let x = matrix(ones, x_temp.row, x_temp.col + 1, x_temp.shape);
+    let tx = x.t();
+    let t = target.clone();
+    (tx.clone() % x).inv().unwrap() % tx % t
 }
-
-//impl ML for Vector {
-//    type Value = Vector;
-//
-//    fn lm(input: &Vector, target: &Vector) -> Vector {
-//
-//    }
-//}
