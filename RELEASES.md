@@ -1,4 +1,4 @@
-# Release 0.5.3 (2018-11-05) (Candidate)
+# Release 0.5.3 (2018-11-05)
 
 * Add `eye` to `matlab_macro`
 * Extend `zeros` to matrix
