@@ -11,6 +11,13 @@ Rust numeric library with R Syntax.
 
 Corresponds with `0.5.3`.
 
+## Install
+
+* Add next line to your `cargo.toml`
+```toml
+peroxide = "0.5"
+```
+
 ## Usage
 
 ### Initial Import

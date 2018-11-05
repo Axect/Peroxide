@@ -422,6 +422,20 @@ impl Matrix {
         wtr.flush()?;
         Ok(())
     }
+
+    /// R-like transpose function
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.transpose(), a.t());
+    /// ```
+    pub fn t(&self) -> Matrix {
+        self.transpose()
+    }
 }
 
 /// Read from CSV

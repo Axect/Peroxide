@@ -1,3 +1,8 @@
+# Release 0.5.4 (2018-11-05) (Candidate)
+
+* Add badges to README
+* Fix README - add cargo.toml
+
 # Release 0.5.3 (2018-11-05)
 
 * Add `eye` to `matlab_macro`

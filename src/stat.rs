@@ -12,6 +12,7 @@ pub trait Statistics {
     fn var(&self) -> Self::Value;
     fn sd(&self) -> Self::Value;
     fn cov(&self) -> Self::Array;
+    fn cor(&self) -> Self::Array;
 }
 
 impl Statistics for Vector {
@@ -71,6 +72,9 @@ impl Statistics for Vector {
     }
 
     fn cov(&self) -> Vector {
+        unimplemented!()
+    }
+    fn cor(&self) -> Vector {
         unimplemented!()
     }
 }
@@ -157,16 +161,31 @@ impl Statistics for Matrix {
     fn cov(&self) -> Matrix {
         let c = self.col;
 
-        let mut m: Vector = Vec::new();
+        let mut m: Matrix = matrix(vec![0f64; c*c], c, c, self.shape);
 
         for i in 0 .. c {
             let m1 = self.col(i);
             for j in 0 .. c {
                 let m2 = self.col(j);
-                m.push(cov(&m1, &m2));
+                m[(i, j)] = cov(&m1, &m2);
             }
         }
-        matrix(m, c, c, Row)
+        m
+    }
+
+    fn cor(&self) -> Matrix {
+        let c = self.col;
+
+        let mut m: Matrix = matrix(vec![0f64; c*c], c, c, self.shape);
+
+        for i in 0 .. c {
+            let m1 = self.col(i);
+            for j in 0..c {
+                let m2 = self.col(j);
+                m[(i, j)] = cor(&m1, &m2);
+            }
+        }
+        m
     }
 }
 
@@ -211,3 +230,17 @@ pub fn cov(v1: &Vector, v2: &Vector) -> f64 {
 pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
     cov(v1, v2) / (v1.sd() * v2.sd())
 }
+
+pub trait ML {
+    type Value;
+
+    fn lm(input: &Self::Value, target: &Self::Value) -> Self::Value;
+}
+
+//impl ML for Vector {
+//    type Value = Vector;
+//
+//    fn lm(input: &Vector, target: &Vector) -> Vector {
+//
+//    }
+//}
