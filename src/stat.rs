@@ -163,7 +163,7 @@ impl Statistics for Matrix {
             let m1 = self.col(i);
             for j in 0 .. c {
                 let m2 = self.col(j);
-                m.push(cov(m1.clone(), m2));
+                m.push(cov(&m1, &m2));
             }
         }
         matrix(m, c, c, Row)
@@ -179,15 +179,15 @@ impl Statistics for Matrix {
 ///
 /// let v1 = c!(1,2,3);
 /// let v2 = c!(3,2,1);
-/// assert!(nearly_eq(cov(v1,v2), -1f64));
+/// assert!(nearly_eq(cov(&v1, &v2), -1f64));
 /// ```
-pub fn cov(v1: Vector, v2: Vector) -> f64 {
+pub fn cov(v1: &Vector, v2: &Vector) -> f64 {
     let mut ss = 0f64;
     let mut sx = 0f64;
     let mut sy = 0f64;
     let mut l = 0f64;
 
-    for (x, y) in v1.into_iter().zip(&v2) {
+    for (x, y) in v1.into_iter().zip(v2) {
         ss += x * y;
         sx += x;
         sy += y;
@@ -197,3 +197,17 @@ pub fn cov(v1: Vector, v2: Vector) -> f64 {
     (ss / l - (sx * sy) / (l.powf(2f64))) * l / (l - 1f64)
 }
 
+/// Pearson's correlation coefficient
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = c!(1,2,3);
+/// let b = c!(3,2,1);
+/// assert!(nearly_eq(cor(&a, &b),-1));
+/// ```
+pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
+    cov(v1, v2) / (v1.sd() * v2.sd())
+}

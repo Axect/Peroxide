@@ -1,7 +1,10 @@
-# Release 0.5.3 (2018-11-04) (Candidate)
+# Release 0.5.3 (2018-11-05) (Candidate)
 
 * Add `eye` to `matlab_macro`
 * Extend `zeros` to matrix
+* Fix `cov` for `Vec<f64>` - not consume anymore
+* Add `cor`
+* Update `README`
 
 # Release 0.5.2 (2018-11-03)
 

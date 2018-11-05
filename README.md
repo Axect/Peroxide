@@ -6,7 +6,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.5.0`.
+Corresponds with `0.5.3`.
 
 ## Usage
 
@@ -346,6 +346,58 @@ fn main() {
     println!("{}", n);
 }
 ```
+
+### Statistics
+
+* `mean` - Mean
+* `var` - Variance
+* `sd` - Standard Deviation
+* `cov` - Covariance
+* `cor` - Pearson's Coefficient
+
+```r
+# R
+# Vector Stats
+a <- c(1,2,3)
+b <- c(3,2,1)
+print(mean(a))
+print(var(a))
+print(sd(a))
+print(cov(a, b))
+print(cor(a, b))
+
+# Matrix Stats
+m <- matrix(c(1,2,3,3,2,1), 3, 2, F)
+print(cov(m))
+``` 
+
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // Vector Stats
+    let a = c!(1,2,3);
+    let b = c!(3,2,1);
+    
+    println!("{}",a.mean());
+    println!("{}",a.var());
+    println!("{}",a.sd());
+    println!("{}",cov(&a, &b)); // Should borrow! - Not consume value
+    println!("{}",cor(&a, &b));
+    
+    // Matrix Stats
+    let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    println!("{}",m.cov());
+}
+```
+
+### MATLAB like macro
+
+* `zeros` - zero vector or matrix
+* `eye` - identity matrix
+* `rand` - random matrix (range from 0 to 1)
 
 ## Version Info
 
