@@ -1,4 +1,4 @@
-# Release 0.5.4 (2018-11-05) (Candidate)
+# Release 0.5.4 (2018-11-05)
 
 * Add badges to README
 * Fix README - add cargo.toml
