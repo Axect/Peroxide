@@ -2,6 +2,10 @@
 
 * Add badges to README
 * Fix README - add cargo.toml
+* Modify `std::ops` for Matrix
+    * `f64` to generic
+    * Add comments
+    * Matmul for `Matrix` vs `Vector` vice versa
 
 # Release 0.5.3 (2018-11-05)
 

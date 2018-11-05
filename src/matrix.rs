@@ -479,7 +479,7 @@ pub fn read(file_path: &str, header: bool) -> Result<Matrix, Box<Error>> {
 }
 
 // =============================================================================
-// Standard Operation for Matrix
+// Standard Operation for Matrix (ADD)
 // =============================================================================
 
 /// Element-wise addition of Matrix
@@ -507,14 +507,80 @@ impl Add<Matrix> for Matrix {
 }
 
 /// Element-wise addition between Matrix & f64
-impl Add<f64> for Matrix {
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// assert_eq!(a + 1, matrix!(2;5;1, 2, 2, Row));
+/// ```
+impl<T> Add<T> for Matrix where T: convert::Into<f64> + Copy {
     type Output = Matrix;
-
-    fn add(self, other: f64) -> Matrix {
-        self.fmap(|x| x + other)
+    fn add(self, other: T) -> Matrix {
+        self.fmap(|x| x + other.into())
     }
 }
 
+/// Element-wise addition between f64 & matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// assert_eq!(1f64 + a, matrix!(2;5;1, 2, 2, Row));
+/// ```
+impl Add<Matrix> for f64 {
+    type Output = Matrix;
+
+    fn add(self, other: Matrix) -> Matrix {
+        other.add(self)
+    }
+}
+
+/// Element-wise addition between f64 & matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// assert_eq!(1 + a, matrix!(2;5;1, 2, 2, Row));
+/// ```
+impl Add<Matrix> for i32 {
+    type Output = Matrix;
+
+    fn add(self, other: Matrix) -> Matrix {
+        other.add(self)
+    }
+}
+
+/// Element-wise addition between f64 & matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// assert_eq!(1 as usize + a, matrix!(2;5;1, 2, 2, Row));
+/// ```
+impl Add<Matrix> for usize {
+    type Output = Matrix;
+
+    fn add(self, other: Matrix) -> Matrix {
+        other.add(self as f64)
+    }
+}
+
+
+// =============================================================================
+// Standard Operation for Matrix (Neg)
+// =============================================================================
 /// Negation of Matrix
 ///
 /// # Examples
@@ -538,6 +604,9 @@ impl Neg for Matrix {
     }
 }
 
+// =============================================================================
+// Standard Operation for Matrix (Sub)
+// =============================================================================
 /// Subtraction between Matrix
 ///
 /// # Examples
@@ -557,11 +626,45 @@ impl Sub<Matrix> for Matrix {
     }
 }
 
-impl Sub<f64> for Matrix {
+impl<T> Sub<T> for Matrix where T: convert::Into<f64> + Copy {
     type Output = Matrix;
 
-    fn sub(self, other: f64) -> Matrix {
-        self.fmap(|x| x - other)
+    fn sub(self, other: T) -> Matrix {
+        self.fmap(|x| x - other.into())
+    }
+}
+
+/// Subtraction Matrix with f64
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix(vec![1,2,3,4],2,2,Row);
+/// assert_eq!(a - 1f64, matrix!(0;3;1, 2, 2, Row));
+/// ```
+impl Sub<Matrix> for f64 {
+    type Output = Matrix;
+
+    fn sub(self, other: Matrix) -> Matrix {
+        - other.sub(self)
+    }
+}
+
+impl Sub<Matrix> for i32 {
+    type Output = Matrix;
+
+    fn sub(self, other: Matrix) -> Matrix {
+        - other.sub(self)
+    }
+}
+
+impl Sub<Matrix> for usize {
+    type Output = Matrix;
+
+    fn sub(self, other: Matrix) -> Matrix {
+        - other.sub(self as f64)
     }
 }
 
@@ -586,11 +689,11 @@ impl Mul<Matrix> for Matrix {
     }
 }
 
-impl Mul<f64> for Matrix {
+impl<T> Mul<T> for Matrix where T: convert::Into<f64> + Copy {
     type Output = Matrix;
 
-    fn mul(self, other: f64) -> Matrix {
-        self.fmap(|x| x * other)
+    fn mul(self, other: T) -> Matrix {
+        self.fmap(|x| x * other.into())
     }
 }
 
@@ -631,6 +734,49 @@ impl Rem<Matrix> for Matrix {
             }
         }
         result
+    }
+}
+
+/// Matrix multiplication for Matrix vs Vector
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// let v = c!(1,2);
+/// assert_eq!(a % v, matrix(c!(5,11),2,1,Col));
+/// ```
+impl Rem<Vector> for Matrix {
+    type Output = Matrix;
+
+    fn rem(self, other: Vector) -> Matrix {
+        assert_eq!(other.len(), self.col);
+        let r = self.row;
+        let s = self.shape;
+        self.rem(matrix(other, r, 1, s))
+    }
+}
+
+/// Matrix multiplication for Vector vs Matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// let v = c!(1,2);
+/// assert_eq!(v % a, matrix(c!(7,10),1,2,Row));
+/// ```
+impl Rem<Matrix> for Vector {
+    type Output = Matrix;
+
+    fn rem(self, other: Matrix) -> Matrix {
+        assert_eq!(self.len(), other.row);
+        let l = self.len();
+        matrix(self, 1, l, Col).rem(other)
     }
 }
 
