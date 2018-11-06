@@ -6,9 +6,9 @@ use std::process;
 
 #[allow(unused_must_use)]
 fn main() {
-    let x = matrix!(1;5;1, 5, 1, Col);
-    println!("{}", x);
-    let y = matrix(c!(3.7, 4.2, 4.9, 5.7, 6.0), 5, 1, Col);
-    println!("{}", lm(&x, &y));
-    println!("{}", lm!(y ~ x));
+    let a = matrix!(1;4;1, 2, 2, Row);
+    a.col(0).print();
+    a.col(1).print();
+    a.row(0).print();
+    a.row(1).print();
 }

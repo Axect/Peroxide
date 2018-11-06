@@ -88,6 +88,8 @@ use peroxide::*;
 fn main() {
     let a = matrix!(1;4;1,  2, 2, Row);
     println!("{}", a);
+    // Or
+    a.print();
 }
 //       c[0] c[1]
 // r[0]     1    2
@@ -103,7 +105,8 @@ fn main() {
 a = c(1,2,3)
 b = c(4,5,6)
 
-c = c(a, b) # c(1,2,3,4,5,6)
+c = c(a, b) 
+print(c) # c(1,2,3,4,5,6)
 ```
 
 ```rust
@@ -115,6 +118,7 @@ fn main() {
     let a = c!(1,2,3);
     let b = c!(4,5,6);
     let c = c!(a; b); // Must use semi-colon btw vectors
+    c.print();
 }
 ```
 
@@ -125,6 +129,7 @@ fn main() {
 a = matrix(1:4, 2, 2, F)
 b = matrix(c(5,6), 2, 1, F)
 c = cbind(a, b)
+print(c)
 #     [,1] [,2] [,3]
 #[1,]    1    3    5
 #[2,]    2    4    6
@@ -133,6 +138,7 @@ c = cbind(a, b)
 a = matrix(1:4, 2, 2, T)
 b = matrix(c(5,6), 1, 2, T)
 c = rbind(a,b)
+print(c)
 #     [,1] [,2]
 #[1,]    1    2
 #[2,]    3    4
@@ -149,6 +155,7 @@ fn main() {
     let a = matrix!(1;4;1, 2, 2, Col);
     let b = matrix(c!(5,6), 2, 1, Col);
     let c = cbind!(a, b);
+    c.print();
     //      c[0] c[1] c[2]
     // r[0]    1    3    5
     // r[1]    2    4    6
@@ -157,6 +164,7 @@ fn main() {
     let d = matrix!(1;4;1, 2, 2, Row);
     let e = matrix(c!(5,6),1, 2, Row);
     let f = rbind!(a, b);
+    f.print();
     //      c[0] c[1]
     // r[0]    1    2
     // r[1]    3    4
@@ -270,10 +278,10 @@ use peroxide::*;
 
 fn main() {
     let a = matrix!(1;4;1, 2, 2, Row);
-    println!("{}", a.col(0));
-    println!("{}", a.col(1));
-    println!("{}", a.row(0));
-    println!("{}", a.row(1));
+    a.col(0).print();
+    a.col(1).print();
+    a.row(0).print();
+    a.row(1).print();
 }
 ```
 

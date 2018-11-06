@@ -254,23 +254,6 @@ impl Matrix {
         return result;
     }
 
-    /// Transpose
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// println!("{}", a); // [[1,3],[2,4]]
-    /// ```
-    pub fn transpose(&self) -> Matrix {
-        match self.shape {
-            Row => matrix(self.data.clone(), self.col, self.row, Col),
-            Col => matrix(self.data.clone(), self.col, self.row, Row)
-        }
-    }
-
     /// Extract Column
     ///
     /// # Examples
@@ -422,20 +405,6 @@ impl Matrix {
         wtr.flush()?;
         Ok(())
     }
-
-    /// R-like transpose function
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.transpose(), a.t());
-    /// ```
-    pub fn t(&self) -> Matrix {
-        self.transpose()
-    }
 }
 
 /// Read from CSV
@@ -476,6 +445,85 @@ pub fn read(file_path: &str, header: bool) -> Result<Matrix, Box<Error>> {
     }
 
     Ok(m)
+}
+
+// =============================================================================
+// Common Properties of Matrix & Vector
+// =============================================================================
+
+/// Common trait for Matrix & Vector
+pub trait LinearOps {
+    fn to_matrix(&self) -> Matrix;
+    fn transpose(&self) -> Matrix;
+    fn t(&self) -> Matrix;
+    fn print(&self);
+}
+
+impl LinearOps for Matrix {
+    /// Just clone
+    fn to_matrix(&self) -> Matrix {
+        self.clone()
+    }
+
+    /// Transpose
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    /// println!("{}", a); // [[1,3],[2,4]]
+    /// ```
+    fn transpose(&self) -> Matrix {
+        match self.shape {
+            Row => matrix(self.data.clone(), self.col, self.row, Col),
+            Col => matrix(self.data.clone(), self.col, self.row, Row)
+        }
+    }
+
+    /// R-like transpose function
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// assert_eq!(a.transpose(), a.t());
+    /// ```
+    fn t(&self) -> Matrix {
+        self.transpose()
+    }
+
+    /// More convenient print
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl LinearOps for Vector {
+    /// Vector to Column Matrix
+    fn to_matrix(&self) -> Matrix {
+        let l = self.len();
+        matrix(self.clone(), l, 1, Col)
+    }
+
+    /// Vector to Row Matrix
+    fn transpose(&self) -> Matrix {
+        let l = self.len();
+        matrix(self.clone(), 1, l, Row)
+    }
+
+    /// R-like Syntax
+    fn t(&self) -> Matrix {
+        self.transpose()
+    }
+
+    /// More convenient print (to Column Matrix)
+    fn print(&self) {
+        println!("{:?}", self);
+    }
 }
 
 // =============================================================================
@@ -621,8 +669,19 @@ impl Neg for Matrix {
 impl Sub<Matrix> for Matrix {
     type Output = Matrix;
 
-     fn sub(self, other: Matrix) -> Matrix {
-        self.add(other.neg())
+    fn sub(self, other: Matrix) -> Matrix {
+        assert_eq!(&self.row, &other.row);
+        assert_eq!(&self.col, &other.col);
+        if self.shape == other.shape {
+            matrix(
+                self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x - y).collect::<Vec<f64>>(),
+                self.row,
+                self.col,
+                self.shape,
+            )
+        } else {
+            self.change_shape().sub(other)
+        }
     }
 }
 
@@ -707,15 +766,20 @@ impl<T> Mul<T> for Matrix where T: convert::Into<f64> + Copy {
 /// let a = matrix!(1;4;1, 2, 2, Row);
 /// let b = matrix!(1;4;1, 2, 2, Col);
 /// assert_eq!(a % b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
+///
+/// let m = matrix!(1;4;1, 2, 2, Row);
+/// let v = c!(1,2);
+/// assert_eq!(m % v, matrix(c!(5,11),2,1,Col));
 /// ```
-impl Rem<Matrix> for Matrix {
+impl<T> Rem<T> for Matrix where T: LinearOps {
     type Output = Matrix;
 
-    fn rem(self, other: Matrix) -> Matrix {
+    fn rem(self, other: T) -> Matrix {
         let r_self = self.row;
         let c_self = self.col;
-        let r_other = other.row;
-        let c_other = other.col;
+        let new_other = other.to_matrix();
+        let r_other = new_other.row;
+        let c_other = new_other.col;
 
         assert_eq!(c_self, r_other);
 
@@ -728,34 +792,12 @@ impl Rem<Matrix> for Matrix {
             for j in 0 .. c_new {
                 let mut s = 0f64;
                 for k in 0 .. c_self {
-                    s += self[(i, k)] * other[(k, j)];
+                    s += self[(i, k)] * new_other[(k, j)];
                 }
                 result[(i, j)] = s;
             }
         }
         result
-    }
-}
-
-/// Matrix multiplication for Matrix vs Vector
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// let v = c!(1,2);
-/// assert_eq!(a % v, matrix(c!(5,11),2,1,Col));
-/// ```
-impl Rem<Vector> for Matrix {
-    type Output = Matrix;
-
-    fn rem(self, other: Vector) -> Matrix {
-        assert_eq!(other.len(), self.col);
-        let r = self.row;
-        let s = self.shape;
-        self.rem(matrix(other, r, 1, s))
     }
 }
 
