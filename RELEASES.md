@@ -1,12 +1,12 @@
 # Release 0.5.6 (2018-11-08) (Candidate)
 
-* Add `linspace` to matlab_macro
+* Add `linspace` to `matlab_macro`
 
 # Release 0.5.5 (2018-11-06)
 
 * Extend `matrix` macro to single valued matrix
 * Make `lm`
-* And also make `lm` macro - `lm(y ~ x)`
+* And also make `lm` macro - `lm!(y ~ x)`
 * Make `LinearOps` Trait - But not necessary
 
 # Release 0.5.4 (2018-11-05)
