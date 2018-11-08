@@ -1,3 +1,7 @@
+# Release 0.5.6 (2018-11-08) (Candidate)
+
+* Add `linspace` to matlab_macro
+
 # Release 0.5.5 (2018-11-06)
 
 * Extend `matrix` macro to single valued matrix

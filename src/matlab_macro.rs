@@ -5,6 +5,7 @@ pub use self::rand::prelude::*;
 use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
+use r_macro::*;
 
 /// MATLAB like zeros - zero matrix
 ///
@@ -86,3 +87,21 @@ macro_rules! eye {
     };
 }
 
+/// MATLAB like linspace
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = linspace(1, 10, 10);
+/// assert_eq!(a, seq!(1,10,1));
+/// ```
+macro_rules! linspace {
+    ( $start:expr, $end:expr, $length: expr) => {
+        {
+            let step = ($end - $start) / ($length - 1f64);
+            seq!($start, $end, step)
+        }
+    };
+}
