@@ -100,7 +100,7 @@ macro_rules! eye {
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = linspace(1, 10, 10);
+/// let a = linspace!(1, 10, 10);
 /// assert_eq!(a, seq!(1,10,1));
 /// ```
 #[macro_export]
