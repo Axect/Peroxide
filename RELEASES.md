@@ -1,6 +1,7 @@
-# Release 0.5.6 (2018-11-08) (Candidate)
+# Release 0.5.6 (2018-11-11) (Candidate)
 
 * Add `linspace` to `matlab_macro`
+* Fixed `linspace` export error
 
 # Release 0.5.5 (2018-11-06)
 

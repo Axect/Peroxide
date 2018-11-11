@@ -5,7 +5,6 @@ pub use self::rand::prelude::*;
 use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
-use r_macro::*;
 
 /// MATLAB like zeros - zero matrix
 ///
@@ -46,6 +45,13 @@ macro_rules! zeros {
 /// ```
 #[macro_export]
 macro_rules! rand {
+    () => {
+        {
+            let mut rng = thread_rng();
+            rng.gen_range(0f64, 1f64)
+        }
+    };
+
     ( $m:expr, $n:expr ) => {
         {   
             let r = $m;
@@ -97,10 +103,11 @@ macro_rules! eye {
 /// let a = linspace(1, 10, 10);
 /// assert_eq!(a, seq!(1,10,1));
 /// ```
+#[macro_export]
 macro_rules! linspace {
     ( $start:expr, $end:expr, $length: expr) => {
         {
-            let step = ($end - $start) / ($length - 1f64);
+            let step = ($end - $start) as f64 / ($length as f64 - 1f64);
             seq!($start, $end, step)
         }
     };
