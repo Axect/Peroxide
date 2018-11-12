@@ -1,7 +1,10 @@
-# Release 0.5.6 (2018-11-11) (Candidate)
+# Release 0.5.6 (2018-11-12) (Candidate)
 
 * Add `linspace` to `matlab_macro`
 * Fixed `linspace` export error
+* Add `rand.rs`
+    * Generic `Rand` structure
+    * `sample` method
 
 # Release 0.5.5 (2018-11-06)
 
