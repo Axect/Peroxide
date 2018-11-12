@@ -24,3 +24,9 @@ pub use matlab_macro::*;
 
 #[allow(unused_imports)]
 pub use rand::*;
+
+extern crate statrs;
+pub use statrs::function::erf::*;
+pub use statrs::function::beta::*;
+pub use statrs::function::gamma::*;
+pub use statrs::function::harmonic::*;

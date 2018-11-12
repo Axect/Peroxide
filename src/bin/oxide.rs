@@ -19,4 +19,6 @@ fn main() {
     v_u32.sample(10).print();
     let v_f64 = Rand::new((1f64, 11f64), Uniform);
     v_f64.sample(10).print();
+
+    println!("{}", erf(1.0));
 }

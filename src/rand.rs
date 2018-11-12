@@ -2,6 +2,9 @@ extern crate rand;
 pub use self::rand::prelude::*;
 pub use self::rand::distributions::uniform::SampleUniform;
 
+extern crate statrs;
+use statrs::function::erf::erfc;
+
 use std::convert;
 pub use self::Dist::*;
 
@@ -41,12 +44,12 @@ impl<T> RNG for Rand<T> where T: convert::Into<f64> + SampleUniform + PartialOrd
         let start = self.range.0;
         let end = self.range.1;
 
+        for i in 0 .. n {
+            v[i] = rng.gen_range(start, end).into();
+        }
+
         match self.dist {
-            Uniform => {
-                for i in 0 .. n {
-                    v[i] = rng.gen_range(start, end).into();
-                }
-            },
+            Uniform => (),
             Normal => {
                 for i in 0 .. n {
                     v[i] = rng.gen_range(start, end).into();
