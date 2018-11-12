@@ -1,4 +1,4 @@
-# Release 0.5.6 (2018-11-12) (Candidate)
+# Release 0.5.6 (2018-11-13)
 
 * Add `linspace` to `matlab_macro`
 * Fixed `linspace` export error
@@ -6,6 +6,7 @@
     * Generic `Rand` structure
     * `sample` method
     * Marsaglia Polar
+    * `Rand` to `Uniform` and `Normal`
 
 # Release 0.5.5 (2018-11-06)
 

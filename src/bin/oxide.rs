@@ -15,9 +15,9 @@ fn main() {
     println!("{}", r1);
     r2.print();
 
-    let v_u32 = Rand::new((1u32, 11),  Uniform);
+    let v_u32 = Uniform::new(1u32, 11);
     v_u32.sample(10).print();
-    let v_f64 = Rand::new((1f64, 11f64), Uniform);
+    let v_f64 = Uniform::new(1f64, 11f64);
     v_f64.sample(10).print();
 
     println!("{}", erf(1.0));
