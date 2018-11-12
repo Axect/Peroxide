@@ -5,6 +5,7 @@
 * Add `rand.rs`
     * Generic `Rand` structure
     * `sample` method
+    * Marsaglia Polar
 
 # Release 0.5.5 (2018-11-06)
 

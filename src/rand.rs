@@ -14,7 +14,6 @@ use matrix::*;
 #[derive(Debug, Clone, Copy)]
 pub enum Dist {
     Uniform,
-    Normal { m: f64, s: f64 },
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +28,18 @@ impl<T> Rand<T> where T: PartialOrd + SampleUniform + Copy {
             range: range,
             dist: dist,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Normal {
+    pub m: f64,
+    pub s: f64,
+}
+
+impl Normal {
+    pub fn new_norm(m: f64, s: f64) -> Normal {
+        Normal { m: m, s: s }
     }
 }
 
@@ -49,14 +60,21 @@ impl<T> RNG for Rand<T> where T: convert::Into<f64> + SampleUniform + PartialOrd
                     v[i] = rng.gen_range(start, end).into();
                 }
             },
-            Normal { m, s } => {
-                for i in 0 .. n {
-                    v[i] = marsaglia_polar(&mut rng, m, s);
-                }
-            }
         }
         v
     } 
+}
+
+impl RNG for Normal {
+    fn sample(&self, n: usize) -> Vec<f64> {
+        let mut rng = thread_rng();
+        let mut v = vec![0f64; n];
+
+        for i in 0 .. n {
+            v[i] = marsaglia_polar(&mut rng, self.m, self.s);
+        }
+        v
+    }
 }
 
 // =============================================================================
