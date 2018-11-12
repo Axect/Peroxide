@@ -2,9 +2,6 @@ extern crate rand;
 pub use self::rand::prelude::*;
 pub use self::rand::distributions::uniform::SampleUniform;
 
-extern crate statrs;
-use statrs::function::erf::erfc;
-
 use std::convert;
 pub use self::Dist::*;
 
@@ -83,7 +80,6 @@ impl RNG for Normal {
 pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let mut x1 = 0f64;
     let mut x2 = 0f64;
-    let mut y1 = 0f64;
     let mut _y2 = 0f64;
     let mut w = 0f64;
 
@@ -94,7 +90,7 @@ pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     }
 
     w = (-2.0 * w.ln() / w).sqrt();
-    y1 = x1 * w;
+    let y1 = x1 * w;
     _y2 = x2 * w;
 
     return m + y1 * s;
