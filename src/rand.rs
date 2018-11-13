@@ -71,6 +71,8 @@ impl RNG for Normal {
 // =============================================================================
 // Back end utils
 // =============================================================================
+
+/// Gaussian random number generator using Marsaglia polar form
 pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let mut x1 = 0f64;
     let mut x2 = 0f64;
@@ -206,6 +208,11 @@ const WTAB: [f64; 128] = [
     1.83813550477e-07, 1.92166040885e-07, 2.05295471952e-07, 2.22600839893e-07
 ];
 
+/// Gaussian random numbers using the Ziggurat Method
+///
+/// The code is based on a [C implementation][1] by Jochen Voss.
+///
+/// [1]: https://www.seehuhn.de/pages/ziggurat.html
 #[allow(unused_assignments)]
 pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
     let (mut u, mut i, mut sign, mut j) = (0u32, 0usize, 0u32, 0u32);
