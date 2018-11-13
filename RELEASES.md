@@ -1,3 +1,9 @@
+# Release 0.5.7 (2018-11-13)
+
+* Change gaussian generate method
+    * `marsaglia_polar` to `ziggurat`
+* Add comments and examples to `rand.rs`
+
 # Release 0.5.6 (2018-11-13)
 
 * Add `linspace` to `matlab_macro`

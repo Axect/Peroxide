@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.5.3`.
+Corresponds with `0.5.7`.
 
 ## Install
 
@@ -420,6 +420,36 @@ fn main() {
 a = 
 
 ```
+
+### Random
+
+Current available distribution
+
+* Uniform (Wrap `rand` crate)
+* Normal (Using ziggurat algorithm)
+
+```rust
+// Peroxide
+
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // Uniform unsigned integers
+    let v_u32 = Uniform::new(1u32, 11);
+    v_u32.sample(10).print();
+    
+    // Uniform 64bit float numbers
+    let v_f64 = Uniform::new(1f64, 11f64);
+    v_f64.sample(10).print();
+    
+    // Normal distribution with mean 0, sd 1
+    let v_n = Normal::new(0, 1);
+    println!("{}", v_n.sample(1000).mean()); // almost 0
+    println!("{}", v_n.sample(1000).sd()); // almost 1
+}
+```
+
 
 ### MATLAB like macro
 
