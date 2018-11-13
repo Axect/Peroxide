@@ -22,7 +22,7 @@ fn main() {
 
     println!("{}", erf(1.0));
 
-    let v_n = Normal { m: 0., s: 1. };
+    let v_n = Normal::new(0, 1);
     println!("{}", v_n.sample(1000).mean());
     println!("{}", v_n.sample(1000).sd());
 }
