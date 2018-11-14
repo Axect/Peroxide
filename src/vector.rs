@@ -8,6 +8,8 @@ pub trait FPVector {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
         where F: Fn(f64, f64) -> f64,
               T: convert::Into<f64>;
+    fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
+        where F: Fn(f64, f64) -> f64;
 }
 
 impl FPVector for Vector {
@@ -42,6 +44,11 @@ impl FPVector for Vector {
             init.into(),
             |x,y| f(x,y),
         )
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
+        where F: Fn(f64, f64) -> f64 {
+        self.into_iter().zip(other).map(|(x,y)| f(*x,*y)).collect::<Vector>()
     }
 }
 
