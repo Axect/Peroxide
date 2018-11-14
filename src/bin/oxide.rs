@@ -26,4 +26,8 @@ fn main() {
     println!("{:?}", v_n.sample(10));
     println!("{}", v_n.sample(1000).mean());
     println!("{}", v_n.sample(1000).sd());
+
+    let c1 = c!(1,2,3);
+    let c2 = c!(3,2,1);
+    c1.add(&c2).print();
 }

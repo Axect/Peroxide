@@ -129,3 +129,15 @@ impl Algorithm for Vector {
         v.into_iter().position(|x| x == m).unwrap()
     }
 }
+
+pub trait VecOps {
+    type Output;
+    fn add(&self, other: &Self) -> Self::Output;
+}
+
+impl VecOps for Vector {
+    type Output = Vector;
+    fn add(&self, other: &Vector) -> Vector {
+        self.zip_with(|x, y| x + y, other)
+    }
+}
