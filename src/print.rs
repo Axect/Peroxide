@@ -2,7 +2,8 @@
 use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
-use std::cmp::{min, max};
+#[allow(unused_imports)]
+use poly::*;
 
 pub trait Printable {
     fn print(&self);
@@ -50,8 +51,6 @@ impl Printable for i32 {
 
 impl Printable for Vector {
     fn print(&self) {
-        let sample = self.clone();
-
         let mut result = String::new();
         result.push_str("[");
         for i in 0 .. self.len() {
@@ -76,6 +75,12 @@ impl Printable for Vector {
 }
 
 impl Printable for Matrix {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for Polynomial {
     fn print(&self) {
         println!("{}", self);
     }

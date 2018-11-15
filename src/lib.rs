@@ -3,6 +3,7 @@ pub mod vector;
 pub mod stat;
 pub mod rand;
 pub mod print;
+pub mod poly;
 #[macro_use]
 pub mod r_macro;
 #[macro_use]
@@ -28,6 +29,9 @@ pub use rand::*;
 
 #[allow(unused_imports)]
 pub use print::*;
+
+#[allow(unused_imports)]
+pub use poly::*;
 
 extern crate statrs;
 pub use statrs::function::erf::*;

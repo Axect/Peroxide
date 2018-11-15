@@ -1,9 +1,13 @@
-# Release 0.5.8 (2018-11-15) (Candidate)
+# Release 0.5.8 (2018-11-16) (Candidate)
 
 * Add `print.rs` for print any values conveniently
     * Implement `print` for Vector
     * Implement `print` for Matrix
     * Implement `print` for `f32, f64, usize, u32, u64, i32, i64`
+* Add `poly.rs` to deal `Polynomial`
+    * Implement `fmt::Display` for Polynomial
+    * Add `new`
+    * Implement `Neg, Add, Sub, Mul<T>` for Polynomial
 
 # Release 0.5.7 (2018-11-13)
 
@@ -42,7 +46,27 @@
 * Add `eye` to `matlab_macro`
 * Extend `zeros` to matrix
 * Fix `cov` for `Vec<f64>` - not consume anymore
-* Add `cor`
+* Add `cor`impl Mul<Polynomial> for Polynomial {
+    type Output = Polynomial;
+    fn mul(self, other: Polynomial) -> Polynomial {
+        let (l1, l2) = (self.coef.len(), other.coef.len());
+        let l_max = max(l1, l2);
+        let l_min = min(l1, l2);
+        let v_max = choose_longer_vec(&self.coef, &other.coef);
+        let v_min = choose_shorter_vec(&self.coef, &other.coef);
+        let mut coef = vec![0f64; l_max];
+
+        for i in 0 .. l_max {
+            if i < l_max - l_min {
+                coef[i] = v_max[i];
+            } else {
+                let j = i - (l_max - l_min);
+                coef[i] = v_max[i] * v_min[j];
+            }
+        }
+        Polynomial::new(coef)
+    }
+}
 * Update `README`
 
 # Release 0.5.2 (2018-11-03)

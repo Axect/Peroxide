@@ -6,7 +6,9 @@ use std::process;
 
 #[allow(unused_must_use)]
 fn main() {
-    let a = c!(1,2,3,4,5).to_matrix();
-    let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
-    lm!(b ~ a).print();
+    let a = Polynomial::new(c!(1,3,2,5,4));
+    a.print();
+    let b = Polynomial::new(c!(3,2,1));
+    (a.clone() - b).print();
+    (a * 2).print();
 }
