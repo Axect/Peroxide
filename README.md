@@ -438,6 +438,10 @@ fn main() {
     let a = c!(1,2,3,4,5).to_matrix();
     let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
     lm!(b ~ a).print();
+    
+    //        c[0]
+    // r[0] 0.7219
+    // r[1] 0.8058
 }
 
 ```
