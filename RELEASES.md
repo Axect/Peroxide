@@ -1,3 +1,10 @@
+# Release 0.5.8 (2018-11-15) (Candidate)
+
+* Add `print.rs` for print any values conveniently
+    * Implement `print` for Vector
+    * Implement `print` for Matrix
+    * Implement `print` for `f32, f64, usize, u32, u64, i32, i64`
+
 # Release 0.5.7 (2018-11-13)
 
 * Change gaussian generate method
