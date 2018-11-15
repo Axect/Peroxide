@@ -417,7 +417,28 @@ fn main() {
 
 ```r
 # R
-a = 
+a <- c(1,2,3,4,5)
+b <- a + rnorm(5)
+lm(b ~ a)
+
+#Call:
+#lm(formula = b ~ a)
+#
+#Coefficients:
+#(Intercept)            a  
+#     0.5076       0.8305  
+```
+
+```rust
+//Peroxide
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = c!(1,2,3,4,5).to_matrix();
+    let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
+    lm!(b ~ a).print();
+}
 
 ```
 
