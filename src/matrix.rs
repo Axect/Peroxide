@@ -456,7 +456,6 @@ pub trait LinearOps {
     fn to_matrix(&self) -> Matrix;
     fn transpose(&self) -> Matrix;
     fn t(&self) -> Matrix;
-    fn print(&self);
 }
 
 impl LinearOps for Matrix {
@@ -495,11 +494,6 @@ impl LinearOps for Matrix {
     fn t(&self) -> Matrix {
         self.transpose()
     }
-
-    /// More convenient print
-    fn print(&self) {
-        println!("{}", self);
-    }
 }
 
 impl LinearOps for Vector {
@@ -518,11 +512,6 @@ impl LinearOps for Vector {
     /// R-like Syntax
     fn t(&self) -> Matrix {
         self.transpose()
-    }
-
-    /// More convenient print (to Column Matrix)
-    fn print(&self) {
-        println!("{:?}", self);
     }
 }
 

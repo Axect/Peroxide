@@ -23,9 +23,9 @@ fn main() {
     println!("{}", erf(1.0));
 
     let v_n = Normal::new(0, 1);
-    println!("{:?}", v_n.sample(10));
-    println!("{}", v_n.sample(1000).mean());
-    println!("{}", v_n.sample(1000).sd());
+    v_n.sample(10).print();
+    v_n.sample(1000).mean().print();
+    v_n.sample(1000).sd().print();
 
     let c1 = c!(1,2,3);
     let c2 = c!(3,2,1);
