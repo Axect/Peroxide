@@ -1,12 +1,16 @@
 #[allow(unused_imports)]
-use matrix::*;
+use structure::matrix::*;
 #[allow(unused_imports)]
-use vector::*;
+use structure::vector::*;
 
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use std::fmt;
 use std::convert;
 use std::cmp::{max, min};
+
+// =============================================================================
+// Polynomial Structure
+// =============================================================================
 
 /// Polynomial Structure
 #[derive(Debug, Clone)]
@@ -138,6 +142,10 @@ pub fn poly(coef: Vector) -> Polynomial {
     Polynomial::new(coef)
 }
 
+// =============================================================================
+// std::ops for Polynomial
+// =============================================================================
+
 impl Neg for Polynomial {
     type Output = Polynomial;
 
@@ -244,6 +252,40 @@ impl<T> Div<T> for Polynomial where T: convert::Into<f64> + Copy {
         Polynomial::new(self.coef.fmap(|x| x / val))
     }
 }
+
+// =============================================================================
+// Calculus for Polynomial
+// =============================================================================
+pub trait Calculus {
+    fn diff(&self) -> Self;
+    fn integral(&self) -> Self;
+}
+
+impl Calculus for Polynomial {
+    fn diff(&self) -> Self {
+        let l = self.coef.len() - 1;
+        let mut result = vec![0f64; l];
+
+        for i in 0 .. l {
+            result[i] = self.coef[i] * (l - i) as f64;
+        }
+        Polynomial::new(result)
+    }
+
+    fn integral(&self) -> Self {
+        let l = self.coef.len();
+        let mut result = vec![0f64; l + 1];
+
+        for i in 0 .. l {
+            result[i] = self.coef[i] / (l - i) as f64;
+        }
+        Polynomial::new(result)
+    }
+}
+
+// =============================================================================
+// Lagrange Polynomial
+// =============================================================================
 
 pub struct Lagrange {
     x: Vector,

@@ -1,9 +1,9 @@
 #[allow(unused_imports)]
-use matrix::*;
+use structure::matrix::*;
 #[allow(unused_imports)]
-use vector::*;
+use structure::vector::*;
 #[allow(unused_imports)]
-use poly::*;
+use structure::polynomial::*;
 
 pub trait Printable {
     fn print(&self);

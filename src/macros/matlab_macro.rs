@@ -2,9 +2,9 @@ extern crate rand;
 pub use self::rand::prelude::*;
 
 #[allow(unused_imports)]
-use matrix::*;
+use structure::matrix::*;
 #[allow(unused_imports)]
-use vector::*;
+use structure::vector::*;
 
 /// MATLAB like zeros - zero matrix
 ///

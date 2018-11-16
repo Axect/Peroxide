@@ -2,11 +2,11 @@ extern crate rand;
 pub use self::rand::prelude::*;
 
 #[allow(unused_imports)]
-use matrix::*;
+use structure::matrix::*;
 #[allow(unused_imports)]
-use vector::*;
+use structure::vector::*;
 #[allow(unused_imports)]
-use stat::*;
+use statistics::stat::*;
 
 /// R like concatenate (Type: Vec\<f64\>)
 ///

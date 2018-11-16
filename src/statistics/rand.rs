@@ -6,7 +6,7 @@ use std::convert;
 use std::u32;
 
 #[allow(unused_imports)]
-use matrix::*;
+use structure::matrix::*;
 
 /// Simple uniform random number generator with ThreadRng
 ///

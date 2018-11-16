@@ -1,34 +1,29 @@
-pub mod matrix;
-pub mod vector;
-pub mod stat;
-pub mod rand;
-pub mod print;
-pub mod poly;
+pub mod structure;
+pub mod statistics;
 #[macro_use]
-pub mod r_macro;
-#[macro_use]
-pub mod matlab_macro;
+pub mod macros;
+pub mod util;
 
 #[allow(unused_imports)]
-pub use matrix::*;
+pub use structure::matrix::*;
 
 #[allow(unused_imports)]
-pub use vector::*;
+pub use structure::vector::*;
 
 #[allow(unused_imports)]
-pub use stat::*;
+pub use statistics::stat::*;
 
 #[allow(unused_imports)]
-pub use r_macro::*;
+pub use macros::r_macro::*;
 
 #[allow(unused_imports)]
-pub use matlab_macro::*;
+pub use macros::matlab_macro::*;
 
 #[allow(unused_imports)]
-pub use rand::*;
+pub use statistics::rand::*;
 
 #[allow(unused_imports)]
-pub use print::*;
+pub use util::print::*;
 
 #[allow(unused_imports)]
-pub use poly::*;
+pub use structure::polynomial::*;

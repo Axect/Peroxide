@@ -1,3 +1,20 @@
+# Release 0.6.0 (2018-11-16) (Candidate)
+
+* Implement `Calculus` for `Polynomial`
+* Re-construct all module structures
+    * structure
+        * matrix.rs
+        * vector.rs
+        * polynomial.rs
+    * statistics
+        * stat.rs
+        * rand.rs
+    * macros
+        * r_macro.rs
+        * matlab_macro.rs
+    * util
+        * print.rs
+
 # Release 0.5.8 (2018-11-16)
 
 * Add `print.rs` for print any values conveniently

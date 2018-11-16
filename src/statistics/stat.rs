@@ -1,5 +1,5 @@
-pub use matrix::*;
-pub use vector::*;
+use structure::matrix::*;
+use structure::vector::*;
 
 /// Statistics Trait
 ///

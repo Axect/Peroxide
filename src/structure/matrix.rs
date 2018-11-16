@@ -1,10 +1,10 @@
 extern crate csv;
 
+use structure::vector::*;
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
 pub use self::Shape::{Row, Col};
-pub use vector::*;
 use std::f64::{MAX, MIN};
 use std::cmp::{max, min};
 pub use std::error::Error;
