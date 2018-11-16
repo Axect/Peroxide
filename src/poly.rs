@@ -3,16 +3,27 @@ use matrix::*;
 #[allow(unused_imports)]
 use vector::*;
 
-use std::ops::{Neg, Add, Sub, Mul};
+use std::ops::{Neg, Add, Sub, Mul, Div};
 use std::fmt;
 use std::convert;
 use std::cmp::{max, min};
 
+/// Polynomial Structure
 #[derive(Debug, Clone)]
 pub struct Polynomial {
     pub coef: Vector,
 }
 
+/// Polynomial Print
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = poly(c!(1,3,2));
+/// a.print(); //x^2 + 3x + 2
+/// ```
 impl fmt::Display for Polynomial {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::new();
@@ -97,10 +108,21 @@ impl fmt::Display for Polynomial {
 }
 
 impl Polynomial {
+    /// Create Polynomial
     pub fn new(coef: Vector) -> Polynomial {
         Polynomial { coef: coef }
     }
 
+    /// Evaluate polynomial with value
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = poly(c!(1,3,2));
+    /// assert_eq!(a.eval(1), 6_f64);
+    /// ```
     pub fn eval<T>(&self, x: T) -> f64 where T: convert::Into<f64> + Copy {
         let l = self.coef.len() - 1;
         let mut s = 0f64;
@@ -108,7 +130,12 @@ impl Polynomial {
             s += self.coef[i] * x.into().powf((l - i) as f64);
         }
         s
-    } 
+    }
+}
+
+/// Convenient to declare polynomial
+pub fn poly(coef: Vector) -> Polynomial {
+    Polynomial::new(coef)
 }
 
 impl Neg for Polynomial {
@@ -147,10 +174,24 @@ impl Add<Polynomial> for Polynomial {
     }
 }
 
+impl<T> Add<T> for Polynomial where T: convert::Into<f64> + Copy {
+    type Output = Polynomial;
+    fn add(self, other: T) -> Polynomial {
+        Polynomial::new(self.coef.fmap(|x| x + other.into()))
+    }
+}
+
 impl Sub<Polynomial> for Polynomial {
     type Output = Polynomial;
     fn sub(self, other: Polynomial) -> Polynomial {
         self.add(other.neg())
+    }
+}
+
+impl<T> Sub<T> for Polynomial where T: convert::Into<f64> + Copy {
+    type Output = Polynomial;
+    fn sub(self, other: T) -> Polynomial {
+        Polynomial::new(self.coef.fmap(|x| x - other.into()))
     }
 }
 
@@ -164,6 +205,43 @@ impl<T> Mul<T> for Polynomial
                 .map(|x| x * other.into())
                 .collect::<Vector>()
         )
+    }
+}
+
+impl Mul<Polynomial> for Polynomial {
+    type Output = Polynomial;
+    fn mul(self, other: Polynomial) -> Polynomial {
+        let (l1, l2) = (self.coef.len(), other.coef.len());
+        let (n1, n2) = (l1 - 1, l2 - 1);
+        let n = n1 + n2;
+        let mut result = vec![0f64; n + 1];
+
+        for i in 0 .. l1 {
+            let fixed_val = self.coef[i];
+            let fixed_exp = n1 - i;
+
+            for j in 0 .. l2 {
+                let target_val = other.coef[j];
+                let target_exp = n2 - j;
+
+                let result_val = fixed_val * target_val;
+                let result_exp = fixed_exp + target_exp;
+
+                result[n - result_exp] += result_val;
+            }
+        }
+
+        Polynomial::new(result)
+    }
+}
+
+impl<T> Div<T> for Polynomial where T: convert::Into<f64> + Copy {
+    type Output = Polynomial;
+    fn div(self, other: T) -> Polynomial {
+        let val = other.into();
+        assert_ne!(val, 0f64);
+
+        Polynomial::new(self.coef.fmap(|x| x / val))
     }
 }
 
