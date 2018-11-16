@@ -2,6 +2,9 @@
 use structure::polynomial::*;
 use structure::vector::*;
 
+use std::convert::Into;
+use std::f64::consts::PI;
+
 pub fn lagrange_polynomial(node_x: Vector, node_y: Vector) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
@@ -23,6 +26,16 @@ pub fn lagrange_polynomial(node_x: Vector, node_y: Vector) -> Polynomial {
         }
         result = result + (id * prod);
     }
-
     result
+}
+
+pub fn chebyshev_nodes<T>(num: usize, start: T, end: T) -> Vector
+    where T: Into<f64> + Copy {
+    let mut v = vec![0f64; num];
+    let a = start.into();
+    let b = end.into();
+    for i in 0 .. num {
+        v[i] = (a + b) / 2. + 0.5 * (b - a) * ((2*i + 1) as f64 * PI / (2 * num) as f64).cos();
+    }
+    return v;
 }

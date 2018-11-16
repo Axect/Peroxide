@@ -30,4 +30,4 @@ pub use util::print::*;
 pub use structure::polynomial::*;
 
 #[allow(unused_imports)]
-pub use numerical::lagrange::*;
+pub use numerical::interp::*;
