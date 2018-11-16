@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.5.7`.
+Corresponds with `0.5.8`.
 
 ## Install
 
@@ -455,7 +455,6 @@ Current available distribution
 
 ```rust
 // Peroxide
-
 extern crate peroxide;
 use peroxide::*;
 
@@ -475,6 +474,25 @@ fn main() {
 }
 ```
 
+### Polynomial
+
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // Declare polynomial
+    let a = poly(c!(1,3,2));
+    a.print(); // x^2 + 3x + 2
+    a.eval(1); // Evaluate when x = 1 -> 6.0
+    
+    let b = poly(c!(1,2,3,4));       // x^3 + 2x^2 + 3x + 4
+    (a.clone() + b.clone()).print(); // x^3 + 3x^2 + 6x + 6
+    (a.clone() - b.clone()).print(); // -x^3 - x^2 - 2
+    (a.clone() * b.clone()).print(); // x^5 + 5x^4 + 11x^3 + 17x^2 + 18x + 8
+}
+```
 
 ### MATLAB like macro
 

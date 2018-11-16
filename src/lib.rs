@@ -32,9 +32,3 @@ pub use print::*;
 
 #[allow(unused_imports)]
 pub use poly::*;
-
-extern crate statrs;
-pub use statrs::function::erf::*;
-pub use statrs::function::beta::*;
-pub use statrs::function::gamma::*;
-pub use statrs::function::harmonic::*;

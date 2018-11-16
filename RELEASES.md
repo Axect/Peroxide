@@ -1,4 +1,4 @@
-# Release 0.5.8 (2018-11-16) (Candidate)
+# Release 0.5.8 (2018-11-16)
 
 * Add `print.rs` for print any values conveniently
     * Implement `print` for Vector
@@ -7,7 +7,9 @@
 * Add `poly.rs` to deal `Polynomial`
     * Implement `fmt::Display` for Polynomial
     * Add `new`
+    * Implement `eval` for Polynomial
     * Implement `Neg, Add, Sub, Mul<T>` for Polynomial
+    * Implement `Mul, Add<T>, Sub<T>, Div<T>` for Polynomial
 
 # Release 0.5.7 (2018-11-13)
 
