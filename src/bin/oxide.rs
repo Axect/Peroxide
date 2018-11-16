@@ -6,7 +6,8 @@ use std::process;
 
 #[allow(unused_must_use)]
 fn main() {
-    let a = poly(c!(3,2,1));
-    a.diff().print();
-    a.integral().print();
+    let x = c!(-1,0,1);
+    let y = c!(1,0,1);
+    let l = lagrange_polynomial(x, y);
+    l.print();
 }

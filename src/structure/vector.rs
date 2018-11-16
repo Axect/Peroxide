@@ -131,13 +131,29 @@ impl Algorithm for Vector {
 }
 
 pub trait VecOps {
-    type Output;
-    fn add(&self, other: &Self) -> Self::Output;
+    type Scalar;
+    fn add(&self, other: &Self) -> Self;
+    fn sub(&self, other: &Self) -> Self;
+    fn mul(&self, other: &Self) -> Self;
+    fn div(&self, other: &Self) -> Self;
+    fn dot(&self, other: &Self) -> Self::Scalar;
 }
 
 impl VecOps for Vector {
-    type Output = Vector;
+    type Scalar = f64;
     fn add(&self, other: &Vector) -> Vector {
         self.zip_with(|x, y| x + y, other)
+    }
+    fn sub(&self, other: &Vector) -> Vector {
+        self.zip_with(|x, y| x - y, other)
+    }
+    fn mul(&self, other: &Vector) -> Vector {
+        self.zip_with(|x, y| x * y, other)
+    }
+    fn div(&self, other: &Vector) -> Vector {
+        self.zip_with(|x, y| x / y, other)
+    }
+    fn dot(&self, other: &Vector) -> f64 {
+        self.mul(other).reduce(1, |x,y| x * y)
     }
 }

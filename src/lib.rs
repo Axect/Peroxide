@@ -3,6 +3,7 @@ pub mod statistics;
 #[macro_use]
 pub mod macros;
 pub mod util;
+pub mod numerical;
 
 #[allow(unused_imports)]
 pub use structure::matrix::*;
@@ -27,3 +28,6 @@ pub use util::print::*;
 
 #[allow(unused_imports)]
 pub use structure::polynomial::*;
+
+#[allow(unused_imports)]
+pub use numerical::lagrange::*;

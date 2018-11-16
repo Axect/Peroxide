@@ -42,7 +42,7 @@ impl fmt::Display for Polynomial {
                     } else if value == -1. {
                         result.push_str(&format!("-x^{}", l));
                     } else {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                         format!("{}x^{}", value, l),
                         format!("{:.4}x^{}", value, l),
                         );
@@ -52,13 +52,13 @@ impl fmt::Display for Polynomial {
                 i if i == l => {
                     let value = self.coef[i];
                     if value > 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" + {}", value),
                             format!(" + {:.4}", value),
                         );
                         result.push_str(&temp);
                     } else if value < 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" - {}", value.abs()),
                             format!(" - {:.4}", value.abs()),
                         );
@@ -70,7 +70,7 @@ impl fmt::Display for Polynomial {
                     if value == 1. {
                         result.push_str(" + x");
                     } else if value > 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" + {}x", value),
                             format!(" + {:.4}x", value),
                         );
@@ -78,7 +78,7 @@ impl fmt::Display for Polynomial {
                     } else if value == -1. {
                         result.push_str(" - x");
                     } else if value < 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" - {}x", value.abs()),
                             format!(" - {:.4}x", value.abs()),
                         );
@@ -90,7 +90,7 @@ impl fmt::Display for Polynomial {
                     if value == 1. {
                         result.push_str(&format!(" + x^{}", l-i));
                     } else if value > 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" + {}x^{}", value, l-i),
                             format!(" + {:.4}x^{}", value, l-i),
                         );
@@ -98,7 +98,7 @@ impl fmt::Display for Polynomial {
                     } else if value == -1. {
                         result.push_str(&format!(" - x^{}", l-i));
                     } else if value < 0. {
-                        let temp = choose_shorter(
+                        let temp = choose_shorter_string(
                             format!(" - {}x^{}", value.abs(), l-i),
                             format!(" - {:.4}x{}", value.abs(), l-i),
                         );
@@ -283,22 +283,11 @@ impl Calculus for Polynomial {
     }
 }
 
+
 // =============================================================================
-// Lagrange Polynomial
+// Utils
 // =============================================================================
-
-pub struct Lagrange {
-    x: Vector,
-    y: Vector,
-}
-
-impl Lagrange {
-    pub fn new(x: Vector, y: Vector) -> Lagrange {
-        Lagrange { x: x, y: y }
-    }
-}
-
-fn choose_shorter(x1: String, x2: String) -> String {
+fn choose_shorter_string(x1: String, x2: String) -> String {
     if x1.len() > x2.len() {
         x2
     } else {
@@ -315,7 +304,7 @@ fn choose_shorter_vec(x1: &Vector, x2: &Vector) -> Vector {
 }
 
 fn choose_longer_vec(x1: &Vector, x2: &Vector) -> Vector {
-    if x1.len() < x2.len() {
+    if x1.len() <= x2.len() {
         x2.clone()
     } else {
         x1.clone()
