@@ -27,6 +27,9 @@ pub use statistics::rand::*;
 pub use util::print::*;
 
 #[allow(unused_imports)]
+pub use util::non_macro::*;
+
+#[allow(unused_imports)]
 pub use structure::polynomial::*;
 
 #[allow(unused_imports)]
