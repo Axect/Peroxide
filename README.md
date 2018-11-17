@@ -9,13 +9,13 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.5.8`.
+Corresponds with `0.6.0`.
 
 ## Install
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.5"
+peroxide = "0.6"
 ```
 
 ## Usage
@@ -491,7 +491,56 @@ fn main() {
     (a.clone() + b.clone()).print(); // x^3 + 3x^2 + 6x + 6
     (a.clone() - b.clone()).print(); // -x^3 - x^2 - 2
     (a.clone() * b.clone()).print(); // x^5 + 5x^4 + 11x^3 + 17x^2 + 18x + 8
+    
+    let c = poly(c!(1, -1));
+    c.print();                       // x - 1
+    c.pow(2).print();                // x^2 - 2x + 1
 }
+```
+
+### Interpolation (Beta)
+
+* Lagrange polynomial interpolation
+* Chebyshev nodes
+
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = c!(-1, 0, 1);
+    let b = c!(1, 0, 1);
+
+    let l = lagrange_polynomial(a, b);
+    l.print(); // x^2
+}
+```
+
+### Spline (Beta)
+
+* Natural cubic spline
+
+```rust
+// Peroxide
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let x = c!(0.9, 1.3, 1.9, 2.1);
+    let y = c!(1.3, 1.5, 1.85, 2.1);
+
+    let s = cubic_spline(x, y);
+
+    for i in 0 .. s.len() {
+        s[i].print();
+    }
+    
+    // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
+    // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
+    // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
+}
+
 ```
 
 ### MATLAB like macro

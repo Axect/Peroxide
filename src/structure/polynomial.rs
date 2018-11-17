@@ -100,7 +100,7 @@ impl fmt::Display for Polynomial {
                     } else if value < 0. {
                         let temp = choose_shorter_string(
                             format!(" - {}x^{}", value.abs(), l-i),
-                            format!(" - {:.4}x{}", value.abs(), l-i),
+                            format!(" - {:.4}x^{}", value.abs(), l-i),
                         );
                         result.push_str(&temp);
                     }

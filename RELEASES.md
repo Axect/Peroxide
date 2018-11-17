@@ -1,4 +1,4 @@
-# Release 0.6.0 (2018-11-16) (Candidate)
+# Release 0.6.0 (2018-11-18)
 
 * Implement `Calculus` for `Polynomial`
 * Re-construct all module structures
@@ -14,6 +14,14 @@
         * matlab_macro.rs
     * util
         * print.rs
+* Add `numerical` directory
+    * Add interp.rs
+        * Lagrange Polynomial (`lagrange_polynomial`)
+        * Chebyshev Nodes (`chebyshev_nodes`)
+    * Add spline.rs
+        * Natural Cubic Spline (`cubic_spline`)
+* Impl `pow` for Polynomial
+* Fixed `fmt::Display` for Polynomial
 
 # Release 0.5.8 (2018-11-16)
 
@@ -65,27 +73,7 @@
 * Add `eye` to `matlab_macro`
 * Extend `zeros` to matrix
 * Fix `cov` for `Vec<f64>` - not consume anymore
-* Add `cor`impl Mul<Polynomial> for Polynomial {
-    type Output = Polynomial;
-    fn mul(self, other: Polynomial) -> Polynomial {
-        let (l1, l2) = (self.coef.len(), other.coef.len());
-        let l_max = max(l1, l2);
-        let l_min = min(l1, l2);
-        let v_max = choose_longer_vec(&self.coef, &other.coef);
-        let v_min = choose_shorter_vec(&self.coef, &other.coef);
-        let mut coef = vec![0f64; l_max];
-
-        for i in 0 .. l_max {
-            if i < l_max - l_min {
-                coef[i] = v_max[i];
-            } else {
-                let j = i - (l_max - l_min);
-                coef[i] = v_max[i] * v_min[j];
-            }
-        }
-        Polynomial::new(coef)
-    }
-}
+* Add `cor`
 * Update `README`
 
 # Release 0.5.2 (2018-11-03)
