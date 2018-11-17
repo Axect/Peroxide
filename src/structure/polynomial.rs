@@ -254,6 +254,23 @@ impl<T> Div<T> for Polynomial where T: convert::Into<f64> + Copy {
 }
 
 // =============================================================================
+// Extra operations for Polynomial
+// =============================================================================
+pub trait ExtraOps {
+    fn pow(&self, n: usize) -> Polynomial;
+}
+
+impl ExtraOps for Polynomial {
+    fn pow(&self, n: usize) -> Polynomial {
+        let mut result = self.clone();
+        for _i in 0 .. n-1 {
+            result = result * self.clone();
+        }
+        result
+    }
+}
+
+// =============================================================================
 // Calculus for Polynomial
 // =============================================================================
 pub trait Calculus {

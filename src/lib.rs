@@ -34,3 +34,6 @@ pub use structure::polynomial::*;
 
 #[allow(unused_imports)]
 pub use numerical::interp::*;
+
+#[allow(unused_imports)]
+pub use numerical::spline::*;
