@@ -1,3 +1,7 @@
+# Release 0.6.1 (2018-11-18)
+
+* Fix `README`
+
 # Release 0.6.0 (2018-11-18)
 
 * Implement `Calculus` for `Polynomial`
