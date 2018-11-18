@@ -4,6 +4,7 @@ pub mod statistics;
 pub mod macros;
 pub mod util;
 pub mod numerical;
+pub mod ml;
 
 #[allow(unused_imports)]
 pub use structure::matrix::*;
@@ -37,3 +38,6 @@ pub use numerical::interp::*;
 
 #[allow(unused_imports)]
 pub use numerical::spline::*;
+
+#[allow(unused_imports)]
+pub use ml::reg::*;
