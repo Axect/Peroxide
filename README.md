@@ -27,6 +27,27 @@ extern crate peroxide;
 use peroxide::*;
 ```
 
+### Module Structure
+
+* structure
+    * matrix - matrix structure
+    * vector - provide tools for `Vec<f64>`
+    * polynomial - polynomial structure
+* statistics
+    * stat - functions for statistics
+    * rand - wrapper for `rand` crate
+* numerical
+    * interp - interpolation tools
+    * spline - spline tools
+* ml
+    * reg - regression tools
+* util
+    * print - to print conveniently
+    * non_macro - primordial version of macros
+* macros
+    * r_macro - similar to `R`
+    * matlab_macro - similar to `matlab`
+
 ### Vec\<f64\> Declaration
 
 ```R
