@@ -20,4 +20,10 @@ fn main() {
     let ls = least_square(a.clone(), b);
     ls.print();
     ls.eval_vec(seq!(0, 10, 1)).print();
+
+    let f = poly(c!(1,2,3,4));
+    let p = poly(c!(1,1));
+    let (q, r) = f / p;
+    q.print();
+    r.print();
 }

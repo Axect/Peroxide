@@ -257,6 +257,41 @@ impl<T> Div<T> for Polynomial where T: convert::Into<f64> + Copy {
     }
 }
 
+impl Div<Polynomial> for Polynomial {
+    type Output = (Polynomial, Polynomial);
+    fn div(self, other: Polynomial) -> Self::Output {
+        let l1 = self.coef.len();
+        let l2 = other.coef.len();
+        assert!(l1 >= l2);
+
+        let mut temp = self.clone();
+        let mut quot_vec: Vector = Vec::new();
+        let denom = other.coef[0];
+
+        while temp.coef.len() >= l2 {
+            let l = temp.coef.len();
+            let target = temp.coef[0];
+            let nom = target / denom;
+            quot_vec.push(nom);
+            let mut temp_vec = vec![0f64; l-1];
+
+            for i in 1 .. l {
+                if i < l2 {
+                    temp_vec[i-1] = temp.coef[i] - nom * other.coef[i];
+                } else {
+                    temp_vec[i-1] = temp.coef[i];
+                }
+            }
+
+            temp = poly(temp_vec);
+        }
+
+        let rem = temp;
+
+        (poly(quot_vec), rem)
+    }
+}
+
 // =============================================================================
 // Extra operations for Polynomial
 // =============================================================================
