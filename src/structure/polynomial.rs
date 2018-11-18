@@ -135,6 +135,10 @@ impl Polynomial {
         }
         s
     }
+
+    pub fn eval_vec(&self, v: Vector) -> Vector {
+        v.fmap(|t| self.eval(t))
+    }
 }
 
 /// Convenient to declare polynomial
