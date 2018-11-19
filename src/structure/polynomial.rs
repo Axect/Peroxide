@@ -33,6 +33,15 @@ impl fmt::Display for Polynomial {
         let mut result = String::new();
         let l = self.coef.len() - 1;
 
+        if l == 0 {
+            let value = self.coef[0];
+            let temp = choose_shorter_string(
+                format!("{}", value),
+                format!("{:.4}", value),
+            );
+            return write!(f, "{}", temp);
+        }
+
         for i in 0 .. l + 1 {
             match i {
                 0 => {

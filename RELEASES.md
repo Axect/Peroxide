@@ -1,7 +1,7 @@
 # Release 0.6.2 (2018-11-18) (Candidate)
 
 * Implement Horner's Algorithm - `Div` for Polynomial
-* TODO: Fix `print` of Polynomial
+* TODO: Fix `print` of Polynomial (Fixed!)
 
 # Release 0.6.1 (2018-11-18)
 
