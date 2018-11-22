@@ -42,6 +42,38 @@ impl fmt::Display for Polynomial {
             return write!(f, "{}", temp);
         }
 
+        if l == 1 {
+            let coef_1 = self.coef[0];
+            let coef_0 = self.coef[1];
+            
+            if coef_1 == 1. {
+                result.push_str("x");
+            } else if coef_1 == -1. {
+                result.push_str("-x");
+            } else {
+                let temp = choose_shorter_string(
+                    format!("{}x", coef_1),
+                    format!("{:.4}x", coef_1),
+                );
+                result.push_str(&temp);
+            }
+
+            if coef_0 > 0. {
+                let temp = choose_shorter_string(
+                    format!("+ {}", coef_0),
+                    format!("+ {:.4}", coef_0),
+                );
+                result.push_str(&temp);
+            } else if coef_0 < 0. {
+                let temp = choose_shorter_string(
+                    format!("- {}", coef_0.abs()),
+                    format!("- {:.4}", coef_0.abs()),
+                );
+                result.push_str(&temp);
+            }
+            return write!(f, "{}", result);
+        }
+
         for i in 0 .. l + 1 {
             match i {
                 0 => {
@@ -52,8 +84,8 @@ impl fmt::Display for Polynomial {
                         result.push_str(&format!("-x^{}", l));
                     } else {
                         let temp = choose_shorter_string(
-                        format!("{}x^{}", value, l),
-                        format!("{:.4}x^{}", value, l),
+                            format!("{}x^{}", value, l),
+                            format!("{:.4}x^{}", value, l),
                         );
                         result.push_str(&temp);
                     }
