@@ -1,7 +1,14 @@
-# Release 0.6.2 (2018-11-18) (Candidate)
+# Release 0.6.2 (2018-11-23) (Candidate)
 
 * Implement Horner's Algorithm - `Div` for Polynomial
 * TODO: Fix `print` of Polynomial (Fixed!)
+* Add `Dual` for Automatic Differentiation to structure
+    * structure
+        * matrix
+        * vector
+        * polynomial
+        * dual
+* Make `operation` directory & add `extra_ops.rs`
 
 # Release 0.6.1 (2018-11-18)
 

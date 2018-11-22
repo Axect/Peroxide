@@ -5,6 +5,7 @@ pub mod macros;
 pub mod util;
 pub mod numerical;
 pub mod ml;
+pub mod operation;
 
 #[allow(unused_imports)]
 pub use structure::matrix::*;
@@ -41,3 +42,9 @@ pub use numerical::spline::*;
 
 #[allow(unused_imports)]
 pub use ml::reg::*;
+
+#[allow(unused_imports)]
+pub use structure::dual::*;
+
+#[allow(unused_imports)]
+pub use operation::extra_ops::*;

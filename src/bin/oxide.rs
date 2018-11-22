@@ -4,6 +4,12 @@ use peroxide::*;
 
 #[allow(unused_must_use)]
 fn main() {
+    let x1 = c!(-2,-1,0,1,2);
+    let y1 = c!(4,1,0,1,4);
+    let p1 = lagrange_polynomial(x1, y1);
+    p1.print();
+
+
     // Cubic spline example
     let x = c!(0.9, 1.3, 1.9, 2.1);
     let y = c!(1.3, 1.5, 1.85, 2.1);

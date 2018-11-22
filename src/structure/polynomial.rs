@@ -2,6 +2,7 @@
 use structure::matrix::*;
 #[allow(unused_imports)]
 use structure::vector::*;
+use operation::extra_ops::PowOps;
 
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use std::fmt;
@@ -336,17 +337,19 @@ impl Div<Polynomial> for Polynomial {
 // =============================================================================
 // Extra operations for Polynomial
 // =============================================================================
-pub trait ExtraOps {
-    fn pow(&self, n: usize) -> Polynomial;
-}
+impl PowOps for Polynomial {
+    type Output = Polynomial;
 
-impl ExtraOps for Polynomial {
     fn pow(&self, n: usize) -> Polynomial {
         let mut result = self.clone();
         for _i in 0 .. n-1 {
             result = result * self.clone();
         }
         result
+    }
+
+    fn powf(&self, _f: f64) -> Polynomial {
+        unimplemented!()
     }
 }
 

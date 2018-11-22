@@ -4,6 +4,7 @@ use structure::matrix::*;
 use structure::vector::*;
 #[allow(unused_imports)]
 use structure::polynomial::*;
+use operation::extra_ops::PowOps; // For pow
 #[allow(unused_imports)]
 use util::non_macro::*;
 
