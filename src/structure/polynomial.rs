@@ -155,7 +155,7 @@ impl fmt::Display for Polynomial {
 impl Polynomial {
     /// Create Polynomial
     pub fn new(coef: Vector) -> Polynomial {
-        Polynomial { coef: coef }
+        Polynomial { coef }
     }
 
     /// Evaluate polynomial with value
