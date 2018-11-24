@@ -7,4 +7,7 @@ fn main() {
 
     let b = Dual::new(0, 1);
     b.cos().print();
+
+    let c = Dual::new(0, 1);
+    c.exp().print();
 }

@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.6.0`.
+Corresponds with `0.6.2`.
 
 ## Install
 
@@ -33,6 +33,9 @@ use peroxide::*;
     * matrix - matrix structure
     * vector - provide tools for `Vec<f64>`
     * polynomial - polynomial structure
+    * dual - structure for automatic differentiation
+* operation
+    * extra_ops - extra operations for structures
 * statistics
     * stat - functions for statistics
     * rand - wrapper for `rand` crate

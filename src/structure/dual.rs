@@ -1,8 +1,18 @@
+/// Structure for Automatic Differentiation
+
 use std::fmt;
 use std::convert::Into;
 use std::ops::{Neg, Add, Sub, Mul, Div};
-use operation::extra_ops::TrigOps;
+use operation::extra_ops::{TrigOps, ExpLogOps, PowOps};
 
+/// Dual - Structure for AD
+///
+/// # Fields
+/// `x: f64` : value
+/// `dx: f64` : slope at `x`
+///
+/// But they are private fields.
+/// You should use `value` or `slope` function to extract them.
 #[derive(Debug, Copy, Clone)]
 pub struct Dual {
     x: f64,
@@ -17,19 +27,39 @@ impl fmt::Display for Dual {
 }
 
 impl Dual {
-    pub fn new<T>(x: T, dx: T) -> Dual where T: Into<f64> + Copy {
+    /// Syntactic sugar to declare dual
+    ///
+    /// # Type
+    /// `(T, T) -> Dual where T: Into<f64> + Copy`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = Dual::new(2, 1); // y = x at x = 2
+    /// a.print();
+    /// ```
+    pub fn new<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {
         Dual { x: x.into(), dx: dx.into() }
     }
 
+    /// Just extract value
     pub fn value(&self) -> f64 {
         self.x
     }
 
+    /// Just extract slope
     pub fn slope(&self) -> f64 {
         self.dx
     }
 }
 
+pub fn dual<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {
+    Dual::new(x, dx)
+}
+
+/// Neg for Dual
 impl Neg for Dual {
     type Output = Dual;
     fn neg(self) -> Dual {
@@ -37,6 +67,7 @@ impl Neg for Dual {
     }
 }
 
+/// Add for Dual
 impl Add<Dual> for Dual {
     type Output = Dual;
     fn add(self, other: Dual) -> Dual {
@@ -44,6 +75,7 @@ impl Add<Dual> for Dual {
     }
 }
 
+/// Sub for Dual
 impl Sub<Dual> for Dual {
     type Output = Dual;
     fn sub(self, other: Dual) -> Dual {
@@ -51,6 +83,7 @@ impl Sub<Dual> for Dual {
     }
 }
 
+/// Mul for Dual
 impl Mul<Dual> for Dual {
     type Output = Dual;
     fn mul(self, other: Dual) -> Dual {
@@ -63,6 +96,7 @@ impl Mul<Dual> for Dual {
     }
 }
 
+/// Div for Dual
 impl Div<Dual> for Dual {
     type Output = Dual;
     fn div(self, other: Dual) -> Dual {
@@ -76,7 +110,7 @@ impl Div<Dual> for Dual {
     }
 }
 
-
+/// Trigonometric function with Dual
 impl TrigOps for Dual {
     type Output = Dual;
 
@@ -95,6 +129,41 @@ impl TrigOps for Dual {
     fn tan(&self) -> Dual {
         let val = self.x.tan();
         let dval = self.dx * (1. + val * val); // 1 + tan^2 = sec^2
+        Dual::new(val, dval)
+    }
+}
+
+impl ExpLogOps for Dual {
+    type Output = Dual;
+
+    fn exp(&self) -> Dual {
+        let val = self.value().exp();
+        let dval = val * self.slope();
+        Dual::new(val, dval)
+    }
+
+    fn ln(&self) -> Dual {
+        assert_ne!(self.value(), 0.);
+        let val = self.value().ln();
+        let dval = self.slope() / self.value();
+        Dual::new(val, dval)
+    }
+}
+
+impl PowOps for Dual {
+    type Output = Dual;
+
+    fn pow(&self, n: usize) -> Dual {
+        let x = self.value();
+        let val = x.powi(n as i32);
+        let dval = (n as f64) * x.powi((n - 1) as i32) * self.slope();
+        Dual::new(val, dval)
+    }
+
+    fn powf(&self, f: f64) -> Dual {
+        let x = self.value();
+        let val = x.powf(f);
+        let dval = f * x.powf(f) * self.slope();
         Dual::new(val, dval)
     }
 }

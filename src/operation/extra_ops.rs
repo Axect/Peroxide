@@ -14,5 +14,5 @@ pub trait TrigOps {
 pub trait ExpLogOps {
     type Output;
     fn exp(&self) -> Self::Output;
-    fn log(&self) -> Self::Output;
+    fn ln(&self) -> Self::Output;
 }
