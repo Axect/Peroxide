@@ -133,6 +133,7 @@ impl TrigOps for Dual {
     }
 }
 
+/// Exponential & Logarithm for Dual
 impl ExpLogOps for Dual {
     type Output = Dual;
 
@@ -150,6 +151,7 @@ impl ExpLogOps for Dual {
     }
 }
 
+/// Power for Dual
 impl PowOps for Dual {
     type Output = Dual;
 
