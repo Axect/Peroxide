@@ -1,6 +1,7 @@
-# Release 0.6.3 (2018-11-27) (Candidate)
+# Release 0.6.3 (2018-11-28)
 
 * Fix typo of `fmt::Display` for `Polynomial` 
+* Fix module structures - Thanks to md-file-tree
 
 # Release 0.6.2 (2018-11-26)
 

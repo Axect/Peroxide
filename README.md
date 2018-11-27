@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.6.2`.
+Corresponds with `0.6.3`.
 
 ## Install
 
