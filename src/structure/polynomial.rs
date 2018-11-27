@@ -61,14 +61,14 @@ impl fmt::Display for Polynomial {
 
             if coef_0 > 0. {
                 let temp = choose_shorter_string(
-                    format!("+ {}", coef_0),
-                    format!("+ {:.4}", coef_0),
+                    format!(" + {}", coef_0),
+                    format!(" + {:.4}", coef_0),
                 );
                 result.push_str(&temp);
             } else if coef_0 < 0. {
                 let temp = choose_shorter_string(
-                    format!("- {}", coef_0.abs()),
-                    format!("- {:.4}", coef_0.abs()),
+                    format!(" - {}", coef_0.abs()),
+                    format!(" - {:.4}", coef_0.abs()),
                 );
                 result.push_str(&temp);
             }

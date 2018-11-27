@@ -1,3 +1,7 @@
+# Release 0.6.3 (2018-11-27) (Candidate)
+
+* Fix typo of `fmt::Display` for `Polynomial` 
+
 # Release 0.6.2 (2018-11-26)
 
 * Implement Horner's Algorithm - `Div` for Polynomial
