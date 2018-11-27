@@ -29,27 +29,74 @@ use peroxide::*;
 
 ### Module Structure
 
-* structure
-    * matrix - matrix structure
-    * vector - provide tools for `Vec<f64>`
-    * polynomial - polynomial structure
-    * dual - structure for automatic differentiation
-* operation
-    * extra_ops - extra operations for structures
-* statistics
-    * stat - functions for statistics
-    * rand - wrapper for `rand` crate
-* numerical
-    * interp - interpolation tools
-    * spline - spline tools
-* ml
-    * reg - regression tools
-* util
-    * print - to print conveniently
-    * non_macro - primordial version of macros
-* macros
-    * r_macro - similar to `R`
-    * matlab_macro - similar to `matlab`
+- __src__
+  - __bin__ : For test some libraries
+    - [dual.rs](src/bin/dual.rs) : Test automatic differentiation
+    - [oxide.rs](src/bin/oxide.rs) : Test any
+    - [poly.rs](src/bin/poly.rs) : Test polynomial
+  - [lib.rs](src/lib.rs) : `mod` and `re-export`
+  - __ml__ : For machine learning
+    - [mod.rs](src/ml/mod.rs)
+    - [reg.rs](src/ml/reg.rs) : Regression tools
+  - __macros__ : Macro files
+    - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
+    - [mod.rs](src/macros/mod.rs)
+    - [r_macro.rs](src/macros/r_macro.rs) : R like macro
+  - __numerical__ : To do numerical things
+    - [interp.rs](src/numerical/interp.rs) : Interpolation
+    - [mod.rs](src/numerical/mod.rs)
+    - [spline.rs](src/numerical/spline.rs) : Spline
+  - __operation__ : To define general operations
+    - [extra_ops.rs](src/operation/extra_ops.rs)
+    - [mod.rs](src/operation/mod.rs)
+  - __statistics__ : Statistical Tools
+    - [mod.rs](src/statistics/mod.rs)
+    - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
+    - [stat.rs](src/statistics/stat.rs) : Statisitcal tools
+  - __structure__ : Fundamental data structures
+    - [dual.rs](src/structure/dual.rs) : Dual number system for automatic differentiation
+    - [matrix.rs](src/structure/matrix.rs) : Matrix
+    - [mod.rs](src/structure/mod.rs)
+    - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
+    - [vector.rs](src/structure/vector.rs) : Extra tools for `Vec<f64>`
+  - __util__
+    - [mod.rs](src/util/mod.rs)
+    - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
+    - [print.rs](src/util/print.rs) : To print conveniently
+
+
+```bash
+# For shell version
+
+├── macros
+│   ├── matlab_macro.rs
+│   ├── mod.rs
+│   └── r_macro.rs
+├── ml
+│   ├── mod.rs
+│   └── reg.rs
+├── numerical
+│   ├── interp.rs
+│   ├── mod.rs
+│   └── spline.rs
+├── operation
+│   ├── extra_ops.rs
+│   └── mod.rs
+├── statistics
+│   ├── mod.rs
+│   ├── rand.rs
+│   └── stat.rs
+├── structure
+│   ├── dual.rs
+│   ├── matrix.rs
+│   ├── mod.rs
+│   ├── polynomial.rs
+│   └── vector.rs
+└── util
+    ├── mod.rs
+    ├── non_macro.rs
+    └── print.rs
+```
 
 ### Vec\<f64\> Declaration
 

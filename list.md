@@ -1,0 +1,35 @@
+- __src__
+  - __bin__
+    - [dual.rs](src/bin/dual.rs)
+    - [oxide.rs](src/bin/oxide.rs)
+    - [poly.rs](src/bin/poly.rs)
+  - [lib.rs](src/lib.rs)
+  - __ml__
+    - [mod.rs](src/ml/mod.rs)
+    - [reg.rs](src/ml/reg.rs)
+  - __macros__
+    - [matlab_macro.rs](src/macros/matlab_macro.rs)
+    - [mod.rs](src/macros/mod.rs)
+    - [r_macro.rs](src/macros/r_macro.rs)
+  - __numerical__
+    - [interp.rs](src/numerical/interp.rs)
+    - [mod.rs](src/numerical/mod.rs)
+    - [spline.rs](src/numerical/spline.rs)
+  - __operation__
+    - [extra_ops.rs](src/operation/extra_ops.rs)
+    - [mod.rs](src/operation/mod.rs)
+  - __statistics__
+    - [mod.rs](src/statistics/mod.rs)
+    - [rand.rs](src/statistics/rand.rs)
+    - [stat.rs](src/statistics/stat.rs)
+  - __structure__
+    - [dual.rs](src/structure/dual.rs)
+    - [matrix.rs](src/structure/matrix.rs)
+    - [mod.rs](src/structure/mod.rs)
+    - [polynomial.rs](src/structure/polynomial.rs)
+    - [vector.rs](src/structure/vector.rs)
+  - __util__
+    - [mod.rs](src/util/mod.rs)
+    - [non_macro.rs](src/util/non_macro.rs)
+    - [print.rs](src/util/print.rs)
+
