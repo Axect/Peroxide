@@ -48,3 +48,6 @@ pub use structure::dual::*;
 
 #[allow(unused_imports)]
 pub use operation::extra_ops::*;
+
+#[allow(unused_imports)]
+pub use util::useful::*;

@@ -7,7 +7,7 @@ use structure::polynomial::*;
 #[allow(unused_imports)]
 use statistics::stat::*;
 
-/// Simple Least Square
+/// Simple Least Square 2D
 ///
 /// # Type
 ///
@@ -21,7 +21,7 @@ use statistics::stat::*;
 /// let a = c!(1,2,3,4,5);
 /// let b = c!(1.2, 1.8, 3.2, 3.8, 5.0);
 /// let ls = least_square(a, b);
-/// ls.print(); // 0.96x^1 + 0.1200
+/// ls.print(); // 0.96x + 0.1200
 /// ```
 pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
     let l = node_x.len();
@@ -53,4 +53,3 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
 
     Polynomial::new(vec![w1, w0])
 }
-

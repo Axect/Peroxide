@@ -9,6 +9,7 @@ use std::f64::{MAX, MIN};
 use std::cmp::{max, min};
 pub use std::error::Error;
 use self::csv::{WriterBuilder, ReaderBuilder, StringRecord};
+use util::useful::*;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -1217,19 +1218,6 @@ impl LinearAlgebra for Matrix {
 // Back-end Utils
 // =============================================================================
 
-#[allow(unused_comparisons)]
-pub fn tab(s: &str, space: usize) -> String {
-    let l = s.len();
-    let mut m: String = String::new();
-    let fs = format!("{}{}", " ".repeat(space - l), s);
-    m.push_str(&fs);
-    return m;
-}
-
-pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
-    ((x / y) as i32, (x % y) as i32)
-}
-
 /// Combine separated matrix to one matrix
 ///
 /// # Examples
@@ -1353,28 +1341,4 @@ pub fn inv_u(u: Matrix) -> Matrix {
             combine(m1, m2, m3, m4)
         }
     }
-}
-
-/// near equal
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// assert!(nearly_eq(1.0/3.0 * 3.0, 1));
-/// ```
-pub fn nearly_eq<S, T>(x: S, y: T) -> bool
-    where S: convert::Into<f64>,
-          T: convert::Into<f64> {
-    let mut b: bool = false;
-    let e = 1e-7;
-    let p: f64 = x.into().abs();
-    let q: f64 = y.into().abs();
-    if (p - q).abs() < e {
-        b = true;
-    } else if (p - q).abs() / (p + q).min(MAX) < e {
-        b = true;
-    }
-    b
 }

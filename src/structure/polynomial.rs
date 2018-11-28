@@ -3,6 +3,7 @@ use structure::matrix::*;
 #[allow(unused_imports)]
 use structure::vector::*;
 use operation::extra_ops::PowOps;
+use util::useful::*;
 
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use std::fmt;
@@ -380,33 +381,5 @@ impl Calculus for Polynomial {
             result[i] = self.coef[i] / (l - i) as f64;
         }
         Polynomial::new(result)
-    }
-}
-
-
-// =============================================================================
-// Utils
-// =============================================================================
-fn choose_shorter_string(x1: String, x2: String) -> String {
-    if x1.len() > x2.len() {
-        x2
-    } else {
-        x1
-    }
-}
-
-fn choose_shorter_vec(x1: &Vector, x2: &Vector) -> Vector {
-    if x1.len() > x2.len() {
-        x2.clone()
-    } else {
-        x1.clone()
-    }
-}
-
-fn choose_longer_vec(x1: &Vector, x2: &Vector) -> Vector {
-    if x1.len() <= x2.len() {
-        x2.clone()
-    } else {
-        x1.clone()
     }
 }
