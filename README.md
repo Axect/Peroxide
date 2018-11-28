@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.6.3`.
+Corresponds with `0.6.4`.
 
 ## Install
 
@@ -19,6 +19,9 @@ peroxide = "0.6"
 ```
 
 ## Usage
+
+There is [Peroxide Guide](http://nbviewer.jupyter.org/github/Axect/Example_Peroxide/blob/master/Peroxide%20Guide.ipynb)
+written on Jupyter.
 
 ### Initial Import
 
