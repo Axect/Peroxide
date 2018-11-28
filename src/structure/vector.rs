@@ -1,8 +1,10 @@
 use std::convert;
 use std::f64::{MIN};
+use operation::extra_ops::{PowOps};
 
 pub type Vector = Vec<f64>;
 
+/// Functional Programming tools for Vector
 pub trait FPVector {
     fn fmap<F>(&self, f: F) -> Vector where F: Fn(f64) -> f64;
     fn reduce<F, T>(&self, init: T, f: F) -> f64
@@ -52,6 +54,7 @@ impl FPVector for Vector {
     }
 }
 
+/// Some algorithms for Vector
 pub trait Algorithm {
     fn rank(&self) -> Vec<usize>;
     fn sign(&self) -> f64;
@@ -130,6 +133,7 @@ impl Algorithm for Vector {
     }
 }
 
+/// Convenient Vector Operation trait
 pub trait VecOps {
     type Scalar;
     fn add(&self, other: &Self) -> Self;
@@ -139,21 +143,47 @@ pub trait VecOps {
     fn dot(&self, other: &Self) -> Self::Scalar;
 }
 
+/// Convenient Vector Operations (No Clone, No Copy)
 impl VecOps for Vector {
     type Scalar = f64;
+
+    /// Addition
     fn add(&self, other: &Vector) -> Vector {
         self.zip_with(|x, y| x + y, other)
     }
+
+    /// Subtraction
     fn sub(&self, other: &Vector) -> Vector {
         self.zip_with(|x, y| x - y, other)
     }
+
+    /// Multiplication
     fn mul(&self, other: &Vector) -> Vector {
         self.zip_with(|x, y| x * y, other)
     }
+
+    /// Division
     fn div(&self, other: &Vector) -> Vector {
         self.zip_with(|x, y| x / y, other)
     }
+
+    /// Dot product
     fn dot(&self, other: &Vector) -> f64 {
         self.mul(other).reduce(1, |x,y| x * y)
+    }
+}
+
+/// Power operation for Vector
+impl PowOps for Vector {
+    type Output = Vector;
+
+    /// Power usize
+    fn pow(&self, n: usize) -> Vector {
+        self.powf(n as f64)
+    }
+
+    /// Power float
+    fn powf(&self, f: f64) -> Vector {
+        self.fmap(|x| x.powf(f))
     }
 }

@@ -929,6 +929,7 @@ pub trait LinearAlgebra {
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
+    fn pseudo_inv(&self) -> Option<Matrix>;
 }
 
 pub fn diag(n: usize) -> Matrix {
@@ -1179,6 +1180,35 @@ impl LinearAlgebra for Matrix {
                 }
                 Some(m)
             }
+        }
+    }
+
+    /// Moore-Penrose Pseudo inverse
+    ///
+    /// # Description
+    /// `(X^T X)^{-1} X`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = matrix!(1;4;1, 2, 2, Row);
+    /// let inv_a = a.inv().unwrap();
+    /// let pse_a = a.pseudo_inv().unwrap();
+    ///
+    /// assert_eq!(inv_a, pse_a); // Nearly equal
+    /// ```
+    fn pseudo_inv(&self) -> Option<Matrix> {
+        let x = self.clone();
+        let xt = self.t();
+
+        let xtx = xt % x;
+        let inv_temp = xtx.inv();
+
+        match inv_temp {
+            None => None,
+            Some(m) => Some(m % self.t())
         }
     }
 }

@@ -53,3 +53,4 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
 
     Polynomial::new(vec![w1, w0])
 }
+
