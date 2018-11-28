@@ -1,9 +1,10 @@
-# Release 0.6.4 (2018-11-28) (Candidate)
+# Release 0.6.4 (2018-11-28)
 
 * Add `pseudo_inv` method for `Matrix`
 * New `useful.rs` in util
     * Move `tab, quot_rem, nearly_eq` from `matrix.rs` to `useful.rs`
     * Move `choose_*` from `polynomial.rs` to `useful.rs` 
+* Fix error of `VectorOps` - `dot`
 
 # Release 0.6.3 (2018-11-28)
 

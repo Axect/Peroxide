@@ -169,7 +169,7 @@ impl VecOps for Vector {
 
     /// Dot product
     fn dot(&self, other: &Vector) -> f64 {
-        self.mul(other).reduce(1, |x,y| x * y)
+        self.mul(other).reduce(0, |x,y| x + y)
     }
 }
 
