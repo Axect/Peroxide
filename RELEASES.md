@@ -1,3 +1,9 @@
+# Release 0.6.5 (2018-11-29)
+
+* Update `read`
+    * Move `read` to `Matrix::read`
+    * Can set `delimiter`
+
 # Release 0.6.4 (2018-11-28)
 
 * Add `pseudo_inv` method for `Matrix`

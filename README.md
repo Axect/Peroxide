@@ -9,7 +9,7 @@ Rust numeric library with R Syntax.
 
 ## Latest README version
 
-Corresponds with `0.6.4`.
+Corresponds with `0.6.5`.
 
 ## Install
 
@@ -423,7 +423,7 @@ use peroxide::*;
 use std::process;
 
 fn main() {
-    let m = read("test.csv", false); // no header
+    let m = Matrix::read("test.csv", false, ','); // no header, delimiter = ','
     // Error handling
     match m {
         Ok(mat) => println!("{}", mat),
@@ -434,7 +434,7 @@ fn main() {
     }
     
     // Just write
-    let n = read("test.csv", false).unwrap(); // no header
+    let n = Matrix::read("test.csv", false, ',').unwrap(); // no header
     println!("{}", n);
 }
 ```

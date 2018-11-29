@@ -1,11 +1,12 @@
 extern crate csv;
 
+#[allow(unused_imports)]
 use structure::vector::*;
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
 pub use self::Shape::{Row, Col};
-use std::f64::{MAX, MIN};
+use std::f64::{MIN};
 use std::cmp::{max, min};
 pub use std::error::Error;
 use self::csv::{WriterBuilder, ReaderBuilder, StringRecord};
@@ -406,47 +407,51 @@ impl Matrix {
         wtr.flush()?;
         Ok(())
     }
-}
 
-/// Read from CSV
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-/// use std::process;
-///
-/// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-/// a.write("test.csv");
-///
-/// let b = read("test.csv", false); // header = false
-/// match b {
-///     Ok(mat) => println!("{}", mat),
-///     Err(err) => {
-///         println!("{}", err);
-///         process::exit(1);
-///     }
-/// }
-/// ```
-pub fn read(file_path: &str, header: bool) -> Result<Matrix, Box<Error>> {
-    let mut rdr = ReaderBuilder::new().has_headers(header).from_path(file_path)?;
+    /// Read from CSV
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    /// use std::process;
+    ///
+    /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    /// a.write("test.csv");
+    ///
+    /// let b = Matrix::read("test.csv", false, ','); // header = false, delimiter = ','
+    /// match b {
+    ///     Ok(mat) => println!("{}", mat),
+    ///     Err(err) => {
+    ///         println!("{}", err);
+    ///         process::exit(1);
+    ///     }
+    /// }
+    /// ```
+    pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<Error>> {
+        let mut rdr = ReaderBuilder::new().has_headers(header)
+            .delimiter(delimiter as u8)
+            .from_path(file_path)?;
 
-    let records = rdr.records().collect::<Result<Vec<StringRecord>, csv::Error>>()?;
-    let result = records;
+        let records = rdr.records().collect::<Result<Vec<StringRecord>, csv::Error>>()?;
+        let result = records;
 
-    let l_row = result.len();
-    let l_col = result[0].len();
+        let l_row = result.len();
+        let l_col = result[0].len();
 
-    let mut m = matrix(vec![0f64; l_row * l_col], l_row, l_col, Row);
+        let mut m = matrix(vec![0f64; l_row * l_col], l_row, l_col, Row);
 
-    for i in 0 .. l_row {
-        for j in 0 .. l_col {
-            m[(i, j)] = result[i][j].parse::<f64>().unwrap();
+        for i in 0 .. l_row {
+            for j in 0 .. l_col {
+                m[(i, j)] = result[i][j].parse::<f64>().unwrap();
+            }
         }
+
+        Ok(m)
     }
 
-    Ok(m)
 }
+
 
 // =============================================================================
 // Common Properties of Matrix & Vector
@@ -851,7 +856,7 @@ impl Index<(usize, usize)> for Matrix {
 /// assert_eq!(a, matrix(c!(1,2,3,10), 2, 2, Row));
 /// ```
 impl IndexMut<(usize, usize)> for Matrix {
-    fn index_mut<'a>(&'a mut self, pair: (usize, usize)) -> &'a mut f64 {
+    fn index_mut(&mut self, pair: (usize, usize)) -> &mut f64 {
         let i = pair.0;
         let j = pair.1;
         let r = self.row;
