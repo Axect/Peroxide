@@ -1,3 +1,8 @@
+# Release 0.6.6 (2018-11-30)
+
+* Update `FPVector`
+    * Add `filter, take, drop`
+
 # Release 0.6.5 (2018-11-29)
 
 * Update `read`

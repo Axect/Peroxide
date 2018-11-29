@@ -12,6 +12,9 @@ pub trait FPVector {
               T: convert::Into<f64>;
     fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
         where F: Fn(f64, f64) -> f64;
+    fn filter<F>(&self, f: F) -> Vector where F: Fn(f64) -> bool;
+    fn take(&self, n: usize) -> Vector;
+    fn drop(&self, n: usize) -> Vector;
 }
 
 impl FPVector for Vector {
@@ -51,6 +54,61 @@ impl FPVector for Vector {
     fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
         where F: Fn(f64, f64) -> f64 {
         self.into_iter().zip(other).map(|(x,y)| f(*x,*y)).collect::<Vector>()
+    }
+
+    /// Filter for Vector
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = c!(1,2,3,4,5);
+    /// let b = a.filter(|x| x > 3.);
+    /// assert_eq!(b, c!(4,5));
+    /// ```
+    fn filter<F>(&self, f: F) -> Vector
+        where F: Fn(f64) -> bool {
+        self.clone().into_iter().filter(|x| f(*x)).collect::<Vector>()
+    }
+
+    /// Take for Vector
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = c!(1,2,3,4,5);
+    /// let b = a.take(3);
+    /// assert_eq!(b, c!(1,2,3));
+    /// ```
+    fn take(&self, n: usize) -> Vector {
+        let mut v = vec![0f64; n];
+        for i in 0 .. n {
+            v[i] = self[i];
+        }
+        return v;
+    }
+
+    /// Drop for Vector
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let a = c!(1,2,3,4,5);
+    /// let b = a.drop(3);
+    /// assert_eq!(b, c!(4,5));
+    /// ```
+    fn drop(&self, n: usize) -> Vector {
+        let l = self.len();
+        let mut v = vec![0f64; l - n];
+        for i in n .. l {
+            v[i - n] = self[i];
+        }
+        return v;
     }
 }
 
