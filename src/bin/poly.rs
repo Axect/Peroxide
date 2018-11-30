@@ -7,4 +7,8 @@ fn main() {
     let l = lagrange_polynomial(a, b);
     l.print();
     l.eval_vec(seq!(0, 1, 0.1)).print();
+
+    let u = poly(c!(1,2,3));
+    let v = poly(c!(1));
+    (u * v).print();
 }
