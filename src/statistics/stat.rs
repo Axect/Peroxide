@@ -234,6 +234,18 @@ pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
 /// R like linear regression
 ///
 /// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = c!(1,2,3,4,5).to_matrix();
+/// let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
+/// lm!(b ~ a).print();
+///
+/// //        c[0]
+/// // r[0] 0.7219
+/// // r[1] 0.8058
+/// ```
 pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     let x_temp = input.clone();
     let mut ones = vec![1f64; x_temp.row * x_temp.col];
