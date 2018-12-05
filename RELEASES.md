@@ -1,3 +1,9 @@
+# Release 0.6.7 (2018-12-05) (Candidate)
+
+* Add `multinomial.rs`
+    * Implement `print`, `eval`
+    * TODO: Partial eval?
+
 # Release 0.6.6 (2018-11-30)
 
 * Update `FPVector`
