@@ -6,6 +6,8 @@ use structure::vector::*;
 use structure::polynomial::*;
 #[allow(unused_imports)]
 use structure::dual::*;
+#[allow(unused_imports)]
+use structure::multinomial::*;
 
 pub trait Printable {
     fn print(&self);
@@ -89,6 +91,12 @@ impl Printable for Polynomial {
 }
 
 impl Printable for Dual {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for Multinomial {
     fn print(&self) {
         println!("{}", self);
     }

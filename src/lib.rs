@@ -51,3 +51,6 @@ pub use operation::extra_ops::*;
 
 #[allow(unused_imports)]
 pub use util::useful::*;
+
+#[allow(unused_imports)]
+pub use structure::multinomial::*;

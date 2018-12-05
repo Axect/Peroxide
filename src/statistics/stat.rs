@@ -251,7 +251,6 @@ pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     let mut ones = vec![1f64; x_temp.row * x_temp.col];
     ones.extend(&x_temp.data);
     let x = matrix(ones, x_temp.row, x_temp.col + 1, x_temp.shape);
-    let tx = x.t();
     let t = target.clone();
-    (tx.clone() % x).inv().unwrap() % tx % t
+    x.pseudo_inv().unwrap() % t
 }

@@ -23,8 +23,10 @@ fn main() {
     // Least square example
     let a = c!(1,2,3,4,5);
     let b = c!(1.2, 1.8, 3.2, 3.8, 5.0);
-    let ls = least_square(a.clone(), b);
+    let ls = least_square(a.clone(), b.clone());
+    let ls2 = lm(&a.to_matrix(), &b.to_matrix());
     ls.print();
+    ls2.print();
     ls.eval_vec(seq!(0, 10, 1)).print();
 
     let f = poly(c!(1,2,3,4));
