@@ -45,8 +45,8 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
     xt_bar /= l as f64;
     x_sq_bar /= l as f64;
 
-    let x_bar_sq = x_bar * x_bar;
-    let x_bar_t_bar = x_bar * t_bar;
+    let x_bar_sq = x_bar.clone() * x_bar.clone();
+    let x_bar_t_bar = x_bar.clone() * t_bar.clone();
 
     let w1 = (xt_bar - x_bar_t_bar) / (x_sq_bar - x_bar_sq);
     let w0 = t_bar - w1 * x_bar;

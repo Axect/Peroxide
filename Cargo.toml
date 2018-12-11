@@ -2,7 +2,7 @@
 name = "peroxide"
 version = "0.6.6"
 authors = ["axect <edeftg@gmail.com>"]
-description = "Rust Numeric Library with R syntax & Pure Rust"
+description = "Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros"
 repository = "https://github.com/Axect/Peroxide"
 license = "BSD-3-Clause"
 categories = ["science"]
