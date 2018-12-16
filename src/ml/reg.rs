@@ -53,3 +53,11 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
 
     Polynomial::new(vec![w1, w0])
 }
+
+// Polynomial Regression
+//pub fn poly_reg(node_x: Vector, node_y: Vector) -> Polynomial {
+//    let n = node_x.len();
+//    assert_eq!(n, node_y.len());
+//    let a = matrix(vec![1f64; n], n, 1, Col);
+//
+//}
