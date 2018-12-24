@@ -10,4 +10,6 @@ fn main() {
 
     let c = Dual::new(0, 1);
     c.exp().print();
+
+    (c * 3.).print();
 }

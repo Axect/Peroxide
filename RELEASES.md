@@ -1,8 +1,13 @@
-# Release 0.6.7 (2018-12-05) (Candidate)
+# Release 0.6.7 (2018-12-24)
 
 * Add `multinomial.rs`
     * Implement `print`, `eval`
     * TODO: Partial eval?
+* Update `Dual`
+    * Add `Add<f64> for Dual`
+    * Sub `Add<f64> for Dual`
+    * Mul `Add<f64> for Dual`
+    * Div `Add<f64> for Dual`
 
 # Release 0.6.6 (2018-11-30)
 

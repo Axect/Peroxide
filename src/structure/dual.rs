@@ -59,6 +59,10 @@ pub fn dual<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {
     Dual::new(x, dx)
 }
 
+// =============================================================================
+// Ops with each other
+// =============================================================================
+
 /// Neg for Dual
 impl Neg for Dual {
     type Output = Dual;
@@ -74,6 +78,7 @@ impl Add<Dual> for Dual {
         Dual::new(self.x + other.x, self.dx + other.dx)
     }
 }
+
 
 /// Sub for Dual
 impl Sub<Dual> for Dual {
@@ -110,6 +115,42 @@ impl Div<Dual> for Dual {
     }
 }
 
+// =============================================================================
+// Ops with f64
+// =============================================================================
+
+impl Add<f64> for Dual {
+    type Output = Dual;
+    fn add(self, other: f64) -> Dual {
+        self + Dual::new(other, 0.)
+    }
+}
+
+impl Sub<f64> for Dual {
+    type Output = Dual;
+    fn sub(self, other: f64) -> Dual {
+        self - Dual::new(other, 0.)
+    }
+}
+
+impl Mul<f64> for Dual {
+    type Output = Dual;
+    fn mul(self, other: f64) -> Dual {
+        self * Dual::new(other, 0.)
+    }
+}
+
+impl Div<f64> for Dual {
+    type Output = Dual;
+    fn div(self, other: f64) -> Dual {
+        self / Dual::new(other, 0.)
+    }
+}
+
+// =============================================================================
+// Trigonometric Ops
+// =============================================================================
+
 /// Trigonometric function with Dual
 impl TrigOps for Dual {
     type Output = Dual;
@@ -133,6 +174,10 @@ impl TrigOps for Dual {
     }
 }
 
+// =============================================================================
+// Exp & Logarithm
+// =============================================================================
+
 /// Exponential & Logarithm for Dual
 impl ExpLogOps for Dual {
     type Output = Dual;
@@ -150,6 +195,10 @@ impl ExpLogOps for Dual {
         Dual::new(val, dval)
     }
 }
+
+// =============================================================================
+// Power
+// =============================================================================
 
 /// Power for Dual
 impl PowOps for Dual {
