@@ -1,3 +1,8 @@
+# Release 0.6.9 (2018-12-26)
+
+* **Fix error of `inv`**
+    * Reverse order of permutations
+
 # Release 0.6.8 (2018-12-25)
 
 * Update `Dual`

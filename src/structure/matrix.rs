@@ -1178,10 +1178,10 @@ impl LinearAlgebra for Matrix {
             Some(pqlu) => {
                 let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
                 let mut m = inv_u(u) % inv_l(l);
-                for (idx1, idx2) in q.into_iter() {
+                for (idx1, idx2) in q.into_iter().rev() {
                     m = m.swap(idx1, idx2, Row);
                 }
-                for (idx1, idx2) in p.into_iter() {
+                for (idx1, idx2) in p.into_iter().rev() {
                     m = m.swap(idx1, idx2, Col);
                 }
                 Some(m)
