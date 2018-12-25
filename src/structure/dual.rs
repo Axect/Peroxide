@@ -147,6 +147,34 @@ impl Div<f64> for Dual {
     }
 }
 
+impl Add<Dual> for f64 {
+    type Output = Dual;
+    fn add(self, other: Dual) -> Dual {
+        other.add(self)
+    }
+}
+
+impl Sub<Dual> for f64 {
+    type Output = Dual;
+    fn sub(self, other: Dual) -> Dual {
+        other.sub(self)
+    }
+}
+
+impl Mul<Dual> for f64 {
+    type Output = Dual;
+    fn mul(self, other: Dual) -> Dual {
+        other.mul(self)
+    }
+}
+
+impl Div<Dual> for f64 {
+    type Output = Dual;
+    fn div(self, other: Dual) -> Dual {
+        other.div(self)
+    }
+}
+
 // =============================================================================
 // Trigonometric Ops
 // =============================================================================
