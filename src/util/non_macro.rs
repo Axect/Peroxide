@@ -26,3 +26,7 @@ pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
     }
     v
 }
+
+pub fn zeros(r: usize, c: usize) -> Matrix {
+    matrix(vec![0f64; r * c], r, c, Row)
+}

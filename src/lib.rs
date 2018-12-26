@@ -54,3 +54,9 @@ pub use util::useful::*;
 
 #[allow(unused_imports)]
 pub use structure::multinomial::*;
+
+#[allow(unused_imports)]
+pub use numerical::utils::*;
+
+#[allow(unused_imports)]
+pub use numerical::newton::*;

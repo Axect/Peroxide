@@ -2,14 +2,23 @@ extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    let a = Dual::new(3, 1);
-    (a * a).print();
+    let x = c!(1,2,3);
+    let dx = c!(1,1,1);
+    let xs = merge_dual(x,dx);
+    xs.print();
+    xs.values().print();
+    xs.slopes().print();
 
-    let b = Dual::new(0, 1);
-    b.cos().print();
+    let j = jacobian(c!(1, 1), f);
+    j.print();
+}
 
-    let c = Dual::new(0, 1);
-    c.exp().print();
+fn f(xs: Vec<Dual>) -> Vec<Dual> {
+    let x = xs[0];
+    let y = xs[1];
 
-    (c * 3.).print();
+    vec![
+        x - y,
+        x + 2.*y,
+    ]
 }

@@ -53,6 +53,11 @@ impl Dual {
     pub fn slope(&self) -> f64 {
         self.dx
     }
+    
+    /// Just extract both
+    pub fn extract(&self) -> (f64, f64) {
+        (self.x, self.dx)
+    }
 }
 
 pub fn dual<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {
@@ -246,3 +251,54 @@ impl PowOps for Dual {
         Dual::new(val, dval)
     }
 }
+
+// =============================================================================
+// Dual List
+// =============================================================================
+/// Convert Vector <=> Dual
+pub trait VecWithDual {
+    type Item;
+    fn conv_dual(&self) -> Self::Item;
+}
+
+impl VecWithDual for Vec<f64> {
+    type Item = Vec<Dual>;
+    fn conv_dual(&self) -> Vec<Dual> {
+        self.clone().into_iter()
+            .map(|x| Dual::new(x, 0.))
+            .collect::<Vec<Dual>>()
+    }
+}
+
+impl VecWithDual for Vec<Dual> {
+    type Item = Vec<f64>;
+    fn conv_dual(&self) -> Vec<f64> {
+        self.clone().into_iter()
+            .map(|x| x.value())
+            .collect::<Vec<f64>>()
+    }
+}
+
+pub trait Dualist {
+    fn values(&self) -> Vec<f64>;
+    fn slopes(&self) -> Vec<f64>;
+}
+
+impl Dualist for Vec<Dual> {
+    fn values(&self) -> Vec<f64> {
+        self.conv_dual()
+    }
+
+    fn slopes(&self) -> Vec<f64> {
+        self.clone().into_iter()
+            .map(|t| t.slope())
+            .collect::<Vec<f64>>()
+    }
+}
+
+pub fn merge_dual(y: Vec<f64>, dy: Vec<f64>) -> Vec<Dual> {
+    y.into_iter().zip(&dy)
+        .map(|(t, &dt)| Dual::new(t, dt))
+        .collect::<Vec<Dual>>()
+}
+

@@ -1,3 +1,10 @@
+# Release 0.6.10 (2018-12-27)
+
+* Add comfortable tools for `Vec<Dual>`
+* Add `jacobian` in `numerical/utils`
+* Add `newton` in `numerical`
+    * Newton-Raphson Method 
+
 # Release 0.6.9 (2018-12-26)
 
 * **Fix error of `inv`**

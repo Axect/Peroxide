@@ -199,6 +199,7 @@ pub trait VecOps {
     fn mul(&self, other: &Self) -> Self;
     fn div(&self, other: &Self) -> Self;
     fn dot(&self, other: &Self) -> Self::Scalar;
+    fn norm(&self) -> Self::Scalar;
 }
 
 /// Convenient Vector Operations (No Clone, No Copy)
@@ -228,6 +229,11 @@ impl VecOps for Vector {
     /// Dot product
     fn dot(&self, other: &Vector) -> f64 {
         self.mul(other).reduce(0, |x,y| x + y)
+    }
+
+    /// Norm
+    fn norm(&self) -> f64 {
+        self.dot(&self).sqrt()
     }
 }
 

@@ -101,3 +101,12 @@ impl Printable for Multinomial {
         println!("{}", self);
     }
 }
+
+impl Printable for Vec<Dual> {
+    fn print(&self) {
+        println!("value:");
+        self.values().print();
+        println!("slope:");
+        self.slopes().print();
+    }
+}
