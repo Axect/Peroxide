@@ -42,7 +42,9 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
     let x_var: Vec<Dual> = merge_dual(x.clone(), vec![1f64; l]);
     let x_const = x.clone().conv_dual();
 
-    let mut J = zeros(l, l);
+    let l2 = f(x_const.clone()).len();
+
+    let mut J = zeros(l2, l);
 
     let mut x_temp = x_const.clone();
 
@@ -50,10 +52,11 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
         x_temp[i] = x_var[i];
         let dual_temp = f(x_temp.clone());
         let slope_temp = dual_temp.slopes();
-        for j in 0 .. l {
+        for j in 0 .. l2 {
             J[(j, i)] = slope_temp[j];
         }
         x_temp = x_const.clone();
     }
     J
 }
+

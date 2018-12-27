@@ -30,3 +30,19 @@ pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
 pub fn zeros(r: usize, c: usize) -> Matrix {
     matrix(vec![0f64; r * c], r, c, Row)
 }
+
+pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
+    let l1 = v1.len();
+    let l2 = v2.len();
+
+    let mut v = vec![Default::default(); l1 + l2];
+
+    for i in 0 .. l1 {
+        v[i] = v1[i];
+    }
+
+    for i in 0 .. l2 {
+        v[i + l1] = v2[i];
+    }
+    v
+}

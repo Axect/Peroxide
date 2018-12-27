@@ -13,7 +13,7 @@ use operation::extra_ops::{TrigOps, ExpLogOps, PowOps};
 ///
 /// But they are private fields.
 /// You should use `value` or `slope` function to extract them.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Dual {
     x: f64,
     dx: f64,

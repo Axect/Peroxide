@@ -1,3 +1,5 @@
+#![feature(non_ascii_idents)]
+
 pub mod structure;
 pub mod statistics;
 #[macro_use]
@@ -60,3 +62,6 @@ pub use numerical::utils::*;
 
 #[allow(unused_imports)]
 pub use numerical::newton::*;
+
+#[allow(unused_imports)]
+pub use numerical::rok4a::*;
