@@ -1,5 +1,3 @@
-#![feature(non_ascii_idents)]
-
 pub mod structure;
 pub mod statistics;
 #[macro_use]
