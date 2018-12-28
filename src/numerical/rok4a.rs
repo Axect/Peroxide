@@ -92,7 +92,7 @@ const GAMMA41: f64 = 0.03303644239795811290;
 const GAMMA42: f64 = -0.24375152376108235312;
 const GAMMA43: f64 = -0.17062602991994029834;
 
-const b1: f64 = 1f64/6f64;
-const b2: f64 = 1f64/6f64;
-const b3: f64 = 0.;
-const b4: f64 = 2f64/3f64;
+const B1: f64 = 1f64/6f64;
+const B2: f64 = 1f64/6f64;
+const B3: f64 = 0.;
+const B4: f64 = 2f64/3f64;
