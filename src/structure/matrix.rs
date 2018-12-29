@@ -751,6 +751,38 @@ impl<T> Mul<T> for Matrix where T: convert::Into<f64> + Copy {
     }
 }
 
+impl Mul<Matrix> for f64 {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        other.mul(self)
+    }
+}
+
+impl Mul<Matrix> for i64 {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        other.mul(self as f64)
+    }
+}
+
+impl Mul<Matrix> for i32 {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        other.mul(self)
+    }
+}
+
+impl Mul<Matrix> for usize {
+    type Output = Matrix;
+
+    fn mul(self, other: Matrix) -> Matrix {
+        other.mul(self as f64)
+    }
+}
+
 /// Matrix Multiplication
 ///
 /// # Examples

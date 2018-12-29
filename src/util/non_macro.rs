@@ -46,3 +46,27 @@ pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
     }
     v
 }
+
+pub fn eye(n: usize) -> Matrix {
+    let mut m = zeros(n, n);
+    for i in 0 .. n {
+        m[(i, i)] = 1f64;
+    }
+    m
+}
+
+pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
+    let mut temp = m1;
+    if temp.shape != Col {
+        temp = temp.change_shape();
+    }
+
+    let mut v = temp.data;
+    let mut c = temp.col;
+    let r = temp.row;
+
+    assert_eq!(r, m2.row);
+    v.extend(&m2.data.clone());
+    c += m2.col;
+    matrix(v, r, c, Col)
+}
