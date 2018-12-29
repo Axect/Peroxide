@@ -7,7 +7,7 @@ use util::non_macro::{zeros, concat, eye, cbind};
 use util::print::*;
 
 #[allow(non_snake_case)]
-pub fn one_step_rok4a<F>(xs: Vec<f64>, f:F, step: f64) -> Matrix
+pub fn one_step_rok4a<F>(xs: Vec<f64>, f:F, step: f64) -> Vec<f64>
     where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
 {
     let ALPHA_MAT = ALPHA_MAT();
@@ -39,9 +39,10 @@ pub fn one_step_rok4a<F>(xs: Vec<f64>, f:F, step: f64) -> Matrix
     // lambda = M x 1
     let lambda1 = mult1 % (h*phi1.clone());
     // k0 = n x 1
-    let k0 = V.clone() % lambda1 + h * (F1 - V.clone() % phi1);
+    let k0 = V.clone() % lambda1.clone() + h * (F1 - V.clone() % phi1);
 
     let mut k = k0;
+    let mut lambda = lambda1;
 
     for i in 1 .. s {
         let new_t = t + ALPHA_VEC[i]*step;
@@ -54,15 +55,38 @@ pub fn one_step_rok4a<F>(xs: Vec<f64>, f:F, step: f64) -> Matrix
         let new_y = ys.add(&s_vec);
 
         // F: n x 1
-        let F = f(concat(vec![new_t], new_y).conv_dual())
-            .values();
-        let phi = V.t() % F + w.clone();
-        let mult = (eye(m) - h*GAMMA*H.clone()).inv()
+        let F = matrix(
+            f(concat(vec![new_t], new_y).conv_dual()).values(),
+            n,
+            1,
+            Col
+        );
+        let phi = V.t() % F.clone() + w.clone();
+        let mult1 = (eye(m) - h*GAMMA*H.clone()).inv()
             .unwrap();
+        let mut s_vec2 = vec![0f64; m];
+        for j in 0 .. i {
+            let gij = GAMMA_MAT[(i, j)];
+            let target = lambda.col(j).fmap(|x| x * gij);
+            s_vec2 = s_vec2.add(&target);
+        }
+        let mult2 = h * (phi.clone() + (H.clone() % s_vec2));
+        let lambda_i = mult1 % mult2;
+        let k_i = V.clone() % lambda_i.clone() + h * (F - V.clone() % phi);
 
+        k = cbind(k, k_i);
+        lambda = cbind(lambda, lambda_i);
     }
 
-    unimplemented!()
+    let new_t = t + h;
+    let mut s_vec = vec![0f64; n];
+    for i in 0 .. s {
+        let target = k.col(i).fmap(|x| x * B.clone()[i]);
+        s_vec = s_vec.add(&target);
+    }
+
+    let new_ys = ys.add(&s_vec);
+    concat(vec![new_t], new_ys)
 }
 
 
@@ -162,14 +186,16 @@ pub fn modified_arnoldi<F>(xs: Vec<f64>, f:F) -> (Matrix, Matrix, Matrix)
                 H[(j, i)] = H[(j, i)] + rho;
             }
         }
-        
+
+        let det_vec2 = concat(zeta.clone(), vec![xi]);
+        let det_norm2 = det_vec2.norm();
+        let hii = det_norm2;
+
+        v = zeta.fmap(|z| z / hii);
+        w = xi / hii;
+
         if i < (m-1) {
-            let det_vec2 = concat(zeta.clone(), vec![xi]);
-            let det_norm2 = det_vec2.norm();
             H[(i+1, i)] = det_norm2;
-            let hii = H[(i+1, i)];
-            v = zeta.fmap(|z| z / hii);
-            w = xi / hii;
             ws[i+1] = w;
         }
     }
@@ -233,3 +259,5 @@ const B1: f64 = 1f64/6f64;
 const B2: f64 = 1f64/6f64;
 const B3: f64 = 0.;
 const B4: f64 = 2f64/3f64;
+
+const B: [f64;4] = [B1, B2, B3, B4];
