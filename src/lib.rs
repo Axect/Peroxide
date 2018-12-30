@@ -63,3 +63,6 @@ pub use numerical::newton::*;
 
 #[allow(unused_imports)]
 pub use numerical::rok4a::*;
+
+#[allow(unused_imports)]
+pub use numerical::bdf::*;

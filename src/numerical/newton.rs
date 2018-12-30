@@ -3,7 +3,6 @@
 use structure::matrix::*;
 use structure::dual::*;
 use structure::vector::*;
-use util::print::*;
 use numerical::utils::jacobian;
 
 pub fn newton<F>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
@@ -17,8 +16,6 @@ pub fn newton<F>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
         x = x_next.clone();
         x_next = update(x_next.clone(), f);
         err = (x_next.sub(&x)).norm();
-        x_next.print();
-        err.print();
     }
 
     x_next

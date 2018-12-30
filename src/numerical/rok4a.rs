@@ -14,7 +14,7 @@ pub fn one_step_rok4a<F>(xs: Vec<f64>, f:F, step: f64) -> Vec<f64>
     let GAMMA_MAT = GAMMA_MAT();
 
     let n = xs.len() - 1;
-    let m = 4;
+    let m = 3;
     let s = 4;
     let t = xs[0];
     let h = step;
@@ -116,7 +116,7 @@ pub fn modified_arnoldi<F>(xs: Vec<f64>, f:F) -> (Matrix, Matrix, Matrix)
     let mut w: f64 = 1f64 / beta;
     let mut v: Vec<f64> = f_n.fmap(|x| x / beta);
 
-    let m: usize = 4;
+    let m: usize = 3;
 
     let mut ws: Vec<f64> = vec![0f64; m];
     ws[0] = w;
