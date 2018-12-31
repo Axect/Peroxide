@@ -39,11 +39,12 @@ pub fn one_step_bdf1<F>(xs: Vec<f64>, f: F, h: f64, rtol: f64) -> Vec<f64>
         err = iter_next_ys.sub(&iter_prev_ys).norm();
     }
 
-    let new_xs = concat(vec![t], iter_next_ys);
+    let new_xs = concat(vec![new_t], iter_next_ys);
 
     new_xs
 }
 
+#[allow(non_snake_case)]
 fn non_auto_update<F>(t: f64, yn: Vec<f64>, ys: Vec<f64>, f: F, h: f64) -> Vec<f64>
     where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
 {

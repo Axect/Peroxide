@@ -450,6 +450,19 @@ impl Matrix {
         Ok(m)
     }
 
+    /// Substitute Col
+    pub fn subs_col(&mut self, idx: usize, v: Vec<f64>) {
+        for i in 0 .. self.row {
+           self[(i, idx)] = v[i]; 
+        }
+    }
+
+    /// Substitute Row
+    pub fn subs_row(&mut self, idx: usize, v: Vec<f64>) {
+        for j in 0 .. self.col {
+            self[(idx, j)] = v[j];
+        }
+    }
 }
 
 
