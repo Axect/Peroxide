@@ -1,3 +1,7 @@
+/// [Deprecated]
+/// Just use bdf
+
+
 #[allow(unused_imports)]
 use structure::matrix::*;
 use structure::dual::*;

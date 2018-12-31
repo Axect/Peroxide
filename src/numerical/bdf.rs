@@ -7,6 +7,25 @@ use structure::dual::*;
 use numerical::utils::*;
 use util::non_macro::*;
 
+/// BDF1 (Backward Euler Method)
+///
+/// xs_init: Non-autonomous data: `xs = (t, ys)`
+/// h: Step size
+/// rtol: Relative tolerance (1e-15 is recommended)
+pub fn bdf1<F>(xs_init: Vec<f64>, f: F, h: f64, rtol: f64, num: usize) -> Matrix
+    where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
+{
+    let mut xs = xs_init.clone();
+    let mut records = zeros(num + 1, xs_init.len());
+    for i in 0 .. (num+1) {
+        records.subs_row(i, xs.clone());
+        xs = one_step_bdf1(xs.clone(), f, h, rtol);
+    }
+
+    records
+}
+
+
 /// One step for BDF1 (Backward Euler)
 pub fn one_step_bdf1<F>(xs: Vec<f64>, f: F, h: f64, rtol: f64) -> Vec<f64>
     where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy

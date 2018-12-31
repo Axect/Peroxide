@@ -1,3 +1,12 @@
+# Release 0.6.11 (2018-12-31)
+
+* Add `rok4a.rs`
+    * Now, deprecated
+* Add `non_auto_jacobian` to utils
+    * TODO: Generalize jacobian
+* Add `bdf.rs`
+    * Implement Backward Euler Method
+
 # Release 0.6.10 (2018-12-27)
 
 * Add comfortable tools for `Vec<Dual>`
