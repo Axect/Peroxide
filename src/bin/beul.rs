@@ -1,6 +1,7 @@
 extern crate peroxide;
 use peroxide::*;
 
+#[allow(unused_must_use)]
 fn main() {
     // t = 0, x = 2, y = 1
     let mut xs = c!(0, 2, 1);
@@ -12,7 +13,7 @@ fn main() {
         records.subs_row(i, xs.clone());
     }
 
-    records.write("beul.csv");
+    records.write("example_data/lotka.csv");
 }
 
 fn lotka_volterra(xs: Vec<Dual>) -> Vec<Dual> {
