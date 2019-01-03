@@ -1,3 +1,7 @@
+# Release 0.6.12 (2018-01-03)
+
+* Fix error of `Div` for `Dual`
+
 # Release 0.6.11 (2018-12-31)
 
 * Add `rok4a.rs`

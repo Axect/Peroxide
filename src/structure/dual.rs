@@ -110,7 +110,7 @@ impl Mul<Dual> for Dual {
 impl Div<Dual> for Dual {
     type Output = Dual;
     fn div(self, other: Dual) -> Dual {
-        assert_eq!(other.x, 0f64);
+        assert_ne!(other.x, 0f64);
         let v1 = self.x;
         let v2 = other.x;
         let dv1 = self.dx;
