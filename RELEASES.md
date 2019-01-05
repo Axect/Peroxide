@@ -1,3 +1,8 @@
+# Release 0.6.14 (2018-01-05)
+
+* Add `runge_kutta.rs`
+    * Implement RK4 algorithm for Non-autonomous equation
+
 # Release 0.6.13 (2018-01-03)
 
 * Add `grave`
