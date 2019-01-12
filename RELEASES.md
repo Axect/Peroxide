@@ -1,3 +1,12 @@
+# Release 0.6.15 (2018-01-12)
+
+* Update `matrix.rs`
+    * Add `p_matrix`, `m_matrix`
+        * Pythonic matrix
+        * MATLAB matrix
+    * Add `write_with_header` for `matrix.rs`
+        * Now, can write matrix with header
+
 # Release 0.6.14 (2018-01-05)
 
 * Add `runge_kutta.rs`

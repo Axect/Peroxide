@@ -102,6 +102,10 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
     }
 }
 
+// =============================================================================
+// Various matrix constructor
+// =============================================================================
+
 /// R-like matrix constructor
 ///
 /// # Examples
@@ -113,6 +117,44 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
 /// ```
 pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
     Matrix::new(v, x, y, shape)
+}
+
+/// Python-like matrix constructor
+pub fn p_matrix<T>(v: Vec<Vec<T>>) -> Matrix where T: convert::Into<f64> + Copy{
+    let r = v.len();
+    let c = v[0].len();
+    let mut data = vec![0f64; r*c];
+    for i in 0 .. r {
+        for j in 0 .. c {
+            let idx = i * c + j;
+            data[idx] = v[i][j].into();
+        }
+    }
+    Matrix::new(data, r, c, Row)
+}
+
+/// Matlab-like matrix constructor
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+/// 
+/// let a = m_matrix("1 2; 3 4");
+/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
+/// assert_eq!(a, b);
+/// ```
+pub fn m_matrix(s: &str) -> Matrix where {
+    let str_rows: Vec<&str> = s.split(';').collect();
+    let r = str_rows.len();
+    let str_data = str_rows.into_iter()
+        .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
+        .collect::<Vec<Vec<&str>>>();
+    let c = str_data[0].len();
+    let data = str_data.into_iter()
+        .flat_map(|t| t.into_iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>())
+        .collect::<Vec<f64>>();
+    Matrix::new(data, r, c, Row)
 }
 
 /// Pretty Print
@@ -397,6 +439,23 @@ impl Matrix {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
+        for i in 0 .. r {
+            let mut record: Vec<String> = vec!["".to_string(); c];
+            for j in 0 .. c {
+                record[j] = self[(i, j)].to_string();
+            }
+            wtr.write_record(record)?;
+        }
+        wtr.flush()?;
+        Ok(())
+    }
+
+    pub fn write_with_header(&self, file_path: &str, header: Vec<&str>) -> Result<(), Box<Error>> {
+        let mut wtr = WriterBuilder::new().from_path(file_path)?;
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(c, header.len());
+        wtr.write_record(header)?;
         for i in 0 .. r {
             let mut record: Vec<String> = vec!["".to_string(); c];
             for j in 0 .. c {

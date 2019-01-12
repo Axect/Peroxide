@@ -11,6 +11,9 @@ fn main() {
 
     let j = jacobian(c!(1, 1), f);
     j.print();
+
+    let a = dual(0, 1);
+    a.sin().print();
 }
 
 fn f(xs: Vec<Dual>) -> Vec<Dual> {

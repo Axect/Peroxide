@@ -9,7 +9,7 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponds with `0.6.5`.
+Corresponds with `0.6.15`.
 
 ## Install
 
@@ -140,6 +140,12 @@ fn main() {
     
     // matrix macro (More convenient)
     let d = matrix!(1;4;1, 2, 2, Row);
+    
+    // Pythonic
+    let p_mat = p_matrix(vec![c!(1, 2), c!(3, 4)]);
+    
+    // Matlab like
+    let m_mat = m_matrix("1 2; 3 4");
 }
 ```
 
@@ -163,7 +169,7 @@ fn main() {
     let a = matrix!(1;4;1,  2, 2, Row);
     println!("{}", a);
     // Or
-    a.print();
+    a.print(); // You can print number, vector, matrix as same way
 }
 //       c[0] c[1]
 // r[0]     1    2
@@ -409,6 +415,11 @@ fn main() {
       println!("{}", err);
       process::exit(1);
     }
+    
+    // And also with header
+    let c = m_matrix("1 2;3 4");
+    let c_header = vec!["a", "b"];
+    c.write_with_header("test_h.csv", c_header);
 }
 ```
 
@@ -614,7 +625,6 @@ fn main() {
     // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
 }
-
 ```
 
 ### MATLAB like macro
@@ -623,6 +633,38 @@ fn main() {
 * `eye` - identity matrix
 * `rand` - random matrix (range from 0 to 1)
 
+### Automatic Differentiation
+
+* Implemented AD with dual number structure.
+* Available functions
+    * `sin, cos, tan`
+    * `pow, powf`
+    * `+,-,x,/`
+    * `exp, ln`
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = dual(0, 1); // x at x = 0
+    a.sin().print();    // sin(x) at x = 0
+    
+    // value: 0  // sin(0) = 0
+    // slope: 1  // cos(0) = 1
+}
+```
+
+### Jacobian
+
+* Implemented by AD - Exact Jacobian
+
+
+
 ## Version Info
 
-To see [Release.md](./RELEASES.md)
+To see [RELEASES.md](./RELEASES.md)
+
+## TODO
+
+To see [TODO.md](./TODO.md)
