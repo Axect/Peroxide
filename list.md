@@ -1,8 +1,4 @@
 - __src__
-  - __bin__
-    - [dual.rs](src/bin/dual.rs)
-    - [oxide.rs](src/bin/oxide.rs)
-    - [poly.rs](src/bin/poly.rs)
   - [lib.rs](src/lib.rs)
   - __ml__
     - [mod.rs](src/ml/mod.rs)
@@ -12,9 +8,13 @@
     - [mod.rs](src/macros/mod.rs)
     - [r_macro.rs](src/macros/r_macro.rs)
   - __numerical__
+    - [bdf.rs](src/numerical/bdf.rs)
     - [interp.rs](src/numerical/interp.rs)
     - [mod.rs](src/numerical/mod.rs)
+    - [newton.rs](src/numerical/newton.rs)
+    - [runge_kutta.rs](src/numerical/runge_kutta.rs)
     - [spline.rs](src/numerical/spline.rs)
+    - [util.rs](src/numerical/utils.rs)
   - __operation__
     - [extra_ops.rs](src/operation/extra_ops.rs)
     - [mod.rs](src/operation/mod.rs)
@@ -23,13 +23,17 @@
     - [rand.rs](src/statistics/rand.rs)
     - [stat.rs](src/statistics/stat.rs)
   - __structure__
+    - [dataframe.rs](src/structure/dataframe.rs)
     - [dual.rs](src/structure/dual.rs)
     - [matrix.rs](src/structure/matrix.rs)
     - [mod.rs](src/structure/mod.rs)
+    - [multinomial.rs](src/structure/multinomial.rs)
     - [polynomial.rs](src/structure/polynomial.rs)
     - [vector.rs](src/structure/vector.rs)
   - __util__
+    - [api.rs](src/util/api.rs)
     - [mod.rs](src/util/mod.rs)
     - [non_macro.rs](src/util/non_macro.rs)
     - [print.rs](src/util/print.rs)
+    - [useful.rs](src/util/useful.rs)
 

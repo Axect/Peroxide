@@ -1,11 +1,10 @@
 extern crate peroxide;
-
 use peroxide::*;
 
 #[test]
 fn test_seq() {
     let v1 = c!(2,4,6,8);
-    let v2 = seq!(2,8,2);
+    let v2 = seq(2,8,2);
     assert_eq!(v1, v2);
 }
 
@@ -25,8 +24,8 @@ fn test_zeros() {
 #[test]
 fn test_accumulation() {
     let v1 = c!(1,2,3,4);
-    let v2 = seq!(5,8,1);
-    assert_eq!(seq!(1,8,1), c!(v1; v2));
+    let v2 = seq(5,8,1);
+    assert_eq!(seq(1,8,1), c!(v1; v2));
 }
 
 #[test]
@@ -56,7 +55,7 @@ fn test_add_f64() {
 #[test]
 fn test_col() {
     let a = matrix(
-        seq!(1,4,1),
+        seq(1,4,1),
         2,
         2,
         Row,
