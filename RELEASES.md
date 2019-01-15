@@ -1,3 +1,17 @@
+# Release 0.7.0 (2018-01-15)
+
+* Modify matrix declaration
+    * `p_matrix` -> `py_matrix`
+    * `m_matrix` -> `ml_matrix`
+    * Add `r_matrix` (same as `matrix`)
+* Add `util/api.rs`
+    * Can choose various coding style
+        * `MATLAB`
+        * `PYTHON`
+        * `R`
+* Remove `CreateMatrix`
+    * Deprecated `Matrix::new` -> Use `matrix` instead
+
 # Release 0.6.15 (2018-01-12)
 
 * Update `matrix.rs`

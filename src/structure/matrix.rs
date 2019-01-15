@@ -24,8 +24,8 @@ pub type Perms = Vec<(usize, usize)>;
 /// extern crate peroxide;
 /// use peroxide::*;
 ///
-/// let a = Matrix::new(vec![1,2,3,4], 2, 2, Row);
-/// let b = Matrix::new(vec![1,2,3,4], 2, 2, Col);
+/// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+/// let b = matrix(vec![1,2,3,4], 2, 2, Col);
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
 /// println!("{}", b); // Similar to [[1,3],[2,4]]
 /// ```
@@ -69,39 +69,6 @@ pub struct Matrix {
     pub shape: Shape,
 }
 
-/// To convert generic vector to Matrix
-pub trait CreateMatrix<T: convert::Into<f64>> {
-    fn new(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix;
-}
-
-impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
-    /// Matrix generic constructor
-    ///
-    /// You can use any numeric type vector
-    /// e.g. `u32`, `i32`, `i64`, ...
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = Matrix::new(
-    ///     vec![1,2,3,4], // Can use any Into<f64> type
-    ///     2,
-    ///     2,
-    ///     Row,
-    /// );
-    /// ```
-    fn new(v: Vec<T>, x: usize, y: usize, shape: Shape) -> Matrix {
-        Matrix {
-            data: v.into_iter().map(|x| x.into()).collect(),
-            row: x,
-            col: y,
-            shape,
-        }
-    }
-}
-
 // =============================================================================
 // Various matrix constructor
 // =============================================================================
@@ -115,12 +82,32 @@ impl<T> CreateMatrix<T> for Matrix where T: convert::Into<f64> {
 ///
 /// let a = matrix(c!(1,2,3,4), 2, 2, Row);
 /// ```
-pub fn matrix<T>(v: Vec<T>, x:usize, y:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
-    Matrix::new(v, x, y, shape)
+pub fn matrix<T>(v: Vec<T>, r: usize, c:usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
+    Matrix {
+        data: v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),
+        row: r,
+        col: c,
+        shape
+    }
+}
+
+/// R-like matrix constructor (Explicit ver.)
+pub fn r_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix where T: convert::Into<f64> {
+    matrix(v, r, c, shape)
 }
 
 /// Python-like matrix constructor
-pub fn p_matrix<T>(v: Vec<Vec<T>>) -> Matrix where T: convert::Into<f64> + Copy{
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = py_matrix(vec![c!(1,2), c!(3,4)]);
+/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
+/// assert_eq!(a, b);
+/// ```
+pub fn py_matrix<T>(v: Vec<Vec<T>>) -> Matrix where T: convert::Into<f64> + Copy {
     let r = v.len();
     let c = v[0].len();
     let mut data = vec![0f64; r*c];
@@ -130,7 +117,7 @@ pub fn p_matrix<T>(v: Vec<Vec<T>>) -> Matrix where T: convert::Into<f64> + Copy{
             data[idx] = v[i][j].into();
         }
     }
-    Matrix::new(data, r, c, Row)
+    matrix(data, r, c, Row)
 }
 
 /// Matlab-like matrix constructor
@@ -140,11 +127,11 @@ pub fn p_matrix<T>(v: Vec<Vec<T>>) -> Matrix where T: convert::Into<f64> + Copy{
 /// extern crate peroxide;
 /// use peroxide::*;
 /// 
-/// let a = m_matrix("1 2; 3 4");
+/// let a = ml_matrix("1 2; 3 4");
 /// let b = matrix(c!(1,2,3,4), 2, 2, Row);
 /// assert_eq!(a, b);
 /// ```
-pub fn m_matrix(s: &str) -> Matrix where {
+pub fn ml_matrix(s: &str) -> Matrix where {
     let str_rows: Vec<&str> = s.split(';').collect();
     let r = str_rows.len();
     let str_data = str_rows.into_iter()
@@ -154,7 +141,7 @@ pub fn m_matrix(s: &str) -> Matrix where {
     let data = str_data.into_iter()
         .flat_map(|t| t.into_iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>())
         .collect::<Vec<f64>>();
-    Matrix::new(data, r, c, Row)
+    matrix(data, r, c, Row)
 }
 
 /// Pretty Print
