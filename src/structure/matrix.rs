@@ -239,6 +239,16 @@ impl Matrix {
         let r = self.row;
         let c = self.col;
 
+        if r > 10 || c > 10 {
+            let part = self.take(10, Row).take(10, Col);
+            return format!(
+                "Result is too large to print - {}x{}\nonly print 10x10 part:\n{}",
+                self.row.to_string(),
+                self.col.to_string(),
+                part.spread()
+            );
+        }
+
         // Find maximum length of data
         let sample = self.data.clone();
         let mut space: usize = sample.into_iter()
@@ -969,6 +979,8 @@ impl IndexMut<(usize, usize)> for Matrix {
 // Functional Programming Tools (Hand-written)
 // =============================================================================
 pub trait FP {
+    fn take(&self, n: usize, shape: Shape) -> Matrix;
+    fn skip(&self, n: usize, shape: Shape) -> Matrix;
     fn fmap<F>(&self, f: F) -> Matrix where F: Fn(f64) -> f64;
     fn reduce<F, T>(&self, init: T, f: F) -> f64 
         where F: Fn(f64, f64) -> f64,
@@ -978,6 +990,48 @@ pub trait FP {
 }
 
 impl FP for Matrix {
+    fn take(&self, n: usize, shape: Shape) -> Matrix {
+        match shape {
+            Row => {
+                let mut temp_data: Vec<f64> = Vec::new();
+                for i in 0..n {
+                    temp_data.extend(self.row(i));
+                }
+                matrix(temp_data, n, self.col, Row)
+            },
+            Col => {
+                let mut temp_data: Vec<f64> = Vec::new();
+                for i in 0..n {
+                    temp_data.extend(self.col(i));
+                }
+                matrix(temp_data, self.row, n, Col)
+            }
+        }
+    }
+
+    fn skip(&self, n: usize, shape: Shape) -> Matrix {
+        match shape {
+            Row => {
+                assert!(n < self.row, "Skip range is larger than row of matrix");
+
+                let mut temp_data: Vec<f64> = Vec::new();
+                for i in n .. self.row {
+                    temp_data.extend(self.row(i));
+                }
+                matrix(temp_data, self.row - n, self.col, Row)
+            },
+            Col => {
+                assert!(n < self.col, "Skip range is larger than col of matrix");
+
+                let mut temp_data: Vec<f64> = Vec::new();
+                for i in n .. self.col {
+                    temp_data.extend(self.col(i));
+                }
+                matrix(temp_data, self.row, self.col - n, Col)
+            }
+        }
+    }
+
     fn fmap<F>(&self, f: F) -> Matrix where F: Fn(f64) -> f64 {
         let result = self.data.clone().into_iter().map(|x| f(x)).collect::<Vec<f64>>();
         matrix(

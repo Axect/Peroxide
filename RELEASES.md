@@ -1,3 +1,11 @@
+# Release 0.7.1 (2018-01-16)
+
+* Add `take` to `FP` trait for Matrix
+* Add `skip` to `FP` trait for Matrix
+* Fix `fmt::Display` of `Matrix`
+    * If larger than 10x10 -> Only print 10x10 part
+* Add `ode.rs` to `numeric`
+
 # Release 0.7.0 (2018-01-15)
 
 * Modify matrix declaration

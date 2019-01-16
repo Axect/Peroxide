@@ -4,3 +4,4 @@ pub mod newton;
 pub mod utils;
 pub mod bdf;
 pub mod runge_kutta;
+pub mod ode;
