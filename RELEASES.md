@@ -1,4 +1,4 @@
-# Release 0.7.1 (2018-01-16)
+# Release 0.7.1 (2018-01-17)
 
 * Add `take` to `FP` trait for Matrix
 * Add `skip` to `FP` trait for Matrix
@@ -6,6 +6,9 @@
     * If larger than 10x10 -> Only print 10x10 part
 * Add `ode.rs` to `numeric`
     * Add `solve` - numerical solve ODE
+    * Now you can choose two methods
+        * `RK4`
+        * `BDF1`
 * Change `rk4`
     * All functions should have form
         * `f(Dual, Vec<Dual>) -> Vec<Dual>`
