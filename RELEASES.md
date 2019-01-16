@@ -5,6 +5,11 @@
 * Fix `fmt::Display` of `Matrix`
     * If larger than 10x10 -> Only print 10x10 part
 * Add `ode.rs` to `numeric`
+    * Add `solve` - numerical solve ODE
+* Change `rk4`
+    * All functions should have form
+        * `f(Dual, Vec<Dual>) -> Vec<Dual>`
+* Fix error of `spread`
 
 # Release 0.7.0 (2018-01-15)
 

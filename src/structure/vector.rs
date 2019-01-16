@@ -6,18 +6,22 @@ pub type Vector = Vec<f64>;
 
 /// Functional Programming tools for Vector
 pub trait FPVector {
-    fn fmap<F>(&self, f: F) -> Vector where F: Fn(f64) -> f64;
-    fn reduce<F, T>(&self, init: T, f: F) -> f64
-        where F: Fn(f64, f64) -> f64,
-              T: convert::Into<f64>;
-    fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
-        where F: Fn(f64, f64) -> f64;
-    fn filter<F>(&self, f: F) -> Vector where F: Fn(f64) -> bool;
-    fn take(&self, n: usize) -> Vector;
-    fn drop(&self, n: usize) -> Vector;
+    type Scalar;
+
+    fn fmap<F>(&self, f: F) -> Self where F: Fn(f64) -> Self::Scalar;
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+        where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+              T: convert::Into<Self::Scalar>;
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+        where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;
+    fn filter<F>(&self, f: F) -> Self where F: Fn(Self::Scalar) -> bool;
+    fn take(&self, n: usize) -> Self;
+    fn skip(&self, n: usize) -> Self;
 }
 
 impl FPVector for Vector {
+    type Scalar = f64;
+
     /// fmap for Vector
     ///
     /// # Examples
@@ -91,7 +95,7 @@ impl FPVector for Vector {
         return v;
     }
 
-    /// Drop for Vector
+    /// Skip for Vector
     ///
     /// # Examples
     /// ```
@@ -99,10 +103,10 @@ impl FPVector for Vector {
     /// use peroxide::*;
     ///
     /// let a = c!(1,2,3,4,5);
-    /// let b = a.drop(3);
+    /// let b = a.skip(3);
     /// assert_eq!(b, c!(4,5));
     /// ```
-    fn drop(&self, n: usize) -> Vector {
+    fn skip(&self, n: usize) -> Vector {
         let l = self.len();
         let mut v = vec![0f64; l - n];
         for i in n .. l {

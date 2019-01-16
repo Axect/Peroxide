@@ -240,7 +240,14 @@ impl Matrix {
         let c = self.col;
 
         if r > 10 || c > 10 {
-            let part = self.take(10, Row).take(10, Col);
+            let part =
+                if r <= 10 {
+                    self.take(10, Col)
+                } else if c <= 10 {
+                    self.take(10, Row)
+                } else {
+                    self.take(10, Row).take(10, Col)
+                };
             return format!(
                 "Result is too large to print - {}x{}\nonly print 10x10 part:\n{}",
                 self.row.to_string(),

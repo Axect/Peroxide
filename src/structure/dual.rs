@@ -4,6 +4,7 @@ use std::fmt;
 use std::convert::Into;
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use operation::extra_ops::{TrigOps, ExpLogOps, PowOps};
+use structure::vector::*;
 
 /// Dual - Structure for AD
 ///
@@ -302,3 +303,31 @@ pub fn merge_dual(y: Vec<f64>, dy: Vec<f64>) -> Vec<Dual> {
         .collect::<Vec<Dual>>()
 }
 
+impl FPVector for Vec<Dual> {
+    type Scalar = Dual;
+
+    fn fmap<F>(&self, f: F) -> Self where F: Fn(f64) -> Self::Scalar {
+        unimplemented!()
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+                                                                T: Into<Self::Scalar> {
+        unimplemented!()
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
+        unimplemented!()
+    }
+
+    fn filter<F>(&self, f: F) -> Self where F: Fn(Self::Scalar) -> bool {
+        unimplemented!()
+    }
+
+    fn take(&self, n: usize) -> Self {
+        self.clone().into_iter().take(n).collect::<Vec<Dual>>()
+    }
+
+    fn skip(&self, n: usize) -> Self {
+        self.clone().into_iter().skip(n).collect::<Vec<Dual>>()
+    }
+}

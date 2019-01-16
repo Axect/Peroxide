@@ -59,29 +59,3 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
     }
     J
 }
-
-/// Non Autonomous Jacobian
-///
-/// # Description
-/// : For f(t, y), `J_{ij}=∂f_i/∂y_j`
-#[allow(non_snake_case)]
-pub fn non_auto_jacobian<F>(xs: Vec<f64>, f: F) -> Matrix
-    where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
-{
-    // n = len(ys) where xs = (t, ys)
-    let n = xs.len() - 1;
-
-    // original J = n x (n+1)
-    let J_temp = jacobian(xs.clone(), f);
-
-    // J for non autonomous
-    // J_y = n x n
-    let mut J = zeros(n, n);
-
-    for i in 0 .. n {
-        for j in 0 .. n {
-            J[(i, j)] = J_temp[(i, j+1)];
-        }
-    }
-    J
-}
