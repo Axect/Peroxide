@@ -72,3 +72,6 @@ pub use util::api::*;
 
 #[allow(unused_imports)]
 pub use numerical::ode::*;
+
+#[allow(unused_imports)]
+pub use numerical::gauss_legendre::*;

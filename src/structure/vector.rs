@@ -1,6 +1,6 @@
+use operation::extra_ops::PowOps;
 use std::convert;
-use std::f64::{MIN};
-use operation::extra_ops::{PowOps};
+use std::f64::MIN;
 
 pub type Vector = Vec<f64>;
 
@@ -8,13 +8,19 @@ pub type Vector = Vec<f64>;
 pub trait FPVector {
     type Scalar;
 
-    fn fmap<F>(&self, f: F) -> Self where F: Fn(f64) -> Self::Scalar;
+    fn fmap<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar;
     fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
-        where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-              T: convert::Into<Self::Scalar>;
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+        T: convert::Into<Self::Scalar>;
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
-        where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;
-    fn filter<F>(&self, f: F) -> Self where F: Fn(Self::Scalar) -> bool;
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;
+    fn filter<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> bool;
     fn take(&self, n: usize) -> Self;
     fn skip(&self, n: usize) -> Self;
 }
@@ -32,7 +38,10 @@ impl FPVector for Vector {
     /// let a = c!(1,2,3,4,5);
     /// assert_eq!(a.fmap(|x| x*2f64), seq!(2,10,2));
     /// ```
-    fn fmap<F>(&self, f: F) -> Vector where F: Fn(f64) -> f64 {
+    fn fmap<F>(&self, f: F) -> Vector
+    where
+        F: Fn(f64) -> f64,
+    {
         self.clone().into_iter().map(|x| f(x)).collect::<Vector>()
     }
 
@@ -47,17 +56,21 @@ impl FPVector for Vector {
     /// assert_eq!(a.reduce(0, |x,y| x + y), 5050f64);
     /// ```
     fn reduce<F, T>(&self, init: T, f: F) -> f64
-        where F: Fn(f64, f64) -> f64,
-              T: convert::Into<f64> {
-        self.clone().into_iter().fold(
-            init.into(),
-            |x,y| f(x,y),
-        )
+    where
+        F: Fn(f64, f64) -> f64,
+        T: convert::Into<f64>,
+    {
+        self.clone().into_iter().fold(init.into(), |x, y| f(x, y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
-        where F: Fn(f64, f64) -> f64 {
-        self.into_iter().zip(other).map(|(x,y)| f(*x,*y)).collect::<Vector>()
+    where
+        F: Fn(f64, f64) -> f64,
+    {
+        self.into_iter()
+            .zip(other)
+            .map(|(x, y)| f(*x, *y))
+            .collect::<Vector>()
     }
 
     /// Filter for Vector
@@ -72,8 +85,13 @@ impl FPVector for Vector {
     /// assert_eq!(b, c!(4,5));
     /// ```
     fn filter<F>(&self, f: F) -> Vector
-        where F: Fn(f64) -> bool {
-        self.clone().into_iter().filter(|x| f(*x)).collect::<Vector>()
+    where
+        F: Fn(f64) -> bool,
+    {
+        self.clone()
+            .into_iter()
+            .filter(|x| f(*x))
+            .collect::<Vector>()
     }
 
     /// Take for Vector
@@ -89,7 +107,7 @@ impl FPVector for Vector {
     /// ```
     fn take(&self, n: usize) -> Vector {
         let mut v = vec![0f64; n];
-        for i in 0 .. n {
+        for i in 0..n {
             v[i] = self[i];
         }
         return v;
@@ -109,7 +127,7 @@ impl FPVector for Vector {
     fn skip(&self, n: usize) -> Vector {
         let l = self.len();
         let mut v = vec![0f64; l - n];
-        for i in n .. l {
+        for i in n..l {
             v[i - n] = self[i];
         }
         return v;
@@ -136,12 +154,18 @@ impl Algorithm for Vector {
     /// ```
     fn rank(&self) -> Vec<usize> {
         let l = self.len();
-        let idx = (1 .. (l+1)).map(|x| x as usize).collect::<Vec<usize>>();
+        let idx = (1..(l + 1)).map(|x| x as usize).collect::<Vec<usize>>();
 
-        let mut vec_tup = self.clone().into_iter().zip(idx.clone()).collect::<Vec<(f64, usize)>>();
-        vec_tup.sort_by(|x,y| x.0.partial_cmp(&y.0).unwrap().reverse());
-        let indices = vec_tup.into_iter().map(|(_,y)| y).collect::<Vec<usize>>();
-        idx.into_iter().map(|x| indices.clone().into_iter().position(|t| t == x).unwrap()).collect::<Vec<usize>>()
+        let mut vec_tup = self
+            .clone()
+            .into_iter()
+            .zip(idx.clone())
+            .collect::<Vec<(f64, usize)>>();
+        vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
+        let indices = vec_tup.into_iter().map(|(_, y)| y).collect::<Vec<usize>>();
+        idx.into_iter()
+            .map(|x| indices.clone().into_iter().position(|t| t == x).unwrap())
+            .collect::<Vec<usize>>()
     }
 
     /// Sign of Permutation
@@ -162,13 +186,13 @@ impl Algorithm for Vector {
         let mut v = self.clone();
         let mut sgn = 1f64;
 
-        for i in 0 .. (l-1) {
-            for j in 0 .. (l - 1 - i) {
-                if v[j] > v[j+1] {
+        for i in 0..(l - 1) {
+            for j in 0..(l - 1 - i) {
+                if v[j] > v[j + 1] {
                     sgn *= -1f64;
-                    let (a, b) = (v[j], v[j+1]);
+                    let (a, b) = (v[j], v[j + 1]);
                     v[j] = b;
-                    v[j+1] = a;
+                    v[j + 1] = a;
                 }
             }
         }
@@ -190,7 +214,7 @@ impl Algorithm for Vector {
     /// ```
     fn arg_max(&self) -> usize {
         let v = self.clone();
-        let m = self.clone().into_iter().fold(MIN, |x,y| x.max(y));
+        let m = self.clone().into_iter().fold(MIN, |x, y| x.max(y));
         v.into_iter().position(|x| x == m).unwrap()
     }
 }
@@ -232,7 +256,7 @@ impl VecOps for Vector {
 
     /// Dot product
     fn dot(&self, other: &Vector) -> f64 {
-        self.mul(other).reduce(0, |x,y| x + y)
+        self.mul(other).reduce(0, |x, y| x + y)
     }
 
     /// Norm

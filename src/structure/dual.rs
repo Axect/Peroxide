@@ -1,9 +1,8 @@
-/// Structure for Automatic Differentiation
-
-use std::fmt;
+use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
-use std::ops::{Neg, Add, Sub, Mul, Div};
-use operation::extra_ops::{TrigOps, ExpLogOps, PowOps};
+/// Structure for Automatic Differentiation
+use std::fmt;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use structure::vector::*;
 
 /// Dual - Structure for AD
@@ -42,7 +41,10 @@ impl Dual {
     /// a.print();
     /// ```
     pub fn new<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {
-        Dual { x: x.into(), dx: dx.into() }
+        Dual {
+            x: x.into(),
+            dx: dx.into(),
+        }
     }
 
     /// Just extract value
@@ -54,7 +56,7 @@ impl Dual {
     pub fn slope(&self) -> f64 {
         self.dx
     }
-    
+
     /// Just extract both
     pub fn extract(&self) -> (f64, f64) {
         (self.x, self.dx)
@@ -84,7 +86,6 @@ impl Add<Dual> for Dual {
         Dual::new(self.x + other.x, self.dx + other.dx)
     }
 }
-
 
 /// Sub for Dual
 impl Sub<Dual> for Dual {
@@ -265,7 +266,8 @@ pub trait VecWithDual {
 impl VecWithDual for Vec<f64> {
     type Item = Vec<Dual>;
     fn conv_dual(&self) -> Vec<Dual> {
-        self.clone().into_iter()
+        self.clone()
+            .into_iter()
             .map(|x| Dual::new(x, 0.))
             .collect::<Vec<Dual>>()
     }
@@ -274,7 +276,8 @@ impl VecWithDual for Vec<f64> {
 impl VecWithDual for Vec<Dual> {
     type Item = Vec<f64>;
     fn conv_dual(&self) -> Vec<f64> {
-        self.clone().into_iter()
+        self.clone()
+            .into_iter()
             .map(|x| x.value())
             .collect::<Vec<f64>>()
     }
@@ -291,14 +294,16 @@ impl Dualist for Vec<Dual> {
     }
 
     fn slopes(&self) -> Vec<f64> {
-        self.clone().into_iter()
+        self.clone()
+            .into_iter()
             .map(|t| t.slope())
             .collect::<Vec<f64>>()
     }
 }
 
 pub fn merge_dual(y: Vec<f64>, dy: Vec<f64>) -> Vec<Dual> {
-    y.into_iter().zip(&dy)
+    y.into_iter()
+        .zip(&dy)
         .map(|(t, &dt)| Dual::new(t, dt))
         .collect::<Vec<Dual>>()
 }
@@ -306,20 +311,35 @@ pub fn merge_dual(y: Vec<f64>, dy: Vec<f64>) -> Vec<Dual> {
 impl FPVector for Vec<Dual> {
     type Scalar = Dual;
 
-    fn fmap<F>(&self, f: F) -> Self where F: Fn(f64) -> Self::Scalar {
+    fn fmap<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar,
+    {
+        self.clone().into_iter().map(|x| f(x)).collect::<Vec<Dual>>()
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+        T: Into<Self::Scalar>,
+    {
         unimplemented!()
     }
 
-    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-                                                                T: Into<Self::Scalar> {
-        unimplemented!()
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    {
+        self.into_iter()
+            .zip(other)
+            .map(|(x, y)| f(*x, *y))
+            .collect::<Vec<Dual>>()
     }
 
-    fn zip_with<F>(&self, f: F, other: &Self) -> Self where F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
-        unimplemented!()
-    }
-
-    fn filter<F>(&self, f: F) -> Self where F: Fn(Self::Scalar) -> bool {
+    fn filter<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> bool,
+    {
         unimplemented!()
     }
 
@@ -329,5 +349,33 @@ impl FPVector for Vec<Dual> {
 
     fn skip(&self, n: usize) -> Self {
         self.clone().into_iter().skip(n).collect::<Vec<Dual>>()
+    }
+}
+
+impl VecOps for Vec<Dual> {
+    type Scalar = Dual;
+
+    fn add(&self, other: &Self) -> Self {
+        self.zip_with(|x, y| x + y, other)
+    }
+
+    fn sub(&self, other: &Self) -> Self {
+        self.zip_with(|x, y| x - y, other)
+    }
+
+    fn mul(&self, other: &Self) -> Self {
+        self.zip_with(|x, y| x * y, other)
+    }
+
+    fn div(&self, other: &Self) -> Self {
+        self.zip_with(|x, y| x / y, other)
+    }
+
+    fn dot(&self, other: &Self) -> Self::Scalar {
+        unimplemented!()
+    }
+
+    fn norm(&self) -> Self::Scalar {
+        unimplemented!()
     }
 }

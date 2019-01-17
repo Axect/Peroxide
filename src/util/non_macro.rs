@@ -7,6 +7,16 @@ use statistics::stat::*;
 
 use std::convert::Into;
 
+/// R like seq function
+///
+/// # Example
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = seq(1, 10, 2);
+/// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
+/// ```
 pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
     where S: Into<f64> + Copy,
           T: Into<f64> + Copy,
@@ -27,6 +37,16 @@ pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
     v
 }
 
+/// MATLAB like zeros (Matrix)
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = zeros(2, 2);
+/// assert_eq!(a, matrix(vec![0f64;4], 2, 2, Row));
+/// ```
 pub fn zeros(r: usize, c: usize) -> Matrix {
     matrix(vec![0f64; r * c], r, c, Row)
 }
@@ -47,6 +67,16 @@ pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
     v
 }
 
+/// MATLAB like eye - Identity matrix
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = eye(2);
+/// assert_eq!(a, MATLAB::new("1 0;0 1"));
+/// ```
 pub fn eye(n: usize) -> Matrix {
     let mut m = zeros(n, n);
     for i in 0 .. n {
@@ -55,6 +85,18 @@ pub fn eye(n: usize) -> Matrix {
     m
 }
 
+/// R like cbind - concatenate two matrix by column direction
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Col);
+/// let b = matrix!(5;8;1, 2, 2, Col);
+/// let c = matrix!(1;8;1, 2, 4, Col);
+/// assert_eq!(cbind(a,b), c);
+/// ```
 pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
     let mut temp = m1;
     if temp.shape != Col {
