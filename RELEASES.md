@@ -1,3 +1,8 @@
+# Release 0.7.2 (2018-01-18)
+
+* Implement `GL4` - Gauss-Legendre 4th order
+    * Add `GL4(f64)` to `ODEMethod`
+
 # Release 0.7.1 (2018-01-17)
 
 * Add `take` to `FP` trait for Matrix
