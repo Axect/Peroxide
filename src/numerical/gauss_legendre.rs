@@ -32,7 +32,7 @@ pub fn gl4<F>(f: F, t_init: f64, y_init: Vec<f64>, h: f64, rtol: f64, num: usize
     records.subs_row(0, cat(t, y_curr.clone()));
 
     for i in 0 .. num {
-        let (k1, k2) = k_newton(f, t, y_init.clone(), h, rtol);
+        let (k1, k2) = k_newton(f, t, y_curr.clone(), h, rtol);
         y_curr = y_curr.add(&k1.fmap(|x| 0.5 * x * h).add(&k2.fmap(|x| 0.5 * x * h)));
         t += h;
         records.subs_row(i+1, cat(t, y_curr.clone()))
@@ -97,7 +97,7 @@ pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, V
     let mut num_iter: usize = 0;
 
     // 3. Iteration
-    while err >= rtol && num_iter <= 20 {
+    while err >= rtol && num_iter <= 10 {
         let k_prev = k_curr.clone();
         let DGG = DG_inv.clone() % G.clone();
         k_curr = k_curr.sub(&DGG.col(0));
