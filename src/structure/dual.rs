@@ -352,6 +352,7 @@ impl FPVector for Vec<Dual> {
     }
 }
 
+#[allow(unused_variable)]
 impl VecOps for Vec<Dual> {
     type Scalar = Dual;
 

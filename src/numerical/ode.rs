@@ -6,11 +6,13 @@ pub use self::ODEMethod::*;
 use numerical::runge_kutta::rk4;
 use numerical::bdf::bdf1;
 use structure::dual::*;
+use numerical::gauss_legendre::gl4;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ODEMethod {
     RK4,
     BDF1(f64),
+    GL4(f64),
 }
 
 /// ODE Solver
@@ -22,6 +24,11 @@ pub enum ODEMethod {
 ///
 /// # Type
 /// `solve: (F, Vec<f64>, (T, T), f64, ODEMethod) -> Matrix where Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy, T: Into<f64> + Copy`
+///
+/// # Methods
+/// * `RK4`: Explicit Runge-Kutta 4th order
+/// * `BDF1`: Backward Differentiation Formula 1st order (Backward Euler)
+/// * `GL4`: Gauss-Legendre 4th order
 ///
 /// # Examples
 /// ```
@@ -67,6 +74,10 @@ pub fn solve<F, T>(f: F, init_value: Vec<f64>, param_range: (T, T), step: f64, m
         },
         BDF1(rtol) => {
             let result = bdf1(t_start, init_value, f, step, rtol, num);
+            result
+        },
+        GL4(rtol) => {
+            let result = gl4(f, t_start, init_value, step, rtol, num);
             result
         }
     }

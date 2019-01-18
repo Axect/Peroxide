@@ -2,7 +2,7 @@ use structure::matrix::*;
 use structure::vector::*;
 use structure::dual::*;
 use numerical::utils::jacobian;
-use util::non_macro::{concat, eye};
+use util::non_macro::{concat, eye, zeros, cat};
 
 /// Value of 3f64.sqrt()
 const SQRT3: f64 = 1.7320508075688772;
@@ -27,8 +27,18 @@ pub fn gl4<F>(f: F, t_init: f64, y_init: Vec<f64>, h: f64, rtol: f64, num: usize
     where F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy
 {
     let mut t = t_init;
-    let (k1, k2) = k_newton(f, t, y_init.clone(), h, rtol);
-    unimplemented!()
+    let mut y_curr = y_init.clone();
+    let mut records = zeros(num + 1, y_curr.len() + 1);
+    records.subs_row(0, cat(t, y_curr.clone()));
+
+    for i in 0 .. num {
+        let (k1, k2) = k_newton(f, t, y_init.clone(), h, rtol);
+        y_curr = y_curr.add(&k1.fmap(|x| 0.5 * x * h).add(&k2.fmap(|x| 0.5 * x * h)));
+        t += h;
+        records.subs_row(i+1, cat(t, y_curr.clone()))
+    }
+
+    records
 }
 
 
@@ -87,7 +97,7 @@ pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, V
     let mut num_iter: usize = 0;
 
     // 3. Iteration
-    while err >= rtol && num_iter <= 10 {
+    while err >= rtol && num_iter <= 20 {
         let k_prev = k_curr.clone();
         let DGG = DG_inv.clone() % G.clone();
         k_curr = k_curr.sub(&DGG.col(0));

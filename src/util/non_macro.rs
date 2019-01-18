@@ -67,6 +67,19 @@ pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
     v
 }
 
+pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
+    let l = vec.len();
+
+    let mut v = vec![Default::default(); l + 1];
+
+    v[0] = val;
+
+    for i in 0 .. l {
+        v[i+1] = vec[i];
+    }
+    v
+}
+
 /// MATLAB like eye - Identity matrix
 ///
 /// # Examples
