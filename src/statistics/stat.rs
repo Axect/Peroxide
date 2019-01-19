@@ -239,7 +239,7 @@ pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
 /// use peroxide::*;
 ///
 /// let a = c!(1,2,3,4,5).to_matrix();
-/// let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
+/// let b = a.clone() + Normal(0,1).sample(5).to_matrix();
 /// lm!(b ~ a).print();
 ///
 /// //        c[0]

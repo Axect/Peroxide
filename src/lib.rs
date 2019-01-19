@@ -6,6 +6,7 @@ pub mod util;
 pub mod numerical;
 pub mod ml;
 pub mod operation;
+pub mod special;
 
 #[allow(unused_imports)]
 pub use structure::matrix::*;
@@ -75,3 +76,9 @@ pub use numerical::ode::*;
 
 #[allow(unused_imports)]
 pub use numerical::gauss_legendre::*;
+
+#[allow(unused_imports)]
+pub use statistics::dist::*;
+
+#[allow(unused_imports)]
+pub use special::function::*;

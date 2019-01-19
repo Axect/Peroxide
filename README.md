@@ -9,13 +9,13 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponds with `0.6.15`.
+Corresponds with `0.7.3`.
 
 ## Install
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.6"
+peroxide = "0.7"
 ```
 
 ## Usage
@@ -66,40 +66,6 @@ use peroxide::*;
     - [mod.rs](src/util/mod.rs)
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
     - [print.rs](src/util/print.rs) : To print conveniently
-
-
-```bash
-# For shell version
-
-├── macros
-│   ├── matlab_macro.rs
-│   ├── mod.rs
-│   └── r_macro.rs
-├── ml
-│   ├── mod.rs
-│   └── reg.rs
-├── numerical
-│   ├── interp.rs
-│   ├── mod.rs
-│   └── spline.rs
-├── operation
-│   ├── extra_ops.rs
-│   └── mod.rs
-├── statistics
-│   ├── mod.rs
-│   ├── rand.rs
-│   └── stat.rs
-├── structure
-│   ├── dual.rs
-│   ├── matrix.rs
-│   ├── mod.rs
-│   ├── polynomial.rs
-│   └── vector.rs
-└── util
-    ├── mod.rs
-    ├── non_macro.rs
-    └── print.rs
-```
 
 ### Vec\<f64\> Declaration
 
@@ -521,7 +487,7 @@ use peroxide::*;
 
 fn main() {
     let a = c!(1,2,3,4,5).to_matrix();
-    let b = a.clone() + Normal::new(0,1).sample(5).to_matrix();
+    let b = a.clone() + Normal(0,1).sample(5).to_matrix();
     lm!(b ~ a).print();
     
     //        c[0]
@@ -531,12 +497,16 @@ fn main() {
 
 ```
 
-### Random
+### Probability Distributions
 
 Current available distribution
 
-* Uniform (Wrap `rand` crate)
-* Normal (Using ziggurat algorithm)
+* `TPDist`: Two parameter distributions
+    * `Uniform(start, end)` (Wrap `rand` crate)
+    * `Normal(mean, std)` (Using ziggurat algorithm)
+* Available methods
+    * `sample(n: usize) -> Vec<f64>`: extract sample
+    * `pdf(x: f64) -> Vec<f64>`: calculate probability at `x`
 
 ```rust
 // Peroxide
@@ -545,17 +515,20 @@ use peroxide::*;
 
 fn main() {
     // Uniform unsigned integers
-    let v_u32 = Uniform::new(1u32, 11);
+    let v_u32 = Uniform(1u32, 11);
     v_u32.sample(10).print();
     
     // Uniform 64bit float numbers
-    let v_f64 = Uniform::new(1f64, 11f64);
+    let v_f64 = Uniform(1f64, 11f64);
     v_f64.sample(10).print();
     
     // Normal distribution with mean 0, sd 1
-    let v_n = Normal::new(0, 1);
+    let v_n = Normal(0, 1);
     println!("{}", v_n.sample(1000).mean()); // almost 0
     println!("{}", v_n.sample(1000).sd()); // almost 1
+    
+    // Probability of normal dist at x = 0
+    v_n.pdf(0.).print(); //0.3989422804014327
 }
 ```
 
@@ -659,7 +632,69 @@ fn main() {
 
 * Implemented by AD - Exact Jacobian
 
+```rust
+extern crate peroxide;
+use peroxide::*;
 
+fn main() {
+    let xs = c!(1, 1);
+    jacobian(xs, f).print();
+    
+    //      c[0] c[1]
+    // r[0]    6    3
+}
+
+// f(t, x) = 3t^2 * x
+fn f(xs: Vec<Dual>) -> Vec<Dual> {
+    let t = xs[0];
+    let x = xs[1];
+
+    vec![t.pow(2) * 3. * x]
+}
+```
+
+### Ordinary Differential Equation
+
+* Solve 1st order ODE with various methods
+* Explicit Method
+    * `RK4`: Runge-Kutta 4th order
+* Implicit Method
+    * `BDF1`: Backward Euler
+    * `GL4`: Gauss-Legendre 4th order
+    
+**Caution**
+
+* input function should have form `(Dual, Vec<Dual>) -> Vec<Dual>`    
+    
+```rust
+// Lotka-Volterra
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // t = 0, x = 2, y = 1
+    let xs = c!(2, 1);
+    let rk4_records = solve(lotka_volterra, xs.clone(), (0, 10), 1e-3, RK4);
+    let bdf_records = solve(lotka_volterra, xs.clone(), (0, 10), 1e-3, BDF1(1e-15));
+    let gl4_records = solve(lotka_volterra, xs, (0, 10), 1e-3, GL4(1e-15));
+    //rk4_records.write_with_header("example_data/lotka_rk4.csv", vec!["t", "x", "y"]);
+    //bdf_records.write_with_header("example_data/lotka_bdf.csv", vec!["t", "x", "y"]);
+    gl4_records.write_with_header("example_data/lotka_gl4.csv", vec!["t", "x", "y"]);
+}
+
+fn lotka_volterra(_t: Dual, xs: Vec<Dual>) -> Vec<Dual> {
+    let a = 4.;
+    let c = 1.;
+
+    let x = xs[0];
+    let y = xs[1];
+
+    vec![
+        a * (x - x*y),
+        -c * (y - x*y)
+    ]
+}
+```
 
 ## Version Info
 

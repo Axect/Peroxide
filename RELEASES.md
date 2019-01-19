@@ -1,3 +1,12 @@
+# Release 0.7.3 (2018-01-19)
+
+* Move distributions(`Uniform`, `Normal`) from `rand.rs` to `dist.rs`
+    * Now `Uniform` & `Normal` are enums
+    * Remove `Uniform::new` & `Normal::new`
+* Add `special/function.rs`
+    * Add `gaussian`
+    
+
 # Release 0.7.2 (2018-01-18)
 
 * Implement `GL4` - Gauss-Legendre 4th order
