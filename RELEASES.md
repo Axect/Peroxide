@@ -1,3 +1,9 @@
+# Release 0.7.4 (2018-01-21)
+
+* Modify `bdf.rs`
+    * Put `max_iter = 10`
+    * Simplify non-autonomous jacobian
+    
 # Release 0.7.3 (2018-01-19)
 
 * Move distributions(`Uniform`, `Normal`) from `rand.rs` to `dist.rs`

@@ -53,11 +53,13 @@ pub fn one_step_bdf1<F>(t: f64, ys: Vec<f64>, f: F, h: f64, rtol: f64) -> Vec<f6
     let mut iter_prev_ys = new_ys_0;
     let mut iter_next_ys = non_auto_update(new_t, ys.clone(), iter_prev_ys.clone(), f, h);
     let mut err = iter_next_ys.sub(&iter_prev_ys).norm();
+    let mut max_iter = 0;
 
-    while err >= rtol {
+    while err >= rtol || max_iter <= 10 {
         iter_prev_ys = iter_next_ys.clone();
         iter_next_ys = non_auto_update(new_t, ys.clone(), iter_prev_ys.clone(), f, h);
         err = iter_next_ys.sub(&iter_prev_ys).norm();
+        max_iter += 1;
     }
 
     iter_next_ys
@@ -69,11 +71,10 @@ fn non_auto_update<F>(t: f64, yn: Vec<f64>, ys: Vec<f64>, f: F, h: f64) -> Vec<f
 {
     let n = ys.len();
     let t_dual = dual(t, 0.);
-    let xs = concat(vec![t], ys.clone());
-    let f_vec = |xs: Vec<Dual>| f(xs[0], xs.skip(1)); // n x 1
+    let f_vec = |xs: Vec<Dual>| f(dual(t, 0.), ys.conv_dual()); // n x 1
 
     // Df_y_{ij} = ∂f_i/∂y_j where y = f(t, y)
-    let Df = jacobian(xs, f_vec).skip(1, Col); // n x n
+    let Df = jacobian(ys.clone(), f_vec); // n x n
     let I = eye(n);
     let DF = I - h * Df;
     let f_xs = f(dual(t, 0.), ys.conv_dual()).values();
