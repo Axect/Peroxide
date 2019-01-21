@@ -1,3 +1,7 @@
+# Release 0.7.5 (2018-01-21)
+
+* Fix error of `bdf.rs`
+
 # Release 0.7.4 (2018-01-21)
 
 * Modify `bdf.rs`

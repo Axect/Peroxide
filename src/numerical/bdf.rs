@@ -55,7 +55,7 @@ pub fn one_step_bdf1<F>(t: f64, ys: Vec<f64>, f: F, h: f64, rtol: f64) -> Vec<f6
     let mut err = iter_next_ys.sub(&iter_prev_ys).norm();
     let mut max_iter = 0;
 
-    while err >= rtol || max_iter <= 10 {
+    while err >= rtol && max_iter <= 10 {
         iter_prev_ys = iter_next_ys.clone();
         iter_next_ys = non_auto_update(new_t, ys.clone(), iter_prev_ys.clone(), f, h);
         err = iter_next_ys.sub(&iter_prev_ys).norm();
