@@ -1,3 +1,8 @@
+# Release 0.7.6 (2018-01-21)
+
+* Modify `write`, `write_with_header`
+    * Now there is round option
+
 # Release 0.7.5 (2018-01-21)
 
 * Fix error of `bdf.rs`

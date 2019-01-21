@@ -437,16 +437,16 @@ impl Matrix {
     /// use peroxide::*;
     ///
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write("test.csv");
+    /// a.write("test.csv", 0);
     /// ```
-    pub fn write(&self, file_path: &str) -> Result<(), Box<Error>> {
+    pub fn write(&self, file_path: &str, round: usize) -> Result<(), Box<Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
         for i in 0 .. r {
             let mut record: Vec<String> = vec!["".to_string(); c];
             for j in 0 .. c {
-                record[j] = self[(i, j)].to_string();
+                record[j] = format!("{:.*}", round, self[(i, j)]);
             }
             wtr.write_record(record)?;
         }
@@ -454,7 +454,7 @@ impl Matrix {
         Ok(())
     }
 
-    pub fn write_with_header(&self, file_path: &str, header: Vec<&str>) -> Result<(), Box<Error>> {
+    pub fn write_with_header(&self, file_path: &str, header: Vec<&str>, round: usize) -> Result<(), Box<Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
@@ -463,7 +463,7 @@ impl Matrix {
         for i in 0 .. r {
             let mut record: Vec<String> = vec!["".to_string(); c];
             for j in 0 .. c {
-                record[j] = self[(i, j)].to_string();
+                record[j] = format!("{:.*}", round, self[(i, j)]);
             }
             wtr.write_record(record)?;
         }
@@ -480,7 +480,7 @@ impl Matrix {
     /// use std::process;
     ///
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write("test.csv");
+    /// a.write("test.csv", 0);
     ///
     /// let b = Matrix::read("test.csv", false, ','); // header = false, delimiter = ','
     /// match b {
