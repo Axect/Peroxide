@@ -4,7 +4,7 @@
 
 - [ ] Implement various pdf
     - [x] Bernoulli
-    - [ ] Beta
+    - [x] Beta
     - [ ] Dirichlet
     - [ ] Gamma
     - [ ] Student's t

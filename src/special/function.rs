@@ -40,7 +40,14 @@ pub fn erfc(x: f64) -> f64 {
 
 /// Inverse error function
 ///
-/// Wrapper of `inv_error` function of `special crate
+/// Wrapper of `inv_error` function of `special` crate
 pub fn erf_inv(x: f64) -> f64 {
     x.inv_error()
+}
+
+/// Beta function
+///
+/// Wrapper of `inc_beta` function of `special` crate
+pub fn beta(a: f64, b: f64) -> f64 {
+    gamma(a)*gamma(b) / gamma(a + b)
 }
