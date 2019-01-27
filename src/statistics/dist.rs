@@ -159,6 +159,41 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
     }
 }
 
+impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> {
+    type Array = Vec<f64>;
+    type Value = f64;
+
+    fn mean(&self) -> Self::Value {
+        match self {
+            Bernoulli(mu) => (*mu).into()
+        }
+    }
+
+    fn var(&self) -> Self::Value {
+        match self {
+            Bernoulli(mu) => {
+                let mu_f64 = (*mu).into();
+                mu_f64 * (1f64 - mu_f64)
+            }
+        }
+    }
+
+    fn sd(&self) -> Self::Value {
+        match self {
+            Bernoulli(_mu) => self.var().sqrt()
+        }
+    }
+
+    fn cov(&self) -> Self::Array {
+        unimplemented!()
+    }
+
+    fn cor(&self) -> Self::Array {
+        unimplemented!()
+    }
+}
+
+
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> {
     type Array = Vec<f64>;
     type Value = f64;
@@ -187,7 +222,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
         match self {
             Uniform(a, b) => self.var().sqrt(),
             Normal(_m, s) => (*s).into(),
-            Beta(a, b) => self.var().sqrt(),
+            Beta(_a, _b) => self.var().sqrt(),
         }
     }
 

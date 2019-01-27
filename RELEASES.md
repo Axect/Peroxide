@@ -1,3 +1,9 @@
+# Release 0.7.7 (2018-01-27)
+
+* Add various distributions in `dist.rs`
+    * `Bernoulli(mu)`
+    * `Beta(a, b)`
+
 # Release 0.7.6 (2018-01-21)
 
 * Modify `write`, `write_with_header`
