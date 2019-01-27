@@ -6,7 +6,7 @@
     - [x] Bernoulli
     - [x] Beta
     - [ ] Dirichlet
-    - [ ] Gamma
+    - [x] Gamma
     - [ ] Student's t
     - [ ] Wishart
 - [ ] Implement special polynomial

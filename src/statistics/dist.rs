@@ -7,6 +7,7 @@ use special::function::*;
 use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
 use std::convert::Into;
+use std::f64::consts::E;
 use structure::matrix::*;
 use structure::vector::*;
 
@@ -27,6 +28,7 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Uniform(T, T),
     Normal(T, T),
     Beta(T, T),
+    Gamma(T, T),
 }
 
 /// Random Number Generator trait
@@ -123,12 +125,34 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     let u1 = rng1.gen_range(0f64, 1f64);
                     let u2 = rng2.gen_range(0f64, 1f64);
 
-                    if u2
-                        <= 1f64 / (c * beta(a_f64, b_f64))
-                            * u1.powf(a_f64 - 1f64)
-                            * (1f64 - u1).powf(b_f64 - 1f64)
-                    {
+                    if u2 <= 1f64 / c * self.pdf(u1) {
                         v[iter_num] = u1;
+                        iter_num += 1;
+                    }
+                }
+                v
+            }
+            Gamma(a, b) => {
+                let a_f64 = (*a).into();
+                let b_f64 = (*b).into();
+
+                // for Marsaglia & Tsang's Method
+                let d = a_f64 - 1f64 / 3f64;
+                let c = 1f64 / (9f64 * d).sqrt();
+
+                let mut rng1 = thread_rng();
+                let mut rng2 = thread_rng();
+
+                let mut v = vec![0f64; n];
+                let mut iter_num = 0usize;
+
+                while iter_num < n {
+                    let u = rng1.gen_range(0f64, 1f64);
+                    let z = ziggurat(&mut rng2, 1f64);
+                    let w = (1f64 + c * z).powi(3);
+
+                    if z >= -1f64/c && u.ln() < 0.5 * z.powi(2) + d - d*w + d * w.ln() {
+                        v[iter_num] = d * w / b_f64;
                         iter_num += 1;
                     }
                 }
@@ -155,6 +179,14 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     * x.into().powf(a_f64 - 1f64)
                     * (1f64 - x.into()).powf(b_f64 - 1f64)
             }
+            Gamma(a, b) => {
+                let a_f64 = (*a).into();
+                let b_f64 = (*b).into();
+                1f64 / gamma(a_f64)
+                    * b_f64.powf(a_f64)
+                    * x.into().powf(a_f64 - 1f64)
+                    * E.powf(-b_f64 * x.into())
+            }
         }
     }
 }
@@ -165,7 +197,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
 
     fn mean(&self) -> Self::Value {
         match self {
-            Bernoulli(mu) => (*mu).into()
+            Bernoulli(mu) => (*mu).into(),
         }
     }
 
@@ -180,7 +212,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
 
     fn sd(&self) -> Self::Value {
         match self {
-            Bernoulli(_mu) => self.var().sqrt()
+            Bernoulli(_mu) => self.var().sqrt(),
         }
     }
 
@@ -193,7 +225,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
     }
 }
 
-
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> {
     type Array = Vec<f64>;
     type Value = f64;
@@ -203,6 +234,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
             Uniform(a, b) => ((*a).into() + (*b).into()) / 2f64,
             Normal(m, _s) => (*m).into(),
             Beta(a, b) => (*a).into() / ((*a).into() + (*b).into()),
+            Gamma(a, b) => (*a).into() / (*b).into(),
         }
     }
 
@@ -215,14 +247,16 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
                 let b_f64 = (*b).into();
                 a_f64 * b_f64 / ((a_f64 + b_f64).powi(2) * (a_f64 + b_f64 + 1f64))
             }
+            Gamma(a, b) => (*a).into() / (*b).into().powi(2),
         }
     }
 
     fn sd(&self) -> Self::Value {
         match self {
-            Uniform(a, b) => self.var().sqrt(),
+            Uniform(_a, _b) => self.var().sqrt(),
             Normal(_m, s) => (*s).into(),
             Beta(_a, _b) => self.var().sqrt(),
+            Gamma(_a, _b) => self.var().sqrt(),
         }
     }
 
