@@ -1,3 +1,10 @@
+# Release 0.8.0 (2018-02-04)
+
+* Fix `write`, `write_with_header`
+    * Move `round` parameter to `write_round`, `write_with_header_round`
+* Add `solve_with_condition` to `ode.rs`
+    * Now, you can give stop condition to ode solver.
+
 # Release 0.7.7 (2018-01-27)
 
 * Add various distributions in `dist.rs`

@@ -10,7 +10,7 @@ fn main() {
     let gl4_records = solve(lotka_volterra, xs, (0, 10), 1e-3, GL4(1e-15));
     rk_records.print();
     bdf_records.print();
-    gl4_records.write_with_header("example_data/lotka_gl4.csv", vec!["t", "x", "y"], 4);
+    gl4_records.write_with_header_round("example_data/lotka_gl4.csv", vec!["t", "x", "y"], 4);
 }
 
 fn lotka_volterra(_t: Dual, xs: Vec<Dual>) -> Vec<Dual> {
