@@ -1,3 +1,7 @@
+# Release 0.8.1 (2018-02-04)
+
+* Fix errors of test
+
 # Release 0.8.0 (2018-02-04)
 
 * Fix `write`, `write_with_header`
