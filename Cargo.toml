@@ -16,5 +16,5 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 csv = "1"
-rand = "0.5"
+rand = "0.6"
 special = "0.8"
