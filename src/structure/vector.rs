@@ -278,4 +278,9 @@ impl PowOps for Vector {
     fn powf(&self, f: f64) -> Vector {
         self.fmap(|x| x.powf(f))
     }
+
+    /// Sqrt
+    fn sqrt(&self) -> Vector {
+        self.powf(0.5)
+    }
 }

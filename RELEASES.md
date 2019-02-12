@@ -1,8 +1,14 @@
+# Release 0.8.2 (2018-02-12)
+
+* Bump `rand` dependency to 0.6 (Thanks to [koute](https://github.com/koute))
+* Fix error of `powf` operation of `dual`
+    * Now, it works fine. 
+
 # Release 0.8.1 (2018-02-04)
 
 * Fix errors of test
 
-# Release 0.8.0 (2018-02-04)
+# Release 0.8.0 (2018-02-04) (Yanked)
 
 * Fix `write`, `write_with_header`
     * Move `round` parameter to `write_round`, `write_with_header_round`

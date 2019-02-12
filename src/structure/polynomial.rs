@@ -352,6 +352,10 @@ impl PowOps for Polynomial {
     fn powf(&self, _f: f64) -> Polynomial {
         unimplemented!()
     }
+
+    fn sqrt(&self) -> Self::Output {
+        unimplemented!()
+    }
 }
 
 // =============================================================================

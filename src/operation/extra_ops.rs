@@ -2,6 +2,7 @@ pub trait PowOps {
     type Output;
     fn pow(&self, n: usize) -> Self::Output;
     fn powf(&self, f: f64) -> Self::Output;
+    fn sqrt(&self) -> Self::Output;
 }
 
 pub trait TrigOps {
