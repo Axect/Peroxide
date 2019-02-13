@@ -164,7 +164,7 @@ impl Add<Dual> for f64 {
 impl Sub<Dual> for f64 {
     type Output = Dual;
     fn sub(self, other: Dual) -> Dual {
-        other.sub(self)
+        dual(self, 0.) - other
     }
 }
 
@@ -178,7 +178,7 @@ impl Mul<Dual> for f64 {
 impl Div<Dual> for f64 {
     type Output = Dual;
     fn div(self, other: Dual) -> Dual {
-        other.div(self)
+        dual(self, 0.) / other
     }
 }
 

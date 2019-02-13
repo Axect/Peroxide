@@ -1,42 +1,47 @@
-# Release 0.8.2 (2018-02-12)
+# Release 0.8.3 (2019-02-13)
+
+* Fix error of `Sub<Dual> for f64`
+* Fix error of `Div<Dual> for f64`
+
+# Release 0.8.2 (2019-02-12)
 
 * Bump `rand` dependency to 0.6 (Thanks to [koute](https://github.com/koute))
 * Fix error of `powf` operation of `dual`
     * Now, it works fine. 
 
-# Release 0.8.1 (2018-02-04)
+# Release 0.8.1 (2019-02-04)
 
 * Fix errors of test
 
-# Release 0.8.0 (2018-02-04) (Yanked)
+# Release 0.8.0 (2019-02-04) (Yanked)
 
 * Fix `write`, `write_with_header`
     * Move `round` parameter to `write_round`, `write_with_header_round`
 * Add `solve_with_condition` to `ode.rs`
     * Now, you can give stop condition to ode solver.
 
-# Release 0.7.7 (2018-01-27)
+# Release 0.7.7 (2019-01-27)
 
 * Add various distributions in `dist.rs`
     * `Bernoulli(mu)`
     * `Beta(a, b)`
 
-# Release 0.7.6 (2018-01-21)
+# Release 0.7.6 (2019-01-21)
 
 * Modify `write`, `write_with_header`
     * Now there is round option
 
-# Release 0.7.5 (2018-01-21)
+# Release 0.7.5 (2019-01-21)
 
 * Fix error of `bdf.rs`
 
-# Release 0.7.4 (2018-01-21)
+# Release 0.7.4 (2019-01-21)
 
 * Modify `bdf.rs`
     * Put `max_iter = 10`
     * Simplify non-autonomous jacobian
     
-# Release 0.7.3 (2018-01-19)
+# Release 0.7.3 (2019-01-19)
 
 * Move distributions(`Uniform`, `Normal`) from `rand.rs` to `dist.rs`
     * Now `Uniform` & `Normal` are enums
@@ -45,12 +50,12 @@
     * Add `gaussian`
     
 
-# Release 0.7.2 (2018-01-18)
+# Release 0.7.2 (2019-01-18)
 
 * Implement `GL4` - Gauss-Legendre 4th order
     * Add `GL4(f64)` to `ODEMethod`
 
-# Release 0.7.1 (2018-01-17)
+# Release 0.7.1 (2019-01-17)
 
 * Add `take` to `FP` trait for Matrix
 * Add `skip` to `FP` trait for Matrix
@@ -66,7 +71,7 @@
         * `f(Dual, Vec<Dual>) -> Vec<Dual>`
 * Fix error of `spread`
 
-# Release 0.7.0 (2018-01-15)
+# Release 0.7.0 (2019-01-15)
 
 * Modify matrix declaration
     * `p_matrix` -> `py_matrix`
@@ -80,7 +85,7 @@
 * Remove `CreateMatrix`
     * Deprecated `Matrix::new` -> Use `matrix` instead
 
-# Release 0.6.15 (2018-01-12)
+# Release 0.6.15 (2019-01-12)
 
 * Update `matrix.rs`
     * Add `p_matrix`, `m_matrix`
@@ -89,17 +94,17 @@
     * Add `write_with_header` for `matrix.rs`
         * Now, can write matrix with header
 
-# Release 0.6.14 (2018-01-05)
+# Release 0.6.14 (2019-01-05)
 
 * Add `runge_kutta.rs`
     * Implement RK4 algorithm for Non-autonomous equation
 
-# Release 0.6.13 (2018-01-03)
+# Release 0.6.13 (2019-01-03)
 
 * Add `grave`
 * Move `rok4a.rs` to `grave`
 
-# Release 0.6.12 (2018-01-03)
+# Release 0.6.12 (2019-01-03)
 
 * Fix error of `Div` for `Dual`
 
