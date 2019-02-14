@@ -1194,14 +1194,14 @@ impl LinearAlgebra for Matrix {
 
         for k in 0 .. (n-1) {
             // Initialize maximum & Position
-            let mut m = MIN;
+            let mut m = 0f64;
             let mut row_idx: usize = k;
             let mut col_idx: usize = k;
             // Find Maximum value & Position
             for i in k .. n {
                 for j in k .. n {
                     let temp = container[(i,j)];
-                    if temp > m {
+                    if temp.abs() > m.abs() {
                         m = temp;
                         row_idx = i;
                         col_idx = j;

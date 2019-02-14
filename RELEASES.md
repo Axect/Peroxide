@@ -1,3 +1,9 @@
+# Release 0.8.4 (2019-02-14)
+
+* Fix complete pivoting
+* Add `det` test in `tests`
+* Add `tov` in `bin` - Tolman-Oppenheimer-Volkoff equation
+
 # Release 0.8.3 (2019-02-13)
 
 * Fix error of `Sub<Dual> for f64`
