@@ -93,8 +93,6 @@ pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, V
 
     let mut Dg = jacobian(k_curr.clone(), g.clone());
     let mut DG = I.clone() - Dg.clone();
-//    DG.print();
-//    DG.det().print();
     let mut DG_inv = DG.inv().unwrap();
     let mut G = k_curr.sub(&g.clone()(k_curr.conv_dual()).values());
     let mut num_iter: usize = 0;
