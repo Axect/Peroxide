@@ -1,3 +1,8 @@
+# Release 0.8.5 (2018-02-16) (Candidate)
+
+* Fix bugs of `cbind`, `rbind`
+* Add Linear Discriminant example
+
 # Release 0.8.4 (2019-02-14)
 
 * Fix complete pivoting

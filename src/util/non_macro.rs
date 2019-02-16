@@ -116,12 +116,50 @@ pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
         temp = temp.change_shape();
     }
 
+    let mut temp2 = m2;
+    if temp2.shape != Col {
+        temp2 = temp2.change_shape();
+    }
+
     let mut v = temp.data;
     let mut c = temp.col;
     let r = temp.row;
 
-    assert_eq!(r, m2.row);
-    v.extend(&m2.data.clone());
-    c += m2.col;
+    assert_eq!(r, temp2.row);
+    v.extend(&temp2.data.clone());
+    c += temp2.col;
     matrix(v, r, c, Col)
+}
+
+/// R like rbind - concatenate two matrix by row direction
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = matrix!(1;4;1, 2, 2, Row);
+/// let b = matrix!(5;8;1, 2, 2, Row);
+/// let c = matrix!(1;8;1, 4, 2, Row);
+/// assert_eq!(rbind(a,b), c);
+/// ```
+pub fn rbind(m1: Matrix, m2: Matrix) -> Matrix {
+    let mut temp = m1;
+    if temp.shape != Row {
+        temp = temp.change_shape();
+    }
+
+    let mut temp2 = m2;
+    if temp2.shape != Row {
+        temp2 = temp2.change_shape();
+    }
+
+    let mut v = temp.data;
+    let c = temp.col;
+    let mut r = temp.row;
+
+    assert_eq!(c, temp2.col);
+    v.extend(&temp2.data.clone());
+    r += temp2.row;
+    matrix(v, r, c, Row)
 }

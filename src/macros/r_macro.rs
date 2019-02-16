@@ -199,13 +199,18 @@ macro_rules! rbind {
                 temp = temp.change_shape();
             }
 
+            let mut temp2 = $y;
+            if temp2.shape != Row {
+                temp2 = temp2.change_shape();
+            }
+
             let mut v: Vec<f64> = temp.data;
             let c: usize = temp.col;
             let mut r: usize = temp.row;
 
-            assert_eq!(c, $y.col);
-            v.extend(&$y.data.clone());
-            r += &$y.row;
+            assert_eq!(c, temp2.col);
+            v.extend(&temp2.data.clone());
+            r += temp2.row;
             matrix(v, r, c, Row)
         }
     };
