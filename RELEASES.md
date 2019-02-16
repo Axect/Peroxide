@@ -1,7 +1,7 @@
-# Release 0.8.5 (2018-02-16) (Candidate)
+# Release 0.8.5 (2018-02-17)
 
 * Fix bugs of `cbind`, `rbind`
-* Add Linear Discriminant example
+* Add Linear Discriminant (Least Square) example
 
 # Release 0.8.4 (2019-02-14)
 
