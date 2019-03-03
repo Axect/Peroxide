@@ -1,3 +1,6 @@
+extern crate rand;
+use self::rand::prelude::*;
+
 #[allow(unused_imports)]
 use structure::matrix::*;
 #[allow(unused_imports)]
@@ -162,4 +165,20 @@ pub fn rbind(m1: Matrix, m2: Matrix) -> Matrix {
     v.extend(&temp2.data.clone());
     r += temp2.row;
     matrix(v, r, c, Row)
+}
+
+/// Rand matrix
+///
+/// # Description
+///
+/// Range = from 0 to 1
+pub fn rand(r: usize, c: usize) -> Matrix {
+    let mut m = zeros(r, c);
+    let mut rng = thread_rng();
+    for i in 0 .. r {
+        for j in 0 .. c {
+            m[(i, j)] = rng.gen_range(0f64, 1f64);
+        }
+    }
+    m
 }

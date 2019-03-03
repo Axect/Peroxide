@@ -3,10 +3,19 @@ use peroxide::*;
 
 use std::f64::consts::PI;
 
+// ===========================================================
+// Declare Constants
+// ===========================================================
 pub const K: f64 = 100.;
 pub const GAMMA: usize = 2;
 pub const GAMMAF: f64 = 2.;
-pub const RHO0C: f64 = 1.28e-3;
+pub const RHO0C: f64 = 0.4;
+
+/// Correspond to a density of `2.2e14 g/cm^3` for the core limit
+pub const RHO0L: f64 = 0.1324;
+
+/// Correspond to ad density of `4.3e11 g/cm^3` for neutron drip
+pub const RHO0D: f64 = 2.573e-4;
 
 pub fn main() {
     let p_c = K*RHO0C.powf(GAMMAF);
@@ -17,7 +26,7 @@ pub fn main() {
 }
 
 
-/// Tolman-Oppenheimer-Volkoff Equations for Spherically Symmetric Eqaulibrium Stars
+/// Tolman-Oppenheimer-Volkoff Equations for Spherically Symmetric Equilibrium Stars
 ///
 /// # Equation
 /// ```latex
