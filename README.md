@@ -18,9 +18,9 @@ Corresponds with `0.7.3`.
 peroxide = "0.7"
 ```
 
-## Usage
+## Documentation
 
-There is [Peroxide Guide](http://nbviewer.jupyter.org/github/Axect/Example_Peroxide/blob/master/Peroxide%20Guide.ipynb)
+There is [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook), and [Peroxide Guide](http://nbviewer.jupyter.org/github/Axect/Example_Peroxide/blob/master/Peroxide%20Guide.ipynb)
 written on Jupyter.
 
 ### Initial Import
