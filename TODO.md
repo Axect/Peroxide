@@ -1,6 +1,6 @@
 # TODO
 
-## 2018.01.26
+## 2018.03.03
 
 - [ ] Implement various pdf
     - [x] Bernoulli
@@ -16,6 +16,8 @@
 - [ ] Implement DataFrame
 - [ ] Implement Plot
 - [ ] Determine main API
+- [ ] Complete Gitbook
 
 ## Complete
+
 - [x] Can choose API - MATLAB, Python, R
