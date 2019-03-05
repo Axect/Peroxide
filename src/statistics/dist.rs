@@ -1,6 +1,6 @@
 extern crate rand;
-pub use self::rand::distributions::uniform::SampleUniform;
-pub use self::rand::prelude::*;
+use self::rand::distributions::uniform::SampleUniform;
+use self::rand::prelude::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use special::function::*;

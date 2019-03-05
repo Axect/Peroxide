@@ -9,19 +9,19 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponds with `0.7.3`.
+Corresponding to `0.8.5`.
 
 ## Install
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.7"
+peroxide = "0.8"
 ```
 
 ## Documentation
 
 There is [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook), and [Peroxide Guide](http://nbviewer.jupyter.org/github/Axect/Example_Peroxide/blob/master/Peroxide%20Guide.ipynb)
-written on Jupyter.
+written on Jupyter. Below `README` may contain deprecated files, so please read above gitbook instead.
 
 ### Initial Import
 
@@ -108,10 +108,10 @@ fn main() {
     let d = matrix!(1;4;1, 2, 2, Row);
     
     // Pythonic
-    let p_mat = p_matrix(vec![c!(1, 2), c!(3, 4)]);
+    let p_mat = py_matrix(vec![c!(1, 2), c!(3, 4)]);
     
     // Matlab like
-    let m_mat = m_matrix("1 2; 3 4");
+    let m_mat = ml_matrix("1 2; 3 4");
 }
 ```
 

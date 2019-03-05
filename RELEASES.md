@@ -1,4 +1,11 @@
-# Release 0.8.5 (2018-02-17)
+# Release 0.8.6 (2019-03-05)
+
+* Add [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook) link to `README`
+* Fix `statistics/rand.rs`, `statistics/dist.rs`
+    * pub use rand crate to private use
+    * Now you can use `rand(usize, usize)` function in `util/non_macro.rs`
+
+# Release 0.8.5 (2019-02-17)
 
 * Fix bugs of `cbind`, `rbind`
 * Add Linear Discriminant (Least Square) example
