@@ -1,3 +1,11 @@
+# Release 0.8.7 (2019-03-08)
+
+* Add constraint to uniform distribution
+* Reduce & modify `README.md`
+    * Add missing modules to module structure
+    * Remove `Usage` section (Move to [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook))
+    
+
 # Release 0.8.6 (2019-03-05)
 
 * Add [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook) link to `README`

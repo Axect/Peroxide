@@ -164,8 +164,15 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
         match self {
             Uniform(a, b) => {
-                let length = (*b).into() - (*a).into();
-                1f64 / length
+                let val = x.into();
+                let a_f64 = (*a).into();
+                let b_f64 = (*b).into();
+                if val >= a_f64 && val <= b_f64 {
+                    let length = b_f64 - a_f64;
+                    1f64 / length
+                } else {
+                    0f64
+                }
             }
             Normal(m, s) => {
                 let mean = (*m).into();
