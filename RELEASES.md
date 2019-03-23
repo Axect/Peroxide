@@ -1,3 +1,11 @@
+# Release 0.8.8 (2019-03-23)
+
+* Add `ops.rs` to `statistics`
+    * Factorial: `factorial(n)`
+    * Permutation: `P(n,r)`
+    * Combination: `C(n,r)`
+    * Combination with Repetition: `H(n,r)`
+
 # Release 0.8.7 (2019-03-08)
 
 * Add constraint to uniform distribution

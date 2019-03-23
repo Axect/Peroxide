@@ -82,3 +82,6 @@ pub use statistics::dist::*;
 
 #[allow(unused_imports)]
 pub use special::function::*;
+
+#[allow(unused_imports)]
+pub use statistics::ops::*;
