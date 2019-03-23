@@ -1,3 +1,8 @@
+# Release 0.8.9 (2019-03-23) (Candidate)
+
+* New constructor in `matrix.rs`
+    * Matrix from index operations - `from_index<F>(F, (usize, usize))`
+
 # Release 0.8.8 (2019-03-23)
 
 * Add `ops.rs` to `statistics`

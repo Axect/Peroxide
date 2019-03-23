@@ -6,3 +6,4 @@ pub mod bdf;
 pub mod runge_kutta;
 pub mod ode;
 pub mod gauss_legendre;
+pub mod ops;

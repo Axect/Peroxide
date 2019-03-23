@@ -10,4 +10,7 @@ fn main() {
 
     let c: Matrix = R::new(c!(1,2,3,4), 2, 2, Row);
     c.print();
+
+    let d: Matrix = Matrix::from_index(|x, y| x*3 + y + 1, (4, 3));
+    d.print();
 }

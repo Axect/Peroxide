@@ -568,6 +568,22 @@ impl Matrix {
             self[(idx, j)] = v[j];
         }
     }
+
+    /// From index operations
+    pub fn from_index<F>(f: F, size: (usize, usize)) -> Matrix
+    where F: Fn(usize, usize) -> usize + Copy {
+        let row = size.0;
+        let col = size.1;
+
+        let mut mat = matrix(vec![0f64; row*col], row, col, Row);
+
+        for i in 0 .. row {
+            for j in 0 .. col {
+                mat[(i, j)] = f(i, j) as f64;
+            }
+        }
+        mat
+    }
 }
 
 

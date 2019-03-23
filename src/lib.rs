@@ -85,3 +85,6 @@ pub use special::function::*;
 
 #[allow(unused_imports)]
 pub use statistics::ops::*;
+
+#[allow(unused_imports)]
+pub use numerical::ops::*;
