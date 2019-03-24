@@ -1,7 +1,11 @@
-# Release 0.8.9 (2019-03-23) (Candidate)
+# Release 0.8.9 (2019-03-24)
 
 * New constructor in `matrix.rs`
     * Matrix from index operations - `from_index<F>(F, (usize, usize))`
+* Update print of Matrix
+    * Extend limit from `10x10` to `100x10` or `10x100` or `20x20`
+* Fix bug of `take` of `FPMatrix`
+    * Early return if size is smaller than row or column
 
 # Release 0.8.8 (2019-03-23)
 

@@ -238,20 +238,28 @@ impl Matrix {
         assert_eq!(self.row * self.col, self.data.len());
         let r = self.row;
         let c = self.col;
+        let mut key_row = 20usize;
+        let mut key_col = 20usize;
 
-        if r > 10 || c > 10 {
+        if r > 100 || c > 100 || (r > 20 && c > 20) {
             let part =
                 if r <= 10 {
-                    self.take(10, Col)
+                    key_row = r;
+                    key_col = 100;
+                    self.take(100, Col)
                 } else if c <= 10 {
-                    self.take(10, Row)
+                    key_row = 100;
+                    key_col = c;
+                    self.take(100, Row)
                 } else {
-                    self.take(10, Row).take(10, Col)
+                    self.take(20, Row).take(20, Col)
                 };
             return format!(
-                "Result is too large to print - {}x{}\nonly print 10x10 part:\n{}",
+                "Result is too large to print - {}x{}\nonly print {}x{} parts:\n{}",
                 self.row.to_string(),
                 self.col.to_string(),
+                key_row.to_string(),
+                key_col.to_string(),
                 part.spread()
             );
         }
@@ -1056,10 +1064,14 @@ pub trait FP {
 
 impl FP for Matrix {
     fn take(&self, n: usize, shape: Shape) -> Matrix {
+        let mut key = 0usize;
         match shape {
             Row => {
                 let mut temp_data: Vec<f64> = Vec::new();
                 for i in 0..n {
+                    if i >= self.row {
+                        return matrix(temp_data, self.row, self.col, Row);
+                    }
                     temp_data.extend(self.row(i));
                 }
                 matrix(temp_data, n, self.col, Row)
@@ -1067,6 +1079,9 @@ impl FP for Matrix {
             Col => {
                 let mut temp_data: Vec<f64> = Vec::new();
                 for i in 0..n {
+                    if i >= self.col {
+                        return matrix(temp_data, self.row, self.col, Col);
+                    }
                     temp_data.extend(self.col(i));
                 }
                 matrix(temp_data, self.row, n, Col)
