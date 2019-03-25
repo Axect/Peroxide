@@ -18,5 +18,5 @@ maintenance = { status = "actively-developed" }
 csv = "1"
 rand = "0.6"
 special = "0.8"
-serde = "*"
-serde-pickle = "*"
+serde = "1"
+serde-pickle = "0.4"
