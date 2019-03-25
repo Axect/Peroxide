@@ -6,7 +6,6 @@ use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
 pub use self::Shape::{Row, Col};
-use std::f64::{MIN};
 use std::cmp::{max, min};
 pub use std::error::Error;
 use self::csv::{WriterBuilder, ReaderBuilder, StringRecord};
@@ -1064,7 +1063,6 @@ pub trait FP {
 
 impl FP for Matrix {
     fn take(&self, n: usize, shape: Shape) -> Matrix {
-        let mut key = 0usize;
         match shape {
             Row => {
                 let mut temp_data: Vec<f64> = Vec::new();

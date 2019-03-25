@@ -1,3 +1,13 @@
+# Release 0.8.10 (2019-03-25)
+
+* Add two dependencies in `Cargo.toml`
+    * `serde`
+    * `serde_pickle`
+* Add `pickle.rs` to `util`
+    * Write `Vec<f64>` to pickle file easily
+    * Write `Matrix` to pickle file (Caution: It depends on shape of matrix)
+* Fix all warnings from compiler
+    
 # Release 0.8.9 (2019-03-24)
 
 * New constructor in `matrix.rs`

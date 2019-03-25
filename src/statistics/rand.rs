@@ -1,8 +1,6 @@
 extern crate rand;
 use self::rand::prelude::*;
 use self::rand::distributions::uniform::SampleUniform;
-
-use std::convert;
 use std::u32;
 
 #[allow(unused_imports)]

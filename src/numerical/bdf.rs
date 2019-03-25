@@ -38,9 +38,6 @@ pub fn bdf1<F>(t_init: f64, ys_init: Vec<f64>, f: F, h: f64, rtol: f64, num: usi
 pub fn one_step_bdf1<F>(t: f64, ys: Vec<f64>, f: F, h: f64, rtol: f64) -> Vec<f64>
     where F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy
 {
-    // len(ys) = n where xs = (t, ys)
-    let n = ys.len();
-    
     // new t = t + h
     let new_t = t + h;
 
@@ -70,8 +67,7 @@ fn non_auto_update<F>(t: f64, yn: Vec<f64>, ys: Vec<f64>, f: F, h: f64) -> Vec<f
     where F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy
 {
     let n = ys.len();
-    let t_dual = dual(t, 0.);
-    let f_vec = |xs: Vec<Dual>| f(dual(t, 0.), ys.conv_dual()); // n x 1
+    let f_vec = |_xs: Vec<Dual>| f(dual(t, 0.), ys.conv_dual()); // n x 1
 
     // Df_y_{ij} = ∂f_i/∂y_j where y = f(t, y)
     let Df = jacobian(ys.clone(), f_vec); // n x n

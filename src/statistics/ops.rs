@@ -33,7 +33,7 @@ pub fn factorial(n: usize) -> usize {
 pub fn P(n: usize, r: usize) -> usize {
     let mut p = 1usize;
     for i in 0 .. r {
-        p *= (n - i);
+        p *= n - i;
     }
     p
 }

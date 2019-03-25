@@ -1,5 +1,4 @@
 use structure::matrix::*;
-use structure::vector::*;
 use std::convert;
 
 pub trait MATLAB {

@@ -53,11 +53,11 @@ fn train(weights1: Matrix, weights2: Matrix, input: Matrix, answer: Matrix, eta:
     let t = answer;
     let xb = add_bias(x.clone(), -1f64);
 
-    for i in 0 .. times {
+    for _i in 0 .. times {
         let a = forward(v.clone(), xb.clone());
         let ab = add_bias(a.clone(), -1f64);
         let y = forward(w.clone(), ab.clone());
-        let err = (y.clone() - t.clone()).t() % (y.clone() - t.clone());
+//        let err = (y.clone() - t.clone()).t() % (y.clone() - t.clone());
         let wb = hide_bias(w.clone());
         let delta_o = (y.clone() - t.clone()) * y.clone() * (1f64 - y.clone());
         let delta_h = (delta_o.clone() % wb.t()) * a.clone() * (1f64 - a.clone());

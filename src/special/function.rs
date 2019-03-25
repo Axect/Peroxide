@@ -1,7 +1,7 @@
 extern crate special;
-use self::special::{Gamma, Beta, Error};
+use self::special::{Gamma, Error};
 
-use std::f64::consts::{PI, E};
+use std::f64::consts::PI;
 
 /// Gaussian function
 ///

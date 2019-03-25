@@ -1,6 +1,5 @@
 use structure::matrix::*;
 use structure::vector::*;
-use std::ops::{Add, Sub, Mul, Div};
 use std::convert::Into;
 pub use self::ODEMethod::*;
 use numerical::runge_kutta::rk4;

@@ -17,7 +17,7 @@ fn main() {
     let x1_x = x1_rot.row(0).fmap(|t| t + m1.x);
     let x1_y = x1_rot.row(1).fmap(|t| t + m1.y);
     let x1 = cbind(x1_x.to_matrix(), x1_y.to_matrix());
-    x1.write_with_header("example_data/sample1.csv", vec!["x", "y"]);
+    x1.write_with_header("example_data/sample1.csv", vec!["x", "y"]).expect("Can't write file");
 
     // Group 2
     let m2 = Coord { x: 2f64, y: -2f64};
@@ -28,7 +28,7 @@ fn main() {
     let x2_x = x2_rot.row(0).fmap(|t| t + m2.x);
     let x2_y = x2_rot.row(1).fmap(|t| t + m2.y);
     let x2 = cbind(x2_x.to_matrix(), x2_y.to_matrix());
-    x2.write_with_header("example_data/sample2.csv", vec!["x", "y"]);
+    x2.write_with_header("example_data/sample2.csv", vec!["x", "y"]).expect("Can't write file");
 
     let X = rbind(x1.clone(), x2.clone());
     let X_bias = matrix(vec![1f64; 2*N], 2*N, 1, Col);
@@ -49,7 +49,7 @@ fn main() {
     weight.print();
 
     let line = line_function(weight.clone(), seq(-4, 4, 0.1));
-    line.write_with_header("example_data/line.csv", vec!["x", "y"]);
+    line.write_with_header("example_data/line.csv", vec!["x", "y"]).expect("Can't write file");
 
     let classifier = fisher_lda(weight);
     classifier(ml_matrix("-2; 2")).print();

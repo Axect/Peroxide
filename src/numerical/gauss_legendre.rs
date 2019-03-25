@@ -3,7 +3,6 @@ use structure::vector::*;
 use structure::dual::*;
 use numerical::utils::jacobian;
 use util::non_macro::{concat, eye, zeros, cat};
-use util::print::Printable;
 
 /// Value of 3f64.sqrt()
 const SQRT3: f64 = 1.7320508075688772;

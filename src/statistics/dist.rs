@@ -8,8 +8,6 @@ use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
 use std::convert::Into;
 use std::f64::consts::E;
-use structure::matrix::*;
-use structure::vector::*;
 
 /// One parameter distribution
 ///

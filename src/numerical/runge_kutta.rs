@@ -1,5 +1,4 @@
 use structure::matrix::*;
-use structure::dual::*;
 use structure::vector::*;
 use util::non_macro::*;
 

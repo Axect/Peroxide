@@ -20,7 +20,7 @@ pub const RHO0D: f64 = 2.573e-4;
 pub fn main() {
     let p_c = K*RHO0C.powf(GAMMAF);
     let init_val = c!(0, 0, p_c);
-    let mut records = solve_with_condition(tov_rhs, init_val, (0f64, 16f64), 1e-3, GL4(1e-15), |xs| xs[2] >= 0f64);
+    let records = solve_with_condition(tov_rhs, init_val, (0f64, 16f64), 1e-3, GL4(1e-15), |xs| xs[2] >= 0f64);
     records.print();
     records.write_with_header("example_data/tov_gl4.csv", vec!["r", "m", "phi", "p"]).expect("Can't write file");
 }

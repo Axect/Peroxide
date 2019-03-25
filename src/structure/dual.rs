@@ -322,7 +322,7 @@ impl FPVector for Vec<Dual> {
         self.clone().into_iter().map(|x| f(x)).collect::<Vec<Dual>>()
     }
 
-    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    fn reduce<F, T>(&self, _init: T, _f: F) -> Self::Scalar
     where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
         T: Into<Self::Scalar>,
@@ -340,7 +340,7 @@ impl FPVector for Vec<Dual> {
             .collect::<Vec<Dual>>()
     }
 
-    fn filter<F>(&self, f: F) -> Self
+    fn filter<F>(&self, _f: F) -> Self
     where
         F: Fn(Self::Scalar) -> bool,
     {
@@ -356,7 +356,7 @@ impl FPVector for Vec<Dual> {
     }
 }
 
-#[allow(unused_variable)]
+#[allow(unused_variables)]
 impl VecOps for Vec<Dual> {
     type Scalar = Dual;
 
@@ -376,7 +376,7 @@ impl VecOps for Vec<Dual> {
         self.zip_with(|x, y| x / y, other)
     }
 
-    fn dot(&self, other: &Self) -> Self::Scalar {
+    fn dot(&self, _other: &Self) -> Self::Scalar {
         unimplemented!()
     }
 
