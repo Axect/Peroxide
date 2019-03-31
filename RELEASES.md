@@ -1,3 +1,7 @@
+# Release 0.8.13 (2019-04-01) (Candidates)
+
+* `HyperDual` for 2nd order Automatic Differentiation
+
 # Release 0.8.12 (2019-03-31)
 
 * Implement Tri-Diagonal Matrix Algorithm

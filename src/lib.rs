@@ -88,3 +88,6 @@ pub use statistics::ops::*;
 
 #[allow(unused_imports)]
 pub use util::pickle::*;
+
+#[allow(unused_imports)]
+pub use structure::hyper_dual::*;
