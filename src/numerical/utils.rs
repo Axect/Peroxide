@@ -1,6 +1,6 @@
 use structure::matrix::*;
 use structure::dual::*;
-use util::non_macro::zeros;
+use util::non_macro::{zeros, cat};
 
 /// Jacobian Matrix
 /// 
@@ -58,4 +58,52 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
         x_temp = x_const.clone();
     }
     J
+}
+
+/// TriDiagonal Matrix Algorithm (TDMA)
+///
+/// # Description
+///
+/// Solve tri-diagonal matrix system efficiently (O(n))
+/// ```bash
+/// |b0 c0         | |x0|   |y0|
+/// |a1 b1 c1      | |x1|   |y1|
+/// |   a2 b2 c2   | |x2| = |y2|
+/// |      ...     | |..|   |..|
+/// |         am bm| |xm|   |ym|
+/// ```
+///
+/// # Caution
+///
+/// You should apply boundary condition yourself
+pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Vec<f64>) -> Matrix {
+    let n = b_input.len();
+    assert_eq!(a_input.len(), n-1);
+    assert_eq!(c_input.len(), n-1);
+    assert_eq!(y_input.len(), n);
+
+    let a = cat(0f64, a_input.clone());
+    let mut b = b_input.clone();
+    let c = {
+        let mut c_temp = c_input.clone();
+        c_temp.push(0f64);
+        c_temp.clone()
+    };
+    let mut y = y_input.clone();
+
+    // Forward substitution
+    let mut w = vec![0f64; n];
+    for i in 1 .. n {
+        w[i] = a[i] / b[i-1];
+        b[i] = b[i] - w[i]*c[i-1];
+        y[i] = y[i] - w[i]*y[i-1];
+    }
+
+    // Backward substitution
+    let mut x = vec![0f64; n];
+    x[n-1] = y[n-1]/b[n-1];
+    for i in (0..n-1).rev() {
+        x[i] = (y[i] - c[i]*x[i+1]) / b[i];
+    }
+    x.to_matrix()
 }

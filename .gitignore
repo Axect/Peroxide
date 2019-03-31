@@ -6,3 +6,5 @@ Cargo.lock
 .idea/*
 *.csv
 *.m
+*.pickle
+*.py

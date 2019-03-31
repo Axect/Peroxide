@@ -1,3 +1,8 @@
+# Release 0.8.12 (2019-03-31)
+
+* Implement Tri-Diagonal Matrix Algorithm
+    * Add `tdma` to `numerical/utils.rs`
+
 # Release 0.8.11 (2019-03-31)
 
 * Modify `matrix/lu` to correct doolittle algorithm
