@@ -1,3 +1,7 @@
+# Release 0.8.11 (2019-03-31)
+
+* Modify `matrix/lu` to correct doolittle algorithm
+
 # Release 0.8.10 (2019-03-25)
 
 * Add two dependencies in `Cargo.toml`

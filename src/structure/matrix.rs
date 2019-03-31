@@ -1254,7 +1254,7 @@ impl LinearAlgebra for Matrix {
 
         // Initialize U
         for i in 0 .. n {
-            u[(0, i)] = reference[(i, 0)];
+            u[(0, i)] = reference[(0, i)];
         }
 
         // Initialize L
