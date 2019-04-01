@@ -1,4 +1,4 @@
-# Release 0.8.13 (2019-04-01) (Candidates)
+# Release 0.8.13 (2019-04-01)
 
 * `HyperDual` for 2nd order Automatic Differentiation
 

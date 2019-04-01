@@ -8,6 +8,8 @@ use structure::polynomial::*;
 use structure::dual::*;
 #[allow(unused_imports)]
 use structure::multinomial::*;
+#[allow(unused_imports)]
+use structure::hyper_dual::*;
 
 pub trait Printable {
     fn print(&self);
@@ -108,5 +110,11 @@ impl Printable for Vec<Dual> {
         self.values().print();
         println!("slope:");
         self.slopes().print();
+    }
+}
+
+impl Printable for HyperDual {
+    fn print(&self) {
+        println!("{}", self);
     }
 }

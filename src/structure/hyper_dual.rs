@@ -2,9 +2,15 @@ use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
+#[allow(unused_imports)]
 use structure::vector::*;
 use structure::dual::dual;
 
+/// Hyper Dual number
+///
+/// # Description
+///
+/// For second order differentiation
 #[derive(Debug, Copy, Clone, Default)]
 pub struct HyperDual {
     x: f64,
@@ -15,7 +21,7 @@ pub struct HyperDual {
 impl fmt::Display for HyperDual {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s1 = format!(
-            "value: {}\nslope: {}\nacc: {}",
+            "value: {}\nslope: {}\naccel: {}",
             self.x,
             self.dx,
             self.ddx
@@ -191,18 +197,64 @@ impl TrigOps for HyperDual {
     fn sin(&self) -> Self::Output {
         let x = self.x.sin();
         let dx = self.dx * self.x.cos();
-        let ddx = self.ddx * self.x.cos() - self.dx.powi(2) * self.x.sin();
+        let ddx = self.ddx * self.x.cos() - self.dx.powi(2) * x;
         HyperDual::new(x, dx, ddx)
     }
 
     fn cos(&self) -> Self::Output {
         let x = self.x.cos();
         let dx = - self.dx * self.x.sin();
-        let ddx =  - self.ddx * self.x.sin() - self.dx.powi(2) * self.x.cos();
+        let ddx =  - self.ddx * self.x.sin() - self.dx.powi(2) * x;
         HyperDual::new(x, dx, ddx)
     }
 
     fn tan(&self) -> Self::Output {
-        unimplemented!()
+        let x = self.x.tan();
+        let dx = self.dx * (1f64 + x.powi(2));
+        let ddx = self.ddx * (1f64 + x.powi(2)) + dx * self.dx * 2f64*x;
+        HyperDual::new(x, dx, ddx)
+    }
+}
+
+impl ExpLogOps for HyperDual {
+    type Output = HyperDual;
+
+    fn exp(&self) -> Self::Output {
+        let x = self.x.exp();
+        let dx = self.dx * x;
+        let ddx = self.ddx * x + self.dx.powi(2) * x;
+        HyperDual::new(x, dx, ddx)
+    }
+
+    fn ln(&self) -> Self::Output {
+        assert!(self.x > 0f64, "Logarithm Domain Error");
+        let x = self.x.ln();
+        let dx = self.dx / self.x;
+        let ddx = self.ddx / self.x - self.dx.powi(2)/self.x.powi(2);
+        HyperDual::new(x, dx, ddx)
+    }
+}
+
+impl PowOps for HyperDual {
+    type Output = HyperDual;
+
+    fn pow(&self, n: usize) -> Self::Output {
+        let mut s = self.clone();
+        for _i in 1 .. n {
+            s = s * s;
+        }
+        s
+    }
+
+    fn powf(&self, f: f64) -> Self::Output {
+        let x = self.x.powf(f);
+        let dx = self.dx * f * self.x.powf(f - 1f64);
+        let ddx = self.ddx * f * self.x.powf(f - 1f64)
+            + self.dx.powi(2) * f * (f - 1f64) * self.x.powf(f - 2f64);
+        HyperDual::new(x, dx, ddx)
+    }
+
+    fn sqrt(&self) -> Self::Output {
+        self.powf(0.5)
     }
 }
