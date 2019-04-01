@@ -13,11 +13,12 @@ use std::process::exit;
 ///
 /// Use python pickle to export vector or matrix
 pub trait Pickle {
-    fn write_pickle(&self, path: &str) -> serde_pickle::Result<()>;
+    fn write_single_pickle(&self, path: &str) -> serde_pickle::Result<()>;
+    fn write_pickle<W: Write>(&self, writer: &mut W) -> serde_pickle::Result<()>;
 }
 
 impl Pickle for Vector {
-    fn write_pickle(&self, path: &str) -> serde_pickle::Result<()> {
+    fn write_single_pickle(&self, path: &str) -> serde_pickle::Result<()> {
         let mut writer: Box<Write>;
 
         match File::create(path) {
@@ -30,10 +31,14 @@ impl Pickle for Vector {
 
         serde_pickle::to_writer(&mut writer, &self, true)
     }
+
+    fn write_pickle<W: Write>(&self, writer: &mut W) -> serde_pickle::Result<()> {
+        serde_pickle::to_writer(writer, &self, true)
+    }
 }
 
 impl Pickle for Matrix {
-    fn write_pickle(&self, path: &str) -> serde_pickle::Result<()> {
+    fn write_single_pickle(&self, path: &str) -> serde_pickle::Result<()> {
         let mut writer: Box<Write>;
 
         match File::create(path) {
@@ -60,5 +65,24 @@ impl Pickle for Matrix {
         }
 
         serde_pickle::to_writer(&mut writer, &container, true)
+    }
+
+    fn write_pickle<W: Write>(&self, writer: &mut W) -> serde_pickle::Result<()> {
+        let mut container: Vec<Vec<f64>> = Vec::new();;
+
+        match self.shape {
+            Row => {
+                for i in 0 .. self.row {
+                    container.push(self.row(i));
+                }
+            },
+            Col => {
+                for i in 0 .. self.col {
+                    container.push(self.col(i));
+                }
+            }
+        }
+
+        serde_pickle::to_writer(writer, &container, true)
     }
 }

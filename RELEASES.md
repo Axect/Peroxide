@@ -1,3 +1,7 @@
+# Release 0.9.0 (2019-04-01) (Candidates)
+
+* Modify `Pickle` trait
+
 # Release 0.8.13 (2019-04-01)
 
 * `HyperDual` for 2nd order Automatic Differentiation
