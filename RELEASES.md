@@ -1,6 +1,30 @@
-# Release 0.9.0 (2019-04-01) (Candidates)
+# Release 0.9.0 (2019-04-08) (Candidates)
 
-* Modify `Pickle` trait
+* Modify `Pickle` trait - Allow multiple data to one pickle file
+    * `write_single_pickle` : Just write vector or matrix to one pickle file.
+    * `write_pickle(&self, writer: &mut Write)`
+        ```rust
+        extern crate peroxide;
+        use peroxide::*;
+        use std::fs::File;
+        use std::io::Write;
+
+        fn main () {
+            let mut w = Box<Write>; 
+            match File::create(path) {
+                Ok(p) => writer = Box::new(p),
+                Err(e) => (),
+            }
+
+            let a = ml_matrix("1 2;3 4");
+            a.write_pickle(&mut w).expect("Can't write pickle file");
+        }
+        ```
+* Implement matrix norm (usage: `a.norm(<input_norm>)`)
+    * `PQ(p, q)` : `L_pq` norm
+    * `One` : `L_1` norm
+    * `Infinity`: `L_∞` norm
+    * `Frobenius` : Frobenius norm (= `PQ(2,2)`)
 
 # Release 0.8.13 (2019-04-01)
 

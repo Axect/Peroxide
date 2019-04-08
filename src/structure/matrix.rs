@@ -6,6 +6,7 @@ use std::convert;
 use std::fmt;
 use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
 pub use self::Shape::{Row, Col};
+pub use self::Norm::*;
 use std::cmp::{max, min};
 pub use std::error::Error;
 use self::csv::{WriterBuilder, ReaderBuilder, StringRecord};
@@ -1152,8 +1153,19 @@ impl FP for Matrix {
 // =============================================================================
 // Linear Algebra
 // =============================================================================
+
+/// Norm Enum
+#[derive(Debug, Copy, Clone)]
+pub enum Norm {
+    Frobenius,
+    PQ(usize, usize),
+    One,
+    Infinity
+}
+
 /// Linear algebra trait
 pub trait LinearAlgebra {
+    fn norm(&self, norm: Norm) -> f64;
     fn lu(&self) -> Option<PQLU>;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
@@ -1179,6 +1191,64 @@ pub struct PQLU {
 }
 
 impl LinearAlgebra for Matrix {
+    /// Matrix norm
+    ///
+    /// # Kinds
+    /// * `Frobenius` : Frobenius norm
+    /// * `PQ(usize, usize)` : L_pq norm
+    /// * `One` : 1-norm
+    /// * `Infinity` : Infinity norm
+    fn norm(&self, norm: Norm) -> f64 {
+        match norm {
+            Frobenius => {
+                let mut s = 0f64;
+                for i in 0 .. self.data.len() {
+                    s += self.data[i].powi(2);
+                }
+                s.sqrt()
+            },
+            PQ(p, q) => {
+                let mut s = 0f64;
+                for j in 0 .. self.col {
+                    let mut s_row = 0f64;
+                    for i in 0 .. self.row {
+                        s_row += self[(i, j)].powi(p as i32);
+                    }
+                    s += s_row.powf(q as f64 / (p as f64));
+                }
+                s.powf(1f64 / (q as f64))
+            },
+            One => {
+                let mut m = std::f64::MIN;
+                let a = match self.shape {
+                    Row => self.change_shape(),
+                    Col => self.clone(),
+                };
+                for c in 0 .. a.col {
+                    let s = a.col(c).reduce(0f64, |x, y| x + y);
+                    if s > m {
+                        m = s;
+                    }
+                }
+                m
+            },
+            Infinity => {
+                let mut m = std::f64::MIN;
+                let a = match self.shape {
+                    Row => self.clone(),
+                    Col => self.change_shape(),
+                };
+                for r in 0 .. a.row {
+                    let s = a.row(r).reduce(0f64, |x, y| x + y);
+                    if s > m {
+                        m = s;
+                    }
+                }
+                m
+            }
+        }
+    }
+
     /// LU Decomposition Implements
     ///
     /// # Description
