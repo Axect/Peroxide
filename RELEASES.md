@@ -1,4 +1,11 @@
-# Release 0.9.0 (2019-04-08) (Candidates)
+# Release 0.9.1 (2019-04-09)
+
+* Add `zeros_shape`, `eye_shape` to `util/non_macro.rs`
+* Implement Arnoldi iteration & Gram-schmidt (Not yet merged)
+    * `bin/arnoldi.rs`
+    * `bin/schmidt.rs`
+
+# Release 0.9.0 (2019-04-08)
 
 * Modify `Pickle` trait - Allow multiple data to one pickle file
     * `write_single_pickle` : Just write vector or matrix to one pickle file.

@@ -54,6 +54,11 @@ pub fn zeros(r: usize, c: usize) -> Matrix {
     matrix(vec![0f64; r * c], r, c, Row)
 }
 
+/// Zeros with custom shape
+pub fn zeros_shape(r: usize, c: usize, shape: Shape) -> Matrix {
+    matrix(vec![0f64; r * c], r, c, shape)
+}
+
 pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
     let l1 = v1.len();
     let l2 = v2.len();
@@ -95,6 +100,15 @@ pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
 /// ```
 pub fn eye(n: usize) -> Matrix {
     let mut m = zeros(n, n);
+    for i in 0 .. n {
+        m[(i, i)] = 1f64;
+    }
+    m
+}
+
+/// eye with custom shape
+pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
+    let mut m = zeros_shape(n, n, shape);
     for i in 0 .. n {
         m[(i, i)] = 1f64;
     }
