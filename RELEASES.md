@@ -1,9 +1,14 @@
-# Release 0.9.1 (2019-04-09)
+# Release 0.9.2 (2019-04-15) (Candidates)
 
-* Add `zeros_shape`, `eye_shape` to `util/non_macro.rs`
 * Implement Arnoldi iteration & Gram-schmidt (Not yet merged)
     * `bin/arnoldi.rs`
     * `bin/schmidt.rs`
+
+# Release 0.9.1 (2019-04-15)
+
+* Add `zeros_shape`, `eye_shape` to `util/non_macro.rs`
+* Fix `Matrix::from_index`
+    * You should use index function which returns `f64`
 
 # Release 0.9.0 (2019-04-08)
 
@@ -17,7 +22,7 @@
         use std::io::Write;
 
         fn main () {
-            let mut w = Box<Write>; 
+            let mut w: Box<Write>; 
             match File::create(path) {
                 Ok(p) => writer = Box::new(p),
                 Err(e) => (),

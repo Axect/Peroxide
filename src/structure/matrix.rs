@@ -578,8 +578,10 @@ impl Matrix {
     }
 
     /// From index operations
-    pub fn from_index<F>(f: F, size: (usize, usize)) -> Self
-    where F: Fn(usize, usize) -> usize + Copy {
+    pub fn from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where F: Fn(usize, usize) -> G + Copy,
+          G: Into<f64>
+    {
         let row = size.0;
         let col = size.1;
 
@@ -587,7 +589,7 @@ impl Matrix {
 
         for i in 0 .. row {
             for j in 0 .. col {
-                mat[(i, j)] = f(i, j) as f64;
+                mat[(i, j)] = f(i, j).into();
             }
         }
         mat
