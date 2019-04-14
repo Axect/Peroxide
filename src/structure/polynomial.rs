@@ -156,8 +156,8 @@ impl fmt::Display for Polynomial {
 
 impl Polynomial {
     /// Create Polynomial
-    pub fn new(coef: Vector) -> Polynomial {
-        Polynomial { coef }
+    pub fn new(coef: Vector) -> Self {
+        Self { coef }
     }
 
     /// Evaluate polynomial with value
@@ -194,10 +194,10 @@ pub fn poly(coef: Vector) -> Polynomial {
 // =============================================================================
 
 impl Neg for Polynomial {
-    type Output = Polynomial;
+    type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Polynomial::new(
+        Self::new(
             self.coef
                 .clone()
                 .into_iter()
@@ -208,8 +208,8 @@ impl Neg for Polynomial {
 }
 
 impl Add<Polynomial> for Polynomial {
-    type Output = Polynomial;
-    fn add(self, other: Polynomial) -> Polynomial {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
         let (l1, l2) = (self.coef.len(), other.coef.len());
         let l_max = max(l1, l2);
         let l_min = min(l1, l2);
@@ -225,36 +225,36 @@ impl Add<Polynomial> for Polynomial {
                 coef[i] = v_max[i] + v_min[j];
             }
         }
-        Polynomial::new(coef)
+        Self::new(coef)
     }
 }
 
 impl<T> Add<T> for Polynomial where T: convert::Into<f64> + Copy {
-    type Output = Polynomial;
-    fn add(self, other: T) -> Polynomial {
-        Polynomial::new(self.coef.fmap(|x| x + other.into()))
+    type Output = Self;
+    fn add(self, other: T) -> Self {
+        Self::new(self.coef.fmap(|x| x + other.into()))
     }
 }
 
 impl Sub<Polynomial> for Polynomial {
-    type Output = Polynomial;
-    fn sub(self, other: Polynomial) -> Polynomial {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
         self.add(other.neg())
     }
 }
 
 impl<T> Sub<T> for Polynomial where T: convert::Into<f64> + Copy {
-    type Output = Polynomial;
-    fn sub(self, other: T) -> Polynomial {
-        Polynomial::new(self.coef.fmap(|x| x - other.into()))
+    type Output = Self;
+    fn sub(self, other: T) -> Self {
+        Self::new(self.coef.fmap(|x| x - other.into()))
     }
 }
 
 impl<T> Mul<T> for Polynomial 
     where T: convert::Into<f64> + Copy {
-    type Output = Polynomial;
-    fn mul(self, other: T) -> Polynomial {
-        Polynomial::new(
+    type Output = Self;
+    fn mul(self, other: T) -> Self {
+        Self::new(
             self.coef
                 .into_iter()
                 .map(|x| x * other.into())
@@ -264,8 +264,8 @@ impl<T> Mul<T> for Polynomial
 }
 
 impl Mul<Polynomial> for Polynomial {
-    type Output = Polynomial;
-    fn mul(self, other: Polynomial) -> Polynomial {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self {
         let (l1, l2) = (self.coef.len(), other.coef.len());
         let (n1, n2) = (l1 - 1, l2 - 1);
         let n = n1 + n2;
@@ -286,23 +286,23 @@ impl Mul<Polynomial> for Polynomial {
             }
         }
 
-        Polynomial::new(result)
+        Self::new(result)
     }
 }
 
 impl<T> Div<T> for Polynomial where T: convert::Into<f64> + Copy {
-    type Output = Polynomial;
-    fn div(self, other: T) -> Polynomial {
+    type Output = Self;
+    fn div(self, other: T) -> Self {
         let val = other.into();
         assert_ne!(val, 0f64);
 
-        Polynomial::new(self.coef.fmap(|x| x / val))
+        Self::new(self.coef.fmap(|x| x / val))
     }
 }
 
 impl Div<Polynomial> for Polynomial {
-    type Output = (Polynomial, Polynomial);
-    fn div(self, other: Polynomial) -> Self::Output {
+    type Output = (Self, Self);
+    fn div(self, other: Self) -> Self::Output {
         let l1 = self.coef.len();
         let l2 = other.coef.len();
         assert!(l1 >= l2);
@@ -339,9 +339,9 @@ impl Div<Polynomial> for Polynomial {
 // Extra operations for Polynomial
 // =============================================================================
 impl PowOps for Polynomial {
-    type Output = Polynomial;
+    type Output = Self;
 
-    fn pow(&self, n: usize) -> Polynomial {
+    fn pow(&self, n: usize) -> Self {
         let mut result = self.clone();
         for _i in 0 .. n-1 {
             result = result * self.clone();
@@ -349,7 +349,7 @@ impl PowOps for Polynomial {
         result
     }
 
-    fn powf(&self, _f: f64) -> Polynomial {
+    fn powf(&self, _f: f64) -> Self {
         unimplemented!()
     }
 
@@ -374,7 +374,7 @@ impl Calculus for Polynomial {
         for i in 0 .. l {
             result[i] = self.coef[i] * (l - i) as f64;
         }
-        Polynomial::new(result)
+        Self::new(result)
     }
 
     fn integral(&self) -> Self {
@@ -384,6 +384,6 @@ impl Calculus for Polynomial {
         for i in 0 .. l {
             result[i] = self.coef[i] / (l - i) as f64;
         }
-        Polynomial::new(result)
+        Self::new(result)
     }
 }
