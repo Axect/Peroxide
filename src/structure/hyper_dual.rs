@@ -31,8 +31,8 @@ impl fmt::Display for HyperDual {
 }
 
 impl HyperDual {
-    pub fn new<T: Into<f64> + Copy>(x: T, dx: T, ddx: T) -> HyperDual {
-        HyperDual {
+    pub fn new<T: Into<f64> + Copy>(x: T, dx: T, ddx: T) -> Self {
+        Self {
             x: x.into(),
             dx: dx.into(),
             ddx: ddx.into(),
@@ -61,17 +61,17 @@ pub fn hyper_dual<T: Into<f64> + Copy>(x: T, dx: T, ddx: T) -> HyperDual {
 }
 
 impl Neg for HyperDual {
-    type Output = HyperDual;
-    fn neg(self) -> HyperDual {
-        HyperDual::new(-self.x, -self.dx, -self.ddx)
+    type Output = Self;
+    fn neg(self) -> Self {
+        Self::new(-self.x, -self.dx, -self.ddx)
     }
 }
 
 impl Add<HyperDual> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn add(self, rhs: HyperDual) -> Self::Output {
-        HyperDual::new(
+        Self::new(
             self.x + rhs.x,
             self.dx + rhs.dx,
             self.ddx + rhs.ddx,
@@ -80,10 +80,10 @@ impl Add<HyperDual> for HyperDual {
 }
 
 impl Sub<HyperDual> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn sub(self, rhs: HyperDual) -> Self::Output {
-        HyperDual::new(
+        Self::new(
             self.x - rhs.x,
             self.dx - rhs.dx,
             self.ddx - rhs.ddx,
@@ -92,13 +92,13 @@ impl Sub<HyperDual> for HyperDual {
 }
 
 impl Mul<HyperDual> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
-    fn mul(self, rhs: HyperDual) -> Self::Output {
+    fn mul(self, rhs: Self) -> Self::Output {
         let (x, dx, ddx) = self.extract();
         let (y, dy, ddy) = rhs.extract();
 
-        HyperDual::new(
+        Self::new(
             x * y,
             dx*y + x*dy,
             ddx*y + 2f64*dx*dy + x*ddy
@@ -107,9 +107,9 @@ impl Mul<HyperDual> for HyperDual {
 }
 
 impl Div<HyperDual> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
-    fn div(self, rhs: HyperDual) -> Self::Output {
+    fn div(self, rhs: Self) -> Self::Output {
         assert_ne!(rhs.x, 0f64);
         let (x, dx, ddx) = self.extract();
         let (y, dy, ddy) = rhs.extract();
@@ -119,7 +119,7 @@ impl Div<HyperDual> for HyperDual {
 
         let x_div_y = (dual_x / dual_y).slope();
 
-        HyperDual::new(
+        Self::new(
             x/y,
             (dx*y - x*dy)/(y*y),
             (ddx - 2f64*x_div_y*dy - x/y*ddy)/y
@@ -128,34 +128,34 @@ impl Div<HyperDual> for HyperDual {
 }
 
 impl Add<f64> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn add(self, rhs: f64) -> Self::Output {
-        self + HyperDual::new(rhs, 0., 0.)
+        self + Self::new(rhs, 0., 0.)
     }
 }
 
 impl Sub<f64> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn sub(self, rhs: f64) -> Self::Output {
-        self - HyperDual::new(rhs, 0., 0.)
+        self - Self::new(rhs, 0., 0.)
     }
 }
 
 impl Mul<f64> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        self * HyperDual::new(rhs, 0., 0.)
+        self * Self::new(rhs, 0., 0.)
     }
 }
 
 impl Div<f64> for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn div(self, rhs: f64) -> Self::Output {
-        self / HyperDual::new(rhs, 0., 0.)
+        self / Self::new(rhs, 0., 0.)
     }
 }
 
@@ -192,38 +192,38 @@ impl Div<HyperDual> for f64 {
 }
 
 impl TrigOps for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn sin(&self) -> Self::Output {
         let x = self.x.sin();
         let dx = self.dx * self.x.cos();
         let ddx = self.ddx * self.x.cos() - self.dx.powi(2) * x;
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 
     fn cos(&self) -> Self::Output {
         let x = self.x.cos();
         let dx = - self.dx * self.x.sin();
         let ddx =  - self.ddx * self.x.sin() - self.dx.powi(2) * x;
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 
     fn tan(&self) -> Self::Output {
         let x = self.x.tan();
         let dx = self.dx * (1f64 + x.powi(2));
         let ddx = self.ddx * (1f64 + x.powi(2)) + dx * self.dx * 2f64*x;
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 }
 
 impl ExpLogOps for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn exp(&self) -> Self::Output {
         let x = self.x.exp();
         let dx = self.dx * x;
         let ddx = self.ddx * x + self.dx.powi(2) * x;
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 
     fn ln(&self) -> Self::Output {
@@ -231,12 +231,12 @@ impl ExpLogOps for HyperDual {
         let x = self.x.ln();
         let dx = self.dx / self.x;
         let ddx = self.ddx / self.x - self.dx.powi(2)/self.x.powi(2);
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 }
 
 impl PowOps for HyperDual {
-    type Output = HyperDual;
+    type Output = Self;
 
     fn pow(&self, n: usize) -> Self::Output {
         let mut s = self.clone();
@@ -251,7 +251,7 @@ impl PowOps for HyperDual {
         let dx = self.dx * f * self.x.powf(f - 1f64);
         let ddx = self.ddx * f * self.x.powf(f - 1f64)
             + self.dx.powi(2) * f * (f - 1f64) * self.x.powf(f - 2f64);
-        HyperDual::new(x, dx, ddx)
+        Self::new(x, dx, ddx)
     }
 
     fn sqrt(&self) -> Self::Output {

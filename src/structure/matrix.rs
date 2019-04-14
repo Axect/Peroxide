@@ -182,7 +182,7 @@ impl Matrix {
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
     /// ```
-    pub fn change_shape(&self) -> Matrix {
+    pub fn change_shape(&self) -> Self {
         let r = self.row;
         let c = self.col;
         assert_eq!(r*c, self.data.len());
@@ -197,7 +197,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                Matrix {
+                Self {
                     data: data.clone(),
                     row: r,
                     col: c,
@@ -210,7 +210,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                Matrix {
+                Self {
                     data: data.clone(),
                     row: r,
                     col: c,
@@ -406,7 +406,7 @@ impl Matrix {
     /// assert_eq!(a.swap(0,1,Row), matrix(c!(3,4,1,2),2,2,Row));
     /// assert_eq!(a.swap(0,1,Col), matrix(c!(2,4,1,3),2,2,Col));
     /// ```
-    pub fn swap(&self, idx1: usize, idx2: usize, shape: Shape) -> Matrix {
+    pub fn swap(&self, idx1: usize, idx2: usize, shape: Shape) -> Self {
         match shape {
             Row => {
                 let mut v: Vector = Vec::new();
@@ -578,7 +578,7 @@ impl Matrix {
     }
 
     /// From index operations
-    pub fn from_index<F>(f: F, size: (usize, usize)) -> Matrix
+    pub fn from_index<F>(f: F, size: (usize, usize)) -> Self
     where F: Fn(usize, usize) -> usize + Copy {
         let row = size.0;
         let col = size.1;
@@ -608,7 +608,7 @@ pub trait LinearOps {
 
 impl LinearOps for Matrix {
     /// Just clone
-    fn to_matrix(&self) -> Matrix {
+    fn to_matrix(&self) -> Self {
         self.clone()
     }
 
@@ -622,7 +622,7 @@ impl LinearOps for Matrix {
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
     /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
-    fn transpose(&self) -> Matrix {
+    fn transpose(&self) -> Self {
         match self.shape {
             Row => matrix(self.data.clone(), self.col, self.row, Col),
             Col => matrix(self.data.clone(), self.col, self.row, Row)
@@ -639,7 +639,7 @@ impl LinearOps for Matrix {
     /// let a = matrix!(1;4;1, 2, 2, Row);
     /// assert_eq!(a.transpose(), a.t());
     /// ```
-    fn t(&self) -> Matrix {
+    fn t(&self) -> Self {
         self.transpose()
     }
 }
@@ -673,9 +673,9 @@ impl LinearOps for Vector {
 /// > You should remember ownership.
 /// > If you use Matrix `a,b` then you can't use them after.
 impl Add<Matrix> for Matrix {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn add(self, other: Matrix) -> Matrix {
+    fn add(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
         if self.shape == other.shape {
@@ -702,8 +702,8 @@ impl Add<Matrix> for Matrix {
 /// assert_eq!(a + 1, matrix!(2;5;1, 2, 2, Row));
 /// ```
 impl<T> Add<T> for Matrix where T: convert::Into<f64> + Copy {
-    type Output = Matrix;
-    fn add(self, other: T) -> Matrix {
+    type Output = Self;
+    fn add(self, other: T) -> Self {
         self.fmap(|x| x + other.into())
     }
 }
@@ -777,9 +777,9 @@ impl Add<Matrix> for usize {
 /// println!("{}", -a); // [[-1,-2],[-3,-4]]
 /// ```
 impl Neg for Matrix {
-    type Output = Matrix;
+    type Output = Self;
     
-    fn neg(self) -> Matrix {
+    fn neg(self) -> Self {
         matrix(
             self.data.into_iter().map(|x:f64| -x).collect::<Vec<f64>>(),
             self.row,
@@ -804,9 +804,9 @@ impl Neg for Matrix {
 /// println!("{}", a - b); // [[0, -1], [1, 0]]
 /// ```
 impl Sub<Matrix> for Matrix {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn sub(self, other: Matrix) -> Matrix {
+    fn sub(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
         if self.shape == other.shape {
@@ -823,9 +823,9 @@ impl Sub<Matrix> for Matrix {
 }
 
 impl<T> Sub<T> for Matrix where T: convert::Into<f64> + Copy {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn sub(self, other: T) -> Matrix {
+    fn sub(self, other: T) -> Self {
         self.fmap(|x| x - other.into())
     }
 }
@@ -876,9 +876,9 @@ impl Sub<Matrix> for usize {
 /// println!("{}", a * b); // [[1,6],[6,16]]
 /// ```
 impl Mul<Matrix> for Matrix {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn mul(self, other: Matrix) -> Matrix {
+    fn mul(self, other: Self) -> Self {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
         self.zip_with(|x,y| x * y, &other)
@@ -886,9 +886,9 @@ impl Mul<Matrix> for Matrix {
 }
 
 impl<T> Mul<T> for Matrix where T: convert::Into<f64> + Copy {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn mul(self, other: T) -> Matrix {
+    fn mul(self, other: T) -> Self {
         self.fmap(|x| x * other.into())
     }
 }
@@ -941,9 +941,9 @@ impl Mul<Matrix> for usize {
 /// assert_eq!(m % v, matrix(c!(5,11),2,1,Col));
 /// ```
 impl<T> Rem<T> for Matrix where T: LinearOps {
-    type Output = Matrix;
+    type Output = Self;
 
-    fn rem(self, other: T) -> Matrix {
+    fn rem(self, other: T) -> Self {
         let r_self = self.row;
         let c_self = self.col;
         let new_other = other.to_matrix();
@@ -1063,7 +1063,7 @@ pub trait FP {
 }
 
 impl FP for Matrix {
-    fn take(&self, n: usize, shape: Shape) -> Matrix {
+    fn take(&self, n: usize, shape: Shape) -> Self {
         match shape {
             Row => {
                 let mut temp_data: Vec<f64> = Vec::new();
@@ -1088,7 +1088,7 @@ impl FP for Matrix {
         }
     }
 
-    fn skip(&self, n: usize, shape: Shape) -> Matrix {
+    fn skip(&self, n: usize, shape: Shape) -> Self {
         match shape {
             Row => {
                 assert!(n < self.row, "Skip range is larger than row of matrix");
@@ -1130,7 +1130,7 @@ impl FP for Matrix {
         )
     }
 
-    fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix 
+    fn zip_with<F>(&self, f: F, other: &Matrix) -> Self 
         where F: Fn(f64, f64) -> f64 {
         assert_eq!(self.data.len(), other.data.len());
         let mut a = other.clone();
@@ -1279,8 +1279,8 @@ impl LinearAlgebra for Matrix {
         let n = self.row;
         let len: usize = n * n;
 
-        let mut l: Matrix = matrix(vec![0f64; len], n, n, self.shape);
-        let mut u: Matrix = matrix(vec![0f64; len], n, n, self.shape);
+        let mut l: Self = matrix(vec![0f64; len], n, n, self.shape);
+        let mut u: Self = matrix(vec![0f64; len], n, n, self.shape);
 
         // ---------------------------------------
         // Pivoting - Complete
@@ -1411,7 +1411,7 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(m2, matrix(c!(9,10,13,14), 2, 2, Col));
     /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Col));
     /// ```
-    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix) {
+    fn block(&self) -> (Self, Self, Self, Self) {
         let r = self.row;
         let c = self.col;
         let l = min(self.row / 2, self.col / 2);
@@ -1465,7 +1465,7 @@ impl LinearAlgebra for Matrix {
     /// let b = matrix!(1;9;1, 3, 3, Row);
     /// assert_eq!(b.inv(), None);
     /// ```
-    fn inv(&self) -> Option<Matrix> {
+    fn inv(&self) -> Option<Self> {
         match self.lu() {
             None => None,
             Some(pqlu) => {
@@ -1498,7 +1498,7 @@ impl LinearAlgebra for Matrix {
     ///
     /// assert_eq!(inv_a, pse_a); // Nearly equal
     /// ```
-    fn pseudo_inv(&self) -> Option<Matrix> {
+    fn pseudo_inv(&self) -> Option<Self> {
         let x = self.clone();
         let xt = self.t();
 

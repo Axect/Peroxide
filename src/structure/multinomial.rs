@@ -50,8 +50,8 @@ impl fmt::Display for Multinomial {
 }
 
 impl Multinomial {
-    pub fn new(coef: Vector) -> Multinomial {
-        Multinomial { coef }
+    pub fn new(coef: Vector) -> Self {
+        Self { coef }
     }
 
     pub fn eval(&self, values: &Vector) -> f64 {

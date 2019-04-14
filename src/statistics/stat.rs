@@ -158,10 +158,10 @@ impl Statistics for Matrix {
     /// // r[0]  1.0000 -1.0000
     /// // r[1] -1.0000  1.0000
     /// ```
-    fn cov(&self) -> Matrix {
+    fn cov(&self) -> Self {
         let c = self.col;
 
-        let mut m: Matrix = matrix(vec![0f64; c*c], c, c, self.shape);
+        let mut m: Self = matrix(vec![0f64; c*c], c, c, self.shape);
 
         for i in 0 .. c {
             let m1 = self.col(i);
@@ -173,10 +173,10 @@ impl Statistics for Matrix {
         m
     }
 
-    fn cor(&self) -> Matrix {
+    fn cor(&self) -> Self {
         let c = self.col;
 
-        let mut m: Matrix = matrix(vec![0f64; c*c], c, c, self.shape);
+        let mut m: Self = matrix(vec![0f64; c*c], c, c, self.shape);
 
         for i in 0 .. c {
             let m1 = self.col(i);
