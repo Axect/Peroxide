@@ -4,6 +4,8 @@
 * Implement Arnoldi iteration & Gram-schmidt (Not yet merged)
     * `bin/arnoldi.rs`
     * `bin/schmidt.rs`
+* Fix `Matrix::from_index`
+    * You should use index function which returns `f64`
 
 # Release 0.9.0 (2019-04-08)
 
@@ -17,7 +19,7 @@
         use std::io::Write;
 
         fn main () {
-            let mut w = Box<Write>; 
+            let mut w: Box<Write>; 
             match File::create(path) {
                 Ok(p) => writer = Box::new(p),
                 Err(e) => (),

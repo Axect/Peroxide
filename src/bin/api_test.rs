@@ -11,6 +11,6 @@ fn main() {
     let c: Matrix = R::new(c!(1,2,3,4), 2, 2, Row);
     c.print();
 
-    let d: Matrix = Matrix::from_index(|x, y| x*3 + y + 1, (4, 3));
+    let d: Matrix = Matrix::from_index(|x, y| (x*3 + y + 1) as f64, (4, 3));
     d.print();
 }
