@@ -1,8 +1,9 @@
-# Release 0.9.2 (2019-04-15) (Candidates)
+# Release 0.9.2 (2019-05-03)
 
 * Implement Arnoldi iteration & Gram-schmidt (Not yet merged)
     * `bin/arnoldi.rs`
     * `bin/schmidt.rs`
+* Add `Debug, Clone` to `OPDist<T>, TPDist<T>`
 
 # Release 0.9.1 (2019-04-15)
 

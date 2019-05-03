@@ -13,6 +13,7 @@ use std::f64::consts::E;
 ///
 /// # Distributions
 /// * `Bernoulli(prob)`: Bernoulli distribution
+#[derive(Debug, Clone)]
 pub enum OPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Bernoulli(T),
 }
@@ -22,6 +23,7 @@ pub enum OPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
 /// # Distributions
 /// * `Uniform(start, end)`: Uniform distribution
 /// * `Normal(mean, std)`: Normal distribution
+#[derive(Debug, Clone)]
 pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Uniform(T, T),
     Normal(T, T),
