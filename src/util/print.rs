@@ -10,6 +10,10 @@ use structure::dual::*;
 use structure::multinomial::*;
 #[allow(unused_imports)]
 use structure::hyper_dual::*;
+#[allow(unused_imports)]
+use statistics::dist::*;
+use std::fmt::Debug;
+use rand::distributions::uniform::SampleUniform;
 
 pub trait Printable {
     fn print(&self);
@@ -116,5 +120,17 @@ impl Printable for Vec<Dual> {
 impl Printable for HyperDual {
     fn print(&self) {
         println!("{}", self);
+    }
+}
+
+impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for OPDist<T> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPDist<T> {
+    fn print(&self) {
+        println!("{:?}", self);
     }
 }

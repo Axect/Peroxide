@@ -1,6 +1,6 @@
 # TODO
 
-## 2018.03.08
+## 2019.05.09
 
 - [ ] Implement various pdf
     - [x] Bernoulli
@@ -22,11 +22,12 @@
     - [x] Matrix
     - [x] Linear Algebra
     - [x] Functional Programming
-    - [ ] Statistics
+    - [x] Statistics
     - [ ] Interpolation & Spline
     - [ ] ODE
     - [ ] Macros
     - [ ] Machine Learning
+- [ ] Export distributions using Pickle
 
 ## Complete
 

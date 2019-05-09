@@ -1,3 +1,8 @@
+# Release 0.9.3 (2019-05-09) (Candidates)
+
+* Implement `Printable` to `OPDist<T>, TPDist<T>`
+* New trait `ParametricDist` for `OPDist<T>, TPDist<T>` (Just extract parameters)
+
 # Release 0.9.2 (2019-05-03)
 
 * Implement Arnoldi iteration & Gram-schmidt (Not yet merged)

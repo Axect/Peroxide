@@ -68,3 +68,9 @@ fn test_row() {
     let a = matrix!(1;4;1, 2, 2, Row);
     assert_eq!(a.row(0), c!(1,2));
 }
+
+#[test]
+fn test_print() {
+    let op = Bernoulli(0);
+    op.print();
+}

@@ -31,6 +31,35 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Gamma(T, T),
 }
 
+/// Extract parameter
+pub trait ParametricDist {
+    type Parameter;
+    fn params(&self) -> Self::Parameter;
+}
+
+impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for OPDist<T> {
+    type Parameter = f64;
+
+    fn params(&self) -> Self::Parameter {
+        match self {
+            Bernoulli(mu) => (*mu).into()
+        }
+    }
+}
+
+impl <T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist<T> {
+    type Parameter = (f64, f64);
+
+    fn params(&self) -> Self::Parameter {
+        match self {
+            Uniform(a, b) => ((*a).into(), (*b).into()),
+            Normal(mu, sigma) => ((*mu).into(), (*sigma).into()),
+            Beta(a, b) => ((*a).into(), (*b).into()),
+            Gamma(a, b) => ((*a).into(), (*b).into()),
+        }
+    }
+}
+
 /// Random Number Generator trait
 ///
 /// # Methods

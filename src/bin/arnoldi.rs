@@ -11,8 +11,7 @@ fn main() {
 }
 
 
-
-
+#[allow(dead_code)]
 fn givens(alpha: f64, beta: f64) -> (f64, f64) {
     let mut tau = 0f64;
     let mut gamma = 0f64;
@@ -36,6 +35,7 @@ fn givens(alpha: f64, beta: f64) -> (f64, f64) {
     (gamma, sigma)
 }
 
+#[allow(dead_code)]
 fn arnoldi_iteration(a: Matrix, b: Vec<f64>, n: usize) -> Matrix {
     let mut q: Vec<Vec<f64>> = Vec::new();
     let mut x: Vec<Vec<f64>> = Vec::new();
@@ -75,6 +75,7 @@ fn arnoldi_iteration(a: Matrix, b: Vec<f64>, n: usize) -> Matrix {
     h
 }
 
+#[allow(dead_code)]
 fn normalized_vec(n: usize) -> Matrix {
     let v = rand(n, 1);
     v.fmap(|x| x / v.norm(Frobenius))

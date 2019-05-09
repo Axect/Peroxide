@@ -1,3 +1,5 @@
+extern crate rand;
+
 pub mod structure;
 pub mod statistics;
 #[macro_use]
