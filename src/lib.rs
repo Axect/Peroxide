@@ -93,3 +93,6 @@ pub use util::pickle::*;
 
 #[allow(unused_imports)]
 pub use structure::hyper_dual::*;
+
+#[allow(unused_imports)]
+pub use util::writer::*;

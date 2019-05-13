@@ -1,7 +1,9 @@
-# Release 0.9.3 (2019-05-09) (Candidates)
+# Release 0.9.3 (2019-05-13)
 
 * Implement `Printable` to `OPDist<T>, TPDist<T>`
 * New trait `ParametricDist` for `OPDist<T>, TPDist<T>` (Just extract parameters)
+* New module: `util/writer.rs`
+    * You can write pickle file with pipelines.
 
 # Release 0.9.2 (2019-05-03)
 

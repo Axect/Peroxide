@@ -8,7 +8,7 @@ fn main() {
     let b = Bernoulli(mu);
     let b_sample = b.sample(SAMPLE_SIZE);
     println!("Bernoulli at mu = {}",    mu);
-    println!("Numnormr of samples: {}", SAMPLE_SIZE);
+    println!("Number of samples: {}", SAMPLE_SIZE);
     println!("Theoretical mean: {}",    b.mean());
     println!("Sample mean: {}",         b_sample.mean());
     println!("Theoretical var: {}",     b.var());
