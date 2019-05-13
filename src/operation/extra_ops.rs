@@ -16,4 +16,5 @@ pub trait ExpLogOps {
     type Output;
     fn exp(&self) -> Self::Output;
     fn ln(&self) -> Self::Output;
+    fn log(&self, base: f64) -> Self::Output;
 }

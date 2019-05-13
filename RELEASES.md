@@ -1,3 +1,7 @@
+# Release 0.9.4 (2019-05-13)
+
+* Add `log(&self, base: f64)` to `ExpLogOps`
+
 # Release 0.9.3 (2019-05-13)
 
 * Implement `Printable` to `OPDist<T>, TPDist<T>`

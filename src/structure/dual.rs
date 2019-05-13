@@ -4,6 +4,7 @@ use std::convert::Into;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use structure::vector::*;
+use std::f64::consts::E;
 
 /// Dual - Structure for AD
 ///
@@ -228,6 +229,10 @@ impl ExpLogOps for Dual {
         let val = self.value().ln();
         let dval = self.slope() / self.value();
         Dual::new(val, dval)
+    }
+
+    fn log(&self, base: f64) -> Self::Output {
+        self.ln() / base.ln()
     }
 }
 

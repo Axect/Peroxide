@@ -233,6 +233,10 @@ impl ExpLogOps for HyperDual {
         let ddx = self.ddx / self.x - self.dx.powi(2)/self.x.powi(2);
         Self::new(x, dx, ddx)
     }
+
+    fn log(&self, base: f64) -> Self::Output {
+        self.ln() / base.ln()
+    }
 }
 
 impl PowOps for HyperDual {
