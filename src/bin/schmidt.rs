@@ -6,7 +6,7 @@ fn main() {
     let (q, r) = modified_gram_schmidt(a.clone());
     q.print();
     r.print();
-    (q % r).print();
+    (q * r).print();
 }
 
 fn modified_gram_schmidt(mat: Matrix) -> (Matrix, Matrix) {

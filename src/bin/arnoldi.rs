@@ -46,7 +46,7 @@ fn arnoldi_iteration(a: Matrix, b: Vec<f64>, n: usize) -> Matrix {
 
     // Make basis of Krylov space
     for k in 1 .. n {
-        let x_temp = (a.clone() % q[k-1].clone()).data;
+        let x_temp = (a.clone() * q[k-1].clone()).data;
         let mut y_temp = x_temp.clone();
         for j in 0 .. k {
             let inner = x_temp.dot(&q[j]);
@@ -56,7 +56,7 @@ fn arnoldi_iteration(a: Matrix, b: Vec<f64>, n: usize) -> Matrix {
         x.push(x_temp); // n-1
         y.push(y_temp); // n-1
     }
-    x.push((a.clone() % q[n-1].clone()).data);
+    x.push((a.clone() * q[n-1].clone()).data);
 
     // Construct Upper Hessenberg matrix
     // h: n x (n-1)

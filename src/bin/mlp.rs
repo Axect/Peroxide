@@ -33,7 +33,7 @@ fn sigmoid(x: f64) -> f64 {
 }
 
 fn forward(weights: Matrix, input_bias: Matrix) -> Matrix {
-    let s = input_bias % weights;
+    let s = input_bias * weights;
     s.fmap(|x| sigmoid(x))
 }
 
@@ -57,13 +57,13 @@ fn train(weights1: Matrix, weights2: Matrix, input: Matrix, answer: Matrix, eta:
         let a = forward(v.clone(), xb.clone());
         let ab = add_bias(a.clone(), -1f64);
         let y = forward(w.clone(), ab.clone());
-//        let err = (y.clone() - t.clone()).t() % (y.clone() - t.clone());
+//        let err = (y.clone() - t.clone()).t() * (y.clone() - t.clone());
         let wb = hide_bias(w.clone());
         let delta_o = (y.clone() - t.clone()) * y.clone() * (1f64 - y.clone());
-        let delta_h = (delta_o.clone() % wb.t()) * a.clone() * (1f64 - a.clone());
+        let delta_h = (delta_o.clone() * wb.t()) * a.clone() * (1f64 - a.clone());
 
-        w = w.clone() - eta * (ab.t() % delta_o);
-        v = v.clone() - eta * (xb.t() % delta_h);
+        w = w.clone() - eta * (ab.t() * delta_o);
+        v = v.clone() - eta * (xb.t() * delta_h);
     }
 
     let a = forward(v, xb);

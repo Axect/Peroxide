@@ -74,7 +74,7 @@ pub fn cubic_spline(node_x: Vector, node_y: Vector) -> Vec<Polynomial> {
     m[(n-2,n-2)] = v[n-1];
 
     // Calculate z
-    let z_inner = m.inv().unwrap() % Vec::from(&u[1..]).to_matrix();
+    let z_inner = m.inv().unwrap() * Vec::from(&u[1..]).to_matrix();
     let mut z = vec![0f64];
     z.extend(&z_inner.data);
     z.push(0f64);

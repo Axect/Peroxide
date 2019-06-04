@@ -24,7 +24,7 @@ fn main() {
     println!("{:?}", q);
     println!("");
 
-    let mut lu = l % u;
+    let mut lu = l * u;
     lu.print();
     println!("");
 

@@ -29,5 +29,5 @@ fn update<F>(xs: Vec<f64>, f: F) -> Vec<f64>
     let xs_dual = xs.conv_dual();
     let fx = f(xs_dual).values();
 
-    xs.sub(&(pinv_j % fx).col(0))
+    xs.sub(&(pinv_j * fx).col(0))
 }

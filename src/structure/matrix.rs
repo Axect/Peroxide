@@ -4,7 +4,7 @@ extern crate csv;
 use structure::vector::*;
 use std::convert;
 use std::fmt;
-use std::ops::{Add, Neg, Sub, Mul, Rem, Index, IndexMut};
+use std::ops::{Add, Neg, Sub, Mul, Index, IndexMut};
 pub use self::Shape::{Row, Col};
 pub use self::Norm::*;
 use std::cmp::{max, min};
@@ -682,13 +682,33 @@ impl Add<Matrix> for Matrix {
         assert_eq!(&self.col, &other.col);
         if self.shape == other.shape {
             matrix(
-                self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x + y).collect::<Vec<f64>>(),
+                self.data.into_iter().zip(&other.data).map(|(x,y)| x + y).collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
             )
         } else {
             self.change_shape().add(other)
+        }
+    }
+}
+
+/// Element-wise addition of &Matrix
+impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
+    type Output = Matrix;
+
+    fn add(self, other: &'b Matrix) -> Self::Output {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+        if self.shape == other.shape {
+            Matrix {
+                data: self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x + y).collect::<Vec<f64>>(),
+                row: self.row,
+                col: self.col,
+                shape: self.shape,
+            }
+        } else {
+            (&self.change_shape()).add(other)
         }
     }
 }
@@ -706,6 +726,14 @@ impl Add<Matrix> for Matrix {
 impl<T> Add<T> for Matrix where T: convert::Into<f64> + Copy {
     type Output = Self;
     fn add(self, other: T) -> Self {
+        self.fmap(|x| x + other.into())
+    }
+}
+
+/// Element-wise addition between &Matrix & f64
+impl<'a, T> Add<T> for &'a Matrix where T: convert::Into<f64> + Copy {
+    type Output = Matrix;
+    fn add(self, other: T) -> Self::Output {
         self.fmap(|x| x + other.into())
     }
 }
@@ -728,7 +756,16 @@ impl Add<Matrix> for f64 {
     }
 }
 
-/// Element-wise addition between f64 & matrix
+/// Element-wise addition between f64 & &Matrix
+impl<'a> Add<&'a Matrix> for f64 {
+    type Output = Matrix;
+
+    fn add(self, other: &'a Matrix) -> Self::Output {
+        other.add(self)
+    }
+}
+
+/// Element-wise addition between i32 & Matrix
 ///
 /// # Examples
 /// ```
@@ -746,7 +783,17 @@ impl Add<Matrix> for i32 {
     }
 }
 
-/// Element-wise addition between f64 & matrix
+/// Element-wise addition between i32 & &Matrix
+impl<'a> Add<&'a Matrix> for i32 {
+    type Output = Matrix;
+
+    fn add(self, other: &'a Matrix) -> Self::Output {
+        other.add(self)
+    }
+}
+
+
+/// Element-wise addition between usize & matrix
 ///
 /// # Examples
 /// ```
@@ -760,6 +807,15 @@ impl Add<Matrix> for usize {
     type Output = Matrix;
 
     fn add(self, other: Matrix) -> Matrix {
+        other.add(self as f64)
+    }
+}
+
+/// Element-wise addition between usize & &Matrix
+impl<'a> Add<&'a Matrix> for usize {
+    type Output = Matrix;
+
+    fn add(self, other: &'a Matrix) -> Self::Output {
         other.add(self as f64)
     }
 }
@@ -791,6 +847,20 @@ impl Neg for Matrix {
     }
 }
 
+/// Negation of &'a Matrix
+impl<'a> Neg for &'a Matrix {
+    type Output = Matrix;
+
+    fn neg(self) -> Self::Output {
+        Matrix {
+            data: self.data.clone().into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+            row: self.row,
+            col: self.col,
+            shape: self.shape,
+        }
+    }
+}
+
 // =============================================================================
 // Standard Operation for Matrix (Sub)
 // =============================================================================
@@ -813,7 +883,7 @@ impl Sub<Matrix> for Matrix {
         assert_eq!(&self.col, &other.col);
         if self.shape == other.shape {
             matrix(
-                self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x - y).collect::<Vec<f64>>(),
+                self.data.into_iter().zip(&other.data).map(|(x,y)| x - y).collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -824,10 +894,40 @@ impl Sub<Matrix> for Matrix {
     }
 }
 
+/// Subtraction between &'a Matrix
+impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
+    type Output = Matrix;
+
+    fn sub(self, other: &'b Matrix) -> Self::Output {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+        if self.shape == other.shape {
+            Matrix {
+                data: self.data.clone().into_iter().zip(&other.data).map(|(x,y)| x - y).collect::<Vec<f64>>(),
+                row: self.row,
+                col: self.col,
+                shape: self.shape,
+            }
+        } else {
+            (&self.change_shape()).sub(other)
+        }
+    }
+}
+
+/// Subtraction between Matrix & f64
 impl<T> Sub<T> for Matrix where T: convert::Into<f64> + Copy {
     type Output = Self;
 
     fn sub(self, other: T) -> Self {
+        self.fmap(|x| x - other.into())
+    }
+}
+
+/// Subtraction between &Matrix & f64
+impl<'a, T> Sub<T> for &'a Matrix where T: convert::Into<f64> + Copy {
+    type Output = Matrix;
+
+    fn sub(self, other: T) -> Self::Output {
         self.fmap(|x| x - other.into())
     }
 }
@@ -850,10 +950,26 @@ impl Sub<Matrix> for f64 {
     }
 }
 
+impl<'a> Sub<&'a Matrix> for f64 {
+    type Output = Matrix;
+
+    fn sub(self, other: &'a Matrix) -> Self::Output {
+        - other.sub(self)
+    }
+}
+
 impl Sub<Matrix> for i32 {
     type Output = Matrix;
 
     fn sub(self, other: Matrix) -> Matrix {
+        - other.sub(self)
+    }
+}
+
+impl<'a> Sub<&'a Matrix> for i32 {
+    type Output = Matrix;
+
+    fn sub(self, other: &'a Matrix) -> Self::Output {
         - other.sub(self)
     }
 }
@@ -866,32 +982,80 @@ impl Sub<Matrix> for usize {
     }
 }
 
-/// Element-wise matrix multiplication
-///
-/// # Examples
-/// ```
-/// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-/// let b = matrix(vec![1,2,3,4], 2, 2, Col);
-/// println!("{}", a * b); // [[1,6],[6,16]]
-/// ```
-impl Mul<Matrix> for Matrix {
-    type Output = Self;
+impl<'a> Sub<&'a Matrix> for usize {
+    type Output = Matrix;
 
-    fn mul(self, other: Self) -> Self {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-        self.zip_with(|x,y| x * y, &other)
+    fn sub(self, other: &'a Matrix) -> Self::Output {
+        - other.sub(self as f64)
     }
 }
 
-impl<T> Mul<T> for Matrix where T: convert::Into<f64> + Copy {
+
+// =============================================================================
+// Multiplication for Matrix
+// =============================================================================
+/// Element-wise multiplication between Matrix vs f64
+impl Mul<f64> for Matrix {
     type Output = Self;
 
-    fn mul(self, other: T) -> Self {
-        self.fmap(|x| x * other.into())
+    fn mul(self, other: f64) -> Self {
+        self.fmap(|x| x * other)
+    }
+}
+
+impl Mul<i64> for Matrix {
+    type Output = Self;
+
+    fn mul(self, other: i64) -> Self {
+        self.fmap(|x| x * (other as f64))
+    }
+}
+
+impl Mul<i32> for Matrix {
+    type Output = Self;
+
+    fn mul(self, other: i32) -> Self {
+        self.fmap(|x| x * (other as f64))
+    }
+}
+
+impl Mul<usize> for Matrix {
+    type Output = Self;
+
+    fn mul(self, other: usize) -> Self {
+        self.fmap(|x| x * (other as f64))
+    }
+}
+
+impl <'a> Mul<f64> for &'a Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: f64) -> Self::Output {
+        self.fmap(|x| x * other)
+    }
+}
+
+impl <'a> Mul<i64> for &'a Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: i64) -> Self::Output {
+        self.fmap(|x| x * (other as f64))
+    }
+}
+
+impl <'a> Mul<i32> for &'a Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: i32) -> Self::Output {
+        self.fmap(|x| x * (other as f64))
+    }
+}
+
+impl <'a> Mul<usize> for &'a Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: usize) -> Self::Output {
+        self.fmap(|x| x * (other as f64))
     }
 }
 
@@ -927,6 +1091,38 @@ impl Mul<Matrix> for usize {
     }
 }
 
+impl<'a> Mul<&'a Matrix> for f64 {
+    type Output = Matrix;
+
+    fn mul(self, other: &'a Matrix) -> Matrix {
+        other.mul(self)
+    }
+}
+
+impl<'a> Mul<&'a Matrix> for i64 {
+    type Output = Matrix;
+
+    fn mul(self, other: &'a Matrix) -> Matrix {
+        other.mul(self as f64)
+    }
+}
+
+impl<'a> Mul<&'a Matrix> for i32 {
+    type Output = Matrix;
+
+    fn mul(self, other: &'a Matrix) -> Matrix {
+        other.mul(self as f64)
+    }
+}
+
+impl<'a> Mul<&'a Matrix> for usize {
+    type Output = Matrix;
+
+    fn mul(self, other: &'a Matrix) -> Matrix {
+        other.mul(self as f64)
+    }
+}
+
 /// Matrix Multiplication
 ///
 /// # Examples
@@ -936,16 +1132,16 @@ impl Mul<Matrix> for usize {
 ///
 /// let a = matrix!(1;4;1, 2, 2, Row);
 /// let b = matrix!(1;4;1, 2, 2, Col);
-/// assert_eq!(a % b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
+/// assert_eq!(a * b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
 ///
 /// let m = matrix!(1;4;1, 2, 2, Row);
 /// let v = c!(1,2);
-/// assert_eq!(m % v, matrix(c!(5,11),2,1,Col));
+/// assert_eq!(m * v, matrix(c!(5,11),2,1,Col));
 /// ```
-impl<T> Rem<T> for Matrix where T: LinearOps {
+impl<T> Mul<T> for Matrix where T: LinearOps {
     type Output = Self;
 
-    fn rem(self, other: T) -> Self {
+    fn mul(self, other: T) -> Self {
         let r_self = self.row;
         let c_self = self.col;
         let new_other = other.to_matrix();
@@ -972,6 +1168,29 @@ impl<T> Rem<T> for Matrix where T: LinearOps {
     }
 }
 
+impl<'a, 'b, T> Mul<&'b T> for &'a Matrix where T: LinearOps {
+    type Output = Matrix;
+
+    fn mul(self, other: &'b T) -> Self::Output {
+        let new_other = other.to_matrix();
+
+        assert_eq!(self.col, new_other.row);
+        
+        let mut result = matrix(vec![0f64; self.row * new_other.col], self.row, new_other.col, self.shape);
+
+        for i in 0 .. self.row {
+            for j in 0 .. new_other.col {
+                let mut s = 0f64;
+                for k in 0 .. self.col {
+                    s += self[(i, k)] * new_other[(k, j)];
+                }
+                result[(i, j)] = s;
+            }
+        }
+        result
+    }
+}
+
 /// Matrix multiplication for Vector vs Matrix
 ///
 /// # Examples
@@ -981,15 +1200,30 @@ impl<T> Rem<T> for Matrix where T: LinearOps {
 ///
 /// let a = matrix!(1;4;1, 2, 2, Row);
 /// let v = c!(1,2);
-/// assert_eq!(v % a, matrix(c!(7,10),1,2,Row));
+/// assert_eq!(v * a, matrix(c!(7,10),1,2,Row));
 /// ```
-impl Rem<Matrix> for Vector {
+impl Mul<Matrix> for Vector {
     type Output = Matrix;
 
-    fn rem(self, other: Matrix) -> Matrix {
+    fn mul(self, other: Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
         let l = self.len();
-        matrix(self, 1, l, Col).rem(other)
+        matrix(self, 1, l, Col).mul(other)
+    }
+}
+
+impl<'a, 'b> Mul<&'b Matrix> for &'a Vector {
+    type Output = Matrix;
+
+    fn mul(self, other:&'b Matrix) -> Self::Output {
+        assert_eq!(self.len(), other.row);
+        let l = self.len();
+        Matrix {
+            data: self.clone(),
+            row: 1,
+            col: l,
+            shape: Col,
+        }.mul(other.clone())
     }
 }
 
@@ -1472,7 +1706,7 @@ impl LinearAlgebra for Matrix {
             None => None,
             Some(pqlu) => {
                 let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-                let mut m = inv_u(u) % inv_l(l);
+                let mut m = inv_u(u) * inv_l(l);
                 for (idx1, idx2) in q.into_iter().rev() {
                     m = m.swap(idx1, idx2, Row);
                 }
@@ -1504,12 +1738,12 @@ impl LinearAlgebra for Matrix {
         let x = self.clone();
         let xt = self.t();
 
-        let xtx = xt % x;
+        let xtx = xt * x;
         let inv_temp = xtx.inv();
 
         match inv_temp {
             None => None,
-            Some(m) => Some(m % self.t())
+            Some(m) => Some(m * self.t())
         }
     }
 }
@@ -1595,7 +1829,7 @@ pub fn inv_l(l: Matrix) -> Matrix {
             let m1 = inv_l(l1);
             let m2 = l2;
             let m4 = inv_l(l4);
-            let m3 = -((m4.clone() % l3) % m1.clone());
+            let m3 = -((m4.clone() * l3) * m1.clone());
 
             combine(m1, m2, m3, m4)
         }
@@ -1636,7 +1870,7 @@ pub fn inv_u(u: Matrix) -> Matrix {
             let m1 = inv_u(u1);
             let m3 = u3;
             let m4 = inv_u(u4);
-            let m2 = -(m1.clone() % u2 % m4.clone());
+            let m2 = -(m1.clone() * u2 * m4.clone());
 
             combine(m1, m2, m3, m4)
         }

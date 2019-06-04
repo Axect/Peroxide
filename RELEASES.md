@@ -1,3 +1,22 @@
+# Release 0.10.0 (2019-06-04) (Candidates)
+
+* **[Important!]** Remove `Rem` for `Matrix` (Thanks to [russellb23](https://github.com/russellb23))
+* **[Important!]** Change `Mul` for `Matrix`
+    * `Mul<Matrix> for Matrix` is Matrix multiplication!
+* Now, we can use `std::ops` for `&Matrix`
+    ```rust
+    extern crate peroxide;
+    use peroxide::*;
+
+    fn main() {
+        let a = ml_matrix("1 2;3 4");
+
+        (&a + &a).print();
+        (&a * &a).print();
+        (&a - &a).print();
+    }
+    ```
+
 # Release 0.9.4 (2019-05-13)
 
 * Add `log(&self, base: f64)` to `ExpLogOps`

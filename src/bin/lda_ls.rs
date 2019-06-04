@@ -13,7 +13,7 @@ fn main() {
     let x1_x_temp = Normal(0f64, 1f64).sample(N);
     let x1_y_temp = Normal(0f64, 0.3f64).sample(N);
     let x1_temp = cbind(x1_x_temp.to_matrix(), x1_y_temp.to_matrix()).t();
-    let x1_rot = R.clone() % x1_temp;
+    let x1_rot = R.clone() * x1_temp;
     let x1_x = x1_rot.row(0).fmap(|t| t + m1.x);
     let x1_y = x1_rot.row(1).fmap(|t| t + m1.y);
     let x1 = cbind(x1_x.to_matrix(), x1_y.to_matrix());
@@ -24,7 +24,7 @@ fn main() {
     let x2_x_temp = Normal(0f64, 1f64).sample(N);
     let x2_y_temp = Normal(0f64, 0.3f64).sample(N);
     let x2_temp = cbind(x2_x_temp.to_matrix(), x2_y_temp.to_matrix()).t();
-    let x2_rot = R.clone() % x2_temp;
+    let x2_rot = R.clone() * x2_temp;
     let x2_x = x2_rot.row(0).fmap(|t| t + m2.x);
     let x2_y = x2_rot.row(1).fmap(|t| t + m2.y);
     let x2 = cbind(x2_x.to_matrix(), x2_y.to_matrix());
@@ -44,7 +44,7 @@ fn main() {
 
     X_tilde.print();
 
-    let weight = X_tilde.pseudo_inv().unwrap() % T;
+    let weight = X_tilde.pseudo_inv().unwrap() * T;
 
     weight.print();
 
@@ -66,7 +66,7 @@ fn fisher_lda(weight: Matrix) -> impl Fn(Matrix) -> Matrix
 {
     move |x: Matrix| {
         let x_tilde = add_bias(x, Row);
-        weight.t() % x_tilde
+        weight.t() * x_tilde
     }
 }
 

@@ -78,5 +78,5 @@ fn non_auto_update<F>(t: f64, yn: Vec<f64>, ys: Vec<f64>, f: F, h: f64) -> Vec<f
     // F(y_{n+1}^i) = y_{n+1}^i - y_n - hf(t_n+h, y_{n+1}^i) 
     let F_ys = ys.sub(&yn).sub(&(f_xs.fmap(|x| h*x)));
 
-    ys.sub(&(DF.inv().unwrap() % F_ys).col(0))
+    ys.sub(&(DF.inv().unwrap() * F_ys).col(0))
 }

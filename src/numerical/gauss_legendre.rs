@@ -99,7 +99,7 @@ pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, V
     // 3. Iteration
     while err >= rtol && num_iter <= 10 {
         let k_prev = k_curr.clone();
-        let DGG = DG_inv.clone() % G.clone();
+        let DGG = DG_inv.clone() * G.clone();
         k_curr = k_curr.sub(&DGG.col(0));
         Dg = jacobian(k_curr.clone(), g.clone());
         DG = I.clone() - Dg.clone();

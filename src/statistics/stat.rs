@@ -252,5 +252,5 @@ pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     ones.extend(&x_temp.data);
     let x = matrix(ones, x_temp.row, x_temp.col + 1, x_temp.shape);
     let t = target.clone();
-    x.pseudo_inv().unwrap() % t
+    x.pseudo_inv().unwrap() * t
 }
