@@ -46,10 +46,10 @@ pub fn tov_rhs(r: Dual, rs: Vec<Dual>) -> Vec<Dual> {
     let rho_0 = (p_old / K).powf(1. / GAMMAF);
     let rho_old = rho_0 + p_old / (GAMMAF - 1f64);
 
-    let dm = 4f64 * PI * r.pow(2) * rho_old;
+    let dm = 4f64 * PI * r.powi(2) * rho_old;
 
-    let dphi = if r.value() != 0f64 { (m_old + 4f64 * PI * r.pow(3) * p_old) / (r.pow(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
-    let dp = if r.value() != 0f64 {- (rho_old + p_old) * (m_old + 4f64 * PI * r.pow(3) * p_old) / (r.pow(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
+    let dphi = if r.value() != 0f64 { (m_old + 4f64 * PI * r.powi(3) * p_old) / (r.powi(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
+    let dp = if r.value() != 0f64 {- (rho_old + p_old) * (m_old + 4f64 * PI * r.powi(3) * p_old) / (r.powi(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
 
     vec![dm, dphi, dp]
 }

@@ -32,7 +32,7 @@ fn main() {
     // ln(x^2)
     y.ln().print();
 
-    y.pow(2).print();
+    y.powi(2).print();
     y.sqrt().print();
 
     let z = hyper_dual(1, 1, 0);

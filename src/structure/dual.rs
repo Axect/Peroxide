@@ -2,9 +2,13 @@ use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 /// Structure for Automatic Differentiation
 use std::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub, Rem};
 use structure::vector::*;
 use std::f64::consts::E;
+use std::cmp::Ordering;
+use Real;
+//use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
+//use std::num::ParseFloatError;
 
 /// Dual - Structure for AD
 ///
@@ -24,6 +28,12 @@ impl fmt::Display for Dual {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s1 = format!("value: {}\nslope: {}", self.x, self.dx);
         write!(f, "{}", s1)
+    }
+}
+
+impl PartialEq for Dual {
+    fn eq(&self, other: &Dual) -> bool {
+        self.x == other.x && self.dx == other.dx
     }
 }
 
@@ -123,6 +133,13 @@ impl Div<Dual> for Dual {
     }
 }
 
+impl Rem<Dual> for Dual {
+    type Output = Dual;
+    fn rem(self, rhs: Dual) -> Dual {
+        unimplemented!()
+    }
+}
+
 // =============================================================================
 // Ops with f64
 // =============================================================================
@@ -208,6 +225,68 @@ impl TrigOps for Dual {
         let dval = self.dx * (1. + val * val); // 1 + tan^2 = sec^2
         Dual::new(val, dval)
     }
+
+    fn asin(&self) -> Self::Output {
+        let val = self.x.asin();
+        let dval = self.dx / (1f64 - self.x.powi(2)).sqrt();
+        Dual::new(val, dval)
+    }
+
+    fn acos(&self) -> Self::Output {
+        let val = self.x.acos();
+        let dval = - self.dx / (1f64 - self.x.powi(2)).sqrt();
+        Dual::new(val, dval)
+    }
+
+    fn atan(&self) -> Self::Output {
+        let val = self.x.atan();
+        let dval = self.dx / (1f64 + self.x.powi(2));
+        Dual::new(val, dval)
+    }
+
+    fn sinh(&self) -> Self::Output {
+        let val = self.x.sinh();
+        let dval = self.dx * self.x.cosh();
+        Dual::new(val, dval)
+    }
+
+    fn cosh(&self) -> Self::Output {
+        let val = self.x.cosh();
+        let dval = self.dx * self.x.sinh();
+        Dual::new(val, dval)
+    }
+
+    fn tanh(&self) -> Self::Output {
+        let val = self.x.tanh();
+        let dval = self.dx / self.x.cosh().powi(2);
+        Dual::new(val, dval)
+    }
+
+    fn asinh(&self) -> Self::Output {
+        let val = self.x.asinh();
+        let dval = self.dx / (1f64 + self.x.powi(2)).sqrt();
+        Dual::new(val, dval)
+    }
+
+    fn acosh(&self) -> Self::Output {
+        let val = self.x.acosh();
+        let dval = self.dx / (self.x.powi(2) - 1f64).sqrt();
+        Dual::new(val, dval)
+    }
+
+    fn atanh(&self) -> Self::Output {
+        let val = self.x.atanh();
+        let dval = self.dx / (1f64 - self.x.powi(2));
+        Dual::new(val, dval)
+    }
+
+    fn sin_cos(&self) -> (Self::Output, Self::Output) {
+        let vals = self.x.sin_cos();
+        let dvals = (self.dx * vals.1, -self.dx * vals.0);
+        let d1 = Dual::new(vals.0, dvals.0);
+        let d2 = Dual::new(vals.1, dvals.1);
+        (d1, d2)
+    }
 }
 
 // =============================================================================
@@ -234,27 +313,34 @@ impl ExpLogOps for Dual {
     fn log(&self, base: f64) -> Self::Output {
         self.ln() / base.ln()
     }
+
+    fn log2(&self) -> Self::Output {
+        self.log(2f64)
+    }
+
+    fn log10(&self) -> Self::Output {
+        self.log(10f64)
+    }
 }
 
 // =============================================================================
 // Power
 // =============================================================================
-
 /// Power for Dual
 impl PowOps for Dual {
     type Output = Dual;
 
-    fn pow(&self, n: usize) -> Dual {
-        let x = self.value();
-        let val = x.powi(n as i32);
-        let dval = (n as f64) * x.powi((n - 1) as i32) * self.slope();
+    fn powi(&self, n: i32) -> Dual {
+        let x = self.x;
+        let val = x.powi(n);
+        let dval = (n as f64) * x.powi(n - 1) * self.dx;
         Dual::new(val, dval)
     }
 
     fn powf(&self, f: f64) -> Dual {
-        let x = self.value();
+        let x = self.x;
         let val = x.powf(f);
-        let dval = f * x.powf(f - 1f64) * self.slope();
+        let dval = f * x.powf(f - 1f64) * self.dx;
         Dual::new(val, dval)
     }
 
@@ -262,6 +348,20 @@ impl PowOps for Dual {
         self.powf(0.5)
     }
 }
+
+// =============================================================================
+// Real trait for Dual
+// =============================================================================
+impl Real for Dual {
+    fn to_f64(&self) -> f64 {
+        self.x
+    }
+
+    fn from_f64(f: f64) -> Self {
+        Dual::new(f, 0f64)
+    }
+}
+
 
 // =============================================================================
 // Dual List
@@ -389,3 +489,283 @@ impl VecOps for Vec<Dual> {
         unimplemented!()
     }
 }
+
+// =============================================================================
+// Num Traits for Dual
+// =============================================================================
+//impl Zero for Dual {
+//    fn zero() -> Self {
+//        Dual::new(0f64, 0f64)
+//    }
+//
+//    fn is_zero(&self) -> bool {
+//        self.x == 0f64 && self.dx == 0f64
+//    }
+//}
+//
+//impl One for Dual {
+//    fn one() -> Self {
+//        Dual::new(1f64, 0f64)
+//    }
+//}
+//
+//impl Num for Dual {
+//    type FromStrRadixErr = ParseFloatError;
+//
+//    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+//        unimplemented!()
+//    }
+//}
+//
+//impl ToPrimitive for Dual {
+//    fn to_i64(&self) -> Option<i64> {
+//        Some(self.x as i64)
+//    }
+//
+//    fn to_u64(&self) -> Option<u64> {
+//        Some(self.x as u64)
+//    }
+//
+//    fn to_f64(&self) -> Option<f64> {
+//        Some(self.x)
+//    }
+//}
+//
+//impl NumCast for Dual {
+//    fn from<T: ToPrimitive>(n: T) -> Option<Self> {
+//        match n.to_f64() {
+//            None => None,
+//            Some(val) => Some(Dual::new(val, 0f64))
+//        }
+//    }
+//}
+//
+//impl Real for Dual {
+//    fn min_value() -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn min_positive_value() -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn epsilon() -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn max_value() -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn floor(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn ceil(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn round(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn trunc(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn fract(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn abs(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn signum(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn is_sign_positive(self) -> bool {
+//        unimplemented!()
+//    }
+//
+//    fn is_sign_negative(self) -> bool {
+//        unimplemented!()
+//    }
+//
+//    fn mul_add(self, a: Self, b: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn recip(self) -> Self {
+//        let val = 1f64 / self.x;
+//        let dval = - self.dx / self.x.powi(2);
+//    }
+//
+//    fn powi(self, n: i32) -> Self {
+//        let x = self.x;
+//        let val = x.powi(n);
+//        let dval = (n as f64) * x.powi(n - 1) * self.dx;
+//        Dual::new(val, dval)
+//    }
+//
+//    fn powf(self, n: Self) -> Self {
+//        let f = n.to_f64();
+//        let val = self.x.powf(f);
+//        let dval = f * self.x.powf(f - 1f64) * self.dx;
+//        Dual::new(val, dval)
+//    }
+//
+//    fn sqrt(self) -> Self {
+//        self.powf(Dual::new(0.5f64, 0f64))
+//    }
+//
+//    fn exp(self) -> Self {
+//        let val = self.x.exp();
+//        let dval = val * self.dx;
+//        Dual::new(val, dval)
+//    }
+//
+//    fn exp2(self) -> Self {
+//        let val = self.x.exp2();
+//        let dval = val * 2f64.ln() * self.dx;
+//        Dual::new(val, dval)
+//    }
+//
+//    fn ln(self) -> Self {
+//        let val = self.x.ln();
+//        let dval = self.dx / self.x;
+//        Dual::new(val, dval)
+//    }
+//
+//    fn log(self, base: Self) -> Self {
+//        self.ln() / base.to_f64().ln()
+//    }
+//
+//    fn log2(self) -> Self {
+//        self.log(Dual::new(2f64, 0f64))
+//    }
+//
+//    fn log10(self) -> Self {
+//        self.log(Dual::new(10f64, 0f64))
+//    }
+//
+//    fn to_degrees(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn to_radians(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn max(self, other: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn min(self, other: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn abs_sub(self, other: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn cbrt(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn hypot(self, other: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn sin(self) -> Self {
+//        let val = self.x.sin();
+//        let dval = self.dx * self.x.cos();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn cos(self) -> Self {
+//        let val = self.x.cos();
+//        let dval = -self.dx * self.x.sin();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn tan(self) -> Self {
+//        let val = self.x.tan();
+//        let dval = self.dx * (1. + val * val); // 1 + tan^2 = sec^2
+//        Dual::new(val, dval)
+//    }
+//
+//    fn asin(self) -> Self {
+//        let val = self.x.asin();
+//        let dval = self.dx / (1f64 - self.x.powi(2)).sqrt();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn acos(self) -> Self {
+//        let val = self.x.acos();
+//        let dval = - self.dx / (1f64 - self.x.powi(2)).sqrt();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn atan(self) -> Self {
+//        let val = self.x.atan();
+//        let dval = self.dx / (1f64 + self.x.powi(2));
+//        Dual::new(val, dval)
+//    }
+//
+//    fn atan2(self, other: Self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn sin_cos(self) -> (Self, Self) {
+//        let vals = self.sin_cos();
+//        let dvals = (self.dx * vals.1, -self.dx * vals.0);
+//        (Dual::new(vals.0, dvals.0), Dual::new(vals.1, dvals.1))
+//    }
+//
+//    fn exp_m1(self) -> Self {
+//        self.exp() - 1f64
+//    }
+//
+//    fn ln_1p(self) -> Self {
+//        unimplemented!()
+//    }
+//
+//    fn sinh(self) -> Self {
+//        let val = self.x.sinh();
+//        let dval = self.dx * self.x.cosh();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn cosh(self) -> Self {
+//        let val = self.x.cosh();
+//        let dval = self.dx * self.x.sinh();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn tanh(self) -> Self {
+//        let val = self.x.tanh();
+//        let dval = self.dx / self.x.cosh().powi(2);
+//        Dual::new(val, dval)
+//
+//    }
+//
+//    fn asinh(self) -> Self {
+//        let val = self.x.asinh();
+//        let dval = self.dx / (1f64 + self.x.powi(2)).sqrt();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn acosh(self) -> Self {
+//        let val = self.x.acosh();
+//        let dval = self.dx / (self.x.powi(2) - 1f64).sqrt();
+//        Dual::new(val, dval)
+//    }
+//
+//    fn atanh(self) -> Self {
+//        let val = self.x.atanh();
+//        let dval = self.dx / (1f64 - self.x.powi(2));
+//        Dual::new(val, dval)
+//    }
+//}

@@ -1,4 +1,4 @@
-# Release 0.10.0 (2019-06-04) (Candidates)
+# Release 0.10.0 (2019-06-05) (Candidates)
 
 * **[Important!]** Remove `Rem` for `Matrix` (Thanks to [russellb23](https://github.com/russellb23))
 * **[Important!]** Change `Mul` for `Matrix`
@@ -16,6 +16,10 @@
         (&a - &a).print();
     }
     ```
+* `Real` Trait is appeared & implemented for some types.
+    * `Real` for `f64`
+    * `Real` for `Dual`
+    * `Real` for `HyperDual`
 
 # Release 0.9.4 (2019-05-13)
 

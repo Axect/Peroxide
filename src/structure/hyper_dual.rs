@@ -5,6 +5,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 #[allow(unused_imports)]
 use structure::vector::*;
 use structure::dual::dual;
+use Real;
 
 /// Hyper Dual number
 ///
@@ -214,6 +215,46 @@ impl TrigOps for HyperDual {
         let ddx = self.ddx * (1f64 + x.powi(2)) + dx * self.dx * 2f64*x;
         Self::new(x, dx, ddx)
     }
+
+    fn asin(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn acos(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn atan(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn sinh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn cosh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn tanh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn asinh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn acosh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn atanh(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn sin_cos(&self) -> (Self::Output, Self::Output) {
+        unimplemented!()
+    }
 }
 
 impl ExpLogOps for HyperDual {
@@ -237,12 +278,20 @@ impl ExpLogOps for HyperDual {
     fn log(&self, base: f64) -> Self::Output {
         self.ln() / base.ln()
     }
+
+    fn log2(&self) -> Self::Output {
+        unimplemented!()
+    }
+
+    fn log10(&self) -> Self::Output {
+        unimplemented!()
+    }
 }
 
 impl PowOps for HyperDual {
     type Output = Self;
 
-    fn pow(&self, n: usize) -> Self::Output {
+    fn powi(&self, n: i32) -> Self::Output {
         let mut s = self.clone();
         for _i in 1 .. n {
             s = s * s;
@@ -260,5 +309,15 @@ impl PowOps for HyperDual {
 
     fn sqrt(&self) -> Self::Output {
         self.powf(0.5)
+    }
+}
+
+impl Real for HyperDual {
+    fn to_f64(&self) -> f64 {
+        self.x
+    }
+
+    fn from_f64(f: f64) -> Self {
+        HyperDual::new(f, 0f64, 0f64)
     }
 }

@@ -341,7 +341,7 @@ impl Div<Polynomial> for Polynomial {
 impl PowOps for Polynomial {
     type Output = Self;
 
-    fn pow(&self, n: usize) -> Self {
+    fn powi(&self, n: i32) -> Self {
         let mut result = self.clone();
         for _i in 0 .. n-1 {
             result = result * self.clone();

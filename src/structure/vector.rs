@@ -270,7 +270,7 @@ impl PowOps for Vector {
     type Output = Vector;
 
     /// Power usize
-    fn pow(&self, n: usize) -> Vector {
+    fn powi(&self, n: i32) -> Vector {
         self.powf(n as f64)
     }
 

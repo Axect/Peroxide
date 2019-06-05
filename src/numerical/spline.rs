@@ -95,8 +95,8 @@ pub fn cubic_spline(node_x: Vector, node_y: Vector) -> Vec<Polynomial> {
         let temp1 = poly(vec![1f64, -t_i]);
         let temp2 = poly(vec![1f64, -t_i1]);
 
-        let term1 = temp1.pow(3) * (z_i1 / (6f64 * h_i));
-        let term2 = temp2.pow(3) * (-z_i / (6f64 * h_i));
+        let term1 = temp1.powi(3) * (z_i1 / (6f64 * h_i));
+        let term2 = temp2.powi(3) * (-z_i / (6f64 * h_i));
         let term3 = temp1 * (y_i1 / h_i - z_i1 * h_i / 6.);
         let term4 = temp2 * (-y_i / h_i + h_i*z_i / 6.0);
 
