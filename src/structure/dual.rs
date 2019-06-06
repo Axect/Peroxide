@@ -206,81 +206,79 @@ impl Div<Dual> for f64 {
 
 /// Trigonometric function with Dual
 impl TrigOps for Dual {
-    type Output = Dual;
-
-    fn sin(&self) -> Dual {
+    fn sin(&self) -> Self {
         let val = self.x.sin();
         let dval = self.dx * self.x.cos();
         Dual::new(val, dval)
     }
 
-    fn cos(&self) -> Dual {
+    fn cos(&self) -> Self {
         let val = self.x.cos();
         let dval = -self.dx * self.x.sin();
         Dual::new(val, dval)
     }
 
-    fn tan(&self) -> Dual {
+    fn tan(&self) -> Self {
         let val = self.x.tan();
         let dval = self.dx * (1. + val * val); // 1 + tan^2 = sec^2
         Dual::new(val, dval)
     }
 
-    fn asin(&self) -> Self::Output {
+    fn asin(&self) -> Self {
         let val = self.x.asin();
         let dval = self.dx / (1f64 - self.x.powi(2)).sqrt();
         Dual::new(val, dval)
     }
 
-    fn acos(&self) -> Self::Output {
+    fn acos(&self) -> Self {
         let val = self.x.acos();
         let dval = - self.dx / (1f64 - self.x.powi(2)).sqrt();
         Dual::new(val, dval)
     }
 
-    fn atan(&self) -> Self::Output {
+    fn atan(&self) -> Self {
         let val = self.x.atan();
         let dval = self.dx / (1f64 + self.x.powi(2));
         Dual::new(val, dval)
     }
 
-    fn sinh(&self) -> Self::Output {
+    fn sinh(&self) -> Self {
         let val = self.x.sinh();
         let dval = self.dx * self.x.cosh();
         Dual::new(val, dval)
     }
 
-    fn cosh(&self) -> Self::Output {
+    fn cosh(&self) -> Self {
         let val = self.x.cosh();
         let dval = self.dx * self.x.sinh();
         Dual::new(val, dval)
     }
 
-    fn tanh(&self) -> Self::Output {
+    fn tanh(&self) -> Self {
         let val = self.x.tanh();
         let dval = self.dx / self.x.cosh().powi(2);
         Dual::new(val, dval)
     }
 
-    fn asinh(&self) -> Self::Output {
+    fn asinh(&self) -> Self {
         let val = self.x.asinh();
         let dval = self.dx / (1f64 + self.x.powi(2)).sqrt();
         Dual::new(val, dval)
     }
 
-    fn acosh(&self) -> Self::Output {
+    fn acosh(&self) -> Self {
         let val = self.x.acosh();
         let dval = self.dx / (self.x.powi(2) - 1f64).sqrt();
         Dual::new(val, dval)
     }
 
-    fn atanh(&self) -> Self::Output {
+    fn atanh(&self) -> Self {
         let val = self.x.atanh();
         let dval = self.dx / (1f64 - self.x.powi(2));
         Dual::new(val, dval)
     }
 
-    fn sin_cos(&self) -> (Self::Output, Self::Output) {
+    fn sin_cos(&self) -> (Self, Self) {
         let vals = self.x.sin_cos();
         let dvals = (self.dx * vals.1, -self.dx * vals.0);
         let d1 = Dual::new(vals.0, dvals.0);
@@ -295,30 +293,28 @@ impl TrigOps for Dual {
 
 /// Exponential & Logarithm for Dual
 impl ExpLogOps for Dual {
-    type Output = Dual;
-
-    fn exp(&self) -> Dual {
+    fn exp(&self) -> Self {
         let val = self.value().exp();
         let dval = val * self.slope();
         Dual::new(val, dval)
     }
 
-    fn ln(&self) -> Dual {
+    fn ln(&self) -> Self {
         assert_ne!(self.value(), 0.);
         let val = self.value().ln();
         let dval = self.slope() / self.value();
         Dual::new(val, dval)
     }
 
-    fn log(&self, base: f64) -> Self::Output {
+    fn log(&self, base: f64) -> Self {
         self.ln() / base.ln()
     }
 
-    fn log2(&self) -> Self::Output {
+    fn log2(&self) -> Self {
         self.log(2f64)
     }
 
-    fn log10(&self) -> Self::Output {
+    fn log10(&self) -> Self {
         self.log(10f64)
     }
 }
@@ -328,23 +324,21 @@ impl ExpLogOps for Dual {
 // =============================================================================
 /// Power for Dual
 impl PowOps for Dual {
-    type Output = Dual;
-
-    fn powi(&self, n: i32) -> Dual {
+    fn powi(&self, n: i32) -> Self {
         let x = self.x;
         let val = x.powi(n);
         let dval = (n as f64) * x.powi(n - 1) * self.dx;
         Dual::new(val, dval)
     }
 
-    fn powf(&self, f: f64) -> Dual {
+    fn powf(&self, f: f64) -> Self {
         let x = self.x;
         let val = x.powf(f);
         let dval = f * x.powf(f - 1f64) * self.dx;
         Dual::new(val, dval)
     }
 
-    fn sqrt(&self) -> Dual {
+    fn sqrt(&self) -> Self {
         self.powf(0.5)
     }
 }

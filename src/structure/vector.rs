@@ -267,20 +267,18 @@ impl VecOps for Vector {
 
 /// Power operation for Vector
 impl PowOps for Vector {
-    type Output = Vector;
-
     /// Power usize
-    fn powi(&self, n: i32) -> Vector {
+    fn powi(&self, n: i32) -> Self {
         self.powf(n as f64)
     }
 
     /// Power float
-    fn powf(&self, f: f64) -> Vector {
+    fn powf(&self, f: f64) -> Self {
         self.fmap(|x| x.powf(f))
     }
 
     /// Sqrt
-    fn sqrt(&self) -> Vector {
+    fn sqrt(&self) -> Self {
         self.powf(0.5)
     }
 }

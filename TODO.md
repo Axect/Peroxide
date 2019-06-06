@@ -1,6 +1,6 @@
 # TODO
 
-## 2019.05.09
+## 2019.06.06
 
 - [ ] Implement various pdf
     - [x] Bernoulli
@@ -28,6 +28,7 @@
     - [ ] Macros
     - [ ] Machine Learning
 - [ ] Export distributions using Pickle
+- [ ] Fill `ExtraOps` for `HyperDual`
 
 ## Complete
 

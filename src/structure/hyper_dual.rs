@@ -193,81 +193,77 @@ impl Div<HyperDual> for f64 {
 }
 
 impl TrigOps for HyperDual {
-    type Output = Self;
-
-    fn sin(&self) -> Self::Output {
+    fn sin(&self) -> Self {
         let x = self.x.sin();
         let dx = self.dx * self.x.cos();
         let ddx = self.ddx * self.x.cos() - self.dx.powi(2) * x;
         Self::new(x, dx, ddx)
     }
 
-    fn cos(&self) -> Self::Output {
+    fn cos(&self) -> Self {
         let x = self.x.cos();
         let dx = - self.dx * self.x.sin();
         let ddx =  - self.ddx * self.x.sin() - self.dx.powi(2) * x;
         Self::new(x, dx, ddx)
     }
 
-    fn tan(&self) -> Self::Output {
+    fn tan(&self) -> Self {
         let x = self.x.tan();
         let dx = self.dx * (1f64 + x.powi(2));
         let ddx = self.ddx * (1f64 + x.powi(2)) + dx * self.dx * 2f64*x;
         Self::new(x, dx, ddx)
     }
 
-    fn asin(&self) -> Self::Output {
+    fn asin(&self) -> Self {
         unimplemented!()
     }
 
-    fn acos(&self) -> Self::Output {
+    fn acos(&self) -> Self {
         unimplemented!()
     }
 
-    fn atan(&self) -> Self::Output {
+    fn atan(&self) -> Self {
         unimplemented!()
     }
 
-    fn sinh(&self) -> Self::Output {
+    fn sinh(&self) -> Self {
         unimplemented!()
     }
 
-    fn cosh(&self) -> Self::Output {
+    fn cosh(&self) -> Self {
         unimplemented!()
     }
 
-    fn tanh(&self) -> Self::Output {
+    fn tanh(&self) -> Self {
         unimplemented!()
     }
 
-    fn asinh(&self) -> Self::Output {
+    fn asinh(&self) -> Self {
         unimplemented!()
     }
 
-    fn acosh(&self) -> Self::Output {
+    fn acosh(&self) -> Self {
         unimplemented!()
     }
 
-    fn atanh(&self) -> Self::Output {
+    fn atanh(&self) -> Self {
         unimplemented!()
     }
 
-    fn sin_cos(&self) -> (Self::Output, Self::Output) {
+    fn sin_cos(&self) -> (Self, Self) {
         unimplemented!()
     }
 }
 
 impl ExpLogOps for HyperDual {
-    type Output = Self;
-
-    fn exp(&self) -> Self::Output {
+    fn exp(&self) -> Self {
         let x = self.x.exp();
         let dx = self.dx * x;
         let ddx = self.ddx * x + self.dx.powi(2) * x;
         Self::new(x, dx, ddx)
     }
 
-    fn ln(&self) -> Self::Output {
+    fn ln(&self) -> Self {
         assert!(self.x > 0f64, "Logarithm Domain Error");
         let x = self.x.ln();
         let dx = self.dx / self.x;
@@ -275,23 +271,21 @@ impl ExpLogOps for HyperDual {
         Self::new(x, dx, ddx)
     }
 
-    fn log(&self, base: f64) -> Self::Output {
+    fn log(&self, base: f64) -> Self {
         self.ln() / base.ln()
     }
 
-    fn log2(&self) -> Self::Output {
+    fn log2(&self) -> Self {
         unimplemented!()
     }
 
-    fn log10(&self) -> Self::Output {
+    fn log10(&self) -> Self {
         unimplemented!()
     }
 }
 
 impl PowOps for HyperDual {
-    type Output = Self;
-
-    fn powi(&self, n: i32) -> Self::Output {
+    fn powi(&self, n: i32) -> Self {
         let mut s = self.clone();
         for _i in 1 .. n {
             s = s * s;
@@ -299,7 +293,7 @@ impl PowOps for HyperDual {
         s
     }
 
-    fn powf(&self, f: f64) -> Self::Output {
+    fn powf(&self, f: f64) -> Self {
         let x = self.x.powf(f);
         let dx = self.dx * f * self.x.powf(f - 1f64);
         let ddx = self.ddx * f * self.x.powf(f - 1f64)
@@ -307,7 +301,7 @@ impl PowOps for HyperDual {
         Self::new(x, dx, ddx)
     }
 
-    fn sqrt(&self) -> Self::Output {
+    fn sqrt(&self) -> Self {
         self.powf(0.5)
     }
 }

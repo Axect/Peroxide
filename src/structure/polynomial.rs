@@ -339,8 +339,6 @@ impl Div<Polynomial> for Polynomial {
 // Extra operations for Polynomial
 // =============================================================================
 impl PowOps for Polynomial {
-    type Output = Self;
-
     fn powi(&self, n: i32) -> Self {
         let mut result = self.clone();
         for _i in 0 .. n-1 {
@@ -353,7 +351,7 @@ impl PowOps for Polynomial {
         unimplemented!()
     }
 
-    fn sqrt(&self) -> Self::Output {
+    fn sqrt(&self) -> Self {
         unimplemented!()
     }
 }

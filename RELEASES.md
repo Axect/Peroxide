@@ -1,4 +1,6 @@
-# Release 0.10.0 (2019-06-05) (Candidates)
+# Release 0.10.0 (2019-06-06) (Candidates)
+
+## Huge Updates for Ver 0.10.0
 
 * **[Important!]** Remove `Rem` for `Matrix` (Thanks to [russellb23](https://github.com/russellb23))
 * **[Important!]** Change `Mul` for `Matrix`
@@ -20,6 +22,25 @@
     * `Real` for `f64`
     * `Real` for `Dual`
     * `Real` for `HyperDual`
+    ```rust
+    extern crate peroxide;
+    use peroxide::*;
+    
+    fn main() {
+        let x_f64 = 2f64;
+        let x_dual = dual(2, 1);
+        let x_hyper = hyper_dual(2, 1, 0);
+    
+    
+        f(x_f64).print();
+        f(x_dual).print();
+        f(x_hyper).print();
+    }
+    
+    fn f<T: Real>(x: T) -> T {
+        return x.powi(2);
+    }
+    ```
 
 # Release 0.9.4 (2019-05-13)
 

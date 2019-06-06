@@ -1,34 +1,36 @@
-pub trait PowOps {
-    type Output;
-    fn powi(&self, n: i32) -> Self::Output;
-    fn powf(&self, f: f64) -> Self::Output;
-    fn sqrt(&self) -> Self::Output;
+pub struct SinCos<T: std::marker::Sized> {
+    sin: T,
+    cos: T,
 }
 
-pub trait TrigOps {
-    type Output;
-    fn sin(&self) -> Self::Output;
-    fn cos(&self) -> Self::Output;
-    fn tan(&self) -> Self::Output;
-    fn asin(&self) -> Self::Output;
-    fn acos(&self) -> Self::Output;
-    fn atan(&self) -> Self::Output;
-    fn sinh(&self) -> Self::Output;
-    fn cosh(&self) -> Self::Output;
-    fn tanh(&self) -> Self::Output;
-    fn asinh(&self) -> Self::Output;
-    fn acosh(&self) -> Self::Output;
-    fn atanh(&self) -> Self::Output;
-    fn sin_cos(&self) -> (Self::Output, Self::Output);
+pub trait PowOps: Sized {
+    fn powi(&self, n: i32) -> Self;
+    fn powf(&self, f: f64) -> Self;
+    fn sqrt(&self) -> Self;
 }
 
-pub trait ExpLogOps {
-    type Output;
-    fn exp(&self) -> Self::Output;
-    fn ln(&self) -> Self::Output;
-    fn log(&self, base: f64) -> Self::Output;
-    fn log2(&self) -> Self::Output;
-    fn log10(&self) -> Self::Output;
+pub trait TrigOps: Sized {
+    fn sin(&self) -> Self;
+    fn cos(&self) -> Self;
+    fn tan(&self) -> Self;
+    fn asin(&self) -> Self;
+    fn acos(&self) -> Self;
+    fn atan(&self) -> Self;
+    fn sinh(&self) -> Self;
+    fn cosh(&self) -> Self;
+    fn tanh(&self) -> Self;
+    fn asinh(&self) -> Self;
+    fn acosh(&self) -> Self;
+    fn atanh(&self) -> Self;
+    fn sin_cos(&self) -> (Self, Self);
+}
+
+pub trait ExpLogOps: Sized {
+    fn exp(&self) -> Self;
+    fn ln(&self) -> Self;
+    fn log(&self, base: f64) -> Self;
+    fn log2(&self) -> Self;
+    fn log10(&self) -> Self;
 }
 
 pub trait Real: PowOps + TrigOps + ExpLogOps {
@@ -40,98 +42,92 @@ pub trait Real: PowOps + TrigOps + ExpLogOps {
 // Real Traits for f64
 // =============================================================================
 impl PowOps for f64 {
-    type Output = Self;
-
-    fn powi(&self, n: i32) -> Self::Output {
-        self.powi(n)
+    fn powi(&self, n: i32) -> Self {
+        (*self).powi(n)
     }
 
-    fn powf(&self, f: f64) -> Self::Output {
-        self.powf(f)
+    fn powf(&self, f: f64) -> Self {
+        (*self).powf(f)
     }
 
-    fn sqrt(&self) -> Self::Output {
-        self.sqrt()
+    fn sqrt(&self) -> Self {
+        (*self).sqrt()
     }
 }
 
 impl TrigOps for f64 {
-    type Output = Self;
-
-    fn sin(&self) -> Self::Output {
-        self.sin()
+    fn sin(&self) -> Self {
+        (*self).sin()
     }
 
-    fn cos(&self) -> Self::Output {
-        self.cos()
+    fn cos(&self) -> Self {
+        (*self).cos()
     }
 
-    fn tan(&self) -> Self::Output {
-        self.tan()
+    fn tan(&self) -> Self {
+        (*self).tan()
     }
 
-    fn asin(&self) -> Self::Output {
-        self.asin()
+    fn asin(&self) -> Self {
+        (*self).asin()
     }
 
-    fn acos(&self) -> Self::Output {
-        self.acos()
+    fn acos(&self) -> Self {
+        (*self).acos()
     }
 
-    fn atan(&self) -> Self::Output {
-        self.atan()
+    fn atan(&self) -> Self {
+        (*self).atan()
     }
 
-    fn sinh(&self) -> Self::Output {
-        self.sinh()
+    fn sinh(&self) -> Self {
+        (*self).sinh()
     }
 
-    fn cosh(&self) -> Self::Output {
-        self.cosh()
+    fn cosh(&self) -> Self {
+        (*self).cosh()
     }
 
-    fn tanh(&self) -> Self::Output {
-        self.tanh()
+    fn tanh(&self) -> Self {
+        (*self).tanh()
     }
 
-    fn asinh(&self) -> Self::Output {
-        self.asinh()
+    fn asinh(&self) -> Self {
+        (*self).asinh()
     }
 
-    fn acosh(&self) -> Self::Output {
-        self.acosh()
+    fn acosh(&self) -> Self {
+        (*self).acosh()
     }
 
-    fn atanh(&self) -> Self::Output {
-        self.atanh()
+    fn atanh(&self) -> Self {
+        (*self).atanh()
     }
 
-    fn sin_cos(&self) -> (Self::Output, Self::Output) {
-        self.sin_cos()
+    fn sin_cos(&self) -> (Self, Self) {
+        (*self).sin_cos()
     }
 }
 
 impl ExpLogOps for f64 {
-    type Output = Self;
-
-    fn exp(&self) -> Self::Output {
-        self.exp()
+    fn exp(&self) -> Self {
+        (*self).exp()
     }
 
-    fn ln(&self) -> Self::Output {
-        self.ln()
+    fn ln(&self) -> Self {
+        (*self).ln()
     }
 
-    fn log(&self, base: f64) -> Self::Output {
-        self.log(base)
+    fn log(&self, base: f64) -> Self {
+        (*self).log(base)
     }
 
-    fn log2(&self) -> Self::Output {
-        self.log2()
+    fn log2(&self) -> Self {
+        (*self).log2()
     }
 
-    fn log10(&self) -> Self::Output {
-        self.log10()
+    fn log10(&self) -> Self {
+        (*self).log10()
     }
 }
 
