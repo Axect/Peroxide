@@ -1,7 +1,4 @@
-pub struct SinCos<T: std::marker::Sized> {
-    sin: T,
-    cos: T,
-}
+use std::ops::{Add, Mul, Div, Sub};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
@@ -33,7 +30,7 @@ pub trait ExpLogOps: Sized {
     fn log10(&self) -> Self;
 }
 
-pub trait Real: PowOps + TrigOps + ExpLogOps {
+pub trait Real: PowOps + TrigOps + ExpLogOps + Add<Output=Self> + Mul<Output=Self> + Div<Output=Self> + Sub<Output=Self> {
     fn to_f64(&self) -> f64;
     fn from_f64(f: f64) -> Self;
 }
