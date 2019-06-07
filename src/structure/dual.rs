@@ -480,10 +480,11 @@ impl VecOps for Vec<Dual> {
         let prod = self.clone().into_iter()
                 .zip(_other.clone())
                 .map(|(x,y)| x.mul(y))
-                .collect::<Vec<Self::Scalar>>();
-        let sum = prod.iter()
-                    .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar, x| sum.add(x));
-        sum
+                .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar,x| sum.add(x));
+//                .collect::<Vec<Self::Scalar>>();
+//        let sum = prod.iter()
+//                    .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar, x| sum.add(x));
+        prod
     }
 
     fn norm(&self) -> Self::Scalar {
