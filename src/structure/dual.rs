@@ -479,8 +479,8 @@ impl VecOps for Vec<Dual> {
         // dot product of Dual is similar to Complex with \epsilon^2 = 0
         self.into_iter()
             .zip(_other)
-            .map(|(x,y)| *x.value * *y.value)
-            .fold(Dual::new(0., 0.) |s, x| s.add(x))
+            .map(|(x,y)| *x.value() * *y.value())
+            .fold(Self::Scalar::new(0., 0.) |s: Self::Scalar, x| s.add(x))
     }
 
     fn norm(&self) -> Self::Scalar {
