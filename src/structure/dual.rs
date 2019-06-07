@@ -482,7 +482,7 @@ impl VecOps for Vec<Dual> {
                 .map(|(x,y)| x.mul(y))
                 .collect::<Vec<Self::Scalar>>();
         let sum = prod.iter()
-                    .fold(calar::new(0., 0.), |sum: Scalar, x| sum.add(x));
+                    .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar, x| sum.add(x));
         sum
     }
 
