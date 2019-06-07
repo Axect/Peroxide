@@ -480,7 +480,7 @@ impl VecOps for Vec<Dual> {
         self.into_iter()
             .zip(_other)
             .map(|(x,y)| *x.value * *y.value)
-            .fold(Dual::new(0., 0.) |sum: Dual, x| sum.add(x))
+            .fold(Dual::new(0., 0.) |s, x| s.add(x))
     }
 
     fn norm(&self) -> Self::Scalar {
