@@ -1,4 +1,4 @@
-# Release 0.10.0 (2019-06-06) (Candidates)
+# Release 0.10.0 (2019-06-08) (Candidates)
 
 ## Huge Updates for Ver 0.10.0
 
@@ -41,6 +41,7 @@
         return x.powi(2);
     }
     ```
+* Implement dot product for `Vec<Dual>` (Thanks to [russellb23](https://github.com/russellb23))
 
 # Release 0.9.4 (2019-05-13)
 
