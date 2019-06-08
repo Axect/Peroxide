@@ -1,4 +1,5 @@
 use std::ops::{Add, Div, Mul, Sub};
+use ::{HyperDual, Dual};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
@@ -45,6 +46,10 @@ pub trait Real:
 {
     fn to_f64(&self) -> f64;
     fn from_f64(f: f64) -> Self;
+    fn to_dual(&self) -> Dual;
+    fn from_dual(d: Dual) -> Self;
+    fn to_hyper_dual(&self) -> HyperDual;
+    fn from_hyper_dual(h: HyperDual) -> Self;
 }
 
 // =============================================================================
@@ -147,5 +152,79 @@ impl Real for f64 {
 
     fn from_f64(f: f64) -> Self {
         f
+    }
+
+    fn to_dual(&self) -> Dual {
+        Dual::new(*self, 0f64)
+    }
+
+    fn from_dual(d: Dual) -> Self {
+        d.value()
+    }
+
+    fn to_hyper_dual(&self) -> HyperDual {
+        HyperDual::new(*self, 0f64, 0f64)
+    }
+
+    fn from_hyper_dual(h: HyperDual) -> Self {
+        h.value()
+    }
+}
+
+// =============================================================================
+// Real trait for Dual
+// =============================================================================
+impl Real for Dual {
+    fn to_f64(&self) -> f64 {
+        self.value()
+    }
+
+    fn from_f64(f: f64) -> Self {
+        Dual::new(f, 0f64)
+    }
+
+    fn to_dual(&self) -> Dual {
+        *self
+    }
+
+    fn from_dual(d: Dual) -> Self {
+        d
+    }
+
+    fn to_hyper_dual(&self) -> HyperDual {
+        HyperDual::new(self.value(), self.slope(), 0f64)
+    }
+
+    fn from_hyper_dual(h: HyperDual) -> Self {
+        Dual::new(h.value(), h.slope())
+    }
+}
+
+// =============================================================================
+// Real trait for HyperDual
+// =============================================================================
+impl Real for HyperDual {
+    fn to_f64(&self) -> f64 {
+        self.value()
+    }
+
+    fn from_f64(f: f64) -> Self {
+        HyperDual::new(f, 0f64, 0f64)
+    }
+
+    fn to_dual(&self) -> Dual {
+        Dual::new(self.value(), self.slope())
+    }
+
+    fn from_dual(d: Dual) -> Self {
+        HyperDual::new(d.value(), d.slope(), 0f64)
+    }
+
+    fn to_hyper_dual(&self) -> HyperDual {
+        *self
+    }
+
+    fn from_hyper_dual(h: HyperDual) -> Self {
+        h
     }
 }

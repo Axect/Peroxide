@@ -306,12 +306,3 @@ impl PowOps for HyperDual {
     }
 }
 
-impl Real for HyperDual {
-    fn to_f64(&self) -> f64 {
-        self.x
-    }
-
-    fn from_f64(f: f64) -> Self {
-        HyperDual::new(f, 0f64, 0f64)
-    }
-}
