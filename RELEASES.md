@@ -1,3 +1,7 @@
+# Release 0.10.1 (2019-06-24) (Candidate)
+
+* `std::ops` for `&Dual`
+
 # Release 0.10.0 (2019-06-24)
 
 ## Huge Updates for Ver 0.10.0

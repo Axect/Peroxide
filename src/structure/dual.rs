@@ -123,7 +123,6 @@ impl Mul<Dual> for Dual {
 impl Div<Dual> for Dual {
     type Output = Dual;
     fn div(self, other: Dual) -> Dual {
-        assert_ne!(other.x, 0f64);
         let v1 = self.x;
         let v2 = other.x;
         let dv1 = self.dx;
@@ -137,6 +136,58 @@ impl Rem<Dual> for Dual {
     type Output = Dual;
     fn rem(self, rhs: Dual) -> Dual {
         unimplemented!()
+    }
+}
+
+impl<'a> Neg for &'a Dual {
+    type Output = Dual;
+
+    fn neg(self) -> Self::Output {
+        *self.neg()
+    }
+}
+
+impl<'a, 'b> Add<&'b Dual> for &'a Dual {
+    type Output = Dual;
+
+    fn add(self, rhs: &Dual) -> Self::Output {
+        Dual {
+            x: self.x + rhs.x,
+            dx: self.dx + rhs.dx,
+        }
+    }
+}
+
+impl<'a, 'b> Sub<&'b Dual> for &'a Dual {
+    type Output = Dual;
+
+    fn sub(self, rhs: &Dual) -> Self::Output {
+        Dual {
+            x: self.x - rhs.x,
+            dx: self.dx - rhs.dx,
+        }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Dual> for &'a Dual {
+    type Output = Dual;
+
+    fn mul(self, rhs: &Dual) -> Self::Output {
+        Dual {
+            x: self.x * rhs.x,
+            dx: self.x * rhs.dx + self.dx * rhs.x,
+        }
+    }
+}
+
+impl<'a, 'b> Div<&'b Dual> for &'a Dual {
+    type Output = Dual;
+
+    fn div(self, rhs: &Dual) -> Self::Output {
+        Dual {
+            x: self.x / rhs.x,
+            dx: (self.dx * rhs.x - self.x * rhs.dx) / (rhs.x * rhs.x)
+        }
     }
 }
 
@@ -197,6 +248,50 @@ impl Div<Dual> for f64 {
     type Output = Dual;
     fn div(self, other: Dual) -> Dual {
         dual(self, 0.) / other
+    }
+}
+
+impl<'a> Add<f64> for &'a Dual {
+    type Output = Dual;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        Dual {
+            x: self.x + rhs,
+            dx: self.dx,
+        }
+    }
+}
+
+impl<'a> Sub<f64> for &'a Dual {
+    type Output = Dual;
+
+    fn sub(self, rhs: f64) -> Self::Output {
+        Dual {
+            x: self.x - rhs,
+            dx: self.dx,
+        }
+    }
+}
+
+impl<'a> Mul<f64> for &'a Dual {
+    type Output = Dual;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Dual {
+            x: self.x * rhs,
+            dx: self.dx * rhs,
+        }
+    }
+}
+
+impl<'a> Div<f64> for &'a Dual {
+    type Output = Dual;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Dual {
+            x: self.x / rhs,
+            dx: self.dx / rhs,
+        }
     }
 }
 
