@@ -1,4 +1,4 @@
-# Release 0.10.0 (2019-06-08) (Candidates)
+# Release 0.10.0 (2019-06-24)
 
 ## Huge Updates for Ver 0.10.0
 

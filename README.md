@@ -9,33 +9,27 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponding to `0.8.7`.
+Corresponding to `0.10.0`.
 
 ## Install
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.8"
+peroxide = "0.10"
 ```
 
 ## Module Structure
 
 - __src__
   - __bin__ : For test some libraries
-    - [dual.rs](src/bin/dual.rs) : Test automatic differentiation
-    - [oxide.rs](src/bin/oxide.rs) : Test any
-    - [poly.rs](src/bin/poly.rs) : Test polynomial
-    - [lotka.rs](src/bin/lotka.rs) : Solve lotka-volterra equation
-    - [mlp.rs](src/bin/mlp.rs) : Multi-layer perceptron example
-    - [tov.rs](src/bin/tov.rs) : Solve Tolman-Oppenheimer-Volkoff equation
   - [lib.rs](src/lib.rs) : `mod` and `re-export`
-  - __ml__ : For machine learning (*Beta*)
-    - [mod.rs](src/ml/mod.rs)
-    - [reg.rs](src/ml/reg.rs) : Regression tools
   - __macros__ : Macro files
     - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
     - [mod.rs](src/macros/mod.rs)
     - [r_macro.rs](src/macros/r_macro.rs) : R like macro
+  - __ml__ : For machine learning (*Beta*)
+      - [mod.rs](src/ml/mod.rs)
+      - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
     - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula
     - [gauss_legendre.rs](src/numerical/gauss_legendre.rs) : Gauss-Legendre 4th order
@@ -49,14 +43,19 @@ peroxide = "0.8"
   - __operation__ : To define general operations
     - [extra_ops.rs](src/operation/extra_ops.rs)
     - [mod.rs](src/operation/mod.rs)
+  - __special__ : Wrapper for `special` crate
+    - [mod.rs](src/special/mod.rs)
+    - [function.rs](src/special/function.rs) : Special functions
   - __statistics__ : Statistical Tools
     - [mod.rs](src/statistics/mod.rs)
     - [dist.rs](src/statistics/dist.rs) : Probability distributions
+    - [ops.rs](src/statistics/ops.rs) : Some probabilistic operations
     - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
     - [dataframe.rs](src/structure/dataframe.rs) : Not yet implemented
     - [dual.rs](src/structure/dual.rs) : Dual number system for automatic differentiation
+    - [hyper_dual.rs](src/structure/hyper_dual.rs) : Hyper dual number system for automatic differentiation
     - [matrix.rs](src/structure/matrix.rs) : Matrix
     - [multinomial.rs](src/structure/multinomial.rs) : For multinomial (*Beta*)
     - [mod.rs](src/structure/mod.rs)
@@ -66,8 +65,10 @@ peroxide = "0.8"
     - [mod.rs](src/util/mod.rs)
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style 
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
+    - [pickle.rs](src/util/pickle.rs) : To handle `pickle` data structure
     - [print.rs](src/util/print.rs) : To print conveniently
     - [useful.rs](src/util/useful.rs) : Useful utils to implement library
+    - [writer.rs](src/util/writer.rs) : More convenient write system
 
 
 ## Documentation
