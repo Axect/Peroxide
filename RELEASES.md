@@ -1,6 +1,7 @@
-# Release 0.10.1 (2019-06-24) (Candidate)
+# Release 0.10.1 (2019-06-25)
 
 * `std::ops` for `&Dual`
+* `std::ops` for `&HyperDual`
 
 # Release 0.10.0 (2019-06-24)
 

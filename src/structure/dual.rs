@@ -143,7 +143,10 @@ impl<'a> Neg for &'a Dual {
     type Output = Dual;
 
     fn neg(self) -> Self::Output {
-        *self.neg()
+        Dual {
+            x: -self.x,
+            dx: -self.dx,
+        }
     }
 }
 

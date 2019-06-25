@@ -128,6 +128,62 @@ impl Div<HyperDual> for HyperDual {
     }
 }
 
+impl<'a, 'b> Add<&'b HyperDual> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn add(self, rhs: &HyperDual) -> Self::Output {
+        HyperDual {
+            x: self.x + rhs.x,
+            dx: self.dx + rhs.dx,
+            ddx: self.ddx + rhs.ddx,
+        }
+    }
+}
+
+impl<'a, 'b> Sub<&'b HyperDual> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn sub(self, rhs: &HyperDual) -> Self::Output {
+        HyperDual {
+            x: self.x - rhs.x,
+            dx: self.dx - rhs.dx,
+            ddx: self.ddx - rhs.ddx,
+        }
+    }
+}
+
+impl<'a, 'b> Mul<&'b HyperDual> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn mul(self, rhs: &HyperDual) -> Self::Output {
+        HyperDual {
+            x: self.x * rhs.x,
+            dx: self.dx * rhs.x + self.x * rhs.dx,
+            ddx: self.ddx * rhs.x + 2f64 * self.dx * rhs.dx + self.x * rhs.ddx,
+        }
+    }
+}
+
+impl<'a, 'b> Div<&'b HyperDual> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn div(self, rhs: &HyperDual) -> Self::Output {
+        let (x, dx, ddx) = self.extract();
+        let (y, dy, ddy) = rhs.extract();
+
+        let dual_x = dual(x, dx);
+        let dual_y = dual(y, dy);
+
+        let x_div_y = (dual_x / dual_y).slope();
+
+        HyperDual::new(
+            x/y,
+            (dx*y - x*dy)/(y*y),
+            (ddx - 2f64*x_div_y*dy - x/y*ddy)/y
+        )
+    }
+}
+
 impl Add<f64> for HyperDual {
     type Output = Self;
 
@@ -157,6 +213,38 @@ impl Div<f64> for HyperDual {
 
     fn div(self, rhs: f64) -> Self::Output {
         self / Self::new(rhs, 0., 0.)
+    }
+}
+
+impl<'a> Add<f64> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        self.add(&HyperDual::new(rhs,0f64,0f64))
+    }
+}
+
+impl<'a> Sub<f64> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn sub(self, rhs: f64) -> Self::Output {
+        self.sub(&HyperDual::new(rhs, 0f64, 0f64))
+    }
+}
+
+impl<'a> Mul<f64> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        self.mul(&HyperDual::new(rhs,0f64,0f64))
+    }
+}
+
+impl<'a> Div<f64> for &'a HyperDual {
+    type Output = HyperDual;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        self.div(&HyperDual::new(rhs, 0f64, 0f64))
     }
 }
 
