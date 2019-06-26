@@ -1,3 +1,10 @@
+# Release 0.10.2 (2019-06-27) (Candidates)
+
+* **[Important!]** Refine ode structure (currently in `new_ode.rs`)
+    * Great improve UI - Like `SimpleWriter`
+* Fix bug in `SimpleWriter`
+    * Fix "always header" bug
+
 # Release 0.10.1 (2019-06-25)
 
 * `std::ops` for `&Dual`

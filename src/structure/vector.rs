@@ -134,6 +134,13 @@ impl FPVector for Vector {
     }
 }
 
+pub fn zip_with<F>(f: F, xs: &Vector, ys: &Vector) -> Vector
+    where
+        F: Fn(f64, f64) -> f64
+{
+    xs.zip_with(f, ys)
+}
+
 /// Some algorithms for Vector
 pub trait Algorithm {
     fn rank(&self) -> Vec<usize>;

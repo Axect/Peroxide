@@ -96,3 +96,9 @@ pub use structure::hyper_dual::*;
 
 #[allow(unused_imports)]
 pub use util::writer::*;
+
+#[allow(unused_imports)]
+pub use operation::mut_ops::*;
+
+#[allow(unused_imports)]
+pub use numerical::new_ode::*;

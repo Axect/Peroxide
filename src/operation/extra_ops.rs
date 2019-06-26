@@ -43,6 +43,8 @@ pub trait Real:
     + Mul<f64, Output = Self>
     + Div<f64, Output = Self>
     + Sub<f64, Output = Self>
+    + Clone
+    + Copy
 {
     fn to_f64(&self) -> f64;
     fn from_f64(f: f64) -> Self;

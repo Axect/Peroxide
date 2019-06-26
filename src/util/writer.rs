@@ -126,7 +126,11 @@ impl SimpleWriter {
             }
         }
 
-        serde_pickle::to_writer(&mut writer, &self.header, true).expect("Can't write header to pickle");
+        if let Some(head) = self.to_write.get(&Header) {
+            if *head {
+                serde_pickle::to_writer(&mut writer, &self.header, true).expect("Can't write header to pickle");
+            }
+        }
 
         let mut queued = self.queue.clone().into_iter();
         let mut matrices = self.matrices.clone().into_iter();
