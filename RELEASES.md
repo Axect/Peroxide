@@ -1,3 +1,16 @@
+# Release 0.10.3 (2019-06-27) (Candidates)
+
+* Modify `State<T>` structure. (`state` -> `value`)
+    ```rust
+    pub struct State<T> {
+        param: T,
+        value: Vec<T>,
+        deriv: Vec<T>
+    }
+    ```
+* Modify `ExplicitODE`
+    * Remove `count` field
+
 # Release 0.10.2 (2019-06-27)
 
 * **[Important!]** Re-define ode structure

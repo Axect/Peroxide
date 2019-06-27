@@ -32,7 +32,7 @@ fn main() {
 }
 
 fn f(st: &mut State<f64>) {
-    let x = &st.state;
+    let x = &st.value;
     let dx = &mut st.deriv;
     dx[0] = 10f64 * (x[1] - x[0]);
     dx[1] = 28f64 * x[0] - x[1] - x[0] * x[2];

@@ -31,7 +31,7 @@ pub enum ToUse {
 #[derive(Debug, Clone, Default)]
 pub struct State<T: Real> {
     pub param: T,
-    pub state: Vec<T>,
+    pub value: Vec<T>,
     pub deriv: Vec<T>,
 }
 
@@ -39,8 +39,8 @@ impl<T: Real> State<T> {
     pub fn to_f64(&self) -> State<f64> {
         State {
             param: self.param.to_f64(),
-            state: self
-                .state
+            value: self
+                .value
                 .clone()
                 .into_iter()
                 .map(|x| x.to_f64())
@@ -57,8 +57,8 @@ impl<T: Real> State<T> {
     pub fn to_dual(&self) -> State<Dual> {
         State {
             param: self.param.to_dual(),
-            state: self
-                .state
+            value: self
+                .value
                 .clone()
                 .into_iter()
                 .map(|x| x.to_dual())
@@ -75,7 +75,7 @@ impl<T: Real> State<T> {
     pub fn new(param: T, state: Vec<T>, deriv: Vec<T>) -> Self {
         State {
             param,
-            state,
+            value: state,
             deriv,
         }
     }
@@ -116,7 +116,6 @@ pub struct ExplicitODE {
     bound_cond1: (State<f64>, BoundaryCondition),
     bound_cond2: (State<f64>, BoundaryCondition),
     stop_cond: fn(&Self) -> bool,
-    count: usize,
     times: usize,
     to_use: HashMap<ToUse, bool>,
 }
@@ -140,7 +139,6 @@ impl ExplicitODE {
             bound_cond1: (Default::default(), Dirichlet),
             bound_cond2: (Default::default(), Dirichlet),
             stop_cond: |_x| false,
-            count: 0,
             times: 0,
             to_use: default_to_use,
         }
@@ -164,7 +162,7 @@ impl ODE for ExplicitODE {
                 (self.func)(&mut self.state);
                 let dt = self.step_size;
                 self.state
-                    .state
+                    .value
                     .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
                 self.state.param += dt;
             }
@@ -173,30 +171,30 @@ impl ODE for ExplicitODE {
                 let h2 = h / 2f64;
 
                 // Set Derivative from state
-                let yn = self.state.state.clone();
+                let yn = self.state.value.clone();
                 (self.func)(&mut self.state);
 
                 let k1 = self.state.deriv.clone();
                 let k1_add = k1.fmap(|x| x * h2);
                 self.state.param += h2;
-                self.state.state.mut_zip_with(|x, y| x + y, &k1_add);
+                self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
                 (self.func)(&mut self.state);
 
                 let k2 = self.state.deriv.clone();
                 let k2_add = k2.zip_with(|x, y| h2*x - y, &k1_add);
-                self.state.state.mut_zip_with(|x, y| x + y, &k2_add);
+                self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
                 (self.func)(&mut self.state);
 
                 let k3 = self.state.deriv.clone();
                 let k3_add = k3.zip_with(|x, y| h*x - y, &k2_add);
                 self.state.param += h2;
-                self.state.state.mut_zip_with(|x, y| x + y, &k3_add);
+                self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
                 (self.func)(&mut self.state);
 
                 let k4 = self.state.deriv.clone();
 
                 for i in 0 .. k1.len() {
-                    self.state.state[i] = yn[i] + (k1[i] + 2f64*k2[i] + 2f64*k3[i] + k4[i]) * h / 6f64;
+                    self.state.value[i] = yn[i] + (k1[i] + 2f64*k2[i] + 2f64*k3[i] + k4[i]) * h / 6f64;
                 }
             }
         }
@@ -205,13 +203,13 @@ impl ODE for ExplicitODE {
     fn integrate(&mut self) -> Self::Records {
         assert!(self.check_enough(), "Not enough fields!");
 
-        let mut result = zeros(self.times + 1, self.state.state.len());
+        let mut result = zeros(self.times + 1, self.state.value.len());
 
-        result.subs_row(0, self.state.state.clone());
+        result.subs_row(0, self.state.value.clone());
 
         for i in 1 .. self.times+1 {
             self.mut_update();
-            result.subs_row(i, self.state.state.clone());
+            result.subs_row(i, self.state.value.clone());
         }
 
         result
