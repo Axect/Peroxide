@@ -4,9 +4,6 @@ use std::convert::Into;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub, Rem};
 use structure::vector::*;
-use std::f64::consts::E;
-use std::cmp::Ordering;
-use Real;
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
 
@@ -134,7 +131,7 @@ impl Div<Dual> for Dual {
 
 impl Rem<Dual> for Dual {
     type Output = Dual;
-    fn rem(self, rhs: Dual) -> Dual {
+    fn rem(self, _rhs: Dual) -> Dual {
         unimplemented!()
     }
 }

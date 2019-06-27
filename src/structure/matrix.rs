@@ -447,7 +447,7 @@ impl Matrix {
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
     /// a.write("test.csv");
     /// ```
-    pub fn write(&self, file_path: &str) -> Result<(), Box<Error>> {
+    pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
@@ -472,7 +472,7 @@ impl Matrix {
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
     /// a.write_round("test.csv", 0);
     /// ```
-    pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<Error>> {
+    pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
@@ -487,7 +487,7 @@ impl Matrix {
         Ok(())
     }
 
-    pub fn write_with_header(&self, file_path: &str, header: Vec<&str>) -> Result<(), Box<Error>> {
+    pub fn write_with_header(&self, file_path: &str, header: Vec<&str>) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
@@ -504,7 +504,7 @@ impl Matrix {
         Ok(())
     }
 
-    pub fn write_with_header_round(&self, file_path: &str, header: Vec<&str>, round: usize) -> Result<(), Box<Error>> {
+    pub fn write_with_header_round(&self, file_path: &str, header: Vec<&str>, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
         let c = self.col;
@@ -541,7 +541,7 @@ impl Matrix {
     ///     }
     /// }
     /// ```
-    pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<Error>> {
+    pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<dyn Error>> {
         let mut rdr = ReaderBuilder::new().has_headers(header)
             .delimiter(delimiter as u8)
             .from_path(file_path)?;

@@ -5,7 +5,6 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 #[allow(unused_imports)]
 use structure::vector::*;
 use structure::dual::dual;
-use Real;
 
 /// Hyper Dual number
 ///

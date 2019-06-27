@@ -68,13 +68,7 @@ pub use numerical::newton::*;
 pub use numerical::bdf::*;
 
 #[allow(unused_imports)]
-pub use numerical::runge_kutta::*;
-
-#[allow(unused_imports)]
 pub use util::api::*;
-
-#[allow(unused_imports)]
-pub use numerical::ode::*;
 
 #[allow(unused_imports)]
 pub use numerical::gauss_legendre::*;
@@ -101,4 +95,4 @@ pub use util::writer::*;
 pub use operation::mut_ops::*;
 
 #[allow(unused_imports)]
-pub use numerical::new_ode::*;
+pub use numerical::ode::*;

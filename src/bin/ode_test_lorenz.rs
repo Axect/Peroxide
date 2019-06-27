@@ -15,17 +15,23 @@ fn main() {
         .set_step_size(0.01f64)
         .set_times(10000);
 
+    let mut ex_test2 = ex_test.clone();
+
     let results = ex_test.integrate();
+
+    ex_test2.set_method(ExMethod::RK4);
+
+    let results2 = ex_test2.integrate();
 
     let mut wt = SimpleWriter::new();
     wt
         .set_path("example_data/lorenz.pickle")
         .insert_matrix(results)
+        .insert_matrix(results2)
         .write_pickle();
 }
 
 fn f(st: &mut State<f64>) {
-    let t = st.param;
     let x = &st.state;
     let dx = &mut st.deriv;
     dx[0] = 10f64 * (x[1] - x[0]);

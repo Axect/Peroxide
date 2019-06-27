@@ -19,7 +19,7 @@ pub trait Pickle {
 
 impl Pickle for Vector {
     fn write_single_pickle(&self, path: &str) -> serde_pickle::Result<()> {
-        let mut writer: Box<Write>;
+        let mut writer: Box<dyn Write>;
 
         match File::create(path) {
             Ok(p) => writer = Box::new(p),
@@ -39,7 +39,7 @@ impl Pickle for Vector {
 
 impl Pickle for Matrix {
     fn write_single_pickle(&self, path: &str) -> serde_pickle::Result<()> {
-        let mut writer: Box<Write>;
+        let mut writer: Box<dyn Write>;
 
         match File::create(path) {
             Ok(p) => writer = Box::new(p),

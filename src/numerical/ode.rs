@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::process::exit;
 use BoundaryCondition::Dirichlet;
 use ExMethod::{Euler, RK4};
 use ::{MutFP, Matrix, FPVector};
@@ -92,7 +91,7 @@ pub trait ODE {
     type ODEMethod;
 
     fn mut_update(&mut self);
-    fn mut_integrate(&mut self, rec: &mut Self::Records);
+    //fn mut_integrate(&mut self, rec: &mut Self::Records);
     fn integrate(&mut self) -> Self::Records;
     fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self;
     fn set_boundary_condition<T: Real>(
@@ -172,8 +171,6 @@ impl ODE for ExplicitODE {
             RK4 => {
                 let h = self.step_size;
                 let h2 = h / 2f64;
-                let h3 = h / 3f64;
-                let h6 = h / 6f64;
 
                 // Set Derivative from state
                 let yn = self.state.state.clone();
@@ -203,10 +200,6 @@ impl ODE for ExplicitODE {
                 }
             }
         }
-    }
-
-    fn mut_integrate(&mut self, rec: &mut Self::Records) {
-        unimplemented!()
     }
 
     fn integrate(&mut self) -> Self::Records {

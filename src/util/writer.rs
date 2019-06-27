@@ -106,7 +106,7 @@ impl SimpleWriter {
     }
 
     pub fn write_pickle(&self) {
-        let mut writer: Box<Write>;
+        let mut writer: Box<dyn Write>;
 
         // Error handling - Path
         if let Some(p) = self.to_write.get(&Path) {
@@ -140,11 +140,11 @@ impl SimpleWriter {
             match queued.next() {
                 Some(Queue::Matrix) => {
                     let mat = matrices.next().unwrap();
-                    mat.write_pickle(&mut writer);
+                    mat.write_pickle(&mut writer).expect("Can't insert matrices");
                 },
                 Some(Queue::Vector) => {
                     let vec = vectors.next().unwrap();
-                    vec.write_pickle(&mut writer);
+                    vec.write_pickle(&mut writer).expect("Can't insert vectors");
                 },
                 None => return,
             }
