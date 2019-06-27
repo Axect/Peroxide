@@ -9,7 +9,7 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponding to `0.10.0`.
+Corresponding to `0.10.3`.
 
 ## Install
 
@@ -37,11 +37,11 @@ peroxide = "0.10"
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
     - [ode.rs](src/grave/ode.rs) : Merge all ODE algorithm to one module
-    - [runge_kutta.rs](src/grave/runge_kutta.rs) : Runge Kutta 4th order
     - [spline.rs](src/numerical/spline.rs) : Natural Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
   - __operation__ : To define general operations
-    - [extra_ops.rs](src/operation/extra_ops.rs)
+    - [extra_ops.rs](src/operation/extra_ops.rs) : Missing operations & Real Trait
+    - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
     - [mod.rs](src/operation/mod.rs)
   - __special__ : Wrapper for `special` crate
     - [mod.rs](src/special/mod.rs)

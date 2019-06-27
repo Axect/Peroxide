@@ -1,4 +1,4 @@
-# Release 0.10.3 (2019-06-27) (Candidates)
+# Release 0.10.3 (2019-06-27)
 
 * Modify `State<T>` structure. (`state` -> `value`)
     ```rust
@@ -10,6 +10,7 @@
     ```
 * Modify `ExplicitODE`
     * Remove `count` field
+* Gitbook & README update
 
 # Release 0.10.2 (2019-06-27)
 
