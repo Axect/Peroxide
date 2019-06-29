@@ -46,12 +46,14 @@ pub trait Real:
     + Clone
     + Copy
 {
+    type Value;
     fn to_f64(&self) -> f64;
     fn from_f64(f: f64) -> Self;
     fn to_dual(&self) -> Dual;
     fn from_dual(d: Dual) -> Self;
     fn to_hyper_dual(&self) -> HyperDual;
     fn from_hyper_dual(h: HyperDual) -> Self;
+    fn output(self) -> Self;
 }
 
 // =============================================================================
@@ -148,6 +150,8 @@ impl ExpLogOps for f64 {
 }
 
 impl Real for f64 {
+    type Value = Self;
+
     fn to_f64(&self) -> f64 {
         *self
     }
@@ -171,12 +175,18 @@ impl Real for f64 {
     fn from_hyper_dual(h: HyperDual) -> Self {
         h.value()
     }
+
+    fn output(self) -> Self {
+        self
+    }
 }
 
 // =============================================================================
 // Real trait for Dual
 // =============================================================================
 impl Real for Dual {
+    type Value = Self;
+
     fn to_f64(&self) -> f64 {
         self.value()
     }
@@ -200,12 +210,18 @@ impl Real for Dual {
     fn from_hyper_dual(h: HyperDual) -> Self {
         Dual::new(h.value(), h.slope())
     }
+
+    fn output(self) -> Self {
+        self
+    }
 }
 
 // =============================================================================
 // Real trait for HyperDual
 // =============================================================================
 impl Real for HyperDual {
+    type Value = Self;
+
     fn to_f64(&self) -> f64 {
         self.value()
     }
@@ -229,4 +245,16 @@ impl Real for HyperDual {
     fn from_hyper_dual(h: HyperDual) -> Self {
         h
     }
+
+    fn output(self) -> Self {
+        self
+    }
 }
+
+//impl<T: Real> Mul for <f64 as Mul<T>>::Output {
+//    type Output = T;
+//
+//    fn mul(self, rhs: Self) -> Self::Output {
+//
+//    }
+//}
