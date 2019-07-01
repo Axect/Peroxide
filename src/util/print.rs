@@ -14,6 +14,7 @@ use structure::hyper_dual::*;
 use statistics::dist::*;
 use std::fmt::Debug;
 use rand::distributions::uniform::SampleUniform;
+use operation::number::Number;
 
 pub trait Printable {
     fn print(&self);
@@ -132,5 +133,11 @@ impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for OPD
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPDist<T> {
     fn print(&self) {
         println!("{:?}", self);
+    }
+}
+
+impl Printable for Number {
+    fn print(&self) {
+        println!("{:?}", self)
     }
 }

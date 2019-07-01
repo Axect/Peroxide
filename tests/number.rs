@@ -1,9 +1,10 @@
 extern crate peroxide;
 use peroxide::*;
-use peroxide::operation::union::Number::{F, D};
+use peroxide::operation::number::Number::{F, D};
+use peroxide::operation::number::Number;
 
 #[test]
-fn test_ops_btw_union_f() {
+fn test_ops_btw_number_f() {
     let x_f = F(3f64);
     let y_f = F(2f64);
 
@@ -13,11 +14,23 @@ fn test_ops_btw_union_f() {
 }
 
 #[test]
-fn test_ops_btw_union_d() {
+fn test_ops_btw_number_d() {
     let x_d = D(dual(1, 1)); // y=x
     let y_d = D(dual(1, 2)); // y=x^2
 
     assert_eq!(x_d + y_d, D(dual(2, 3)));
     assert_eq!(x_d - y_d, D(dual(0, -1)));
     assert_eq!(x_d * y_d, D(dual(1, 3)));
+}
+
+#[test]
+fn test_function_for_number() {
+    let fl = F(2f64);
+    let du = D(dual(1, 1));
+
+    assert_eq!(f(fl), F(14f64));
+}
+
+fn f(n: Number) -> Number {
+    2f64 * n * 3f64 + 2f64
 }

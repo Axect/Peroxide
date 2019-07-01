@@ -1,3 +1,9 @@
+# Release 0.10.4 (2019-07-01)
+
+* Add `Number` enum for generic function input to ODE.
+    * `Number` is composed of `F(f64), D(Dual), E(NumError)`
+    * It replace `Real` trait
+
 # Release 0.10.3 (2019-06-27)
 
 * Modify `State<T>` structure. (`state` -> `value`)

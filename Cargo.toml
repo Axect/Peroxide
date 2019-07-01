@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.10.3"
+version = "0.10.4"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros"
 repository = "https://github.com/Axect/Peroxide"
