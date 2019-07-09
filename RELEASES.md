@@ -1,3 +1,9 @@
+# Release 0.10.5 (2019-07-09)
+
+* Modify `integrate` of `numerical/ode.rs`
+    * Now, `integrate` provides [`param` | `values`] matrix.
+* Change `rand` crate version - `0.7.0`
+
 # Release 0.10.4 (2019-07-01)
 
 * Add `Number` enum for generic function input to ODE.

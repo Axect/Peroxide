@@ -26,7 +26,7 @@ fn test_ops_btw_number_d() {
 #[test]
 fn test_function_for_number() {
     let fl = F(2f64);
-    let du = D(dual(1, 1));
+    let _du = D(dual(1, 1));
 
     assert_eq!(f(fl), F(14f64));
 }

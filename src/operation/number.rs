@@ -1,7 +1,6 @@
 use ::{Dual, Real};
 use std::ops::{Add, Sub, Mul, Div, Neg};
 use operation::number::Number::{D, F, E};
-use operation::number::NumError::DiffType;
 use ::{ExpLogOps, TrigOps};
 use std::process::exit;
 use ::{PowOps, HyperDual};
@@ -363,7 +362,7 @@ impl Real for Number {
         unimplemented!()
     }
 
-    fn from_hyper_dual(h: HyperDual) -> Self {
+    fn from_hyper_dual(_h: HyperDual) -> Self {
         unimplemented!()
     }
 }

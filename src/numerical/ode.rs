@@ -4,7 +4,7 @@ use ExMethod::{Euler, RK4};
 use ::{MutFP, Matrix, FPVector};
 use ToUse::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use {Dual, Real};
-use zeros;
+use ::{zeros, cat};
 
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub enum ExMethod {
@@ -203,13 +203,13 @@ impl ODE for ExplicitODE {
     fn integrate(&mut self) -> Self::Records {
         assert!(self.check_enough(), "Not enough fields!");
 
-        let mut result = zeros(self.times + 1, self.state.value.len());
+        let mut result = zeros(self.times + 1, self.state.value.len() + 1);
 
-        result.subs_row(0, self.state.value.clone());
+        result.subs_row(0, cat(self.state.param, self.state.value.clone()));
 
         for i in 1 .. self.times+1 {
             self.mut_update();
-            result.subs_row(i, self.state.value.clone());
+            result.subs_row(i, cat(self.state.param,self.state.value.clone()));
         }
 
         result
