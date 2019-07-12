@@ -1,3 +1,9 @@
+# Release 0.10.6 (2019-07-12)
+
+* Now, we can draw & save plot
+    * New dependency - `pyo3`
+    * Plot is implemented in `util/plot.rs`
+
 # Release 0.10.5 (2019-07-09)
 
 * Modify `integrate` of `numerical/ode.rs`

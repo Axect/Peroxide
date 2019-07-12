@@ -2,24 +2,40 @@ use std::collections::HashMap;
 use BoundaryCondition::Dirichlet;
 use ExMethod::{Euler, RK4};
 use ::{MutFP, Matrix, FPVector};
-use ToUse::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
+use ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use {Dual, Real};
 use ::{zeros, cat};
 
+/// Explicit ODE Methods
+///
+/// * Euler : Euler 1st Order
+/// * RK4 : Runge-Kutta 4th Order
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub enum ExMethod {
     Euler,
     RK4,
 }
 
+/// Kinds of Boundary Conditions
+///
+/// * Dirichlet
+/// * Neumann
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub enum BoundaryCondition {
     Dirichlet,
     Neumann,
 }
 
+/// Options for ODE
+///
+/// * `InitCond` : Initial condition
+/// * `BoundCond` : Boundary condition
+/// * `Method` : methods of `ExMethod` or `ImMethod`
+/// * `StopCond` : Stop condition
+/// * `StepSize` : Step size
+/// * `Times` : A number of times to integrate with specific step size
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, PartialEq, Eq)]
-pub enum ToUse {
+pub enum ODEOptions {
     InitCond,
     BoundCond,
     Method,
@@ -28,6 +44,11 @@ pub enum ToUse {
     Times,
 }
 
+/// State for ODE
+///
+/// * `param` : Parameter of ODE (ex) time)
+/// * `value` : Current value of ODE
+/// * `deriv` : Current differential of values
 #[derive(Debug, Clone, Default)]
 pub struct State<T: Real> {
     pub param: T,
@@ -84,9 +105,13 @@ impl<T: Real> State<T> {
 pub type ExUpdater = fn(&mut State<f64>);
 pub type ImUpdater = fn(&mut State<Dual>);
 
+/// ODE solver
+///
+/// * `Records` : Type of container to contain results
+/// * `Param` : Type of parameter
+/// * `ODEMethod` : Explicit or Implicit
 pub trait ODE {
     type Records;
-    type Vector;
     type Param;
     type ODEMethod;
 
@@ -117,12 +142,12 @@ pub struct ExplicitODE {
     bound_cond2: (State<f64>, BoundaryCondition),
     stop_cond: fn(&Self) -> bool,
     times: usize,
-    to_use: HashMap<ToUse, bool>,
+    options: HashMap<ODEOptions, bool>,
 }
 
 impl ExplicitODE {
     pub fn new(f: ExUpdater) -> Self {
-        let mut default_to_use: HashMap<ToUse, bool> = HashMap::new();
+        let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
         default_to_use.insert(InitCond, false);
         default_to_use.insert(StepSize, false);
         default_to_use.insert(BoundCond, false);
@@ -140,7 +165,7 @@ impl ExplicitODE {
             bound_cond2: (Default::default(), Dirichlet),
             stop_cond: |_x| false,
             times: 0,
-            to_use: default_to_use,
+            options: default_to_use,
         }
     }
 
@@ -151,7 +176,6 @@ impl ExplicitODE {
 
 impl ODE for ExplicitODE {
     type Records = Matrix;
-    type Vector = Vec<f64>;
     type Param = f64;
     type ODEMethod = ExMethod;
 
@@ -216,7 +240,7 @@ impl ODE for ExplicitODE {
     }
 
     fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&InitCond) {
+        if let Some(x) = self.options.get_mut(&InitCond) {
             *x = true
         }
         self.init_cond = init.to_f64();
@@ -229,7 +253,7 @@ impl ODE for ExplicitODE {
         bound1: (State<T>, BoundaryCondition),
         bound2: (State<T>, BoundaryCondition),
     ) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&BoundCond) {
+        if let Some(x) = self.options.get_mut(&BoundCond) {
             *x = true
         }
         self.bound_cond1 = (bound1.0.to_f64(), bound1.1);
@@ -238,7 +262,7 @@ impl ODE for ExplicitODE {
     }
 
     fn set_step_size(&mut self, dt: f64) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&StepSize) {
+        if let Some(x) = self.options.get_mut(&StepSize) {
             *x = true
         }
         self.step_size = dt;
@@ -246,7 +270,7 @@ impl ODE for ExplicitODE {
     }
 
     fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&Method) {
+        if let Some(x) = self.options.get_mut(&Method) {
             *x = true
         }
         self.method = method;
@@ -254,7 +278,7 @@ impl ODE for ExplicitODE {
     }
 
     fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&StopCond) {
+        if let Some(x) = self.options.get_mut(&StopCond) {
             *x = true
         }
         self.stop_cond = f;
@@ -262,7 +286,7 @@ impl ODE for ExplicitODE {
     }
 
     fn set_times(&mut self, n: usize) -> &mut Self {
-        if let Some(x) = self.to_use.get_mut(&Times) {
+        if let Some(x) = self.options.get_mut(&Times) {
             *x = true
         }
         self.times = n;
@@ -271,7 +295,7 @@ impl ODE for ExplicitODE {
 
     fn check_enough(&self) -> bool {
         // Method
-        match self.to_use.get(&Method) {
+        match self.options.get(&Method) {
             Some(x) => {
                 if !*x {
                     return false;
@@ -281,7 +305,7 @@ impl ODE for ExplicitODE {
         }
 
         // Step size
-        match self.to_use.get(&StepSize) {
+        match self.options.get(&StepSize) {
             Some(x) => {
                 if !*x {
                     return false;
@@ -291,11 +315,11 @@ impl ODE for ExplicitODE {
         }
 
         // Initial or Boundary
-        match self.to_use.get(&InitCond) {
+        match self.options.get(&InitCond) {
             None => { return false; }
             Some(x) => {
                 if !*x {
-                    match self.to_use.get(&BoundCond) {
+                    match self.options.get(&BoundCond) {
                         None => { return false; }
                         Some(_) => ()
                     }
@@ -304,7 +328,7 @@ impl ODE for ExplicitODE {
         }
 
         // Set Time?
-        match self.to_use.get(&Times) {
+        match self.options.get(&Times) {
             None => { return false; }
             Some(x) => {
                 if !*x {

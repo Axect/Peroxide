@@ -99,3 +99,6 @@ pub use numerical::ode::*;
 
 #[allow(unused_imports)]
 pub use operation::number::*;
+
+#[allow(unused_imports)]
+pub use util::plot::*;
