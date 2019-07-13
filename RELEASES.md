@@ -1,3 +1,7 @@
+# Release 0.11.1 (2019-07-13)
+
+* Remove dependency of `inline-python`
+
 # Release 0.11.0 (2019-07-13)
 
 * **[Important]** Now, only nightly support (Because of `pyo3`)

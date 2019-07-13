@@ -81,12 +81,14 @@ There is [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook)
 
 ## Example
 
-### Basic Runge-Kutta 4th order with basic plotting
+### Basic Runge-Kutta 4th order with inline-python
 
 ```rust
 #![feature(proc_macro_hygiene)]
 extern crate peroxide;
+extern crate inline_python;
 use peroxide::*;
+use inline_python::python;
 
 fn main() {
     // Initial condition
