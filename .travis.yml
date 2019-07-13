@@ -5,6 +5,8 @@ matrix:
         - nightly
       python:
         - "3.6"
+      env:
+        - PythonVersion=3.6
       script:
         - cargo build --verbose --all
         - cargo test --verbose --all
