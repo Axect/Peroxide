@@ -1,9 +1,9 @@
 extern crate pyo3;
-use std::collections::HashMap;
-use ::PlotOptions::{Domain, Images, Legends, Path};
-pub use ::Grid::*;
-use self::pyo3::{PyResult, Python};
 use self::pyo3::types::IntoPyDict;
+use self::pyo3::{PyResult, Python};
+use std::collections::HashMap;
+pub use Grid::*;
+use PlotOptions::{Domain, Images, Legends, Path};
 
 type Vector = Vec<f64>;
 
@@ -18,7 +18,7 @@ pub enum PlotOptions {
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub enum Grid {
     On,
-    Off
+    Off,
 }
 
 pub trait Plot {
@@ -147,25 +147,34 @@ impl Plot for Plot2D {
         match self.options.get(&Domain) {
             Some(x) => {
                 assert!(*x, "Domain is not defined");
-            },
-            None => { assert!(false, "Domain is None"); }
+            }
+            None => {
+                assert!(false, "Domain is None");
+            }
         }
 
         // Check images
         match self.options.get(&Images) {
             Some(x) => {
                 assert!(*x, "Images are not defined");
-            },
-            None => { assert!(false, "Images are None"); }
+            }
+            None => {
+                assert!(false, "Images are None");
+            }
         }
 
         // Check legends
         match self.options.get(&Legends) {
             Some(x) => {
                 assert!(*x, "Legends are not defined");
-                assert!(self.images.len() == self.legends.len(), "Legends are not matched with images");
-            },
-            None => { assert!(false, "Legends are None"); }
+                assert!(
+                    self.images.len() == self.legends.len(),
+                    "Legends are not matched with images"
+                );
+            }
+            None => {
+                assert!(false, "Legends are None");
+            }
         }
 
         // Plot
@@ -199,27 +208,26 @@ impl Plot for Plot2D {
         globals.set_item("pa", path)?;
 
         // Plot Code
-        let mut plot_string = format!("\
-            plt.rc(\"text\", usetex=True)\n\
-            plt.rc(\"font\", family=\"serif\")\n\
-            plt.figure(figsize=fs, dpi=dp)\n\
-            plt.title(r\"{}\", fontsize=16)\n\
-            plt.xlabel(r\"{}\", fontsize=14)\n\
-            plt.ylabel(r\"{}\", fontsize=14)\n\
-            if gr:\n\
-            \tplt.grid()\n",
+        let mut plot_string = format!(
+            "\
+             plt.rc(\"text\", usetex=True)\n\
+             plt.rc(\"font\", family=\"serif\")\n\
+             plt.figure(figsize=fs, dpi=dp)\n\
+             plt.title(r\"{}\", fontsize=16)\n\
+             plt.xlabel(r\"{}\", fontsize=14)\n\
+             plt.ylabel(r\"{}\", fontsize=14)\n\
+             if gr:\n\
+             \tplt.grid()\n",
             title, xlabel, ylabel
         );
 
-        for i in 0 .. y_length {
-            plot_string.push_str(&format!(
-                "plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i]
-            )[..])
+        for i in 0..y_length {
+            plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
         }
 
         plot_string.push_str("plt.legend(fontsize=12)\nplt.savefig(pa)");
 
-        py.run(&plot_string[..],Some(&globals), None)?;
+        py.run(&plot_string[..], Some(&globals), None)?;
         Ok(())
     }
 }

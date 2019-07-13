@@ -1,5 +1,5 @@
 extern crate special;
-use self::special::{Gamma, Error};
+use self::special::{Error, Gamma};
 
 use std::f64::consts::PI;
 
@@ -7,7 +7,7 @@ use std::f64::consts::PI;
 ///
 /// `N(x|μ,σ) = 1/√(2πσ^2) exp(-(x-μ)^2/(2σ^2))`
 pub fn gaussian(x: f64, mu: f64, sigma: f64) -> f64 {
-    1f64/((2f64*PI).sqrt()*sigma) * (- 0.5 * ((x - mu)/sigma).powi(2)).exp()
+    1f64 / ((2f64 * PI).sqrt() * sigma) * (-0.5 * ((x - mu) / sigma).powi(2)).exp()
 }
 
 /// Gamma function
@@ -49,5 +49,5 @@ pub fn erf_inv(x: f64) -> f64 {
 ///
 /// Wrapper of `inc_beta` function of `special` crate
 pub fn beta(a: f64, b: f64) -> f64 {
-    gamma(a)*gamma(b) / gamma(a + b)
+    gamma(a) * gamma(b) / gamma(a + b)
 }

@@ -1,14 +1,16 @@
+#![feature(proc_macro_hygiene)]
 extern crate rand;
+extern crate inline_python;
 
-pub mod structure;
 pub mod statistics;
+pub mod structure;
 #[macro_use]
 pub mod macros;
-pub mod util;
-pub mod numerical;
 pub mod ml;
+pub mod numerical;
 pub mod operation;
 pub mod special;
+pub mod util;
 
 #[allow(unused_imports)]
 pub use structure::matrix::*;
@@ -102,3 +104,6 @@ pub use operation::number::*;
 
 #[allow(unused_imports)]
 pub use util::plot::*;
+
+#[allow(unused_imports)]
+pub use inline_python::python;

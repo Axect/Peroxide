@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use BoundaryCondition::Dirichlet;
 use ExMethod::{Euler, RK4};
-use ::{MutFP, Matrix, FPVector};
 use ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
+use {cat, zeros};
 use {Dual, Real};
-use ::{zeros, cat};
+use {FPVector, Matrix, MutFP};
 
 /// Explicit ODE Methods
 ///
@@ -205,20 +205,21 @@ impl ODE for ExplicitODE {
                 (self.func)(&mut self.state);
 
                 let k2 = self.state.deriv.clone();
-                let k2_add = k2.zip_with(|x, y| h2*x - y, &k1_add);
+                let k2_add = k2.zip_with(|x, y| h2 * x - y, &k1_add);
                 self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
                 (self.func)(&mut self.state);
 
                 let k3 = self.state.deriv.clone();
-                let k3_add = k3.zip_with(|x, y| h*x - y, &k2_add);
+                let k3_add = k3.zip_with(|x, y| h * x - y, &k2_add);
                 self.state.param += h2;
                 self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
                 (self.func)(&mut self.state);
 
                 let k4 = self.state.deriv.clone();
 
-                for i in 0 .. k1.len() {
-                    self.state.value[i] = yn[i] + (k1[i] + 2f64*k2[i] + 2f64*k3[i] + k4[i]) * h / 6f64;
+                for i in 0..k1.len() {
+                    self.state.value[i] =
+                        yn[i] + (k1[i] + 2f64 * k2[i] + 2f64 * k3[i] + k4[i]) * h / 6f64;
                 }
             }
         }
@@ -231,9 +232,9 @@ impl ODE for ExplicitODE {
 
         result.subs_row(0, cat(self.state.param, self.state.value.clone()));
 
-        for i in 1 .. self.times+1 {
+        for i in 1..self.times + 1 {
             self.mut_update();
-            result.subs_row(i, cat(self.state.param,self.state.value.clone()));
+            result.subs_row(i, cat(self.state.param, self.state.value.clone()));
         }
 
         result
@@ -300,8 +301,10 @@ impl ODE for ExplicitODE {
                 if !*x {
                     return false;
                 }
-            },
-            None => { return false; }
+            }
+            None => {
+                return false;
+            }
         }
 
         // Step size
@@ -310,18 +313,24 @@ impl ODE for ExplicitODE {
                 if !*x {
                     return false;
                 }
-            },
-            None => { return false; }
+            }
+            None => {
+                return false;
+            }
         }
 
         // Initial or Boundary
         match self.options.get(&InitCond) {
-            None => { return false; }
+            None => {
+                return false;
+            }
             Some(x) => {
                 if !*x {
                     match self.options.get(&BoundCond) {
-                        None => { return false; }
-                        Some(_) => ()
+                        None => {
+                            return false;
+                        }
+                        Some(_) => (),
                     }
                 }
             }
@@ -329,7 +338,9 @@ impl ODE for ExplicitODE {
 
         // Set Time?
         match self.options.get(&Times) {
-            None => { return false; }
+            None => {
+                return false;
+            }
             Some(x) => {
                 if !*x {
                     return false;

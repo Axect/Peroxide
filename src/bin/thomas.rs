@@ -7,16 +7,16 @@ fn main() {
     let n: usize = 1000;
 
     // Thomas
-    let prev = vec![(eps + h/2f64)/h.powi(2); n-1];
-    let center = vec![-2f64*eps/h.powi(2); n];
-    let post = vec![(eps - h/2f64)/h.powi(2); n-1];
+    let prev = vec![(eps + h / 2f64) / h.powi(2); n - 1];
+    let center = vec![-2f64 * eps / h.powi(2); n];
+    let post = vec![(eps - h / 2f64) / h.powi(2); n - 1];
     let y = b(eps, h, n, (1f64, 3f64)).col(0);
 
-    let a = tdma(prev,center,post,y);
+    let a = tdma(prev, center, post, y);
     a.print();
-    a.write_single_pickle("example_data/tdma.pickle").expect("Can't write pickle file");
+    a.write_single_pickle("example_data/tdma.pickle")
+        .expect("Can't write pickle file");
 }
-
 
 /// RHS with Dirichlet Boundary Condition
 fn b(eps: f64, h: f64, size: usize, bcs: (f64, f64)) -> Matrix {
@@ -28,4 +28,3 @@ fn b(eps: f64, h: f64, size: usize, bcs: (f64, f64)) -> Matrix {
     col_mat[(size - 1, 0)] = last;
     col_mat
 }
-

@@ -1,3 +1,9 @@
+# Release 0.11.0 (2019-07-13)
+
+* **[Important]** Now, only nightly support (Because of `pyo3`)
+* Integrate with `inline-python`
+* Update `README.md`
+
 # Release 0.10.6 (2019-07-12)
 
 * Now, we can draw & save plot

@@ -1,5 +1,5 @@
 use std::ops::{Add, Div, Mul, Sub};
-use ::{HyperDual, Dual};
+use {Dual, HyperDual};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;

@@ -17,8 +17,10 @@ type Vector = Vec<f64>;
 /// assert!(nearly_eq(1.0/3.0 * 3.0, 1));
 /// ```
 pub fn nearly_eq<S, T>(x: S, y: T) -> bool
-    where S: convert::Into<f64>,
-          T: convert::Into<f64> {
+where
+    S: convert::Into<f64>,
+    T: convert::Into<f64>,
+{
     let mut b: bool = false;
     let e = 1e-7;
     let p: f64 = x.into().abs();

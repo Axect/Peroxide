@@ -1,16 +1,16 @@
+use numerical::utils::jacobian;
+use structure::dual::*;
 use structure::matrix::*;
 use structure::vector::*;
-use structure::dual::*;
-use numerical::utils::jacobian;
-use util::non_macro::{concat, eye, zeros, cat};
+use util::non_macro::{cat, concat, eye, zeros};
 
 /// Value of 3f64.sqrt()
 const SQRT3: f64 = 1.7320508075688772;
 
 /// Butcher tableau for Gauss_legendre 4th order
 const GL4: [[f64; 3]; 2] = [
-    [0.5 - SQRT3/6f64, 0.25, 0.25 - SQRT3/6f64],
-    [0.5 + SQRT3/6f64, 0.25 + SQRT3/6f64, 0.25]
+    [0.5 - SQRT3 / 6f64, 0.25, 0.25 - SQRT3 / 6f64],
+    [0.5 + SQRT3 / 6f64, 0.25 + SQRT3 / 6f64, 0.25],
 ];
 
 /// Gauss-Legendre 4th order method
@@ -24,24 +24,23 @@ const GL4: [[f64; 3]; 2] = [
 /// ## 2. Iteration
 /// * `y_{n+1} = y_n + 0.5*h*(k1 + k2)`
 pub fn gl4<F>(f: F, t_init: f64, y_init: Vec<f64>, h: f64, rtol: f64, num: usize) -> Matrix
-    where F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy
+where
+    F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy,
 {
     let mut t = t_init;
     let mut y_curr = y_init.clone();
     let mut records = zeros(num + 1, y_curr.len() + 1);
     records.subs_row(0, cat(t, y_curr.clone()));
 
-    for i in 0 .. num {
+    for i in 0..num {
         let (k1, k2) = k_newton(f, t, y_curr.clone(), h, rtol);
         y_curr = y_curr.add(&k1.fmap(|x| 0.5 * x * h).add(&k2.fmap(|x| 0.5 * x * h)));
         t += h;
-        records.subs_row(i+1, cat(t, y_curr.clone()))
+        records.subs_row(i + 1, cat(t, y_curr.clone()))
     }
 
     records
 }
-
-
 
 /// Newton's Method for find k in GL4
 ///
@@ -63,7 +62,8 @@ pub fn gl4<F>(f: F, t_init: f64, y_init: Vec<f64>, h: f64, rtol: f64, num: usize
 /// * `k^{l+1} = k^l - DG^{-1}G(k^l)`
 #[allow(non_snake_case)]
 pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, Vec<f64>)
-    where F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy,
+where
+    F: Fn(Dual, Vec<Dual>) -> Vec<Dual> + Copy,
 {
     let t1 = dual(t + GL4[0][0] * h, 0.);
     let t2 = dual(t + GL4[1][0] * h, 0.);
@@ -82,13 +82,25 @@ pub fn k_newton<F>(f: F, t: f64, y: Vec<f64>, h: f64, rtol: f64) -> (Vec<f64>, V
         let k1 = k.take(n);
         let k2 = k.skip(n);
         concat(
-            f(t1, yn.add(&k1.fmap(|x| x * GL4[0][1] * h).add(&k2.fmap(|x| x * GL4[0][2] * h)))),
-            f(t2, yn.add(&k1.fmap(|x| x * GL4[1][1] * h).add(&k2.fmap(|x| x * GL4[1][2] * h))))
+            f(
+                t1,
+                yn.add(
+                    &k1.fmap(|x| x * GL4[0][1] * h)
+                        .add(&k2.fmap(|x| x * GL4[0][2] * h)),
+                ),
+            ),
+            f(
+                t2,
+                yn.add(
+                    &k1.fmap(|x| x * GL4[1][1] * h)
+                        .add(&k2.fmap(|x| x * GL4[1][2] * h)),
+                ),
+            ),
         )
     };
 
     // 2. Obtain Jacobian
-    let I = eye(2*n);
+    let I = eye(2 * n);
 
     let mut Dg = jacobian(k_curr.clone(), g.clone());
     let mut DG = I.clone() - Dg.clone();

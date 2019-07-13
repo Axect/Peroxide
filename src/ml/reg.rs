@@ -1,11 +1,11 @@
 #[allow(unused_imports)]
-use structure::matrix::*;
+use statistics::stat::*;
 #[allow(unused_imports)]
-use structure::vector::*;
+use structure::matrix::*;
 #[allow(unused_imports)]
 use structure::polynomial::*;
 #[allow(unused_imports)]
-use statistics::stat::*;
+use structure::vector::*;
 
 /// Simple Least Square 2D
 ///
@@ -31,7 +31,7 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
     let mut t_bar = 0f64;
     let mut xt_bar = 0f64;
     let mut x_sq_bar = 0f64;
-    for i in 0 .. l {
+    for i in 0..l {
         let x = node_x[i];
         let t = node_y[i];
 

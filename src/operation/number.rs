@@ -1,20 +1,20 @@
-use ::{Dual, Real};
-use std::ops::{Add, Sub, Mul, Div, Neg};
-use operation::number::Number::{D, F, E};
-use ::{ExpLogOps, TrigOps};
+use operation::number::Number::{D, E, F};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::process::exit;
-use ::{PowOps, HyperDual};
+use {Dual, Real};
+use {ExpLogOps, TrigOps};
+use {HyperDual, PowOps};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum NumError {
-    DiffType
+    DiffType,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Number {
     F(f64),
     D(Dual),
-    E(NumError)
+    E(NumError),
 }
 
 impl Neg for Number {
@@ -24,7 +24,7 @@ impl Neg for Number {
         match self {
             F(x) => F(-x),
             D(x) => D(-x),
-            E(x) => E(x)
+            E(x) => E(x),
         }
     }
 }
@@ -127,10 +127,10 @@ impl Div for Number {
 
     fn div(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (F(x), F(y)) => F(x/y),
-            (D(x), D(y)) => D(x/y),
-            (F(x), D(y)) => D(x/y),
-            (D(x), F(y)) => D(x/y),
+            (F(x), F(y)) => F(x / y),
+            (D(x), D(y)) => D(x / y),
+            (F(x), D(y)) => D(x / y),
+            (D(x), F(y)) => D(x / y),
             (E(x), _) => E(x),
             (_, E(y)) => E(y),
         }
@@ -166,7 +166,7 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.ln()),
             D(x) => D(x.exp()),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 
@@ -174,7 +174,7 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.log(base)),
             D(x) => D(x.log(base)),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 
@@ -182,7 +182,7 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.log2()),
             D(x) => D(x.log2()),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 
@@ -306,7 +306,7 @@ impl PowOps for Number {
         match self {
             F(x) => F(x.powi(n)),
             D(x) => D(x.powi(n)),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 
@@ -314,7 +314,7 @@ impl PowOps for Number {
         match self {
             F(x) => F(x.powf(f)),
             D(x) => D(x.powf(f)),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 
@@ -322,7 +322,7 @@ impl PowOps for Number {
         match self {
             F(x) => F(x.sqrt()),
             D(x) => D(x.sqrt()),
-            E(x) => E(x.to_owned())
+            E(x) => E(x.to_owned()),
         }
     }
 }
@@ -398,7 +398,7 @@ impl Div<Number> for f64 {
         match rhs {
             F(x) => F(self / x),
             D(x) => D(self / x),
-            E(x) => E(x)
+            E(x) => E(x),
         }
     }
 }

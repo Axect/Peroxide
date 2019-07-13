@@ -8,9 +8,9 @@ fn main() {
     let b: Matrix = PYTHON::new(vec![c!(1, 2), c!(3, 4)]);
     b.print();
 
-    let c: Matrix = R::new(c!(1,2,3,4), 2, 2, Row);
+    let c: Matrix = R::new(c!(1, 2, 3, 4), 2, 2, Row);
     c.print();
 
-    let d: Matrix = Matrix::from_index(|x, y| (x*3 + y + 1) as f64, (4, 3));
+    let d: Matrix = Matrix::from_index(|x, y| (x * 3 + y + 1) as f64, (4, 3));
     d.print();
 }

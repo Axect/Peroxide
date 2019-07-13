@@ -1,12 +1,12 @@
+use std::fmt;
 #[allow(unused_imports)]
 use structure::matrix::*;
 use structure::vector::*;
 use util::useful::*;
-use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Multinomial {
-    coef: Vector
+    coef: Vector,
 }
 
 impl fmt::Display for Multinomial {
@@ -16,10 +16,7 @@ impl fmt::Display for Multinomial {
 
         if l == 1 {
             let value = self.coef[0];
-            let target = choose_shorter_string(
-                format!("{}x_0", value),
-                format!("{:.4}x_0", value),
-            );
+            let target = choose_shorter_string(format!("{}x_0", value), format!("{:.4}x_0", value));
             return write!(f, "{}", target);
         }
 
@@ -29,7 +26,7 @@ impl fmt::Display for Multinomial {
             format!("{:.4}x_0", first_value),
         ));
 
-        for i in 1 .. l {
+        for i in 1..l {
             let value = self.coef[i];
             if value > 0. {
                 let target = choose_shorter_string(

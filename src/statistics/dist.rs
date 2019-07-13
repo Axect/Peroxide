@@ -42,12 +42,12 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for OPDist
 
     fn params(&self) -> Self::Parameter {
         match self {
-            Bernoulli(mu) => (*mu).into()
+            Bernoulli(mu) => (*mu).into(),
         }
     }
 }
 
-impl <T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist<T> {
+impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist<T> {
     type Parameter = (f64, f64);
 
     fn params(&self) -> Self::Parameter {
@@ -180,7 +180,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     let z = ziggurat(&mut rng2, 1f64);
                     let w = (1f64 + c * z).powi(3);
 
-                    if z >= -1f64/c && u.ln() < 0.5 * z.powi(2) + d - d*w + d * w.ln() {
+                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
                         v[iter_num] = d * w / b_f64;
                         iter_num += 1;
                     }

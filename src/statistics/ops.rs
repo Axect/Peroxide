@@ -13,7 +13,7 @@
 /// ```
 pub fn factorial(n: usize) -> usize {
     let mut p = 1usize;
-    for i in 1 .. (n+1) {
+    for i in 1..(n + 1) {
         p *= i;
     }
     p
@@ -32,7 +32,7 @@ pub fn factorial(n: usize) -> usize {
 #[allow(non_snake_case)]
 pub fn P(n: usize, r: usize) -> usize {
     let mut p = 1usize;
-    for i in 0 .. r {
+    for i in 0..r {
         p *= n - i;
     }
     p
@@ -50,8 +50,8 @@ pub fn P(n: usize, r: usize) -> usize {
 /// ```
 #[allow(non_snake_case)]
 pub fn C(n: usize, r: usize) -> usize {
-    if r > n/2 {
-        return C(n, n-r);
+    if r > n / 2 {
+        return C(n, n - r);
     }
 
     P(n, r) / factorial(r)
@@ -69,5 +69,5 @@ pub fn C(n: usize, r: usize) -> usize {
 /// ```
 #[allow(non_snake_case)]
 pub fn H(n: usize, r: usize) -> usize {
-    C(n+r-1, r)
+    C(n + r - 1, r)
 }

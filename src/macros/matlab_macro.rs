@@ -25,12 +25,10 @@ macro_rules! zeros {
         vec![0f64; $n]
     };
 
-    ( $r:expr, $c:expr ) => {
-        {
-            let (r, c) = ($r, $c);
-            matrix(vec![0f64; r*c], r, c, Row)
-        }
-    };
+    ( $r:expr, $c:expr ) => {{
+        let (r, c) = ($r, $c);
+        matrix(vec![0f64; r * c], r, c, Row)
+    }};
 }
 
 /// MATLAB like rand - random matrix
@@ -39,33 +37,29 @@ macro_rules! zeros {
 /// ```
 /// extern crate peroxide;
 /// use peroxide::*;
-/// 
+///
 /// let a = rand!(2, 2);
 /// println!("{}", a); // 2 x 2 random matrix (0 ~ 1)
 /// ```
 #[macro_export]
 macro_rules! rand {
-    () => {
-        {
-            let mut rng = thread_rng();
-            rng.gen_range(0f64, 1f64)
-        }
-    };
+    () => {{
+        let mut rng = thread_rng();
+        rng.gen_range(0f64, 1f64)
+    }};
 
-    ( $m:expr, $n:expr ) => {
-        {   
-            let r = $m;
-            let c = $n;
-            let mut rng = thread_rng();
-            let mut m = matrix(vec![0f64; r * c], r, c, Row);
-            for i in 0 .. r {
-                for j in 0 .. c {
-                    m[(i, j)] = rng.gen_range(0f64, 1f64);
-                }
+    ( $m:expr, $n:expr ) => {{
+        let r = $m;
+        let c = $n;
+        let mut rng = thread_rng();
+        let mut m = matrix(vec![0f64; r * c], r, c, Row);
+        for i in 0..r {
+            for j in 0..c {
+                m[(i, j)] = rng.gen_range(0f64, 1f64);
             }
-            m
         }
-    };
+        m
+    }};
 }
 
 /// MATLAB like eye - identity matrix
@@ -81,16 +75,14 @@ macro_rules! rand {
 /// ```
 #[macro_export]
 macro_rules! eye {
-    ( $n:expr ) => {
-        {
-            let n = $n;
-            let mut m = matrix(vec![0f64; n * n], n, n, Row);
-            for i in 0 .. n {
-                m[(i, i)] = 1f64;
-            }
-            m
+    ( $n:expr ) => {{
+        let n = $n;
+        let mut m = matrix(vec![0f64; n * n], n, n, Row);
+        for i in 0..n {
+            m[(i, i)] = 1f64;
         }
-    };
+        m
+    }};
 }
 
 /// MATLAB like linspace
@@ -105,10 +97,8 @@ macro_rules! eye {
 /// ```
 #[macro_export]
 macro_rules! linspace {
-    ( $start:expr, $end:expr, $length: expr) => {
-        {
-            let step = ($end - $start) as f64 / ($length as f64 - 1f64);
-            seq!($start, $end, step)
-        }
-    };
+    ( $start:expr, $end:expr, $length: expr) => {{
+        let step = ($end - $start) as f64 / ($length as f64 - 1f64);
+        seq!($start, $end, step)
+    }};
 }

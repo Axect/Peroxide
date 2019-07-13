@@ -4,11 +4,19 @@ use peroxide::*;
 fn main() {
     let a = matrix(
         vec![
-            3., 1f64.sin(), 1f64.sin(),
-            8., -1250., 2.,
-            -(1f64.exp()), -(1f64.exp()), 20.,
+            3.,
+            1f64.sin(),
+            1f64.sin(),
+            8.,
+            -1250.,
+            2.,
+            -(1f64.exp()),
+            -(1f64.exp()),
+            20.,
         ],
-        3, 3, Row
+        3,
+        3,
+        Row,
     );
 
     a.print();

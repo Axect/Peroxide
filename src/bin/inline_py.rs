@@ -1,3 +1,4 @@
+#![feature(proc_macro_hygiene)]
 extern crate peroxide;
 use peroxide::*;
 
@@ -17,16 +18,11 @@ fn main() {
     let x = result.col(0);
     let y = result.col(1);
 
-    let mut plt = Plot2D::new();
-    plt.set_domain(x)
-        .insert_image(y)
-        .set_title("Test Figure")
-        .set_fig_size((10, 6))
-        .set_dpi(300)
-        .set_legends(vec!["RK4".to_owned()])
-        .set_path("example_data/test_plot.png");
-
-    plt.savefig();
+    python! {
+        import pylab as plt
+        plt.plot('x, 'y)
+        plt.show()
+    }
 }
 
 fn test_fn(st: &mut State<f64>) {

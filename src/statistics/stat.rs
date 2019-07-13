@@ -97,14 +97,14 @@ impl Statistics for Matrix {
         let mut container: Vector = Vec::new();
         let c = self.col;
 
-        for i in 0 .. c {
+        for i in 0..c {
             container.push(self.col(i).mean());
         }
         container
     }
 
     /// Column variance
-    /// 
+    ///
     /// # Examples
     /// ```
     /// extern crate peroxide;
@@ -117,7 +117,7 @@ impl Statistics for Matrix {
         let mut container: Vector = Vec::new();
         let c = self.col;
 
-        for i in 0 .. c {
+        for i in 0..c {
             container.push(self.col(i).var());
         }
         container
@@ -137,15 +137,14 @@ impl Statistics for Matrix {
         let mut container: Vector = Vec::new();
         let c = self.col;
 
-        for i in 0 .. c {
+        for i in 0..c {
             container.push(self.col(i).sd());
         }
         container
     }
 
-
     /// Covariance Matrix (Column based)
-    /// 
+    ///
     /// # Examples
     /// ```
     /// extern crate peroxide;
@@ -161,11 +160,11 @@ impl Statistics for Matrix {
     fn cov(&self) -> Self {
         let c = self.col;
 
-        let mut m: Self = matrix(vec![0f64; c*c], c, c, self.shape);
+        let mut m: Self = matrix(vec![0f64; c * c], c, c, self.shape);
 
-        for i in 0 .. c {
+        for i in 0..c {
             let m1 = self.col(i);
-            for j in 0 .. c {
+            for j in 0..c {
                 let m2 = self.col(j);
                 m[(i, j)] = cov(&m1, &m2);
             }
@@ -176,9 +175,9 @@ impl Statistics for Matrix {
     fn cor(&self) -> Self {
         let c = self.col;
 
-        let mut m: Self = matrix(vec![0f64; c*c], c, c, self.shape);
+        let mut m: Self = matrix(vec![0f64; c * c], c, c, self.shape);
 
-        for i in 0 .. c {
+        for i in 0..c {
             let m1 = self.col(i);
             for j in 0..c {
                 let m2 = self.col(j);

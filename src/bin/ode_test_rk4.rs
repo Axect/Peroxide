@@ -24,5 +24,5 @@ fn test_fn(st: &mut State<f64>) {
     let x = st.param;
     let y = &st.value;
     let dy = &mut st.deriv;
-    dy[0] = (5f64*x.powi(2) - y[0]) / (x + y[0]).exp();
+    dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
 }

@@ -1,32 +1,32 @@
-use structure::matrix::*;
 use structure::dual::*;
-use util::non_macro::{zeros, cat};
+use structure::matrix::*;
+use util::non_macro::{cat, zeros};
 
 /// Jacobian Matrix
-/// 
+///
 /// # Description
 /// : Exact jacobian matrix using Automatic Differenitation
-/// 
+///
 /// # Type
 /// (Vector, F) -> Matrix where F: Fn(Vec<Dual>) -> Vec<Dual>
-/// 
+///
 /// # Examples
 /// ```
 /// extern crate peroxide;
 /// use peroxide::*;
-/// 
+///
 /// let x = c!(1, 1);
 /// let j = jacobian(x, f);
 /// j.print();
-/// 
+///
 /// //      c[0] c[1]
 /// // r[0]    1    1
 /// // r[1]   -1    2
-/// 
+///
 /// fn f(xs: Vec<Dual>) -> Vec<Dual> {
 ///     let x = xs[0];
 ///     let y = xs[1];
-/// 
+///
 ///     vec![
 ///        x - y,
 ///        x + 2.*y,
@@ -35,7 +35,8 @@ use util::non_macro::{zeros, cat};
 /// ```
 #[allow(non_snake_case)]
 pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
-    where F: Fn(Vec<Dual>) -> Vec<Dual>
+where
+    F: Fn(Vec<Dual>) -> Vec<Dual>,
 {
     let l = x.len();
 
@@ -48,11 +49,11 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
 
     let mut x_temp = x_const.clone();
 
-    for i in 0 .. l {
+    for i in 0..l {
         x_temp[i] = x_var[i];
         let dual_temp = f(x_temp.clone());
         let slope_temp = dual_temp.slopes();
-        for j in 0 .. l2 {
+        for j in 0..l2 {
             J[(j, i)] = slope_temp[j];
         }
         x_temp = x_const.clone();
@@ -78,8 +79,8 @@ pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
 /// You should apply boundary condition yourself
 pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Vec<f64>) -> Matrix {
     let n = b_input.len();
-    assert_eq!(a_input.len(), n-1);
-    assert_eq!(c_input.len(), n-1);
+    assert_eq!(a_input.len(), n - 1);
+    assert_eq!(c_input.len(), n - 1);
     assert_eq!(y_input.len(), n);
 
     let a = cat(0f64, a_input.clone());
@@ -93,17 +94,17 @@ pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Ve
 
     // Forward substitution
     let mut w = vec![0f64; n];
-    for i in 1 .. n {
-        w[i] = a[i] / b[i-1];
-        b[i] = b[i] - w[i]*c[i-1];
-        y[i] = y[i] - w[i]*y[i-1];
+    for i in 1..n {
+        w[i] = a[i] / b[i - 1];
+        b[i] = b[i] - w[i] * c[i - 1];
+        y[i] = y[i] - w[i] * y[i - 1];
     }
 
     // Backward substitution
     let mut x = vec![0f64; n];
-    x[n-1] = y[n-1]/b[n-1];
-    for i in (0..n-1).rev() {
-        x[i] = (y[i] - c[i]*x[i+1]) / b[i];
+    x[n - 1] = y[n - 1] / b[n - 1];
+    for i in (0..n - 1).rev() {
+        x[i] = (y[i] - c[i] * x[i + 1]) / b[i];
     }
     x.to_matrix()
 }

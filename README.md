@@ -2,20 +2,23 @@
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
-[![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)](https://travis-ci.org/Axect/Peroxide)  
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
 Pure Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
 
 ## Latest README version
 
-Corresponding to `0.10.3`.
+Corresponding to `0.11.0`.
+
+## Pre-requisite
+
+* Python module : `matplotlib` for plotting
 
 ## Install
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.10"
+peroxide = "0.11"
 ```
 
 ## Module Structure
@@ -66,6 +69,7 @@ peroxide = "0.10"
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style 
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
     - [pickle.rs](src/util/pickle.rs) : To handle `pickle` data structure
+    - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
     - [print.rs](src/util/print.rs) : To print conveniently
     - [useful.rs](src/util/useful.rs) : Useful utils to implement library
     - [writer.rs](src/util/writer.rs) : More convenient write system
@@ -75,6 +79,179 @@ peroxide = "0.10"
 
 There is [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook)
 
+## Example
+
+### Basic Runge-Kutta 4th order with basic plotting
+
+```rust
+#![feature(proc_macro_hygiene)]
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // Initial condition
+    let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+
+    let mut ode_solver = ExplicitODE::new(test_fn);
+
+    ode_solver
+        .set_method(ExMethod::RK4)
+        .set_initial_condition(init_state)
+        .set_step_size(0.01)
+        .set_times(1000);
+
+    let result = ode_solver.integrate();
+
+    let x = result.col(0);
+    let y = result.col(1);
+
+    // Plot (Thanks to inline-python)
+    python! {
+        import pylab as plt
+        plt.plot('x, 'y)
+        plt.show()
+    }
+}
+
+// dy/dx = (5x^2 - y) / e^(x+y)
+fn test_fn(st: &mut State<f64>) {
+    let x = st.param;
+    let y = &st.value;
+    let dy = &mut st.deriv;
+    dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+}
+```
+
+### Basic Runge-Kutta 4th order with advanced plotting
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+
+    let mut ode_solver = ExplicitODE::new(test_fn);
+
+    ode_solver
+        .set_method(ExMethod::RK4)
+        .set_initial_condition(init_state)
+        .set_step_size(0.01)
+        .set_times(1000);
+
+    let result = ode_solver.integrate();
+
+    let x = result.col(0);
+    let y = result.col(1);
+
+    // Plot (using python matplotlib)
+    let mut plt = Plot2D::new();
+    plt.set_domain(x)
+        .insert_image(y)
+        .set_title("Test Figure")
+        .set_fig_size((10, 6))
+        .set_dpi(300)
+        .set_legends(vec!["RK4".to_owned()])
+        .set_path("example_data/test_plot.png");
+
+    plt.savefig();
+}
+
+fn test_fn(st: &mut State<f64>) {
+    let x = st.param;
+    let y = &st.value;
+    let dy = &mut st.deriv;
+    dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+}
+```
+
+![Example image](example_data/test_plot.png)
+
+### Multi-Layer Perceptron (from scratch)
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+// x : n x L
+// xb: n x (L+1)
+// v : (L+1) x M
+// a : n x M
+// ab: n x (M+1)
+// w : (M+1) x n
+// wb: M x N
+// y : n x N
+// t : n x N
+// dh: n x M
+// do: n x N
+
+fn main() {
+    let v = weights_init(3, 2);
+    let w = weights_init(3, 1);
+
+    let x = ml_matrix("0 0; 0 1; 1 0; 1 1");
+    let t = ml_matrix("0;1;1;0");
+
+    let y = train(v, w, x, t, 0.25, 5000);
+    y.print();
+}
+
+fn weights_init(m: usize, n: usize) -> Matrix {
+    rand(m, n) * 2f64 - 1f64
+}
+
+fn sigmoid(x: f64) -> f64 {
+    1f64 / (1f64 + (-x).exp())
+}
+
+fn forward(weights: Matrix, input_bias: Matrix) -> Matrix {
+    let s = input_bias * weights;
+    s.fmap(|x| sigmoid(x))
+}
+
+fn add_bias(input: Matrix, bias: f64) -> Matrix {
+    let b = matrix(vec![bias; input.row], input.row, 1, Col);
+    cbind(b, input)
+}
+
+fn hide_bias(weight: Matrix) -> Matrix {
+    weight.skip(1, Row)
+}
+
+fn train(
+    weights1: Matrix,
+    weights2: Matrix,
+    input: Matrix,
+    answer: Matrix,
+    eta: f64,
+    times: usize,
+) -> Matrix {
+    let x = input;
+    let mut v = weights1;
+    let mut w = weights2;
+    let t = answer;
+    let xb = add_bias(x.clone(), -1f64);
+
+    for _i in 0..times {
+        let a = forward(v.clone(), xb.clone());
+        let ab = add_bias(a.clone(), -1f64);
+        let y = forward(w.clone(), ab.clone());
+        //        let err = (y.clone() - t.clone()).t() * (y.clone() - t.clone());
+        let wb = hide_bias(w.clone());
+        let delta_o = (y.clone() - t.clone()) * y.clone() * (1f64 - y.clone());
+        let delta_h = (delta_o.clone() * wb.t()) * a.clone() * (1f64 - a.clone());
+
+        w = w.clone() - eta * (ab.t() * delta_o);
+        v = v.clone() - eta * (xb.t() * delta_h);
+    }
+
+    let a = forward(v, xb);
+    let ab = add_bias(a, -1f64);
+    let y = forward(w, ab);
+
+    y
+}
+```
 
 ## Version Info
 

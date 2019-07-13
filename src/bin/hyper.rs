@@ -36,5 +36,5 @@ fn main() {
     y.sqrt().print();
 
     let z = hyper_dual(1, 1, 0);
-    (z/y).print();
+    (z / y).print();
 }

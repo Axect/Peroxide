@@ -1,10 +1,10 @@
-use ::Matrix;
 use std::collections::HashMap;
-pub use ::ToWriter::{Header, Data, Round, Path};
-use std::io::Write;
 use std::fs::File;
+use std::io::Write;
 use std::process::exit;
+use Matrix;
 use Pickle;
+pub use ToWriter::{Data, Header, Path, Round};
 
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, PartialEq, Eq)]
 pub enum ToWriter {
@@ -63,7 +63,10 @@ impl SimpleWriter {
         if let Some(x) = self.to_write.get_mut(&Header) {
             *x = true
         }
-        self.header = head.into_iter().map(|t| t.to_owned()).collect::<Vec<String>>();
+        self.header = head
+            .into_iter()
+            .map(|t| t.to_owned())
+            .collect::<Vec<String>>();
         self
     }
 
@@ -128,7 +131,8 @@ impl SimpleWriter {
 
         if let Some(head) = self.to_write.get(&Header) {
             if *head {
-                serde_pickle::to_writer(&mut writer, &self.header, true).expect("Can't write header to pickle");
+                serde_pickle::to_writer(&mut writer, &self.header, true)
+                    .expect("Can't write header to pickle");
             }
         }
 
@@ -140,12 +144,13 @@ impl SimpleWriter {
             match queued.next() {
                 Some(Queue::Matrix) => {
                     let mat = matrices.next().unwrap();
-                    mat.write_pickle(&mut writer).expect("Can't insert matrices");
-                },
+                    mat.write_pickle(&mut writer)
+                        .expect("Can't insert matrices");
+                }
                 Some(Queue::Vector) => {
                     let vec = vectors.next().unwrap();
                     vec.write_pickle(&mut writer).expect("Can't insert vectors");
-                },
+                }
                 None => return,
             }
         }

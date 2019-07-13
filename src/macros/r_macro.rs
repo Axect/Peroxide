@@ -2,11 +2,11 @@ extern crate rand;
 pub use self::rand::prelude::*;
 
 #[allow(unused_imports)]
+use statistics::stat::*;
+#[allow(unused_imports)]
 use structure::matrix::*;
 #[allow(unused_imports)]
 use structure::vector::*;
-#[allow(unused_imports)]
-use statistics::stat::*;
 
 /// R like concatenate (Type: Vec\<f64\>)
 ///
@@ -58,27 +58,25 @@ macro_rules! c {
 /// ```
 #[macro_export]
 macro_rules! seq {
-    ( $start:expr, $end:expr, $step:expr ) => {
-        {
-            let s = $start as f64;
-            let e = $end as f64;
-            let step = $step as f64;
+    ( $start:expr, $end:expr, $step:expr ) => {{
+        let s = $start as f64;
+        let e = $end as f64;
+        let step = $step as f64;
 
-            assert!(e > s);
+        assert!(e > s);
 
-            let factor: f64 = (e - s) / step;
-            let l: usize = factor as usize + 1;
-            let mut v: Vec<f64> = Vec::new();
+        let factor: f64 = (e - s) / step;
+        let l: usize = factor as usize + 1;
+        let mut v: Vec<f64> = Vec::new();
 
-            for i in 0 .. l {
-                v.push(s + step * (i as f64));
-            }
-            v
+        for i in 0..l {
+            v.push(s + step * (i as f64));
         }
-    };
+        v
+    }};
     ( $start:expr; $end:expr; $step:expr ) => {
         seq!($start, $end, $step)
-    }
+    };
 }
 
 /// More R like Matrix constructor (Macro)
@@ -98,22 +96,13 @@ macro_rules! seq {
 /// ```
 #[macro_export]
 macro_rules! matrix {
-    ( $start:expr;$end:expr;$step:expr, $row:expr, $col:expr, $shape:expr ) => {
-        {
-            matrix(
-                seq!($start,$end,$step),
-                $row,
-                $col,
-                $shape
-            )
-        }
-    };
+    ( $start:expr;$end:expr;$step:expr, $row:expr, $col:expr, $shape:expr ) => {{
+        matrix(seq!($start, $end, $step), $row, $col, $shape)
+    }};
 
-    ( $value:expr, $row:expr, $col:expr, $shape:expr ) => {
-        {
-            matrix(vec![$value as f64; $row * $col], $row, $col, $shape)
-        }
-    };
+    ( $value:expr, $row:expr, $col:expr, $shape:expr ) => {{
+        matrix(vec![$value as f64; $row * $col], $row, $col, $shape)
+    }};
 }
 
 /// R like cbind
@@ -256,25 +245,21 @@ macro_rules! rbind {
 /// ```
 #[macro_export]
 macro_rules! runif {
-    ( $x0:expr, $start:expr, $end:expr ) => {
-        {
-            let n: usize = $x0;
-            let mut v = vec![0f64; n];
+    ( $x0:expr, $start:expr, $end:expr ) => {{
+        let n: usize = $x0;
+        let mut v = vec![0f64; n];
 
-            let mut rng = thread_rng();
+        let mut rng = thread_rng();
 
-            for i in 0 .. n {
-                v[i] = rng.gen_range($start as f64, $end as f64);
-            }
-            v
+        for i in 0..n {
+            v[i] = rng.gen_range($start as f64, $end as f64);
         }
-    };
+        v
+    }};
 
-    ( $x0:expr ) => {
-        {
-            runif!($x0, 0, 1)
-        }
-    };
+    ( $x0:expr ) => {{
+        runif!($x0, 0, 1)
+    }};
 }
 
 /// R like lm

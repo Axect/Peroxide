@@ -14,26 +14,26 @@ fn modified_gram_schmidt(mat: Matrix) -> (Matrix, Matrix) {
     let n = mat.col;
 
     let mut a = mat.clone();
-    let mut q = zeros(m,n);
-    let mut r = zeros(n,n);
+    let mut q = zeros(m, n);
+    let mut r = zeros(n, n);
 
-    for k in 0 .. n {
+    for k in 0..n {
         let mut s = 0f64;
-        for j in 0 .. m {
+        for j in 0..m {
             s += a[(j, k)].powi(2);
         }
         r[(k, k)] = s.sqrt();
-        for j in 0 .. m {
+        for j in 0..m {
             q[(j, k)] = a[(j, k)] / r[(k, k)];
         }
-        for i in (k+1) .. n {
+        for i in (k + 1)..n {
             s = 0f64;
-            for j in 0 .. m {
-                s += a[(j,i)] * a[(j,k)];
+            for j in 0..m {
+                s += a[(j, i)] * a[(j, k)];
             }
             r[(k, i)] = s;
-            for j in 0 .. m {
-                a[(j,i)] -= r[(k,i)] * q[(j,k)];
+            for j in 0..m {
+                a[(j, i)] -= r[(k, i)] * q[(j, k)];
             }
         }
     }

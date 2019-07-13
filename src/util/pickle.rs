@@ -1,11 +1,11 @@
 extern crate serde;
 extern crate serde_pickle;
 
-use structure::matrix::*;
-use structure::vector::*;
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
+use structure::matrix::*;
+use structure::vector::*;
 
 /// Pickle trait
 ///
@@ -53,12 +53,12 @@ impl Pickle for Matrix {
 
         match self.shape {
             Row => {
-                for i in 0 .. self.row {
+                for i in 0..self.row {
                     container.push(self.row(i));
                 }
-            },
+            }
             Col => {
-                for i in 0 .. self.col {
+                for i in 0..self.col {
                     container.push(self.col(i));
                 }
             }
@@ -72,12 +72,12 @@ impl Pickle for Matrix {
 
         match self.shape {
             Row => {
-                for i in 0 .. self.row {
+                for i in 0..self.row {
                     container.push(self.row(i));
                 }
-            },
+            }
             Col => {
-                for i in 0 .. self.col {
+                for i in 0..self.col {
                     container.push(self.col(i));
                 }
             }

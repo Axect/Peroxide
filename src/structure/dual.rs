@@ -2,7 +2,7 @@ use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 /// Structure for Automatic Differentiation
 use std::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub, Rem};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use structure::vector::*;
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
@@ -186,7 +186,7 @@ impl<'a, 'b> Div<&'b Dual> for &'a Dual {
     fn div(self, rhs: &Dual) -> Self::Output {
         Dual {
             x: self.x / rhs.x,
-            dx: (self.dx * rhs.x - self.x * rhs.dx) / (rhs.x * rhs.x)
+            dx: (self.dx * rhs.x - self.x * rhs.dx) / (rhs.x * rhs.x),
         }
     }
 }
@@ -327,7 +327,7 @@ impl TrigOps for Dual {
 
     fn acos(&self) -> Self {
         let val = self.x.acos();
-        let dval = - self.dx / (1f64 - self.x.powi(2)).sqrt();
+        let dval = -self.dx / (1f64 - self.x.powi(2)).sqrt();
         Dual::new(val, dval)
     }
 
@@ -499,7 +499,10 @@ impl FPVector for Vec<Dual> {
     where
         F: Fn(Self::Scalar) -> Self::Scalar,
     {
-        self.clone().into_iter().map(|x| f(x)).collect::<Vec<Dual>>()
+        self.clone()
+            .into_iter()
+            .map(|x| f(x))
+            .collect::<Vec<Dual>>()
     }
 
     fn reduce<F, T>(&self, _init: T, _f: F) -> Self::Scalar
@@ -558,10 +561,11 @@ impl VecOps for Vec<Dual> {
 
     fn dot(&self, _other: &Self) -> Self::Scalar {
         // dot product of Dual is similar to Complex with \epsilon^2 = 0
-        self.clone().into_iter()
+        self.clone()
+            .into_iter()
             .zip(_other.clone())
-            .map(|(x,y)| x.mul(y))
-            .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar,x| sum.add(x))
+            .map(|(x, y)| x.mul(y))
+            .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar, x| sum.add(x))
     }
 
     fn norm(&self) -> Self::Scalar {
@@ -848,4 +852,3 @@ impl VecOps for Vec<Dual> {
 //        Dual::new(val, dval)
 //    }
 //}
-

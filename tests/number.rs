@@ -1,7 +1,7 @@
 extern crate peroxide;
-use peroxide::*;
-use peroxide::operation::number::Number::{F, D};
 use peroxide::operation::number::Number;
+use peroxide::operation::number::Number::{D, F};
+use peroxide::*;
 
 #[test]
 fn test_ops_btw_number_f() {

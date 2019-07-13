@@ -1,20 +1,20 @@
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::vector::*;
-#[allow(unused_imports)]
-use structure::polynomial::*;
-#[allow(unused_imports)]
-use structure::dual::*;
-#[allow(unused_imports)]
-use structure::multinomial::*;
-#[allow(unused_imports)]
-use structure::hyper_dual::*;
+use operation::number::Number;
+use rand::distributions::uniform::SampleUniform;
 #[allow(unused_imports)]
 use statistics::dist::*;
 use std::fmt::Debug;
-use rand::distributions::uniform::SampleUniform;
-use operation::number::Number;
+#[allow(unused_imports)]
+use structure::dual::*;
+#[allow(unused_imports)]
+use structure::hyper_dual::*;
+#[allow(unused_imports)]
+use structure::matrix::*;
+#[allow(unused_imports)]
+use structure::multinomial::*;
+#[allow(unused_imports)]
+use structure::polynomial::*;
+#[allow(unused_imports)]
+use structure::vector::*;
 
 pub trait Printable {
     fn print(&self);
@@ -64,7 +64,7 @@ impl Printable for Vector {
     fn print(&self) {
         let mut result = String::new();
         result.push_str("[");
-        for i in 0 .. self.len() {
+        for i in 0..self.len() {
             let st1 = format!("{:.4}", self[i]);
             let st2 = self[i].to_string();
             let mut st = st2.clone();

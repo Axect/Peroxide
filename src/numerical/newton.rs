@@ -1,12 +1,12 @@
-/// Newton-Raphson Method
-
-use structure::matrix::*;
-use structure::dual::*;
-use structure::vector::*;
 use numerical::utils::jacobian;
+use structure::dual::*;
+/// Newton-Raphson Method
+use structure::matrix::*;
+use structure::vector::*;
 
 pub fn newton<F>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
-    where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
+where
+    F: Fn(Vec<Dual>) -> Vec<Dual> + Copy,
 {
     let mut x = init_cond;
     let mut x_next = update(x.clone(), f);
@@ -22,7 +22,8 @@ pub fn newton<F>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
 }
 
 fn update<F>(xs: Vec<f64>, f: F) -> Vec<f64>
-    where F: Fn(Vec<Dual>) -> Vec<Dual> + Copy
+where
+    F: Fn(Vec<Dual>) -> Vec<Dual> + Copy,
 {
     let j = jacobian(xs.clone(), f);
     let pinv_j = j.pseudo_inv().unwrap();

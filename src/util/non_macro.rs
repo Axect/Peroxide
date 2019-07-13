@@ -2,11 +2,11 @@ extern crate rand;
 use self::rand::prelude::*;
 
 #[allow(unused_imports)]
+use statistics::stat::*;
+#[allow(unused_imports)]
 use structure::matrix::*;
 #[allow(unused_imports)]
 use structure::vector::*;
-#[allow(unused_imports)]
-use statistics::stat::*;
 
 use std::convert::Into;
 
@@ -20,10 +20,12 @@ use std::convert::Into;
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
 /// ```
-pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
-    where S: Into<f64> + Copy,
-          T: Into<f64> + Copy,
-          U: Into<f64> + Copy {
+pub fn seq<S, T, U>(start: S, end: T, step: U) -> Vector
+where
+    S: Into<f64> + Copy,
+    T: Into<f64> + Copy,
+    U: Into<f64> + Copy,
+{
     let s = start.into();
     let e = end.into();
     let step = step.into();
@@ -33,8 +35,8 @@ pub fn seq<S,T,U>(start: S, end: T, step: U) -> Vector
     let factor: f64 = (e - s) / step;
     let l: usize = factor as usize + 1;
     let mut v: Vec<f64> = Vec::new();
-    
-    for i in 0 .. l {
+
+    for i in 0..l {
         v.push(s + step * (i as f64));
     }
     v
@@ -65,11 +67,11 @@ pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
 
     let mut v = vec![Default::default(); l1 + l2];
 
-    for i in 0 .. l1 {
+    for i in 0..l1 {
         v[i] = v1[i];
     }
 
-    for i in 0 .. l2 {
+    for i in 0..l2 {
         v[i + l1] = v2[i];
     }
     v
@@ -82,8 +84,8 @@ pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
 
     v[0] = val;
 
-    for i in 0 .. l {
-        v[i+1] = vec[i];
+    for i in 0..l {
+        v[i + 1] = vec[i];
     }
     v
 }
@@ -100,7 +102,7 @@ pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
 /// ```
 pub fn eye(n: usize) -> Matrix {
     let mut m = zeros(n, n);
-    for i in 0 .. n {
+    for i in 0..n {
         m[(i, i)] = 1f64;
     }
     m
@@ -109,7 +111,7 @@ pub fn eye(n: usize) -> Matrix {
 /// eye with custom shape
 pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
     let mut m = zeros_shape(n, n, shape);
-    for i in 0 .. n {
+    for i in 0..n {
         m[(i, i)] = 1f64;
     }
     m
@@ -189,8 +191,8 @@ pub fn rbind(m1: Matrix, m2: Matrix) -> Matrix {
 pub fn rand(r: usize, c: usize) -> Matrix {
     let mut m = zeros(r, c);
     let mut rng = thread_rng();
-    for i in 0 .. r {
-        for j in 0 .. c {
+    for i in 0..r {
+        for j in 0..c {
             m[(i, j)] = rng.gen_range(0f64, 1f64);
         }
     }
