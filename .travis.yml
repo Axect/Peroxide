@@ -3,11 +3,10 @@ matrix:
     - language: rust
       rust:
         - nightly
-      python:
-        - "3.6"
-      env:
-        - PythonVersion=3.6
       script:
         - cargo build --verbose --all
         - cargo test --verbose --all
       fast_finish: true
+      before_install:
+        - sudo apt-get update
+        - sudo apt-get install python3
