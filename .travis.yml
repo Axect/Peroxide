@@ -9,4 +9,4 @@ matrix:
       fast_finish: true
       before_install:
         - sudo apt-get update
-        - sudo apt-get install python3
+        - sudo apt-get install python3.5
