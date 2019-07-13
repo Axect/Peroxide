@@ -1,12 +1,17 @@
-language: rust
-rust:
-  - stable
-  - beta
-  - nightly
 matrix:
-  allow_failures:
-    - rust: nightly
-  fast_finish: true
-script:
-  - cargo build --verbose --all
-  - cargo test --verbose --all
+  include:
+    - language: rust
+      rust:
+        - stable
+        - beta
+        - nightly
+      script:
+        - cargo build --verbose --all
+        - cargo test --verbose --all
+      fast_finish: true
+
+    - language: python
+      python:
+        - "3.7"
+      install:
+        - pip install matplotlib
