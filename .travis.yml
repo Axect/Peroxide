@@ -2,8 +2,6 @@ matrix:
   include:
     - language: rust
       rust:
-        - stable
-        - beta
         - nightly
       script:
         - cargo build --verbose --all
@@ -12,6 +10,6 @@ matrix:
 
     - language: python
       python:
-        - "3.7"
+        - "3.6"
       install:
         - pip install matplotlib
