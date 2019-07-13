@@ -8,5 +8,6 @@ matrix:
         - cargo test --verbose --all
       fast_finish: true
       before_install:
-        - pyenv install 3.6.7
-        - pyenv global system 3.6.7
+        - sudo apt-get update
+        - sudo apt-get install python3.5
+        - pyenv global system 3.5
