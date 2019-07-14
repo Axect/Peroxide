@@ -10,6 +10,7 @@ fn main() {
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state)
         .set_step_size(0.01)
+        .set_stop_condition(stop)
         .set_times(1000);
 
     let result = ode_solver.integrate();
@@ -34,4 +35,9 @@ fn test_fn(st: &mut State<f64>) {
     let y = &st.value;
     let dy = &mut st.deriv;
     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+}
+
+fn stop(st: &ExplicitODE) -> bool {
+    let y = &st.get_state().value[0];
+    (*y - 2.4).abs() < 0.01
 }

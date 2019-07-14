@@ -5,6 +5,9 @@ use ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use {cat, zeros};
 use {Dual, Real};
 use {FPVector, Matrix, MutFP};
+use util::print::Printable;
+use FP;
+use ::Shape::Row;
 
 /// Explicit ODE Methods
 ///
@@ -232,12 +235,30 @@ impl ODE for ExplicitODE {
 
         result.subs_row(0, cat(self.state.param, self.state.value.clone()));
 
-        for i in 1..self.times + 1 {
-            self.mut_update();
-            result.subs_row(i, cat(self.state.param, self.state.value.clone()));
+        match self.options.get(&StopCond) {
+            Some(stop) if *stop => {
+                let mut key = 1usize;
+                for i in 1..self.times + 1 {
+                    self.mut_update();
+                    result.subs_row(i, cat(self.state.param, self.state.value.clone()));
+                    key += 1;
+                    if (self.stop_cond)(&self) {
+                        println!("Reach the stop condition!");
+                        print!("Current values are: ");
+                        cat(self.state.param, self.state.value.clone()).print();
+                        break;
+                    }
+                }
+                return result.take(key, Row);
+            },
+            _ => {
+                for i in 1..self.times + 1 {
+                    self.mut_update();
+                    result.subs_row(i, cat(self.state.param, self.state.value.clone()));
+                }
+                return result;
+            }
         }
-
-        result
     }
 
     fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self {

@@ -1,3 +1,8 @@
+# Release 0.11.2 (2019-07-14)
+
+* Exclude `bin` directory
+* Apply `stop_condition` for `ODE`
+
 # Release 0.11.1 (2019-07-13)
 
 * Remove dependency of `inline-python`

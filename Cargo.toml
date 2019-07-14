@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.11.1"
+version = "0.11.2"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros"
 repository = "https://github.com/Axect/Peroxide"
@@ -9,7 +9,7 @@ categories = ["science"]
 readme = "README.md"
 documentation = "https://docs.rs/peroxide/"
 keywords = ["Numeric", "R", "MATLAB", "Python", "Scientific"]
-exclude = ["example_data/"]
+exclude = ["example_data/", "src/bin/"]
 
 [badges]
 maintenance = { status = "actively-developed" }
