@@ -1,3 +1,8 @@
+# Release 0.11.3 (2019-07-14)
+
+* Fix performance issue in `0.11.2`
+    * Fix non-efficient parts of `take` of `Matrix`
+
 # Release 0.11.2 (2019-07-14)
 
 * Exclude `bin` directory

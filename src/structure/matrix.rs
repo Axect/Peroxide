@@ -1387,24 +1387,40 @@ impl FP for Matrix {
     fn take(&self, n: usize, shape: Shape) -> Self {
         match shape {
             Row => {
-                let mut temp_data: Vec<f64> = Vec::new();
-                for i in 0..n {
-                    if i >= self.row {
-                        return matrix(temp_data, self.row, self.col, Row);
-                    }
-                    temp_data.extend(self.row(i));
+                if n >= self.row {
+                    return self.clone();
                 }
-                matrix(temp_data, n, self.col, Row)
+                match self.shape {
+                    Row => {
+                        let new_data = self.data.clone().into_iter().take(n * self.col).collect::<Vec<f64>>();
+                        matrix(new_data, n, self.col, Row)
+                    },
+                    Col => {
+                        let mut temp_data: Vec<f64> = Vec::new();
+                        for i in 0..n {
+                            temp_data.extend(self.row(i));
+                        }
+                        matrix(temp_data, n, self.col, Row)
+                    }
+                }
             }
             Col => {
-                let mut temp_data: Vec<f64> = Vec::new();
-                for i in 0..n {
-                    if i >= self.col {
-                        return matrix(temp_data, self.row, self.col, Col);
-                    }
-                    temp_data.extend(self.col(i));
+                if n >= self.col {
+                    return self.clone();
                 }
-                matrix(temp_data, self.row, n, Col)
+                match self.shape {
+                    Col => {
+                        let new_data = self.data.clone().into_iter().take(n * self.row).collect::<Vec<f64>>();
+                        matrix(new_data, self.row, n, Col)
+                    },
+                    Row => {
+                        let mut temp_data: Vec<f64> = Vec::new();
+                        for i in 0..n {
+                            temp_data.extend(self.col(i));
+                        }
+                        matrix(temp_data, self.row, n, Col)
+                    }
+                }
             }
         }
     }

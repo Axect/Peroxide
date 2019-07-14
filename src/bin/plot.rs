@@ -9,11 +9,12 @@ fn main() {
     ode_solver
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state)
-        .set_step_size(0.01)
+        .set_step_size(0.0001)
         .set_stop_condition(stop)
-        .set_times(1000);
+        .set_times(100000);
 
     let result = ode_solver.integrate();
+    println!("Integrate finished!");
 
     let x = result.col(0);
     let y = result.col(1);
@@ -39,5 +40,5 @@ fn test_fn(st: &mut State<f64>) {
 
 fn stop(st: &ExplicitODE) -> bool {
     let y = &st.get_state().value[0];
-    (*y - 2.4).abs() < 0.01
+    (*y - 2.4).abs() < 0.0001
 }
