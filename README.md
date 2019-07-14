@@ -166,8 +166,6 @@ fn test_fn(st: &mut State<f64>) {
 }
 ```
 
-![Example image](example_data/test_plot.png)
-
 ### Basic Runge-Kutta 4th order with Stop condition
 
 ```rust
@@ -215,6 +213,8 @@ fn stop(st: &ExplicitODE) -> bool {
     (*y - 2.4).abs() < 0.01
 }
 ```
+
+![Example image](example_data/test_plot.png)
 
 ### Multi-Layer Perceptron (from scratch)
 
