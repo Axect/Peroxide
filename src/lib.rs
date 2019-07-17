@@ -1,3 +1,50 @@
+//! # Peroxide
+//!
+//! `peroxide` is comprehensive numerical library for Rust.
+//!
+//! ## Components
+//!
+//! `peroxide` has various components for scientific computation.
+//!
+//! * Linear Algebra
+//!     * Matrix operations
+//!         * `+,-,*,/`
+//!         * LU, Determinant, Inverse
+//!     * Vector operations
+//! * Statistics
+//!     * Statistical operations
+//!         * `mean, var, sd`
+//!         * `factorial, P, C, H`
+//!     * Distributions
+//!         * Bernoulli
+//!         * Uniform
+//!         * Normal
+//!         * Gamma
+//!         * Beta
+//! * Special functions (Using `special` crate)
+//!     * Gaussian
+//!     * Gamma
+//!     * Beta
+//!     * Error
+//! * Automatic Differentiation
+//!     * Dual number system
+//!     * Hyper dual number system
+//! * Numerical Utils
+//!     * Interpolation
+//!     * Spline
+//!     * Polynomial
+//! * Differential Equations
+//!     * Explicit
+//!         * Runge-Kutta 4th order
+//!         * Euler methods
+//!     * Implicit
+//!         * Backward Euler
+//!         * Gauss-Legendre 4th order
+//! * Communication with Python
+//!     * Support `pickle` type
+//!     * Plot with `matplotlib`
+
+
 extern crate rand;
 
 pub mod statistics;

@@ -1,3 +1,12 @@
+# Release 0.11.4 (2019-07-17)
+
+* For convenience
+    * New method - `to_vec` of `Matrix`
+        * `Matrix` to `Vec<Vec<f64>>`
+    * Change input type of `set_legends` of `plot.rs`
+        * `Vec<String>` -> `Vec<&str>`
+* Update whole documentations - part 1.
+
 # Release 0.11.3 (2019-07-14)
 
 * Fix performance issue in `0.11.2`

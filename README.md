@@ -76,7 +76,9 @@ peroxide = "0.11"
 
 ## Documentation
 
-There is [Peroxide Gitbook](https://axect.github.io/Peroxide_Gitbook)
+* Modifying...
+
+    [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
 
 ## Example
 

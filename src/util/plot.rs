@@ -28,7 +28,7 @@ pub trait Plot {
     fn set_xlabel(&mut self, xlabel: &str) -> &mut Self;
     fn set_ylabel(&mut self, ylabel: &str) -> &mut Self;
     fn set_zlabel(&mut self, zlabel: &str) -> &mut Self;
-    fn set_legends(&mut self, legends: Vec<String>) -> &mut Self;
+    fn set_legends(&mut self, legends: Vec<&str>) -> &mut Self;
     fn set_path(&mut self, path: &str) -> &mut Self;
     fn set_fig_size(&mut self, fig_size: (usize, usize)) -> &mut Self;
     fn set_dpi(&mut self, dpi: usize) -> &mut Self;
@@ -111,11 +111,11 @@ impl Plot for Plot2D {
         unimplemented!()
     }
 
-    fn set_legends(&mut self, legends: Vec<String>) -> &mut Self {
+    fn set_legends(&mut self, legends: Vec<&str>) -> &mut Self {
         if let Some(x) = self.options.get_mut(&Legends) {
             *x = true
         }
-        self.legends = legends;
+        self.legends = legends.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>();
         self
     }
 

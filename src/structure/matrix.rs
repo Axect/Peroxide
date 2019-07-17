@@ -630,6 +630,17 @@ impl Matrix {
         }
         mat
     }
+
+    /// Matrix to `Vec<Vec<f64>>`
+    ///
+    /// To send `Matrix` to `inline-python`
+    pub fn to_vec(&self) -> Vec<Vec<f64>> {
+        let mut result = vec![vec![0f64; self.col]; self.row];
+        for i in 0 .. self.row {
+            result[i] = self.row(i);
+        }
+        result
+    }
 }
 
 // =============================================================================
