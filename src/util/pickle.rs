@@ -1,3 +1,5 @@
+//! To deal with python pickle data structure
+
 extern crate serde;
 extern crate serde_pickle;
 

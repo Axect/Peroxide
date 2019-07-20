@@ -1,3 +1,41 @@
+//! Hyper dual number system for Automatic differentiation
+//!
+//! ## Hyper dual number system
+//!
+//! * `HyperDual` is structure for 2nd order AD
+//!     * `value(&self) -> f64`
+//!     * `slope(&self) -> f64`
+//!     * `accel(&self) -> f64`
+//! * There are two constructors
+//!     * `HyperDual::new(T, T, T)`
+//!     * `hyper_dual(T, T, T)`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let x = hyper_dual(1, 1, 0); // x at x = 1
+//!         (x.clone() + x.clone()).print(); // hyper_dual(2, 2, 0)
+//!         (x.clone() * x.clone()).print(); // hyper_dual(1, 2, 2)
+//!         // and etc.
+//!     }
+//!     ```
+//!
+//!     * Also, after `0.10.1`, you can use reference ops.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let x = hyper_dual(1,1,0);
+//!         (&x + &x).print();
+//!         (&x * &x).print();
+//!         // and etc.
+//!     }
+//!     ```
+
 use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 use std::fmt;

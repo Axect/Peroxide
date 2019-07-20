@@ -1,3 +1,7 @@
+# Release 0.11.5 (2019-07-20)
+
+* Update whole documentations - part 2.
+
 # Release 0.11.4 (2019-07-17)
 
 * For convenience

@@ -1,3 +1,5 @@
+//! Choose api - MATLAB, R, Python
+
 use std::convert;
 use structure::matrix::*;
 

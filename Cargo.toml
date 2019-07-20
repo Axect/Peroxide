@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.11.4"
+version = "0.11.5"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros"
 repository = "https://github.com/Axect/Peroxide"
@@ -21,3 +21,6 @@ special = "0.8"
 serde = "1"
 serde-pickle = "0.5"
 pyo3 = "0.7"
+
+[package.metadata.docs.rs]
+rustdoc-args = [ "--html-in-header", "katex-header.html" ]

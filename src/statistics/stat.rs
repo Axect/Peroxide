@@ -1,3 +1,85 @@
+//! Basic statistics
+//!
+//! ## `Statistics` trait
+//!
+//! * To make generic code, there is `Statistics` trait
+//!     * `mean`: just mean
+//!     * `var` : variance
+//!     * `sd` : standard deviation (R-like notation)
+//!     * `cov` : covariance
+//!     * `cor` : correlation coefficient
+//!     ```rust
+//!     pub trait Statistics {
+//!         type Array;
+//!         type Value;
+//!
+//!         fn mean(&self) -> Self::Value;
+//!         fn var(&self) -> Self::Value;
+//!         fn sd(&self) -> Self::Value;
+//!         fn cov(&self) -> Self::Array;
+//!         fn cor(&self) -> Self::Array;
+//!     }
+//!     ```
+//!
+//! ### For `Vec<f64>`
+//!
+//! * Caution: For `Vec<f64>`, `cov` & `cor` are unimplemented (those for `Matrix`)
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4,5);
+//!         a.mean().print(); // 3
+//!         a.var().print();  // 2.5
+//!         a.sd().print();   // 1.5811388300841898
+//!     }
+//!     ```
+//!
+//! * But there are other functions to calculate `cov` & `cor`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let v1 = c!(1,2,3);
+//!         let v2 = c!(3,2,1);
+//!
+//!         cov(&v1, &v2).print(); // -0.9999999999999998
+//!         cor(&v1, &v2).print(); // -0.9999999999999993
+//!     }
+//!     ```
+//!
+//! ### For `Matrix`
+//!
+//! * For `Matrix`, `mean, var, sd` means column operations
+//! * `cov` means covariance matrix & `cor` means also correlation coefficient matrix
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+//!
+//!         m.mean().print(); // [2, 2]
+//!         m.var().print();  // [1.0000, 1.0000]
+//!         m.sd().print();   // [1.0000, 1.0000]
+//!
+//!         m.cov().print();
+//!         //         c[0]    c[1]
+//!         // r[0]  1.0000 -1.0000
+//!         // r[1] -1.0000  1.0000
+//!
+//!         m.cor().print();
+//!         //         c[0]    c[1]
+//!         // r[0]       1 -1.0000
+//!         // r[1] -1.0000       1
+//!     }
+//!     ```
+
 use structure::matrix::*;
 use structure::vector::*;
 
@@ -50,7 +132,7 @@ impl Statistics for Vector {
 
         for x in self.into_iter() {
             ss += x.powf(2f64);
-            s += x;
+            s += *x;
             l += 1f64;
         }
         assert_ne!(l, 1f64);

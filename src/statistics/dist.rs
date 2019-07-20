@@ -1,3 +1,126 @@
+//! Probabilistic distributions
+//!
+//! ## Probability Distribution
+//!
+//! * There are some famous pdf in Peroxide (not checked pdfs will be implemented soon)
+//!     * \[x\] Bernoulli
+//!     * \[x\] Beta
+//!     * \[ \] Dirichlet
+//!     * \[x\] Gamma
+//!     * \[x\] Normal
+//!     * \[ \] Student's t
+//!     * \[x\] Uniform
+//!     * \[ \] Wishart
+//! * There are two enums to represent probability distribution
+//!     * `OPDist<T>` : One parameter distribution (Bernoulli)
+//!     * `TPDist<T>` : Two parameter distribution (Uniform, Normal, Beta, Gamma)
+//!         * `T: PartialOrd + SampleUniform + Copy + Into<f64>`
+//! * There are some traits for pdf
+//!     * `RNG` trait - extract sample & calculate pdf
+//!     * `Statistics` trait - already shown above
+//!
+//! ### `RNG` trait
+//!
+//! * `RNG` trait is composed of two fields
+//!     * `sample`: Extract samples
+//!     * `pdf` : Calculate pdf value at specific point
+//!     ```rust
+//!     extern crate rand;
+//!     use rand::distributions::uniform::SampleUniform;
+//!
+//!     pub trait RNG {
+//!         /// Extract samples of distributions
+//!         fn sample(&self, n: usize) -> Vec<f64>;
+//!
+//!         /// Probability Distribution Function
+//!         ///
+//!         /// # Type
+//!         /// `f64 -> f64`
+//!         fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64;
+//!     }
+//!     ```
+//!
+//! ### Bernoulli Distribution
+//!
+//! * Definition
+//!     $$ \text{Bern}(x | \mu) = \mu^x (1-\mu)^{1-x} $$
+//! * Representative value
+//!     * Mean: $\mu$
+//!     * Var : $\mu(1 - \mu)$
+//! * In peroxide, to generate $\text{Bern}(x | \mu)$, use simple algorithm
+//!     1. Generate $U \sim \text{Unif}(0, 1)$
+//!     2. If $U \leq \mu$, then $X = 1$ else $X = 0$
+//! * Usage is very simple
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let b = Bernoulli(0.1); // Bern(x | 0.1)
+//!         b.sample(100).print();  // Generate 100 samples
+//!         b.pdf(0).print();       // 0.9
+//!         b.mean().print();       // 0.1
+//!         b.var().print();        // 0.09 (approximately)
+//!         b.sd().print();         // 0.3  (approximately)
+//!     }
+//!     ```
+//!
+//! ### Uniform Distribution
+//!
+//! * Definition
+//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in [a,b]\\\ 0 & \text{otherwise} \end{cases}$$
+//! * Representative value
+//!     * Mean: $\frac{a + b}{2}$
+//!     * Var : $\frac{1}{12}(b-a)^2$
+//! * To generate uniform random number, Peroxide uses `rand` crate
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         // Uniform(start, end)
+//!         let a = Uniform(0, 1);
+//!         a.sample(100).print();
+//!         a.pdf(0.2).print();
+//!         a.mean().print();
+//!         a.var().print();
+//!         a.sd().print();
+//!     }
+//!     ```
+//!
+//! ### Normal Distribution
+//!
+//! * Definition
+//!     $$\mathcal{N}(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{\left( - \frac{(x - \mu)^2}{2\sigma^2}\right)}$$
+//! * Representative value
+//!     * Mean: $\mu$
+//!     * Var: $\sigma^2$
+//! * To generate normal random number, there are two famous algorithms
+//!     * Marsaglia-Polar method
+//!     * Ziggurat algorithm
+//! * In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.
+//!     * Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         // Normal(mean, std)
+//!         let a = Normal(0, 1); // Standard normal
+//!         a.sample(100).print();
+//!         a.pdf(0).print(); // Maximum probability
+//!         a.mean().print();
+//!         a.var().print();
+//!         a.sd().print();
+//!     }
+//!     ```
+//!
+//! ### Beta Distribution
+//!
+//! ### Gamma Distribution
+
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;

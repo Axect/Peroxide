@@ -1,3 +1,5 @@
+//! Easy to print any structures
+
 use operation::number::Number;
 use rand::distributions::uniform::SampleUniform;
 #[allow(unused_imports)]

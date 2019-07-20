@@ -1,3 +1,5 @@
+//! Macro to non macro function
+
 extern crate rand;
 use self::rand::prelude::*;
 

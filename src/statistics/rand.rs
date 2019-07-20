@@ -1,3 +1,22 @@
+//! Simple random number generator
+//!
+//! ## Simple Random Number Generator
+//!
+//! * Peroxide uses external [`rand` crate](https://crates.io/crates/rand) to generate random number
+//!
+//!     ```rust
+//!     extern crate rand;
+//!     use self::rand::prelude::*;
+//!
+//!     fn main() {
+//!         let mut rng = thread_rng();
+//!
+//!         let a = rng.gen_range(0f64, 1f64); // Generate random f64 number ranges from 0 to 1
+//!     }
+//!     ```
+//!
+//! * To want more detailed explanation, see [`rand` crate](https://crates.io/crates/rand)
+
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;

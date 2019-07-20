@@ -405,7 +405,7 @@
 //!
 //! ## Determinant
 //!
-//! * Peroxide uses LU decomposition to obtain determinant ($\mathcal{O}(n^3)$)
+//! * Peroxide uses LU decomposition to obtain determinant ($ \mathcal{O}(n^3) $)
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -422,17 +422,7 @@
 //! * Peroxide uses LU decomposition to obtain inverse matrix.
 //! * It needs two sub functions - `inv_l`, `inv_u`
 //!     * For inverse of `L, U`, I use block partitioning. For example, for lower triangular matrix :
-//!     $$\begin{aligned}
-//!     L &= \begin{pmatrix}
-//!         L_1 & \mathbf{0} \\
-//!         L_2 & L_3
-//!     \end{pmatrix} \\
-//!     L^{-1} &= \begin{pmatrix}
-//!         L_1^{-1} & \mathbf{0} \\
-//!         -L_3^{-1}L_2 L_1^{-1} & L_3^{-1}
-//!     \end{pmatrix}
-//!     \end{aligned}
-//!     $$
+//!     $$ \begin{aligned} L &= \begin{pmatrix} L_1 & \mathbf{0} \\\ L_2 & L_3 \end{pmatrix} \\\ L^{-1} &= \begin{pmatrix} L_1^{-1} & \mathbf{0} \\\ -L_3^{-1}L_2 L_1^{-1} & L_3^{-1} \end{pmatrix} \end{aligned} $$
 //!     ```rust
 //!     extern crate peroxide;
 //!     use peroxide::*;
@@ -448,7 +438,7 @@
 //!
 //! ## Moore-Penrose Pseudo Inverse
 //!
-//! * $X^\dagger = \left(X^T X\right)^{-1} X$
+//! * $ X^\dagger = \left(X^T X\right)^{-1} X $
 //!
 //!     ```rust
 //!     extern crate peroxide;

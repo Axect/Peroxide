@@ -1,3 +1,56 @@
+//! Dual number system for Automatic differentiation
+//!
+//! ## Dual number system
+//!
+//! * `Dual` is structure for AD
+//!     * `value(&self) -> f64` : Value
+//!     * `slope(&self) -> f64` : Slope (value of derivatives)
+//!     * `extract(&self) -> (f64,f64)` : Extract both
+//! * Constructor for `Dual`
+//!     * `Dual::new(T, T)`
+//!     * `dual(T, T)`
+//! * Implemented Operations (`Real` trait is implemented)
+//!     * `Add, Sub, Mul, Div`
+//!     * `sin, cos, tan`
+//!     * `asin, acos, atan`
+//!     * `sinh, cosh, tanh`
+//!     * `asinh, acosh, atanh`
+//!     * `sin_cos`
+//!     * `exp, ln, log, log2, log10`
+//!     * `powi, powf, sqrt`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let x = dual(1, 1); // x at x = 1
+//!         (x.clone() + x.clone()).print(); // dual(2, 2)
+//!         (x.clone() - x.clone()).print(); // dual(0, 0)
+//!         (x.clone() * x.clone()).print(); // dual(1, 2)
+//!         (x.clone() / x.clone()).print(); // dual(1, 0)
+//!         x.sin().print();
+//!         x.cos().print();
+//!         x.exp().print();
+//!         x.ln().print();
+//!         x.powi(2).print(); // same as x * x
+//!     }
+//!     ```
+//!
+//!     * After ver `0.10.1`, you can use reference operations
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let x = dual(1,1);
+//!         (&x + &x).print();
+//!         (&x - &x).print();
+//!         // and etc.
+//!     }
+//!     ```
+
 use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 /// Structure for Automatic Differentiation

@@ -1,3 +1,5 @@
+//! Useful missing tools
+
 use std::convert;
 use std::f64::MAX;
 

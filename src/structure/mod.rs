@@ -1,3 +1,12 @@
+//! Main structures for peroxide
+//!
+//! * Matrix
+//! * Vector
+//! * Dual
+//! * Hyper Dual
+//! * Polynomial
+//! * Multinomial
+
 pub mod dual;
 pub mod hyper_dual;
 pub mod matrix;

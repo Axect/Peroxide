@@ -1,3 +1,29 @@
+//! Missing operations & comprehensive number structures
+//!
+//! ## `Real` trait
+//!
+//! * `Real` is a trait for binding `f64`, `Dual`, `HyperDual`
+//! * `Real` requires `PowOps, TrigOps, ExpLogOps` & `std::Ops<Self>` & `std::Ops<f64>`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let x_f64 = 2f64;
+//!         let x_dual = dual(2,1);
+//!         let x_hyper = hyper_dual(2, 1, 0);
+//!
+//!         f(x_f64).print();
+//!         f(x_dual).print();
+//!         f(x_hyper).print();
+//!     }
+//!
+//!     fn f<T: Real>(x: T) -> T {
+//!         return x.powi(2)
+//!     }
+//!     ```
+
 use std::ops::{Add, Div, Mul, Sub};
 use {Dual, HyperDual};
 
