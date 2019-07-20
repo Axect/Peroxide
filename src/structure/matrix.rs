@@ -1,3 +1,469 @@
+//! Matrix for Scientific computation
+//!
+//! ## Declare matrix
+//!
+//! * You can declare matrix by various ways.
+//!     * R's way - Default
+//!     * MATLAB's way
+//!     * Python's way
+//!     * Other macro
+//!
+//! ### R's way
+//!
+//! * Description: Same as R - `matrix(Vector, Row, Col, Shape)`
+//! * Type: `matrix(Vec<T>, usize, usize, Shape) where T: std::convert::Into<f64> + Copy`
+//!     * `Shape`: `Enum` for matrix shape - `Row` & `Col`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
+//!         a.print();
+//!         //       c[0] c[1]
+//!         // r[0]     1    2
+//!         // r[1]     3    4
+//!
+//!         let b = matrix(c!(1,2,3,4), 2, 2, Col);
+//!         b.print();
+//!         //       c[0] c[1]
+//!         // r[0]     1    3
+//!         // r[1]     2    4
+//!     }
+//!     ```
+//!
+//! ### MATLAB's way
+//!
+//! * Description: Similar to MATLAB (But should use `&str`)
+//! * Type: `ml_matrix(&str)`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2; 3 4");
+//!         a.print();
+//!         //       c[0] c[1]
+//!         // r[0]     1    2
+//!         // r[1]     3    4
+//!     }
+//!     ```
+//!
+//! ### Python's way
+//!
+//! * Description: Declare matrix as vector of vectors.
+//! * Type: `py_matrix(Vec<Vec<T>>) where T: std::convert::Into<f64> + Copy`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = py_matrix(vec![vec![1, 2], vec![3, 4]]);
+//!         a.print();
+//!         //       c[0] c[1]
+//!         // r[0]     1    2
+//!         // r[1]     3    4
+//!     }
+//!     ```
+//!
+//! ### Other macro
+//!
+//! * Description: R-like macro to declare matrix
+//! * For `R`,
+//!
+//!     ```R
+//!     # R
+//!     a = matrix(1:4:1, 2, 2, Row)
+//!     print(a)
+//!     #      [,1] [,2]
+//!     # [1,]    1    2
+//!     # [2,]    3    4
+//!     ```
+//!
+//! * For `Peroxide`,
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         a.print();
+//!         //       c[0] c[1]
+//!         // r[0]     1    2
+//!         // r[1]     3    4
+//!     }
+//!     ```
+//!
+//! ## Basic Method for Matrix
+//!
+//! There are some useful methods for `Matrix`
+//!
+//! * `row(&self, index: usize) -> Vec<f64>` : Extract specific row as `Vec<f64>`
+//! * `col(&self, index: usize) -> Vec<f64>` : Extract specific column as `Vec<f64>`
+//! * `diag(&self) -> Vec<f64>`: Extract diagonal components as `Vec<f64>`
+//! * `swap(&self, usize, usize, Shape) -> Matrix`: Swap two rows or columns
+//! * `subs_col(&mut self, usize, Vec<f64>)`: Substitute column with `Vec<f64>`
+//! * `subs_row(&mut self, usize, Vec<f64>)`: Substitute row with `Vec<f64>`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2; 3 4");
+//!
+//!         a.row(0).print(); // [1, 2]
+//!         a.col(0).print(); // [1, 3]
+//!         a.diag().print(); // [1, 4]
+//!         a.swap(0, 1, Row).print();
+//!         //      c[0] c[1]
+//!         // r[0]    3    4
+//!         // r[1]    1    2
+//!
+//!         let mut b = ml_matrix("1 2;3 4");
+//!         b.subs_col(0, c!(5, 6));
+//!         b.subs_row(1, c!(7, 8));
+//!         b.print();
+//!         //       c[0] c[1]
+//!         // r[0]    5    2
+//!         // r[1]    7    8
+//!     }
+//!     ```
+//!
+//! ## Read & Write
+//!
+//! In peroxide, we can write matrix to `csv` or `pickle`.
+//!
+//! ### CSV (Legacy)
+//!
+//! * `write(&self, file_path: &str)`: Write matrix to csv
+//! * `write_with_header(&self, file_path, header: Vec<&str>)`: Write with header
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2;3 4");
+//!         a.write("matrix.csv").expect("Can't write file");
+//!
+//!         let b = ml_matrix("1 2; 3 4; 5 6");
+//!         b.write_with_header("header.csv", vec!["odd", "even"])
+//!             .expect("Can't write header file");
+//!     }
+//!     ```
+//!
+//! Also, you can read matrix from csv.
+//!
+//! * Type: `read(&str, bool, char) -> Result<Matrix, Box<Error>>`
+//! * Description: `read(file_path, is_header, delimiter)`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         //let a = Matrix::read("example_data/matrix.csv", false, ',')
+//!         //    .expect("Can't read matrix.csv file");
+//!         //a.print();
+//!         ////       c[0] c[1]
+//!         //// r[0]     1    2
+//!         //// r[1]     3    4
+//!     }
+//!     ```
+//!
+//! ### Pickle (Export as python object)
+//!
+//! * `SimpleWriter` : Struct to write pickle
+//!     * Necessary method
+//!         * `set_path` : Set path
+//!         * `insert_matrix` or `insert_vector`
+//!         * `write_pickle` : Must be at last
+//!     * Optional method
+//!         * `set_round_level` : Set round-off level
+//!         * `insert_header` : Insert header
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2;3 4");
+//!         let v = c!(1,2,3,4);
+//!
+//!         let mut wrt = SimpleWriter::new();
+//!         wrt.set_path("example_data/sample.pickle")
+//!             .insert_matrix(a)
+//!             .insert_vector(v)
+//!             .set_round_level(4)
+//!             .write_pickle();
+//!     }
+//!     ```
+//!
+//! ## Concatenation
+//!
+//! There are two options to concatenate matrices.
+//!
+//! * `cbind`: Concatenate two matrices by column direction.
+//! * `rbind`: Concatenate two matrices by row direction.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2;3 4");
+//!         let b = ml_matrix("5 6;7 8");
+//!
+//!         cbind(a.clone(), b.clone()).print();
+//!         //      c[0] c[1] c[2] c[3]
+//!         // r[0]    1    2    5    7
+//!         // r[1]    3    4    6    8
+//!
+//!         rbind(a, b).print();
+//!         //      c[0] c[1]
+//!         // r[0]    1    2
+//!         // r[1]    3    4
+//!         // r[2]    5    6
+//!         // r[3]    7    8
+//!     }
+//!     ```
+//!
+//! ## Matrix operations
+//!
+//! * In peroxide, can use basic operations between matrices. I'll show you by examples.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         (a.clone() + 1).print(); // -, *, / are also available
+//!         //      c[0] c[1]
+//!         // r[0]    2    3
+//!         // r[1]    4    5
+//!
+//!         let b = matrix!(5;8;1, 2, 2, Row);
+//!         (a.clone() + b.clone()).print(); // - is also available
+//!         //      c[0] c[1]
+//!         // r[0]    6    8
+//!         // r[1]   10   12
+//!
+//!         (a.clone() * b.clone()).print(); // Matrix multiplication
+//!         //      c[0] c[1]
+//!         // r[0]   19   22
+//!         // r[1]   43   50
+//!     }
+//!     ```
+//!
+//! * `clone` is too annoying - We can use reference operations!
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!     fn main() {
+//!         let a = ml_matrix("1 2;3 4");
+//!         let b = ml_matrix("5 6;7 8");
+//!
+//!         (&a + 1).print();
+//!         (&a + &b).print();
+//!         (&a - &b).print();
+//!         (&a * &b).print();
+//!     }
+//!     ```
+//!
+//! ## Extract & modify components
+//!
+//! * In peroxide, matrix data is saved as linear structure.
+//! * But you can use two-dimensional index to extract or modify components.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let mut a = matrix!(1;4;1, 2, 2, Row);
+//!         a[(0,0)].print(); // 1
+//!         a[(0,0)] = 2f64; // Modify component
+//!         a.print();
+//!         //       c[0] c[1]
+//!         //  r[0]    2    2
+//!         //  r[1]    3    4
+//!     }
+//!     ```
+//!
+//! ## Conversion to vector
+//!
+//! * Just use `row` or `col` method (I already showed at Basic method section).
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         a.row(0).print(); // [1, 2]
+//!     }
+//!     ```
+//!
+//! ## Useful constructor
+//!
+//! * `zeros(usize, usize)`: Construct matrix which elements are all zero
+//! * `eye(usize)`: Identity matrix
+//! * `rand(usize, usize)`: Construct random uniform matrix (from 0 to 1)
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = zeros(2, 2);
+//!         assert_eq!(a, ml_matrix("0 0;0 0"));
+//!
+//!         let b = eye(2);
+//!         assert_eq!(b, ml_matrix("1 0;0 1"));
+//!
+//!         let c = rand(2, 2);
+//!         c.print(); // Random 2x2 matrix
+//!     }
+//!     ```
+//! # Linear Algebra
+//!
+//! ## Transpose
+//!
+//! * Caution: Transpose does not consume the original value.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         a.transpose().print();
+//!         // Or you can use shorter one
+//!         a.t().print();
+//!         //      c[0] c[1]
+//!         // r[0]    1    3
+//!         // r[1]    2    4
+//!     }
+//!     ```
+//!
+//! ## LU Decomposition
+//!
+//! * Peroxide uses **complete pivoting** for LU decomposition - Very stable
+//! * Since there are lots of causes to generate error, you should use `Option`
+//! * `lu` returns `Option<PQLU>`
+//!     * `PQLU` has four field - `p`, `q`, `l` , `u`
+//!     * `p` means row permutations
+//!     * `q` means column permutations
+//!     * `l` means lower triangular matrix
+//!     * `u` menas upper triangular matrix
+//! * The structure of `PQLU` is as follows:
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::{Matrix};
+//!
+//!     #[derive(Debug, Clone)]
+//!     pub struct PQLU {
+//!         pub p: Perms,
+//!         pub q: Perms,
+//!         pub l: Matrix,
+//!         pub u: Matrix,
+//!     }
+//!
+//!     pub type Perms = Vec<(usize, usize)>;
+//!     ```
+//!
+//! * Example of LU decomposition:
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
+//!         let pqlu = a.lu().unwrap(); // unwrap because of Option
+//!         let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+//!         assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
+//!         assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+//!         assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
+//!         //      c[0] c[1]
+//!         // r[0]    1    0
+//!         // r[1]  0.5    1
+//!         assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+//!         //      c[0] c[1]
+//!         // r[0]    4    3
+//!         // r[1]    0 -0.5
+//!     }
+//!     ```
+//!
+//! ## Determinant
+//!
+//! * Peroxide uses LU decomposition to obtain determinant ($\mathcal{O}(n^3)$)
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         assert_eq!(a.det(), -2f64);
+//!     }
+//!     ```
+//!
+//! ## Inverse matrix
+//!
+//! * Peroxide uses LU decomposition to obtain inverse matrix.
+//! * It needs two sub functions - `inv_l`, `inv_u`
+//!     * For inverse of `L, U`, I use block partitioning. For example, for lower triangular matrix :
+//!     $$\begin{aligned}
+//!     L &= \begin{pmatrix}
+//!         L_1 & \mathbf{0} \\
+//!         L_2 & L_3
+//!     \end{pmatrix} \\
+//!     L^{-1} &= \begin{pmatrix}
+//!         L_1^{-1} & \mathbf{0} \\
+//!         -L_3^{-1}L_2 L_1^{-1} & L_3^{-1}
+//!     \end{pmatrix}
+//!     \end{aligned}
+//!     $$
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         a.inv().unwrap().print();
+//!         //      c[0] c[1]
+//!         // r[0]   -2    1
+//!         // r[1]  1.5 -0.5
+//!     }
+//!     ```
+//!
+//! ## Moore-Penrose Pseudo Inverse
+//!
+//! * $X^\dagger = \left(X^T X\right)^{-1} X$
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = matrix!(1;4;1, 2, 2, Row);
+//!         let pinv_a = a.pseudo_inv().unwrap();
+//!         let inv_a = a.inv().unwrap();
+//!
+//!         assert_eq!(inv_a, pinv_a); // Nearly equal (not actually equal)
+//!     }
+//!     ```
+
+
 extern crate csv;
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};

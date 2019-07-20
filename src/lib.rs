@@ -1,5 +1,3 @@
-//! # Peroxide
-//!
 //! `peroxide` is comprehensive numerical library for Rust.
 //!
 //! ## Components
@@ -43,7 +41,30 @@
 //! * Communication with Python
 //!     * Support `pickle` type
 //!     * Plot with `matplotlib`
-
+//!
+//! ## Quick Start
+//!
+//! ### Cargo.toml
+//!
+//! * To use `peroxide`, you should edit `Cargo.toml`
+//! * Current document version is corresponding to `0.11.5`
+//!
+//!     ```toml
+//!     peroxide = "0.11"
+//!     ```
+//!
+//! ## Import all at once
+//!
+//! * You can import all functions & structures at once
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         //Some codes...
+//!     }
+//!     ```
 
 extern crate rand;
 

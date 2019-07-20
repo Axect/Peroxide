@@ -1,3 +1,288 @@
+//! Extra tools for `Vec<f64>`
+//!
+//! ## Print `Vec<f64>`
+//!
+//! * There are two ways to print vector
+//!     * Original way: `print!("{:?}", a);`
+//!     * Peroxide way: `a.print();` - **Round-off to fourth digit**
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = vec![2f64.sqrt()];
+//!         a.print(); // [1.4142]
+//!     }
+//!     ```
+//!
+//! ## Syntactic sugar for `Vec<f64>`
+//!
+//! * There is useful macro for `Vec<f64>`
+//! * For `R`, there is `c`
+//!
+//!     ```R
+//!     # R
+//!     a = c(1,2,3,4)
+//!     ```
+//!
+//! * For `Peroxide`, there is `c!`
+//!
+//!     ```rust
+//!     // Rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!     }
+//!     ```
+//!
+//! ## From ranges to Vector
+//!
+//! * For `R`, there is `seq` to declare sequence.
+//!
+//!     ```R
+//!     # R
+//!     a = seq(1, 4, 1)
+//!     print(a)
+//!     # [1] 1 2 3 4
+//!     ```
+//!
+//! * For `peroxide`, there is `seq` to declare sequence.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = seq(1, 4, 1);
+//!         a.print();
+//!         // [1, 2, 3, 4]
+//!     }
+//!     ```
+//!
+//! ## Vector Operation
+//!
+//! * There are some vector-wise operations
+//!     * `add(&self, other: Vec<f64>) -> Vec<f64>`
+//!     * `sub(&self, other: Vec<f64>) -> Vec<f64>`
+//!     * `mul(&self, other: Vec<f64>) -> Vec<f64>`
+//!     * `div(&self, other: Vec<f64>) -> Vec<f64>`
+//!     * `dot(&self, other: Vec<f64>) -> f64`
+//!     * `norm(&self) -> f64`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         let b = c!(4,3,2,1);
+//!
+//!         a.add(&b).print();
+//!         a.sub(&b).print();
+//!         a.mul(&b).print();
+//!         a.div(&b).print();
+//!         a.dot(&b).print();
+//!         a.norm().print();
+//!
+//!         // [5, 5, 5, 5]
+//!         // [-3, -1, 1, 3]
+//!         // [4, 6, 6, 4]
+//!         // [0.25, 0.6667, 1.5, 4]
+//!         // 20
+//!         // 5.477225575051661 // sqrt(30)
+//!     }
+//!     ```
+//!
+//! * And there are some useful operations too.
+//!     * `pow(&self, usize) -> Vec<f64>`
+//!     * `powf(&self, f64) -> Vec<f64>`
+//!     * `sqrt(&self) -> Vec<f64>`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!
+//!         a.powi(2).print();
+//!         a.powf(0.5).print();
+//!         a.sqrt().print();
+//!         // [1, 4, 9, 16]
+//!         // [1, 1.4142, 1.7321, 2]
+//!         // [1, 1.4142, 1.7321, 2]
+//!     }
+//!     ```
+//!
+//! ## Concatenation
+//!
+//! There are two concatenation operations.
+//!
+//! * `cat(T, Vec<T>) -> Vec<f64>`
+//! * `concat(Vec<T>, Vec<T>) -> Vec<T>`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         cat(0f64, a.clone()).print();
+//!         // [0, 1, 2, 3, 4]
+//!
+//!         let b = c!(5,6,7,8);
+//!         concat(a, b).print();
+//!         // [1, 2, 3, 4, 5, 6, 7, 8]
+//!     }
+//!     ```
+//!
+//! ## Conversion to Matrix
+//!
+//! There are two ways to convert vector to matrix.
+//!
+//! * `to_matrix(&self) -> Matrix` : Vector to column matrix
+//! * `transpose(&self) -> Matrix` : Vector to row matrix
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         let m_col = matrix(c!(1,2,3,4), 4, 1, Col); // (4,1) Matrix
+//!         assert_eq!(a.to_matrix(), m_col);
+//!
+//!         let m_row = matrix(c!(1,2,3,4), 1, 4, Row); // (1,4) Matrix
+//!         assert_eq!(a.transpose(), m_row);
+//!     }
+//!     ```
+//!
+//! # Functional Programming {#functional}
+//!
+//! ## FP for Vector
+//!
+//! * There are some functional programming tools for `Vec<f64>`
+//!
+//! ### fmap
+//!
+//! * `fmap` is syntactic sugar for `map`
+//! * But different to original `map` - Only `f64 -> f64` allowed.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!
+//!         // Original rust
+//!         a.clone()
+//!             .into_iter()
+//!             .map(|x| x + 1f64)
+//!             .collect::<Vec<f64>>()
+//!             .print();
+//!             // [2, 3, 4, 5]
+//!
+//!         // fmap in Peroxide
+//!         a.fmap(|x| x + 1f64).print();
+//!         // [2, 3, 4, 5]
+//!     }
+//!     ```
+//!
+//! ### reduce
+//!
+//! * `reduce` is syntactic sugar for `fold`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!
+//!         // Original rust
+//!         a.clone()
+//!             .into_iter()
+//!             .fold(0f64, |x, y| x + y)
+//!             .print(); // 10
+//!
+//!         // reduce in Peroxide
+//!         a.reduce(0f64, |x, y| x + y).print(); // 10
+//!     }
+//!     ```
+//!
+//! ### zip_with
+//!
+//! * `zip_with` is composed of `zip` & `map`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         let b = c!(5,6,7,8);
+//!
+//!         // Original rust
+//!         a.clone()
+//!             .into_iter()
+//!             .zip(&b)
+//!             .map(|(x, y)| x + *y)
+//!             .collect::<Vec<f64>>().print();
+//!             // [6, 8, 10, 12]
+//!
+//!         // zip_with in Peroxide
+//!         zip_with(|x, y| x + y, &a, &b).print();
+//!         // [6, 8, 10, 12]
+//!     }
+//!     ```
+//!
+//! ### filter
+//!
+//! * `filter` is just syntactic sugar for `filter`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         a.filter(|x| x > 2f64).print();
+//!         // [3, 4]
+//!     }
+//!     ```
+//!
+//! ### take & skip
+//!
+//! * `take` is syntactic sugar for `take`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         a.take(2).print();
+//!         // [1, 2]
+//!     }
+//!     ```
+//!
+//! * `skip` is syntactic sugar for `skip`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::*;
+//!
+//!     fn main() {
+//!         let a = c!(1,2,3,4);
+//!         a.skip(2).print();
+//!         // [3, 4]
+//!     }
+//!     ```
+
 use operation::extra_ops::PowOps;
 use std::convert;
 use std::f64::MIN;
@@ -263,7 +548,7 @@ impl VecOps for Vector {
 
     /// Dot product
     fn dot(&self, other: &Vector) -> f64 {
-        self.mul(other).reduce(0, |x, y| x + y)
+        zip_with(|x,y| x * y, &self, other).reduce(0, |x, y| x + y)
     }
 
     /// Norm
@@ -276,7 +561,7 @@ impl VecOps for Vector {
 impl PowOps for Vector {
     /// Power usize
     fn powi(&self, n: i32) -> Self {
-        self.powf(n as f64)
+        self.fmap(|x| x.powi(n))
     }
 
     /// Power float
@@ -286,6 +571,7 @@ impl PowOps for Vector {
 
     /// Sqrt
     fn sqrt(&self) -> Self {
-        self.powf(0.5)
+        self.fmap(|x| x.sqrt())
     }
 }
+
