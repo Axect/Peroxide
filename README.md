@@ -152,7 +152,7 @@ fn main() {
         .set_title("Test Figure")
         .set_fig_size((10, 6))
         .set_dpi(300)
-        .set_legends(vec!["RK4".to_owned()])
+        .set_legends(vec!["RK4"])
         .set_path("example_data/test_plot.png");
 
     plt.savefig();
@@ -195,7 +195,7 @@ fn main() {
         .set_title("Test Figure")
         .set_fig_size((10, 6))
         .set_dpi(300)
-        .set_legends(vec!["RK4".to_owned()])
+        .set_legends(vec!["RK4"])
         .set_path("example_data/test_plot.png");
 
     plt.savefig();
