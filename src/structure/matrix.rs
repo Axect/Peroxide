@@ -1991,12 +1991,33 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
+/// Data structure for LU decomposition
+///
+/// # Usage
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = ml_matrix("1 2;3 4");
+/// let pqlu = a.lu().unwrap();
+/// let (p, q, l, u) = pqlu.extract();
+/// // p, q are permutations
+/// // l, u are matrices
+/// l.print(); // lower triangular
+/// u.print(); // upper triangular
+/// ```
 #[derive(Debug, Clone)]
 pub struct PQLU {
     pub p: Perms,
     pub q: Perms,
     pub l: Matrix,
     pub u: Matrix,
+}
+
+impl PQLU {
+    pub fn extract(&self) -> (Perms, Perms, Matrix, Matrix) {
+        (self.p.clone(), self.q.clone(), self.l.clone(), self.u.clone())
+    }
 }
 
 impl LinearAlgebra for Matrix {

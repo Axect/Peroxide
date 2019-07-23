@@ -1,3 +1,8 @@
+# Release 0.11.6 (2019-07-22)
+
+* Add `extract` for `PQLU`
+    * `extract: PQLU -> (p, q, l, u)`
+
 # Release 0.11.5 (2019-07-20)
 
 * Update whole documentations - part 2.
