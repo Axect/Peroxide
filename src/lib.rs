@@ -129,17 +129,17 @@ pub use structure::multinomial::*;
 #[allow(unused_imports)]
 pub use numerical::utils::*;
 
-#[allow(unused_imports)]
-pub use numerical::newton::*;
+//#[allow(unused_imports)]
+//pub use numerical::newton::*;
 
-#[allow(unused_imports)]
-pub use numerical::bdf::*;
+//#[allow(unused_imports)]
+//pub use numerical::bdf::*;
 
 #[allow(unused_imports)]
 pub use util::api::*;
 
-#[allow(unused_imports)]
-pub use numerical::gauss_legendre::*;
+//#[allow(unused_imports)]
+//pub use numerical::gauss_legendre::*;
 
 #[allow(unused_imports)]
 pub use statistics::dist::*;

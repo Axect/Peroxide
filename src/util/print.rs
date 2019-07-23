@@ -143,3 +143,9 @@ impl Printable for Number {
         println!("{:?}", self)
     }
 }
+
+impl Printable for Vec<Number> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}

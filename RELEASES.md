@@ -1,3 +1,11 @@
+# Release 0.11.7 (2019-07-24)
+
+* Modify `jacobian`
+    * Receive `Fn(Vec<Number>) -> Vec<Number>`
+* Remove `bdf.rs`, `gauss_legendre.rs`
+* More extended functional programming for `Vec`
+    * Extend `zip_with` to any real vector
+
 # Release 0.11.6 (2019-07-22)
 
 * Add `extract` for `PQLU`

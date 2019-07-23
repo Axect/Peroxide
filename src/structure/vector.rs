@@ -286,6 +286,8 @@
 use operation::extra_ops::PowOps;
 use std::convert;
 use std::f64::MIN;
+use Real;
+use std::cmp::min;
 
 pub type Vector = Vec<f64>;
 
@@ -419,12 +421,37 @@ impl FPVector for Vector {
     }
 }
 
-pub fn zip_with<F>(f: F, xs: &Vector, ys: &Vector) -> Vector
-where
-    F: Fn(f64, f64) -> f64,
+pub fn map<F, T>(f: F, xs: &Vec<T>) -> Vec<T>
+    where F: Fn(T) -> T, T: Real + Default
 {
-    xs.zip_with(f, ys)
+    let l = xs.len();
+    let mut result = vec![T::default(); l];
+    for i in 0 .. l {
+        result[i] = f(xs[i]);
+    }
+    result
 }
+
+pub fn reduce<F, T>(f: F, init: T, xs: &Vec<T>) -> T
+where F: Fn(T, T) -> T, T: Real {
+    let mut s = init;
+    for i in 0 .. xs.len() {
+        s = f(s, xs[i]);
+    }
+    s
+}
+
+pub fn zip_with<F, T>(f: F, xs: &Vec<T>, ys: &Vec<T>) -> Vec<T>
+    where F: Fn(T, T) -> T, T: Real + Default
+{
+    let l = min(xs.len(), ys.len());
+    let mut result = vec![T::default(); l];
+    for i in 0 .. l {
+        result[i] = f(xs[i], ys[i]);
+    }
+    result
+}
+
 
 /// Some algorithms for Vector
 pub trait Algorithm {

@@ -1,6 +1,8 @@
 use structure::dual::*;
 use structure::matrix::*;
 use util::non_macro::{cat, zeros};
+use Number;
+use NumberVector;
 
 /// Jacobian Matrix
 ///
@@ -16,14 +18,14 @@ use util::non_macro::{cat, zeros};
 /// use peroxide::*;
 ///
 /// let x = c!(1, 1);
-/// let j = jacobian(x, f);
+/// let j = jacobian(f, x);
 /// j.print();
 ///
 /// //      c[0] c[1]
 /// // r[0]    1    1
 /// // r[1]   -1    2
 ///
-/// fn f(xs: Vec<Dual>) -> Vec<Dual> {
+/// fn f(xs: Vec<Number>) -> Vec<Number> {
 ///     let x = xs[0];
 ///     let y = xs[1];
 ///
@@ -34,11 +36,13 @@ use util::non_macro::{cat, zeros};
 /// }
 /// ```
 #[allow(non_snake_case)]
-pub fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
+pub fn jacobian<F>(g: F, x: Vec<f64>) -> Matrix
 where
-    F: Fn(Vec<Dual>) -> Vec<Dual>,
+    F: Fn(Vec<Number>) -> Vec<Number>,
 {
     let l = x.len();
+
+    let f = |x: Vec<Dual>| g(NumberVector::from_dual_vec(x)).to_dual_vec();
 
     let x_var: Vec<Dual> = merge_dual(x.clone(), vec![1f64; l]);
     let x_const = x.clone().conv_dual();

@@ -17,6 +17,12 @@ pub enum Number {
     E(NumError),
 }
 
+impl Default for Number {
+    fn default() -> Self {
+        F(f64::default())
+    }
+}
+
 impl Neg for Number {
     type Output = Self;
 
@@ -400,5 +406,40 @@ impl Div<Number> for f64 {
             D(x) => D(self / x),
             E(x) => E(x),
         }
+    }
+}
+
+pub trait NumberVector {
+    fn to_dual_vec(&self) -> Vec<Dual>;
+    fn to_f64_vec(&self) -> Vec<f64>;
+    fn to_hyper_vec(&self) -> Vec<HyperDual>;
+    fn from_dual_vec(v: Vec<Dual>) -> Self;
+    fn from_f64_vec(v: Vec<f64>) -> Self;
+    fn from_hyper_vec(v: Vec<HyperDual>) -> Self;
+}
+
+impl NumberVector for Vec<Number> {
+    fn to_dual_vec(&self) -> Vec<Dual> {
+        self.clone().into_iter().map(|x| x.to_dual()).collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.clone().into_iter().map(|x| x.to_f64()).collect()
+    }
+
+    fn to_hyper_vec(&self) -> Vec<HyperDual> {
+        self.clone().into_iter().map(|x| x.to_hyper_dual()).collect()
+    }
+
+    fn from_dual_vec(v: Vec<Dual>) -> Self {
+        v.into_iter().map(|x| Number::from_dual(x)).collect()
+    }
+
+    fn from_f64_vec(v: Vec<f64>) -> Self {
+        v.into_iter().map(|x| Number::from_f64(x)).collect()
+    }
+
+    fn from_hyper_vec(v: Vec<HyperDual>) -> Self {
+        v.into_iter().map(|x| Number::from_hyper_dual(x)).collect()
     }
 }
