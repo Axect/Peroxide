@@ -2,6 +2,7 @@
 
 use std::convert;
 use std::f64::MAX;
+use Real;
 
 type Vector = Vec<f64>;
 
@@ -72,5 +73,35 @@ pub fn choose_longer_vec(x1: &Vector, x2: &Vector) -> Vector {
         x2.clone()
     } else {
         x1.clone()
+    }
+}
+
+pub fn max<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone {
+    let l = v.len();
+    if l == 1 {
+        v[0]
+    } else {
+        let mut t = if v[0] >= v[1] { v[0] } else { v[1] };
+        for i in 2 .. v.len() {
+            if v[i] > t {
+                t = v[i];
+            }
+        }
+        t
+    }
+}
+
+pub fn min<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone {
+    let l = v.len();
+    if l == 1 {
+        v[0]
+    } else {
+        let mut t = if v[0] <= v[1] { v[0] } else { v[1] };
+        for i in 2 .. v.len() {
+            if v[i] < t {
+                t = v[i];
+            }
+        }
+        t
     }
 }
