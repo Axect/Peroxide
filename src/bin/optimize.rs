@@ -97,6 +97,24 @@ fn main() {
     }
 
     p_lm.print();
+
+    // Plot
+    let p_x = seq(0, (SIZE-1) as i32, 1);
+    let p_y = y.data;
+    let f_y = f(NumberVector::from_f64_vec(p_lm.data)).to_f64_vec();
+
+    let mut plt = Plot2D::new();
+    plt.set_domain(p_x)
+        .insert_image(p_y)
+        .insert_image(f_y)
+        .set_legends(vec!["real", "fit"])
+        .set_fig_size((10, 6))
+        .set_dpi(300)
+        .set_path("example_data/lm.png")
+        .set_title("Levenberg-Marquardt Algorithm")
+        .set_xlabel("$x$")
+        .set_ylabel("$y$")
+        .savefig();
 }
 
 // Non autonomous case
