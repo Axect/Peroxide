@@ -30,6 +30,12 @@
 - [ ] Export distributions using Pickle
 - [ ] Fill `ExtraOps` for `HyperDual`
 - [ ] Re-write `numerical` module
+- [ ] Optimize
+    - [ ] Linear Regression
+    - [ ] Non-linear Regression
+        - [ ] Gauss-Newton
+        - [ ] Gradient Descent
+        - [ ] Levenberg-Marquardt
 
 ## Complete
 

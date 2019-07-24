@@ -1,3 +1,10 @@
+# Release 0.11.8 (2019-07-24) (Candidates)
+
+* More utils
+    * `max<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone`
+    * `min<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone`
+* Implement Levenberg-Marquardt Algorithm (Refer to `bin/optimize.rs`)
+
 # Release 0.11.7 (2019-07-24)
 
 * Modify `jacobian`
