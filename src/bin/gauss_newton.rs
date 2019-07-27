@@ -1,11 +1,11 @@
 extern crate peroxide;
 use peroxide::*;
-use Number::F;
 
 const S: [f64; 7] = [
     0.038, 0.194, 0.425, 0.626, 1.253, 2.500, 3.740
 ];
 
+#[allow(non_snake_case)]
 fn main() {
     let y = ml_matrix("0.05; 0.127; 0.094; 0.2122; 0.2729; 0.2665; 0.3317");
 
@@ -17,7 +17,7 @@ fn main() {
         .to_f64_vec()
         .to_matrix();
 
-    for i in 0 .. 10 {
+    for _i in 0 .. 10 {
         let h: Matrix;
         match j.pseudo_inv() {
             Some(W) => h = W * (&y - &y_hat),

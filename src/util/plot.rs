@@ -192,7 +192,7 @@ impl Plot for Plot2D {
         self
     }
 
-    fn set_zlabel(&mut self, zlabel: &str) -> &mut Self {
+    fn set_zlabel(&mut self, _zlabel: &str) -> &mut Self {
         unimplemented!()
     }
 

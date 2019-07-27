@@ -3,6 +3,7 @@ use peroxide::*;
 
 const SIZE: usize = 100;
 
+#[allow(non_snake_case)]
 fn main() {
     let size = SIZE;
 
@@ -23,7 +24,7 @@ fn main() {
     let mut j_gd = j_init.clone();
     let mut y_hat_gd = matrix(f(NumberVector::from_f64_vec(p_init.clone())).to_f64_vec(), size, 1, Col);
 
-    for i in 0 .. 30 {
+    for _i in 0 .. 30 {
         let h = 0.02 * j_gd.t() * (&y - &y_hat_gd);
         p_gd = &p_gd + &h;
         j_gd = jacobian(f, p_gd.data.clone());
@@ -36,7 +37,7 @@ fn main() {
     let mut p_gn = matrix(p_init.clone(), 4, 1, Col);
     let mut y_hat_gn = matrix(f(NumberVector::from_f64_vec(p_init.clone())).to_f64_vec(), size, 1, Col);
     let mut j_gn = j_init.clone();
-    for i in 0 .. 10 {
+    for _i in 0 .. 10 {
         let h_gn: Matrix;
         match j_gn.pseudo_inv() {
             Some(W) => h_gn = W * (&y - &y_hat_gn),
@@ -50,7 +51,7 @@ fn main() {
     p_gn.print();
 
     // Levenberg-Marquardt
-    let (lambda_0, eps1, eps2) = (1e-2, 1e-6, 1e-6);
+    let (lambda_0, _eps1, _eps2) = (1e-2, 1e-6, 1e-6);
     let mut p_lm = p_init.to_matrix();
     let mut y_hat_lm = f(NumberVector::from_f64_vec(p_lm.data.clone())).to_f64_vec().to_matrix();
     let mut j_lm = j_init.clone();
@@ -59,7 +60,7 @@ fn main() {
     let mut chi2 = ((&y - &y_hat_lm).t() * (&y - &y_hat_lm))[(0,0)];
     let mut nu = 2f64;
     
-    for i in 0 .. 30 {
+    for _i in 0 .. 30 {
         let h_lm: Matrix;
         let mut A_diag = eye(A.row);
         let A_ref = A.diag();
@@ -114,7 +115,7 @@ fn main() {
         .set_title("Levenberg-Marquardt Algorithm")
         .set_xlabel("$x$")
         .set_ylabel("$y$")
-        .savefig();
+        .savefig().expect("Can't draw plot");
 }
 
 // Non autonomous case
