@@ -8,3 +8,4 @@ Cargo.lock
 *.m
 *.pickle
 *.py
+*.vs
