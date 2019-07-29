@@ -8,7 +8,7 @@
     * `to_diag` : Extract diagonal matrix from a matrix
 * Add non-linear regression algorithms (Optimizations) to `numerical/optimize.rs`
     * Gradient Descent
-    * Gauss Newton
+    * Gauss Newton (Not yet implemented)
     * Levenberg Marquardt
 * Add julia-like macros
     * `hstack!` : Vectors to Column matrix

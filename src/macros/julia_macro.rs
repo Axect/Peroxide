@@ -1,5 +1,3 @@
-use ::{matrix, Row, Col};
-
 #[macro_export]
 macro_rules! hstack {
     // Two
