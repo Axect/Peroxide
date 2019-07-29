@@ -67,6 +67,7 @@
 //!     ```
 
 extern crate rand;
+extern crate pyo3;
 
 pub mod statistics;
 pub mod structure;
@@ -92,6 +93,9 @@ pub use macros::r_macro::*;
 
 #[allow(unused_imports)]
 pub use macros::matlab_macro::*;
+
+#[allow(unused_imports)]
+pub use macros::julia_macro::*;
 
 #[allow(unused_imports)]
 pub use statistics::rand::*;
@@ -170,3 +174,6 @@ pub use operation::number::*;
 
 #[allow(unused_imports)]
 pub use util::plot::*;
+
+#[allow(unused_imports)]
+pub use numerical::optimize::*;

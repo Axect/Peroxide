@@ -1097,6 +1097,16 @@ impl Matrix {
         }
         result
     }
+
+    pub fn to_diag(&self) -> Matrix {
+        assert!(self.row == self.col, "Should be square matrix");
+        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
+        let diag = self.diag();
+        for i in 0 .. self.row {
+            result[(i,i)] = diag[i];
+        }
+        result
+    }
 }
 
 // =============================================================================

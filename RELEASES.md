@@ -1,9 +1,18 @@
-# Release 0.11.8 (2019-07-24) (Candidates)
+# Release 0.11.8 (2019-07-29) 
 
 * More utils
     * `max<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone`
     * `min<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone`
 * Implement Levenberg-Marquardt Algorithm (Refer to `bin/optimize.rs`)
+* `to_diag` for `Matrix`
+    * `to_diag` : Extract diagonal matrix from a matrix
+* Add non-linear regression algorithms (Optimizations) to `numerical/optimize.rs`
+    * Gradient Descent
+    * Gauss Newton
+    * Levenberg Marquardt
+* Add julia-like macros
+    * `hstack!` : Vectors to Column matrix
+    * `vstack!` : Vectors to Row matrix
 
 # Release 0.11.7 (2019-07-24)
 

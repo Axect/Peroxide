@@ -7,3 +7,4 @@ pub mod interp;
 pub mod ode;
 pub mod spline;
 pub mod utils;
+pub mod optimize;

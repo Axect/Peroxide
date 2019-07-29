@@ -2,7 +2,6 @@
 
 use std::convert;
 use std::f64::MAX;
-use Real;
 
 type Vector = Vec<f64>;
 
