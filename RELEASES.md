@@ -1,3 +1,13 @@
+# Release 0.12.0 (2019-07-29)
+
+* **[Important]** Change the definition of `powf` in `PowOps`
+    * `powf(&self, Self) -> Self`
+    * Apply this definition to
+        * `Dual`
+        * `HyperDual`
+        * `Number`
+    * And remove `PowOps` of `Vec<f64>`
+
 # Release 0.11.8 (2019-07-29) 
 
 * More utils

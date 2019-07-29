@@ -29,7 +29,7 @@ use {Dual, HyperDual};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
-    fn powf(&self, f: f64) -> Self;
+    fn powf(&self, f: Self) -> Self;
     fn sqrt(&self) -> Self;
 }
 

@@ -57,6 +57,7 @@ use std::convert::Into;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use structure::vector::*;
+use Real;
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
 
@@ -479,15 +480,22 @@ impl PowOps for Dual {
         Dual::new(val, dval)
     }
 
-    fn powf(&self, f: f64) -> Self {
+    fn powf(&self, f: Self) -> Self {
         let x = self.x;
-        let val = x.powf(f);
-        let dval = f * x.powf(f - 1f64) * self.dx;
-        Dual::new(val, dval)
+        let dx = self.slope();
+        let n = f.value();
+        let dn = f.slope();
+        if dn == 0f64 {
+            Dual::new(x.powf(n), dx * n * x.powf(n - 1f64))
+        } else if dx == 0f64 {
+            Dual::new(x.powf(n), x.powf(n) * n.ln() * dn)
+        } else {
+            Dual::new(x.powf(n), dn.powf(x.ln()) + (n * dx) / x)
+        }
     }
 
     fn sqrt(&self) -> Self {
-        self.powf(0.5)
+        self.powf(Dual::new(0.5f64, 0f64))
     }
 }
 

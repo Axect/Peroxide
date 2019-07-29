@@ -401,15 +401,25 @@ impl PowOps for HyperDual {
         s
     }
 
-    fn powf(&self, f: f64) -> Self {
-        let x = self.x.powf(f);
-        let dx = self.dx * f * self.x.powf(f - 1f64);
-        let ddx = self.ddx * f * self.x.powf(f - 1f64)
-            + self.dx.powi(2) * f * (f - 1f64) * self.x.powf(f - 2f64);
-        Self::new(x, dx, ddx)
+    fn powf(&self, f: Self) -> Self {
+        let n = f.value();
+        let dn = f.slope();
+        let ddn = f.accel();
+
+        if dn == 0f64 && ddn == 0f64 {
+            let x = self.x.powf(n);
+            let dx = self.dx * n * self.x.powf(n - 1f64);
+            let ddx = self.ddx * n * self.x.powf(n - 1f64)
+                + self.dx.powi(2) * n * (n - 1f64) * self.x.powf(n - 2f64);
+            Self::new(x, dx, ddx)
+        } else {
+            unimplemented!()
+        }
+
+
     }
 
     fn sqrt(&self) -> Self {
-        self.powf(0.5)
+        self.powf(HyperDual::new(0.5f64, 0f64, 0f64))
     }
 }

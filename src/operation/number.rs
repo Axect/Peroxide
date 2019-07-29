@@ -316,10 +316,10 @@ impl PowOps for Number {
         }
     }
 
-    fn powf(&self, f: f64) -> Self {
+    fn powf(&self, f: Self) -> Self {
         match self {
-            F(x) => F(x.powf(f)),
-            D(x) => D(x.powf(f)),
+            F(x) => F(x.powf(f.to_f64())),
+            D(x) => D(x.powf(f.to_dual())),
             E(x) => E(x.to_owned()),
         }
     }

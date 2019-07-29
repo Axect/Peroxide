@@ -96,27 +96,6 @@
 //!     }
 //!     ```
 //!
-//! * And there are some useful operations too.
-//!     * `pow(&self, usize) -> Vec<f64>`
-//!     * `powf(&self, f64) -> Vec<f64>`
-//!     * `sqrt(&self) -> Vec<f64>`
-//!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::*;
-//!
-//!     fn main() {
-//!         let a = c!(1,2,3,4);
-//!
-//!         a.powi(2).print();
-//!         a.powf(0.5).print();
-//!         a.sqrt().print();
-//!         // [1, 4, 9, 16]
-//!         // [1, 1.4142, 1.7321, 2]
-//!         // [1, 1.4142, 1.7321, 2]
-//!     }
-//!     ```
-//!
 //! ## Concatenation
 //!
 //! There are two concatenation operations.
@@ -583,22 +562,3 @@ impl VecOps for Vector {
         self.dot(&self).sqrt()
     }
 }
-
-/// Power operation for Vector
-impl PowOps for Vector {
-    /// Power usize
-    fn powi(&self, n: i32) -> Self {
-        self.fmap(|x| x.powi(n))
-    }
-
-    /// Power float
-    fn powf(&self, f: f64) -> Self {
-        self.fmap(|x| x.powf(f))
-    }
-
-    /// Sqrt
-    fn sqrt(&self) -> Self {
-        self.fmap(|x| x.sqrt())
-    }
-}
-
