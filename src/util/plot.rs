@@ -89,6 +89,7 @@ use self::pyo3::{PyResult, Python};
 use std::collections::HashMap;
 pub use Grid::*;
 use PlotOptions::{Domain, Images, Legends, Path};
+pub use Markers::{Point, Line, Circle};
 
 type Vector = Vec<f64>;
 
@@ -98,6 +99,13 @@ pub enum PlotOptions {
     Images,
     Legends,
     Path,
+}
+
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
+pub enum Markers {
+    Point,
+    Line,
+    Circle,
 }
 
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
@@ -118,6 +126,7 @@ pub trait Plot {
     fn set_fig_size(&mut self, fig_size: (usize, usize)) -> &mut Self;
     fn set_dpi(&mut self, dpi: usize) -> &mut Self;
     fn grid(&mut self, grid: Grid) -> &mut Self;
+    fn set_marker(&mut self, styles: Vec<Markers>) -> &mut Self;
     fn savefig(&self) -> PyResult<()>;
 }
 
@@ -129,6 +138,7 @@ pub struct Plot2D {
     xlabel: String,
     ylabel: String,
     legends: Vec<String>,
+    markers: Vec<Markers>,
     path: String,
     fig_size: (usize, usize),
     dpi: usize,
@@ -151,6 +161,7 @@ impl Plot2D {
             xlabel: "$x$".to_string(),
             ylabel: "$y$".to_string(),
             legends: vec![],
+            markers: vec![],
             path: "".to_string(),
             fig_size: (10, 6),
             dpi: 300,
@@ -224,6 +235,11 @@ impl Plot for Plot2D {
 
     fn grid(&mut self, grid: Grid) -> &mut Self {
         self.grid = grid;
+        self
+    }
+
+    fn set_marker(&mut self, styles: Vec<Markers>) -> &mut Self {
+        self.markers = styles;
         self
     }
 
@@ -306,8 +322,19 @@ impl Plot for Plot2D {
             title, xlabel, ylabel
         );
 
-        for i in 0..y_length {
-            plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
+        if self.markers.len() == 0 {
+            for i in 0..y_length {
+                plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
+            }
+        } else {
+            for i in 0 .. y_length {
+                match self.markers[i] {
+                    Line => plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..]),
+                    Point => plot_string.push_str(&format!("plt.plot(x,y[{}],\".\",label=r\"{}\")\n", i, legends[i])[..]),
+                    Circle => plot_string.push_str(&format!("plt.plot(x,y[{}],\"o\",label=r\"{}\")\n", i, legends[i])[..]),
+                }
+
+            }
         }
 
         plot_string.push_str("plt.legend(fontsize=12)\nplt.savefig(pa)");

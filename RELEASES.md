@@ -1,3 +1,8 @@
+# Release 0.12.2 (2019-07-30)
+
+* Add `set_markers` for `Plot2D`
+    * Can support `Point`, `Circle`, `Line`
+
 # Release 0.12.1 (2019-07-30)
 
 * Fix error of `powf` in `PowOps` for `Number`

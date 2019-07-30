@@ -30,6 +30,7 @@ fn main() {
         .set_legends(vec!["Noise", "Fit"])
         .set_title("Test ($y=x^2$ with noise)")
         .set_path("example_data/lm_test.png")
+        .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 }
 
