@@ -262,7 +262,6 @@
 //!     }
 //!     ```
 
-use operation::extra_ops::PowOps;
 use std::convert;
 use std::f64::MIN;
 use Real;

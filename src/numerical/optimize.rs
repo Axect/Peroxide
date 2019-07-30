@@ -4,7 +4,6 @@ use ::{max, jacobian};
 use ::OptOption::{InitParam, MaxIter};
 pub use ::OptMethod::{GradientDescent, GaussNewton, LevenbergMarquardt};
 
-
 #[derive(Debug, Clone, Copy)]
 pub enum OptMethod {
     GradientDescent(f64),
@@ -72,7 +71,7 @@ impl Optimizer {
         self
     }
 
-    pub fn optimize(&self) -> Matrix {
+    pub fn optimize(&self) -> Vec<f64> {
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
         let (p_init, max_iter) = (self.param.clone(), self.max_iter);
@@ -84,7 +83,7 @@ impl Optimizer {
 
         // Declare mutable values
         let mut p = p_init_vec.to_matrix();
-        let mut j = jacobian(f, p.data.clone());
+        let mut j = jacobian(f, p_init_vec.clone());
         let mut y_hat = f(p_init.clone()).to_f64_vec().to_matrix();
         let mut jtj = &j.t() * &j;
 
@@ -105,7 +104,7 @@ impl Optimizer {
             LevenbergMarquardt => {
                 let mut chi2 = ((&y - &y_hat).t() * (&y - &y_hat))[(0,0)];
                 let mut nu = 2f64;
-                let lambda_0 = 1e-2;
+                let lambda_0 = 1e-3;
                 let mut lambda = lambda_0 * max(jtj.diag());
 
                 for _i in 0 .. max_iter {
@@ -138,7 +137,7 @@ impl Optimizer {
                 }
             }
         }
-        p
+        p.data
     }
 }
 

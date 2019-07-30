@@ -316,11 +316,16 @@ impl PowOps for Number {
         }
     }
 
+    #[allow(unreachable_patterns)]
     fn powf(&self, f: Self) -> Self {
-        match self {
-            F(x) => F(x.powf(f.to_f64())),
-            D(x) => D(x.powf(f.to_dual())),
-            E(x) => E(x.to_owned()),
+        match (self, &f) {
+            (F(x), F(y)) => F(x.powf(*y)),
+            (F(x), D(y)) => D(Dual::from_f64(*x).powf(*y)),
+            (D(x), F(y)) => D(x.powf(Dual::from_f64(*y))),
+            (D(x), D(y)) => D(x.powf(*y)),
+            (E(x), _) => E(x.to_owned()),
+            (_, E(y)) => E(y.to_owned()),
+            _ => unreachable!()
         }
     }
 

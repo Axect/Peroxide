@@ -1,3 +1,11 @@
+# Release 0.12.1 (2019-07-30)
+
+* Fix error of `powf` in `PowOps` for `Number`
+    * Cover all cases
+* Change output type of `optimize`
+    * Original: `Matrix`
+    * Changed: `Vec<f64>`
+
 # Release 0.12.0 (2019-07-29)
 
 * **[Important]** Change the definition of `powf` in `PowOps`

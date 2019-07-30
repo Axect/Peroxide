@@ -1,8 +1,7 @@
 use structure::dual::*;
 use structure::matrix::*;
 use util::non_macro::{cat, zeros};
-use Number;
-use NumberVector;
+use ::{Number, NumberVector};
 
 /// Jacobian Matrix
 ///
