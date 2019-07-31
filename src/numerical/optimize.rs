@@ -1,3 +1,102 @@
+//! To optimize parametric model (non-linear regression)
+//! 
+//! ## `Optimizer` structure
+//! 
+//! ### Declaration
+//! 
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::{Number, OptMethod, OptOption};
+//! use std::collections::HashMap;
+//! 
+//! pub struct Optimizer {
+//!     domain: Vec<f64>,
+//!     observed: Vec<f64>,
+//!     func: fn(&Vec<f64>, Vec<Number>) -> Vec<Number>,
+//!     param: Vec<Number>,
+//!     max_iter: usize,
+//!     error: f64,
+//!     method: OptMethod,
+//!     option: HashMap<OptOption, bool>,
+//! }
+//! ```
+//! 
+//! ### Method (Should fill)
+//! 
+//! * `new` : Declare new Optimizer. **Should be mutable**
+//! * `set_init_param` : Input initial parameter
+//! * `set_max_iter` : Set maximum number of iterations
+//! * `set_method` : Set method to optimization
+//! 
+//! ### Method (Optional)
+//! 
+//! * `get_domain` : Get domain
+//! * `get_error` : Root mean square error
+//! 
+//! ### Method (Generate result)
+//! 
+//! * `optimize` : Optimize
+//! 
+//! ## Example
+//! 
+//! * Optimize $y = x^n$ model with $y = x^2$ with gaussian noise.
+//! 
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::*;
+//! 
+//! fn main() {
+//!     // To prepare noise
+//!     let normal = Normal(0f64, 0.1f64);
+//!     let normal2 = Normal(0f64, 100f64);
+//! 
+//!     // Noise to domain
+//!     let mut x = seq(0., 99., 1f64);
+//!     x = zip_with(|a, b| (a + b).abs(), &x, &normal.sample(x.len()));
+//! 
+//!     // Noise to image
+//!     let mut y = x.fmap(|t| t.powi(2));
+//!     y = zip_with(|a, b| a + b, &y, &normal2.sample(y.len()));
+//! 
+//!     // Initial paramter
+//!     let n_init = vec![1f64];
+//!     let data = hstack!(x.clone(), y.clone());
+//! 
+//!     // Optimizer setting
+//!     let mut opt = Optimizer::new(data, quad);
+//!     let p = opt.set_init_param(n_init)
+//!         .set_max_iter(50)
+//!         .set_method(LevenbergMarquardt)
+//!         .optimize();
+//!     p.print();                  // Optimized parameter
+//!     opt.get_error().print();    // Optimized RMSE
+//! 
+//!     // To prepare plotting
+//!     let z = quad(&x, NumberVector::from_f64_vec(p)).to_f64_vec();
+//! 
+//!     // Plot
+//!     let mut plt = Plot2D::new();
+//!     plt.set_domain(x)
+//!         .insert_image(y)    // plot data
+//!         .insert_image(z)    // plot fit
+//!         .set_legend(vec!["Data", "Fit"])
+//!         .set_title("Test ($y=x^2$ with noise)")
+//!         .set_path("example_data/lm_test.png")
+//!         .set_marker(vec![Point, Line])
+//!         .savefig().expect("Can't draw a plot");
+//! }
+//! 
+//! fn quad(x: &Vec<f64>, n: Vec<Number>) -> Vec<Number> {
+//!     x.clone().into_iter()
+//!         .map(|t| Number::from_f64(t))
+//!         .map(|t| t.powf(n[0]))
+//!         .collect()
+//! }
+//! ```
+//! 
+//! ![LM test](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lm_test.png)
+
+
 use std::collections::HashMap;
 use ::{Matrix, Number, NumberVector, LinearAlgebra, LinearOps};
 use ::{max, jacobian};
@@ -17,12 +116,19 @@ pub enum OptOption {
     MaxIter,
 }
 
+/// Optimizer for optimization (non-linear regression)
+/// 
+/// # Methods
+/// * Gradient Descent
+/// * Gauss Newton
+/// * Levenberg Marquardt
 pub struct Optimizer {
     domain: Vec<f64>,
     observed: Vec<f64>,
     func: fn(&Vec<f64>, Vec<Number>) -> Vec<Number>,
     param: Vec<Number>,
     max_iter: usize,
+    error: f64,
     method: OptMethod,
     option: HashMap<OptOption, bool>,
 }
@@ -39,6 +145,7 @@ impl Optimizer {
             func,
             param: vec![],
             max_iter: 0,
+            error: 0f64,
             method: LevenbergMarquardt,
             option: default_option,
         }
@@ -46,6 +153,10 @@ impl Optimizer {
 
     pub fn get_domain(&self) -> Vec<f64> {
         self.domain.clone()
+    }
+
+    pub fn get_error(&self) -> f64 {
+        self.error
     }
 
     pub fn set_init_param(&mut self, p: Vec<f64>) -> &mut Self {
@@ -71,7 +182,7 @@ impl Optimizer {
         self
     }
 
-    pub fn optimize(&self) -> Vec<f64> {
+    pub fn optimize(&mut self) -> Vec<f64> {
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
         let (p_init, max_iter) = (self.param.clone(), self.max_iter);
@@ -137,6 +248,8 @@ impl Optimizer {
                 }
             }
         }
+        let error_temp = &y - &y_hat;
+        self.error = ((error_temp.t() * error_temp)[(0,0)] / y.row as f64).sqrt();
         p.data
     }
 }

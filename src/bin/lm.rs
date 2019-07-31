@@ -13,10 +13,11 @@ fn main() {
     let mut opt = Optimizer::new(data, f);
     let p = opt
         .set_init_param(p_init)
-        .set_max_iter(30)
+        .set_max_iter(100)
         .set_method(LevenbergMarquardt)
         .optimize();
     p.print();
+    opt.get_error().print();
 }
 
 fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {

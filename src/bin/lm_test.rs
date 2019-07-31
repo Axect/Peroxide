@@ -11,7 +11,7 @@ fn main() {
     let mut y = x.fmap(|t| t.powi(2));
     y = zip_with(|a, b| a + b, &y, &normal2.sample(y.len()));
 
-    let n_init = vec![1.5f64];
+    let n_init = vec![1f64];
     let data = hstack!(x.clone(), y.clone());
 
     let mut opt = Optimizer::new(data, quad);
@@ -20,6 +20,7 @@ fn main() {
         .set_method(LevenbergMarquardt)
         .optimize();
     p.print();
+    opt.get_error().print();
 
     let z = quad(&x, NumberVector::from_f64_vec(p)).to_f64_vec();
 
@@ -27,7 +28,7 @@ fn main() {
     plt.set_domain(x)
         .insert_image(y)
         .insert_image(z)
-        .set_legends(vec!["Noise", "Fit"])
+        .set_legend(vec!["Noise", "Fit"])
         .set_title("Test ($y=x^2$ with noise)")
         .set_path("example_data/lm_test.png")
         .set_marker(vec![Point, Line])

@@ -64,7 +64,7 @@
 //!         .set_title("Test Figure")
 //!         .set_fig_size((10, 6))
 //!         .set_dpi(300)
-//!         .set_legends(vec!["RK4"])
+//!         .set_legend(vec!["RK4"])
 //!         .set_path("example_data/test_plot.png");
 //!
 //!     plt.savefig();
@@ -121,7 +121,7 @@ pub trait Plot {
     fn set_xlabel(&mut self, xlabel: &str) -> &mut Self;
     fn set_ylabel(&mut self, ylabel: &str) -> &mut Self;
     fn set_zlabel(&mut self, zlabel: &str) -> &mut Self;
-    fn set_legends(&mut self, legends: Vec<&str>) -> &mut Self;
+    fn set_legend(&mut self, legends: Vec<&str>) -> &mut Self;
     fn set_path(&mut self, path: &str) -> &mut Self;
     fn set_fig_size(&mut self, fig_size: (usize, usize)) -> &mut Self;
     fn set_dpi(&mut self, dpi: usize) -> &mut Self;
@@ -207,7 +207,7 @@ impl Plot for Plot2D {
         unimplemented!()
     }
 
-    fn set_legends(&mut self, legends: Vec<&str>) -> &mut Self {
+    fn set_legend(&mut self, legends: Vec<&str>) -> &mut Self {
         if let Some(x) = self.options.get_mut(&Legends) {
             *x = true
         }

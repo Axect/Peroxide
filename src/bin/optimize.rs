@@ -108,7 +108,7 @@ fn main() {
     plt.set_domain(p_x)
         .insert_image(p_y)
         .insert_image(f_y)
-        .set_legends(vec!["real", "fit"])
+        .set_legend(vec!["real", "fit"])
         .set_fig_size((10, 6))
         .set_dpi(300)
         .set_path("example_data/lm.png")

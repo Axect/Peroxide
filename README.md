@@ -8,7 +8,7 @@ Pure Rust numeric library contains linear algebra, numerical analysis, statistic
 
 ## Latest README version
 
-Corresponding to `0.11.2`.
+Corresponding to `0.12.3`.
 
 ## Pre-requisite
 
@@ -18,7 +18,7 @@ Corresponding to `0.11.2`.
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.11"
+peroxide = "0.12"
 ```
 
 ## Module Structure
@@ -26,6 +26,7 @@ peroxide = "0.11"
 - __src__
   - [lib.rs](src/lib.rs) : `mod` and `re-export`
   - __macros__ : Macro files
+    - [julia_macro.rs](src/macros/julia_macro.rs) : Julia like macro
     - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
     - [mod.rs](src/macros/mod.rs)
     - [r_macro.rs](src/macros/r_macro.rs) : R like macro
@@ -38,13 +39,15 @@ peroxide = "0.11"
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
-    - [ode.rs](src/grave/ode.rs) : Merge all ODE algorithm to one module
+    - [ode.rs](src/numerical/ode.rs) : Main ODE solver
+    - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
     - [spline.rs](src/numerical/spline.rs) : Natural Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
   - __operation__ : To define general operations
     - [extra_ops.rs](src/operation/extra_ops.rs) : Missing operations & Real Trait
     - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
     - [mod.rs](src/operation/mod.rs)
+    - [number.rs](src/operation/number.rs) : Number type (include `f64`, `Dual`)
   - __special__ : Wrapper for `special` crate
     - [mod.rs](src/special/mod.rs)
     - [function.rs](src/special/function.rs) : Special functions
@@ -301,6 +304,41 @@ fn train(
     y
 }
 ```
+
+### Levenberg-Marquardt Algorithm (refer to [lm.pdf](http://people.duke.edu/~hpgavin/ce281/lm.pdf))
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let noise = Normal(0., 0.5);
+    let p_true: Vec<Number> = NumberVector::from_f64_vec(vec![20f64, 10f64, 1f64, 50f64]);
+    let p_init = vec![5f64, 2f64, 0.2f64, 10f64];
+    let domain = seq(0, 99, 1);
+    let real = f(&domain, p_true.clone()).to_f64_vec();
+    let y = zip_with(|x, y| x + y, &real, &noise.sample(100));
+    let data = hstack!(domain.clone(), y.clone());
+
+    let mut opt = Optimizer::new(data, f);
+    let p = opt
+        .set_init_param(p_init)
+        .set_max_iter(100)
+        .set_method(LevenbergMarquardt)
+        .optimize();
+    p.print();
+    opt.get_error().print();
+}
+
+fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {
+    domain.clone().into_iter()
+        .map(|t| Number::from_f64(t))
+        .map(|t| p[0] * (-t / p[1]).exp() + p[2] * t * (-t / p[3]).exp())
+        .collect()
+}
+```
+
+![LM](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lm.png)
 
 ## Version Info
 

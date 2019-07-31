@@ -1,3 +1,11 @@
+# Release 0.12.3 (2019-07-31)
+
+* Add `get_error` for `Optimizer`
+    * Now, we can see root mean square error of `Optimizer`
+* Optimizer documents
+* Change non-reasonable syntax
+    * `set_legends` -> `set_legend` (in `util/plot.rs`)
+
 # Release 0.12.2 (2019-07-30)
 
 * Add `set_markers` for `Plot2D`
