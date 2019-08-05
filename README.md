@@ -2,6 +2,7 @@
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
+[![On sourcehut](https://builds.sr.ht/~axect/Peroxide.svg)](https://builds.sr.ht/~axect/Peroxide)
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
 Pure Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.

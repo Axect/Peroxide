@@ -16,5 +16,7 @@ tasks:
         cargo build --verbose ||:
         cargo test --verbose ||:
     - docs: |
+        rustup default nightly
         cd Peroxide/
-        rustup run nightly cargo doc --no-deps ||:
+        RUSTDOCFLAGS='--html-in-header katex-header.html' cargo doc --no-deps ||:
+
