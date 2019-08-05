@@ -115,6 +115,7 @@ fn main() {
         .set_title("Levenberg-Marquardt Algorithm")
         .set_xlabel("$x$")
         .set_ylabel("$y$")
+        .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw plot");
 }
 
