@@ -1,0 +1,20 @@
+image: archlinux
+packages:
+    - rustup
+    - python
+    - python-matplotlib
+sources:
+    - https://git.sr.ht/~axect/Peroxide
+tasks:
+    - setup: |
+        rustup toolchain install nightly
+        cd Peroxide/
+        rustup run nightly cargo fetch
+    - nightly: |
+        rustup default nightly
+        cd Peroxide/
+        cargo build --verbose ||:
+        cargo test --verbose ||:
+    - docs: |
+        cd Peroxide/
+        rustup run nightly cargo doc --no-deps ||:
