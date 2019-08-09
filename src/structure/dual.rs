@@ -625,6 +625,10 @@ impl VecOps for Vec<Dual> {
     fn norm(&self) -> Self::Scalar {
         unimplemented!()
     }
+
+    fn normalize(&self) -> Self {
+        unimplemented!()
+    }
 }
 
 // =============================================================================

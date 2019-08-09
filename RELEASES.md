@@ -1,3 +1,9 @@
+# Release 0.12.4 (2019-08-09)
+
+* Add `normalize` for `Vec<f64>`
+* Add `col_map` for `Matrix`
+* Add `row_map` for `Matrix`
+
 # Release 0.12.3 (2019-07-31)
 
 * Add `get_error` for `Optimizer`

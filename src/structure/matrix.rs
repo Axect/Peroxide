@@ -1851,6 +1851,12 @@ pub trait FP {
     fn fmap<F>(&self, f: F) -> Matrix
     where
         F: Fn(f64) -> f64;
+    fn col_map<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>;
+    fn row_map<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>;
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
@@ -1936,6 +1942,42 @@ impl FP for Matrix {
             .map(|x| f(x))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
+    }
+
+    fn col_map<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>,
+    {
+        let mut result = Matrix {
+            data: vec![0f64; self.row * self.col],
+            row: self.row,
+            col: self.col,
+            shape: Col
+        };
+
+        for i in 0 .. self.row {
+            result.subs_col(i, f(self.col(i)));
+        }
+
+        result
+    }
+
+    fn row_map<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>
+    {
+        let mut result = Matrix {
+            data: vec![0f64; self.row * self.col],
+            row: self.row,
+            col: self.col,
+            shape: Row
+        };
+
+        for i in 0 .. self.col {
+            result.subs_row(i, f(self.row(i)));
+        }
+
+        result
     }
 
     fn reduce<F, T>(&self, init: T, f: F) -> f64

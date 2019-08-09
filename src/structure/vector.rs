@@ -525,6 +525,7 @@ pub trait VecOps {
     fn div(&self, other: &Self) -> Self;
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn norm(&self) -> Self::Scalar;
+    fn normalize(&self) -> Self;
 }
 
 /// Convenient Vector Operations (No Clone, No Copy)
@@ -532,32 +533,38 @@ impl VecOps for Vector {
     type Scalar = f64;
 
     /// Addition
-    fn add(&self, other: &Vector) -> Vector {
+    fn add(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x + y, other)
     }
 
     /// Subtraction
-    fn sub(&self, other: &Vector) -> Vector {
+    fn sub(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x - y, other)
     }
 
     /// Multiplication
-    fn mul(&self, other: &Vector) -> Vector {
+    fn mul(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x * y, other)
     }
 
     /// Division
-    fn div(&self, other: &Vector) -> Vector {
+    fn div(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x / y, other)
     }
 
     /// Dot product
-    fn dot(&self, other: &Vector) -> f64 {
+    fn dot(&self, other: &Self) -> f64 {
         zip_with(|x,y| x * y, &self, other).reduce(0, |x, y| x + y)
     }
 
     /// Norm
     fn norm(&self) -> f64 {
         self.dot(&self).sqrt()
+    }
+
+    /// Normalize
+    fn normalize(&self) -> Self {
+        let n = self.norm();
+        self.fmap(|x| x / n)
     }
 }

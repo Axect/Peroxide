@@ -59,3 +59,19 @@ fn test_print() {
     let op = Bernoulli(0);
     op.print();
 }
+
+#[test]
+fn test_row_map() {
+    let m = ml_matrix("1 2;3 4");
+    let n = m.row_map(|v| v.normalize());
+    let o = matrix(vec![1f64/5f64.sqrt(), 2f64/5f64.sqrt(), 3f64 / 5f64, 4f64 / 5f64], 2, 2, Row);
+    assert_eq!(n, o);
+}
+
+#[test]
+fn test_col_map() {
+    let m = ml_matrix("1 3;2 4");
+    let n = m.col_map(|v| v.normalize());
+    let o = matrix(vec![1f64/5f64.sqrt(), 2f64/5f64.sqrt(), 3f64 / 5f64, 4f64 / 5f64], 2, 2, Col);
+    assert_eq!(n, o);
+}

@@ -82,6 +82,60 @@ peroxide = "0.12"
 
 * [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
 
+## Covered Contents
+
+* Linear Algebra
+    * Effective Matrix structure
+    * Transpose, Determinant, Diagonal
+    * LU Decomposition, Inverse matrix, Block partitioning
+    * Column, Row operations
+* Functional Programming
+    * More easy functional programming with `Vec<f64>`
+    * For matrix, there are three maps
+        * `fmap` : map for all elements
+        * `col_map` : map for column vectors
+        * `row_map` : map for row vectors
+* Automatic Differentiation
+    * Dual number system - for 1st order AD
+    * Hyper dual number system - for 2nd order AD
+    * Exact jacobian
+    * `Real` trait to constrain for `f64` and `Dual`
+    * `Number` structure to unify `f64` and `Dual`
+* Numerical Analysis
+    * Lagrange interpolation
+    * Cubic spline
+    * Non-linear regression
+        * Gradient Descent
+        * Gauss Newton
+        * Levenberg Marquardt
+    * Ordinary Differential Equation
+        * Euler
+        * Runge Kutta 4th order
+        * Backward Euler
+        * Gauss Legendre 4th order
+* Statistics
+    * More easy random with `rand` crate
+    * Probability Distributions
+        * Bernoulli
+        * Uniform
+        * Normal
+        * Gamma
+        * Beta
+    * RNG algorithms
+        * Acceptance Rejection
+        * Marsaglia Polar
+        * Ziggurat
+* Special functions
+    * Wrapper for `special` crate
+* Utils
+    * R-like macro & functions
+    * Matlab-like macro & functions
+    * Numpy-like macro & functions
+    * Julia-like macro & functions
+* Plotting
+    * With `pyo3` & `matplotlib`
+
+
 ## Example
 
 ### Basic Runge-Kutta 4th order with inline-python
