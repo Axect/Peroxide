@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate peroxide;
 use peroxide::*;
 
@@ -18,8 +19,5 @@ fn test_jacobian() {
 fn f(xs: Vec<Number>) -> Vec<Number> {
     let x = xs[0];
     let y = xs[1];
-    vec![
-        x.powi(2) * y,
-        5f64 * x + y.sin(),
-    ]
+    vec![x.powi(2) * y, 5f64 * x + y.sin()]
 }

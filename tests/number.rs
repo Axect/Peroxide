@@ -1,5 +1,5 @@
+#[macro_use]
 extern crate peroxide;
-use peroxide::operation::number::Number;
 use peroxide::operation::number::Number::{D, F};
 use peroxide::*;
 

@@ -273,6 +273,7 @@ macro_rules! runif {
 /// ```
 /// extern crate peroxide;
 /// use peroxide::*;
+/// use peroxide::*;
 ///
 /// let a = matrix!(1;5;1, 5, 1, Col);
 /// let b = matrix(c!(3.7, 4.2, 4.9, 5.7, 6.0), 5, 1, Col);

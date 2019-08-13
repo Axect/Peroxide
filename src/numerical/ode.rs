@@ -152,16 +152,7 @@
 //!     let results = ex_test.integrate();
 //!     let results2 = ex_test2.integrate();
 //!
-//!     // =========================================
-//!     //  Write results to pickle
-//!     // =========================================
-//!     let mut wt = SimpleWriter::new();
-//!
-//!     wt
-//!         .set_path("example_data/lorenz.pickle")
-//!         .insert_matrix(results)
-//!         .insert_matrix(results2)
-//!         .write_pickle();
+//!     // Plot or extract
 //! }
 //!
 //! fn f(st: &mut State<f64>) {
@@ -200,10 +191,7 @@
 //!
 //!     let result = ode_solver.integrate();
 //!
-//!     let mut st = SimpleWriter::new();
-//!     st.set_path("example_data/rk4_test.pickle")
-//!         .insert_matrix(result)
-//!         .write_pickle();
+//!     // Plot or Extract..
 //! }
 //!
 //! fn test_fn(st: &mut State<f64>) {
@@ -214,16 +202,17 @@
 //! }
 //! ```
 
+use self::BoundaryCondition::Dirichlet;
+use self::ExMethod::{Euler, RK4};
+use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
+use operation::extra_ops::Real;
+use operation::mut_ops::MutFP;
 use std::collections::HashMap;
-use BoundaryCondition::Dirichlet;
-use ExMethod::{Euler, RK4};
-use ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
-use {cat, zeros};
-use {Dual, Real};
-use {FPVector, Matrix, MutFP};
+use structure::dual::Dual;
+use structure::matrix::{Matrix, Row, FP};
+use structure::vector::FPVector;
+use util::non_macro::{cat, zeros};
 use util::print::Printable;
-use FP;
-use ::Shape::Row;
 
 /// Explicit ODE Methods
 ///
@@ -449,14 +438,14 @@ impl ODE for ExplicitODE {
 
         let mut result = zeros(self.times + 1, self.state.value.len() + 1);
 
-        result.subs_row(0, cat(self.state.param, self.state.value.clone()));
+        result.subs_row(0, &cat(self.state.param, self.state.value.clone()));
 
         match self.options.get(&StopCond) {
             Some(stop) if *stop => {
                 let mut key = 1usize;
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, cat(self.state.param, self.state.value.clone()));
+                    result.subs_row(i, &cat(self.state.param, self.state.value.clone()));
                     key += 1;
                     if (self.stop_cond)(&self) {
                         println!("Reach the stop condition!");
@@ -466,11 +455,11 @@ impl ODE for ExplicitODE {
                     }
                 }
                 return result.take(key, Row);
-            },
+            }
             _ => {
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, cat(self.state.param, self.state.value.clone()));
+                    result.subs_row(i, &cat(self.state.param, self.state.value.clone()));
                 }
                 return result;
             }

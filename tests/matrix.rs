@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate peroxide;
 use peroxide::*;
 
@@ -30,9 +31,8 @@ fn test_accumulation() {
 
 #[test]
 fn test_add_matrix() {
-    let a = matrix!(1;101;1, 10, 10, Row);
-    let b = a.fmap(|x| 2.0 * x);
-    assert_eq!(a.clone() + a, b);
+    let a = matrix!(1;100;1, 10, 10, Row);
+    assert_eq!(&a + &a, 2f64 * a);
 }
 
 #[test]
@@ -64,7 +64,17 @@ fn test_print() {
 fn test_row_map() {
     let m = ml_matrix("1 2;3 4");
     let n = m.row_map(|v| v.normalize());
-    let o = matrix(vec![1f64/5f64.sqrt(), 2f64/5f64.sqrt(), 3f64 / 5f64, 4f64 / 5f64], 2, 2, Row);
+    let o = matrix(
+        vec![
+            1f64 / 5f64.sqrt(),
+            2f64 / 5f64.sqrt(),
+            3f64 / 5f64,
+            4f64 / 5f64,
+        ],
+        2,
+        2,
+        Row,
+    );
     assert_eq!(n, o);
 }
 
@@ -72,6 +82,16 @@ fn test_row_map() {
 fn test_col_map() {
     let m = ml_matrix("1 3;2 4");
     let n = m.col_map(|v| v.normalize());
-    let o = matrix(vec![1f64/5f64.sqrt(), 2f64/5f64.sqrt(), 3f64 / 5f64, 4f64 / 5f64], 2, 2, Col);
+    let o = matrix(
+        vec![
+            1f64 / 5f64.sqrt(),
+            2f64 / 5f64.sqrt(),
+            3f64 / 5f64,
+            4f64 / 5f64,
+        ],
+        2,
+        2,
+        Col,
+    );
     assert_eq!(n, o);
 }

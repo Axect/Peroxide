@@ -1,3 +1,17 @@
+# Release 0.13.0 (2019-08-11)
+
+* **[Important]** Remove inefficient things
+    * Remove `util/pickle.rs`
+    * Remove `serde`, `serde-pickle` dependencies
+* Optimize original code
+    * Matrix
+        * `change_shape`
+        * `col(usize), row(usize)`
+        * `diag`
+        * `subs_col, subs_row`
+        * `Add<Matrix>`
+        * `Mul<Matrix>` - Block matrix multiplication
+
 # Release 0.12.4 (2019-08-09)
 
 * Add `normalize` for `Vec<f64>`

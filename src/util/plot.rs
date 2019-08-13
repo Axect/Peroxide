@@ -21,11 +21,7 @@
 //!         .set_times(1000);
 //!
 //!     let result = ode_solver.integrate();
-//!
-//!     let mut st = SimpleWriter::new();
-//!     st.set_path("example_data/rk4_test.pickle")
-//!         .insert_matrix(result)
-//!         .write_pickle();
+//!     result.write("example_data/test.csv");
 //! }
 //!
 //! fn test_fn(st: &mut State<f64>) {
@@ -82,14 +78,13 @@
 //!
 //! ![test_plot](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/test_plot.png)
 
-
 extern crate pyo3;
 use self::pyo3::types::IntoPyDict;
 use self::pyo3::{PyResult, Python};
+pub use self::Grid::{Off, On};
+pub use self::Markers::{Circle, Line, Point};
+use self::PlotOptions::{Domain, Images, Legends, Path};
 use std::collections::HashMap;
-pub use Grid::*;
-use PlotOptions::{Domain, Images, Legends, Path};
-pub use Markers::{Point, Line, Circle};
 
 type Vector = Vec<f64>;
 
@@ -211,7 +206,10 @@ impl Plot for Plot2D {
         if let Some(x) = self.options.get_mut(&Legends) {
             *x = true
         }
-        self.legends = legends.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>();
+        self.legends = legends
+            .into_iter()
+            .map(|x| x.to_owned())
+            .collect::<Vec<String>>();
         self
     }
 
@@ -324,16 +322,21 @@ impl Plot for Plot2D {
 
         if self.markers.len() == 0 {
             for i in 0..y_length {
-                plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
+                plot_string
+                    .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
             }
         } else {
-            for i in 0 .. y_length {
+            for i in 0..y_length {
                 match self.markers[i] {
-                    Line => plot_string.push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..]),
-                    Point => plot_string.push_str(&format!("plt.plot(x,y[{}],\".\",label=r\"{}\")\n", i, legends[i])[..]),
-                    Circle => plot_string.push_str(&format!("plt.plot(x,y[{}],\"o\",label=r\"{}\")\n", i, legends[i])[..]),
+                    Line => plot_string
+                        .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..]),
+                    Point => plot_string.push_str(
+                        &format!("plt.plot(x,y[{}],\".\",label=r\"{}\")\n", i, legends[i])[..],
+                    ),
+                    Circle => plot_string.push_str(
+                        &format!("plt.plot(x,y[{}],\"o\",label=r\"{}\")\n", i, legends[i])[..],
+                    ),
                 }
-
             }
         }
 

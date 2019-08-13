@@ -415,8 +415,6 @@ impl PowOps for HyperDual {
         } else {
             unimplemented!()
         }
-
-
     }
 
     fn sqrt(&self) -> Self {

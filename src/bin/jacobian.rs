@@ -3,7 +3,7 @@ use peroxide::*;
 use Number::D;
 
 fn main() {
-    let x = vec![D(dual(1f64, 1f64)), D(dual(2,1))];
+    let x = vec![D(dual(1f64, 1f64)), D(dual(2, 1))];
     jacobian(f, x.to_f64_vec()).print();
 }
 

@@ -25,7 +25,8 @@
 //!     ```
 
 use std::ops::{Add, Div, Mul, Sub};
-use {Dual, HyperDual};
+use structure::dual::Dual;
+use structure::hyper_dual::HyperDual;
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;

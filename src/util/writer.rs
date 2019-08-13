@@ -1,12 +1,11 @@
 //! More convenient matrix writer
 
+pub use self::ToWriter::{Data, Header, Path, Round};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::process::exit;
-use Matrix;
-use Pickle;
-pub use ToWriter::{Data, Header, Path, Round};
+use structure::matrix::Matrix;
 
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, PartialEq, Eq)]
 pub enum ToWriter {
@@ -110,51 +109,51 @@ impl SimpleWriter {
         unimplemented!()
     }
 
-    pub fn write_pickle(&self) {
-        let mut writer: Box<dyn Write>;
+    // pub fn write_pickle(&self) {
+    //     let mut writer: Box<dyn Write>;
 
-        // Error handling - Path
-        if let Some(p) = self.to_write.get(&Path) {
-            assert!(*p, "No determined path!");
-        }
+    //     // Error handling - Path
+    //     if let Some(p) = self.to_write.get(&Path) {
+    //         assert!(*p, "No determined path!");
+    //     }
 
-        // Error handling - Data
-        if let Some(dat) = self.to_write.get(&Data) {
-            assert!(*dat, "No inserted data!");
-        }
+    //     // Error handling - Data
+    //     if let Some(dat) = self.to_write.get(&Data) {
+    //         assert!(*dat, "No inserted data!");
+    //     }
 
-        match File::create(self.path.clone()) {
-            Ok(p) => writer = Box::new(p),
-            Err(e) => {
-                println!("{:?}", e);
-                exit(1);
-            }
-        }
+    //     match File::create(self.path.clone()) {
+    //         Ok(p) => writer = Box::new(p),
+    //         Err(e) => {
+    //             println!("{:?}", e);
+    //             exit(1);
+    //         }
+    //     }
 
-        if let Some(head) = self.to_write.get(&Header) {
-            if *head {
-                serde_pickle::to_writer(&mut writer, &self.header, true)
-                    .expect("Can't write header to pickle");
-            }
-        }
+    //     if let Some(head) = self.to_write.get(&Header) {
+    //         if *head {
+    //             serde_pickle::to_writer(&mut writer, &self.header, true)
+    //                 .expect("Can't write header to pickle");
+    //         }
+    //     }
 
-        let mut queued = self.queue.clone().into_iter();
-        let mut matrices = self.matrices.clone().into_iter();
-        let mut vectors = self.vectors.clone().into_iter();
+    //     let mut queued = self.queue.clone().into_iter();
+    //     let mut matrices = self.matrices.clone().into_iter();
+    //     let mut vectors = self.vectors.clone().into_iter();
 
-        loop {
-            match queued.next() {
-                Some(Queue::Matrix) => {
-                    let mat = matrices.next().unwrap();
-                    mat.write_pickle(&mut writer)
-                        .expect("Can't insert matrices");
-                }
-                Some(Queue::Vector) => {
-                    let vec = vectors.next().unwrap();
-                    vec.write_pickle(&mut writer).expect("Can't insert vectors");
-                }
-                None => return,
-            }
-        }
-    }
+    //     loop {
+    //         match queued.next() {
+    //             Some(Queue::Matrix) => {
+    //                 let mat = matrices.next().unwrap();
+    //                 mat.write_pickle(&mut writer)
+    //                     .expect("Can't insert matrices");
+    //             }
+    //             Some(Queue::Vector) => {
+    //                 let vec = vectors.next().unwrap();
+    //                 vec.write_pickle(&mut writer).expect("Can't insert vectors");
+    //             }
+    //             None => return,
+    //         }
+    //     }
+    // }
 }

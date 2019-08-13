@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate peroxide;
 use peroxide::*;
 
@@ -21,7 +22,9 @@ fn main() {
 }
 
 fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {
-    domain.clone().into_iter()
+    domain
+        .clone()
+        .into_iter()
         .map(|t| Number::from_f64(t))
         .map(|t| p[0] * (-t / p[1]).exp() + p[2] * t * (-t / p[3]).exp())
         .collect()

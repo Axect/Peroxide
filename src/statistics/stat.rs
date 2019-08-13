@@ -289,8 +289,8 @@ pub fn cov(v1: &Vector, v2: &Vector) -> f64 {
 
     for (x, y) in v1.into_iter().zip(v2) {
         ss += x * y;
-        sx += x;
-        sy += y;
+        sx += *x;
+        sy += *y;
         l += 1f64;
     }
     assert_ne!(l, 1f64);

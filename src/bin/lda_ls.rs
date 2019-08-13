@@ -37,8 +37,8 @@ fn main() {
     let X_tilde = cbind(X_bias, X.clone());
 
     let mut T = zeros(2 * N, 2);
-    T.subs_col(0, concat(vec![0f64; N], vec![1f64; N]));
-    T.subs_col(1, concat(vec![1f64; N], vec![0f64; N]));
+    T.subs_col(0, &concat(vec![0f64; N], vec![1f64; N]));
+    T.subs_col(1, &concat(vec![1f64; N], vec![0f64; N]));
 
     x1.print();
     x2.print();

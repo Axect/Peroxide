@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate peroxide;
 use peroxide::*;
 
@@ -15,7 +16,8 @@ fn main() {
     let data = hstack!(x.clone(), y.clone());
 
     let mut opt = Optimizer::new(data, quad);
-    let p = opt.set_init_param(n_init)
+    let p = opt
+        .set_init_param(n_init)
         .set_max_iter(50)
         .set_method(LevenbergMarquardt)
         .optimize();
@@ -32,11 +34,13 @@ fn main() {
         .set_title("Test ($y=x^2$ with noise)")
         .set_path("example_data/lm_test.png")
         .set_marker(vec![Point, Line])
-        .savefig().expect("Can't draw a plot");
+        .savefig()
+        .expect("Can't draw a plot");
 }
 
 fn quad(x: &Vec<f64>, n: Vec<Number>) -> Vec<Number> {
-    x.clone().into_iter()
+    x.clone()
+        .into_iter()
         .map(|t| Number::from_f64(t))
         .map(|t| t.powf(n[0]))
         .collect()

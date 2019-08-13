@@ -125,8 +125,8 @@
 //!         // r[1]    1    2
 //!
 //!         let mut b = ml_matrix("1 2;3 4");
-//!         b.subs_col(0, c!(5, 6));
-//!         b.subs_row(1, c!(7, 8));
+//!         b.subs_col(0, &c!(5, 6));
+//!         b.subs_row(1, &c!(7, 8));
 //!         b.print();
 //!         //       c[0] c[1]
 //!         // r[0]    5    2
@@ -136,7 +136,7 @@
 //!
 //! ## Read & Write
 //!
-//! In peroxide, we can write matrix to `csv` or `pickle`.
+//! In peroxide, we can write matrix to `csv`
 //!
 //! ### CSV (Legacy)
 //!
@@ -149,10 +149,10 @@
 //!
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
-//!         a.write("matrix.csv").expect("Can't write file");
+//!         a.write("example_data/matrix.csv").expect("Can't write file");
 //!
 //!         let b = ml_matrix("1 2; 3 4; 5 6");
-//!         b.write_with_header("header.csv", vec!["odd", "even"])
+//!         b.write_with_header("example_data/header.csv", vec!["odd", "even"])
 //!             .expect("Can't write header file");
 //!     }
 //!     ```
@@ -173,34 +173,6 @@
 //!         ////       c[0] c[1]
 //!         //// r[0]     1    2
 //!         //// r[1]     3    4
-//!     }
-//!     ```
-//!
-//! ### Pickle (Export as python object)
-//!
-//! * `SimpleWriter` : Struct to write pickle
-//!     * Necessary method
-//!         * `set_path` : Set path
-//!         * `insert_matrix` or `insert_vector`
-//!         * `write_pickle` : Must be at last
-//!     * Optional method
-//!         * `set_round_level` : Set round-off level
-//!         * `insert_header` : Insert header
-//!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::*;
-//!
-//!     fn main() {
-//!         let a = ml_matrix("1 2;3 4");
-//!         let v = c!(1,2,3,4);
-//!
-//!         let mut wrt = SimpleWriter::new();
-//!         wrt.set_path("example_data/sample.pickle")
-//!             .insert_matrix(a)
-//!             .insert_vector(v)
-//!             .set_round_level(4)
-//!             .write_pickle();
 //!     }
 //!     ```
 //!
@@ -367,7 +339,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::{Matrix};
+//!     use peroxide::*;
 //!
 //!     #[derive(Debug, Clone)]
 //!     pub struct PQLU {
@@ -452,7 +424,6 @@
 //!         assert_eq!(inv_a, pinv_a); // Nearly equal (not actually equal)
 //!     }
 //!     ```
-
 
 extern crate csv;
 
@@ -661,7 +632,7 @@ impl Matrix {
         assert_eq!(r * c, self.data.len());
         let l = r * c - 1;
         let mut data: Vec<f64> = self.data.clone();
-        let ref_data: Vec<f64> = self.data.clone();
+        let ref_data = &self.data;
 
         match self.shape {
             Row => {
@@ -793,26 +764,9 @@ impl Matrix {
     /// ```
     pub fn col(&self, index: usize) -> Vector {
         assert!(index < self.col);
-        let mut container: Vec<f64> = Vec::new();
-        match self.shape {
-            Row => {
-                let l: usize = self.row * self.col;
-                for i in 0..l {
-                    if i % self.col == index {
-                        container.push(self.data[i]);
-                    }
-                }
-            }
-            Col => {
-                let s: usize = self.row * index;
-                container = self
-                    .data
-                    .clone()
-                    .into_iter()
-                    .skip(s)
-                    .take(self.row)
-                    .collect::<Vec<f64>>();
-            }
+        let mut container: Vec<f64> = vec![0f64; self.row];
+        for i in 0..self.row {
+            container[i] = self[(i, index)];
         }
         container
     }
@@ -829,26 +783,9 @@ impl Matrix {
     /// ```
     pub fn row(&self, index: usize) -> Vector {
         assert!(index < self.row);
-        let mut container: Vec<f64> = Vec::new();
-        match self.shape {
-            Row => {
-                let s: usize = self.col * index;
-                container = self
-                    .data
-                    .clone()
-                    .into_iter()
-                    .skip(s)
-                    .take(self.col)
-                    .collect::<Vec<f64>>();
-            }
-            Col => {
-                let l: usize = self.row * self.col;
-                for i in 0..l {
-                    if i % self.row == index {
-                        container.push(self.data[i]);
-                    }
-                }
-            }
+        let mut container: Vec<f64> = vec![0f64; self.col];
+        for i in 0..self.col {
+            container[i] = self[(index, i)];
         }
         container
     }
@@ -864,12 +801,13 @@ impl Matrix {
     /// assert_eq!(a.diag(), c!(1,4));
     /// ```
     pub fn diag(&self) -> Vector {
-        let mut container: Vector = Vec::new();
+        let mut container = vec![0f64; self.row];
         let r = self.row;
         let c = self.col;
         assert_eq!(r, c);
+        let c2 = c + 1;
         for i in 0..r {
-            container.push(self.data[i * (c + 1)]);
+            container[i] = self.data[i * c2];
         }
         container
     }
@@ -924,7 +862,7 @@ impl Matrix {
     /// use peroxide::*;
     ///
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write("test.csv");
+    /// a.write("example_data/test.csv");
     /// ```
     pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
@@ -949,7 +887,7 @@ impl Matrix {
     /// use peroxide::*;
     ///
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write_round("test.csv", 0);
+    /// a.write_round("example_data/test.csv", 0);
     /// ```
     pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
@@ -1018,9 +956,9 @@ impl Matrix {
     /// use std::process;
     ///
     /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write_round("test.csv", 0);
+    /// a.write_round("example_data/test.csv", 0);
     ///
-    /// let b = Matrix::read("test.csv", false, ','); // header = false, delimiter = ','
+    /// let b = Matrix::read("example_data/test.csv", false, ','); // header = false, delimiter = ','
     /// match b {
     ///     Ok(mat) => println!("{}", mat),
     ///     Err(err) => {
@@ -1055,14 +993,14 @@ impl Matrix {
     }
 
     /// Substitute Col
-    pub fn subs_col(&mut self, idx: usize, v: Vec<f64>) {
+    pub fn subs_col(&mut self, idx: usize, v: &Vec<f64>) {
         for i in 0..self.row {
             self[(i, idx)] = v[i];
         }
     }
 
     /// Substitute Row
-    pub fn subs_row(&mut self, idx: usize, v: Vec<f64>) {
+    pub fn subs_row(&mut self, idx: usize, v: &Vec<f64>) {
         for j in 0..self.col {
             self[(idx, j)] = v[j];
         }
@@ -1092,7 +1030,7 @@ impl Matrix {
     /// To send `Matrix` to `inline-python`
     pub fn to_vec(&self) -> Vec<Vec<f64>> {
         let mut result = vec![vec![0f64; self.col]; self.row];
-        for i in 0 .. self.row {
+        for i in 0..self.row {
             result[i] = self.row(i);
         }
         result
@@ -1102,8 +1040,8 @@ impl Matrix {
         assert!(self.row == self.col, "Should be square matrix");
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
         let diag = self.diag();
-        for i in 0 .. self.row {
-            result[(i,i)] = diag[i];
+        for i in 0..self.row {
+            result[(i, i)] = diag[i];
         }
         result
     }
@@ -1192,20 +1130,13 @@ impl Add<Matrix> for Matrix {
     fn add(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
-        if self.shape == other.shape {
-            matrix(
-                self.data
-                    .into_iter()
-                    .zip(&other.data)
-                    .map(|(x, y)| x + y)
-                    .collect::<Vec<f64>>(),
-                self.row,
-                self.col,
-                self.shape,
-            )
-        } else {
-            self.change_shape().add(other)
+        let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+        for i in 0..self.row {
+            for j in 0..self.col {
+                result[(i, j)] += other[(i, j)];
+            }
         }
+        result
     }
 }
 
@@ -1216,22 +1147,13 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
     fn add(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
-        if self.shape == other.shape {
-            Matrix {
-                data: self
-                    .data
-                    .clone()
-                    .into_iter()
-                    .zip(&other.data)
-                    .map(|(x, y)| x + y)
-                    .collect::<Vec<f64>>(),
-                row: self.row,
-                col: self.col,
-                shape: self.shape,
+        let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+        for i in 0..self.row {
+            for j in 0..self.col {
+                result[(i, j)] += other[(i, j)];
             }
-        } else {
-            (&self.change_shape()).add(other)
         }
+        result
     }
 }
 
@@ -1412,20 +1334,13 @@ impl Sub<Matrix> for Matrix {
     fn sub(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
-        if self.shape == other.shape {
-            matrix(
-                self.data
-                    .into_iter()
-                    .zip(&other.data)
-                    .map(|(x, y)| x - y)
-                    .collect::<Vec<f64>>(),
-                self.row,
-                self.col,
-                self.shape,
-            )
-        } else {
-            self.change_shape().sub(other)
+        let mut result = self.clone();
+        for i in 0 .. self.row {
+            for j in 0 .. self.col {
+                result[(i,j)] -= other[(i,j)];
+            }
         }
+        result
     }
 }
 
@@ -1436,22 +1351,13 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
     fn sub(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
-        if self.shape == other.shape {
-            Matrix {
-                data: self
-                    .data
-                    .clone()
-                    .into_iter()
-                    .zip(&other.data)
-                    .map(|(x, y)| x - y)
-                    .collect::<Vec<f64>>(),
-                row: self.row,
-                col: self.col,
-                shape: self.shape,
+        let mut result = self.clone();
+        for i in 0 .. self.row {
+            for j in 0 .. self.col {
+                result[(i,j)] -= other[(i,j)];
             }
-        } else {
-            (&self.change_shape()).sub(other)
         }
+        result
     }
 }
 
@@ -1691,29 +1597,7 @@ where
     type Output = Self;
 
     fn mul(self, other: T) -> Self {
-        let r_self = self.row;
-        let c_self = self.col;
-        let new_other = other.to_matrix();
-        let r_other = new_other.row;
-        let c_other = new_other.col;
-
-        assert_eq!(c_self, r_other);
-
-        let r_new = r_self;
-        let c_new = c_other;
-
-        let mut result = matrix(vec![0f64; r_new * c_new], r_new, c_new, self.shape);
-
-        for i in 0..r_new {
-            for j in 0..c_new {
-                let mut s = 0f64;
-                for k in 0..c_self {
-                    s += self[(i, k)] * new_other[(k, j)];
-                }
-                result[(i, j)] = s;
-            }
-        }
-        result
+        matmul(&self, &other.to_matrix())
     }
 }
 
@@ -1724,27 +1608,7 @@ where
     type Output = Matrix;
 
     fn mul(self, other: &'b T) -> Self::Output {
-        let new_other = other.to_matrix();
-
-        assert_eq!(self.col, new_other.row);
-
-        let mut result = matrix(
-            vec![0f64; self.row * new_other.col],
-            self.row,
-            new_other.col,
-            self.shape,
-        );
-
-        for i in 0..self.row {
-            for j in 0..new_other.col {
-                let mut s = 0f64;
-                for k in 0..self.col {
-                    s += self[(i, k)] * new_other[(k, j)];
-                }
-                result[(i, j)] = s;
-            }
-        }
-        result
+        matmul(self, &other.to_matrix())
     }
 }
 
@@ -1875,9 +1739,14 @@ impl FP for Matrix {
                 }
                 match self.shape {
                     Row => {
-                        let new_data = self.data.clone().into_iter().take(n * self.col).collect::<Vec<f64>>();
+                        let new_data = self
+                            .data
+                            .clone()
+                            .into_iter()
+                            .take(n * self.col)
+                            .collect::<Vec<f64>>();
                         matrix(new_data, n, self.col, Row)
-                    },
+                    }
                     Col => {
                         let mut temp_data: Vec<f64> = Vec::new();
                         for i in 0..n {
@@ -1893,9 +1762,14 @@ impl FP for Matrix {
                 }
                 match self.shape {
                     Col => {
-                        let new_data = self.data.clone().into_iter().take(n * self.row).collect::<Vec<f64>>();
+                        let new_data = self
+                            .data
+                            .clone()
+                            .into_iter()
+                            .take(n * self.row)
+                            .collect::<Vec<f64>>();
                         matrix(new_data, self.row, n, Col)
-                    },
+                    }
                     Row => {
                         let mut temp_data: Vec<f64> = Vec::new();
                         for i in 0..n {
@@ -1952,11 +1826,11 @@ impl FP for Matrix {
             data: vec![0f64; self.row * self.col],
             row: self.row,
             col: self.col,
-            shape: Col
+            shape: Col,
         };
 
-        for i in 0 .. self.row {
-            result.subs_col(i, f(self.col(i)));
+        for i in 0..self.row {
+            result.subs_col(i, &f(self.col(i)));
         }
 
         result
@@ -1964,17 +1838,17 @@ impl FP for Matrix {
 
     fn row_map<F>(&self, f: F) -> Matrix
     where
-        F: Fn(Vec<f64>) -> Vec<f64>
+        F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = Matrix {
             data: vec![0f64; self.row * self.col],
             row: self.row,
             col: self.col,
-            shape: Row
+            shape: Row,
         };
 
-        for i in 0 .. self.col {
-            result.subs_row(i, f(self.row(i)));
+        for i in 0..self.col {
+            result.subs_row(i, &f(self.row(i)));
         }
 
         result
@@ -2068,7 +1942,12 @@ pub struct PQLU {
 
 impl PQLU {
     pub fn extract(&self) -> (Perms, Perms, Matrix, Matrix) {
-        (self.p.clone(), self.q.clone(), self.l.clone(), self.u.clone())
+        (
+            self.p.clone(),
+            self.q.clone(),
+            self.l.clone(),
+            self.u.clone(),
+        )
     }
 }
 
@@ -2289,29 +2168,30 @@ impl LinearAlgebra for Matrix {
     fn block(&self) -> (Self, Self, Self, Self) {
         let r = self.row;
         let c = self.col;
-        let l = min(self.row / 2, self.col / 2);
-        let r_l = r - l;
-        let c_l = c - l;
+        let l_r = self.row / 2;
+        let l_c = self.col / 2;
+        let r_l = r - l_r;
+        let c_l = c - l_c;
 
-        let mut m1 = matrix(vec![0f64; l * l], l, l, self.shape);
-        let mut m2 = matrix(vec![0f64; l * c_l], l, c_l, self.shape);
-        let mut m3 = matrix(vec![0f64; r_l * l], r_l, l, self.shape);
+        let mut m1 = matrix(vec![0f64; l_r * l_c], l_r, l_c, self.shape);
+        let mut m2 = matrix(vec![0f64; l_r * c_l], l_r, c_l, self.shape);
+        let mut m3 = matrix(vec![0f64; r_l * l_c], r_l, l_c, self.shape);
         let mut m4 = matrix(vec![0f64; r_l * c_l], r_l, c_l, self.shape);
 
         for idx_row in 0..r {
             for idx_col in 0..c {
                 match (idx_row, idx_col) {
-                    (i, j) if (i < l) && (j < l) => {
+                    (i, j) if (i < l_r) && (j < l_c) => {
                         m1[(i, j)] = self[(i, j)];
                     }
-                    (i, j) if (i < l) && (j >= l) => {
-                        m2[(i, j - l)] = self[(i, j)];
+                    (i, j) if (i < l_r) && (j >= l_c) => {
+                        m2[(i, j - l_c)] = self[(i, j)];
                     }
-                    (i, j) if (i >= l) && (j < l) => {
-                        m3[(i - l, j)] = self[(i, j)];
+                    (i, j) if (i >= l_r) && (j < l_c) => {
+                        m3[(i - l_r, j)] = self[(i, j)];
                     }
-                    (i, j) if (i >= l) && (j >= l) => {
-                        m4[(i - l, j - l)] = self[(i, j)];
+                    (i, j) if (i >= l_r) && (j >= l_c) => {
+                        m4[(i - l_r, j - l_c)] = self[(i, j)];
                     }
                     _ => (),
                 }
@@ -2409,29 +2289,30 @@ impl LinearAlgebra for Matrix {
 /// assert_eq!(n, b);
 /// ```
 pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
-    let l = m1.col;
+    let l_r = m1.row;
+    let l_c = m1.col;
     let c_l = m2.col;
     let r_l = m3.row;
 
-    let r = l + r_l;
-    let c = l + c_l;
+    let r = l_r + r_l;
+    let c = l_c + c_l;
 
     let mut m = matrix(vec![0f64; r * c], r, c, m1.shape);
 
     for idx_row in 0..r {
         for idx_col in 0..c {
             match (idx_row, idx_col) {
-                (i, j) if (i < l) && (j < l) => {
+                (i, j) if (i < l_r) && (j < l_c) => {
                     m[(i, j)] = m1[(i, j)];
                 }
-                (i, j) if (i < l) && (j >= l) => {
-                    m[(i, j)] = m2[(i, j - l)];
+                (i, j) if (i < l_r) && (j >= l_c) => {
+                    m[(i, j)] = m2[(i, j - l_c)];
                 }
-                (i, j) if (i >= l) && (j < l) => {
-                    m[(i, j)] = m3[(i - l, j)];
+                (i, j) if (i >= l_r) && (j < l_c) => {
+                    m[(i, j)] = m3[(i - l_r, j)];
                 }
-                (i, j) if (i >= l) && (j >= l) => {
-                    m[(i, j)] = m4[(i - l, j - l)];
+                (i, j) if (i >= l_r) && (j >= l_c) => {
+                    m[(i, j)] = m4[(i - l_r, j - l_c)];
                 }
                 _ => (),
             }
@@ -2510,6 +2391,47 @@ pub fn inv_u(u: Matrix) -> Matrix {
             let m3 = u3;
             let m4 = inv_u(u4);
             let m2 = -(m1.clone() * u2 * m4.clone());
+
+            combine(m1, m2, m3, m4)
+        }
+    }
+}
+
+fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
+    match (a.row, a.col) {
+        (p, q) if p <= 100 && q <= 100 => {
+            let r_self = a.row;
+            let c_self = a.col;
+            let new_other = b;
+            let r_other = new_other.row;
+            let c_other = new_other.col;
+
+            assert_eq!(c_self, r_other);
+
+            let r_new = r_self;
+            let c_new = c_other;
+
+            let mut result = matrix(vec![0f64; r_new * c_new], r_new, c_new, a.shape);
+
+            for i in 0..r_new {
+                for j in 0..c_new {
+                    let mut s = 0f64;
+                    for k in 0..c_self {
+                        s += a[(i, k)] * new_other[(k, j)];
+                    }
+                    result[(i, j)] = s;
+                }
+            }
+            result
+        },
+        _ => {
+            let (a1, a2, a3, a4) = a.block();
+            let (b1, b2, b3, b4) = b.block();
+
+            let m1 = matmul(&a1,&b1) + matmul(&a2,&b3);
+            let m2 = matmul(&a1,&b2) + matmul(&a2,&b4);
+            let m3 = matmul(&a3,&b1) + matmul(&a4,&b3);
+            let m4 = matmul(&a3,&b2) + matmul(&a4,&b4);
 
             combine(m1, m2, m3, m4)
         }

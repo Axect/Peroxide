@@ -75,13 +75,16 @@ pub fn choose_longer_vec(x1: &Vector, x2: &Vector) -> Vector {
     }
 }
 
-pub fn max<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone {
+pub fn max<T>(v: Vec<T>) -> T
+where
+    T: PartialOrd + Copy + Clone,
+{
     let l = v.len();
     if l == 1 {
         v[0]
     } else {
         let mut t = if v[0] >= v[1] { v[0] } else { v[1] };
-        for i in 2 .. v.len() {
+        for i in 2..v.len() {
             if v[i] > t {
                 t = v[i];
             }
@@ -90,13 +93,16 @@ pub fn max<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone {
     }
 }
 
-pub fn min<T>(v: Vec<T>) -> T where T: PartialOrd + Copy + Clone {
+pub fn min<T>(v: Vec<T>) -> T
+where
+    T: PartialOrd + Copy + Clone,
+{
     let l = v.len();
     if l == 1 {
         v[0]
     } else {
         let mut t = if v[0] <= v[1] { v[0] } else { v[1] };
-        for i in 2 .. v.len() {
+        for i in 2..v.len() {
             if v[i] < t {
                 t = v[i];
             }

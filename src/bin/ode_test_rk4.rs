@@ -14,10 +14,10 @@ fn main() {
 
     let result = ode_solver.integrate();
 
-    let mut st = SimpleWriter::new();
-    st.set_path("example_data/rk4_test.pickle")
-        .insert_matrix(result)
-        .write_pickle();
+    // let mut st = SimpleWriter::new();
+    // st.set_path("example_data/rk4_test.pickle")
+    //     .insert_matrix(result)
+    //     .write_pickle();
 }
 
 fn test_fn(st: &mut State<f64>) {

@@ -19,11 +19,11 @@ fn main() {
 
     let results2 = ex_test2.integrate();
 
-    let mut wt = SimpleWriter::new();
-    wt.set_path("example_data/lorenz.pickle")
-        .insert_matrix(results)
-        .insert_matrix(results2)
-        .write_pickle();
+    // let mut wt = SimpleWriter::new();
+    // wt.set_path("example_data/lorenz.pickle")
+    //     .insert_matrix(results)
+    //     .insert_matrix(results2)
+    //     .write_pickle();
 }
 
 fn f(st: &mut State<f64>) {

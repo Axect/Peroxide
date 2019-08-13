@@ -5,6 +5,6 @@
 pub mod interp;
 //pub mod newton;
 pub mod ode;
+pub mod optimize;
 pub mod spline;
 pub mod utils;
-pub mod optimize;

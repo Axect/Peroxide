@@ -1,9 +1,9 @@
+use operation::extra_ops::{ExpLogOps, PowOps, Real, TrigOps};
 use operation::number::Number::{D, E, F};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::process::exit;
-use {Dual, Real};
-use {ExpLogOps, TrigOps};
-use {HyperDual, PowOps};
+use structure::dual::Dual;
+use structure::hyper_dual::HyperDual;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum NumError {
@@ -325,7 +325,7 @@ impl PowOps for Number {
             (D(x), D(y)) => D(x.powf(*y)),
             (E(x), _) => E(x.to_owned()),
             (_, E(y)) => E(y.to_owned()),
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -433,7 +433,10 @@ impl NumberVector for Vec<Number> {
     }
 
     fn to_hyper_vec(&self) -> Vec<HyperDual> {
-        self.clone().into_iter().map(|x| x.to_hyper_dual()).collect()
+        self.clone()
+            .into_iter()
+            .map(|x| x.to_hyper_dual())
+            .collect()
     }
 
     fn from_dual_vec(v: Vec<Dual>) -> Self {
