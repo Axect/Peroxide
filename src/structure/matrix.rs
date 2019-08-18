@@ -1981,17 +1981,18 @@ impl LinearAlgebra for Matrix {
             }
             One => {
                 let mut m = std::f64::MIN;
-                let a = match self.shape {
-                    Row => self.change_shape(),
-                    Col => self.clone(),
-                };
-                for c in 0..a.col {
-                    let s = a.col(c).reduce(0f64, |x, y| x + y);
-                    if s > m {
-                        m = s;
-                    }
+                match self.shape {
+                    Row => self.change_shape().norm(One),
+                    Col => {
+                        for c in 0..self.col {
+                            let s = self.col(c).reduce(0f64, |x, y| x + y);
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    },
                 }
-                m
             }
             Infinity => {
                 let mut m = std::f64::MIN;
