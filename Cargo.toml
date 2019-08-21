@@ -19,12 +19,12 @@ csv = "1"
 rand = "0.7"
 special = "0.8"
 pyo3 = "0.7"
-cblas = { version = "0.2", optional = true }
-lapacke = { version = "0.2", optional = true }
+blas = { version = "0.20", optional = true }
+lapack = { version = "0.16", optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
 default = []
-native = ["cblas", "lapacke"]
+native = ["blas", "lapack"]

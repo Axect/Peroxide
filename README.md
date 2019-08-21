@@ -5,11 +5,75 @@
 [![builds.sr.ht status](https://builds.sr.ht/~axect/Peroxide/.build.yml.svg)](https://builds.sr.ht/~axect/Peroxide/.build.yml?)
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
-Pure Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
+Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
+
+## Why Peroxide?
+
+### 1. Back-end options
+
+Peroxide provides two back-end options.
+
+* Default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
+* BLAS - No pain, no gain. (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust)
+
+So, if you are familiar with unix environment (can setup BLAS environment), then you can get one of the fastest scientific computation tools.
+Or if you hate dependencies from fortran, C/C++ libraries, then you can get comfortable scientific computation tools. 
+ 
+### 2. Easy to optimize
+
+Peroxide uses 1D data structure to describe matrix. So, it's too easy to integrate BLAS.
+It means peroxide guarantees perfect performance for linear algebraic computations.
+
+### 3. Friendly syntax
+
+Rust is so strange for Numpy, MATLAB, R users. Thus, it's harder to learn the more rust libraries.
+With peroxide, you can do heavy computations with R, Numpy, MATLAB like syntax.
+
+For example,
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    // MATLAB like matrix constructor
+    let a = ml_matrix("1 2;3 4");
+
+    // R like matrix constructor (default)
+    let b = matrix(c!(1,2,3,4), 2, 2, Row);
+
+    // Or use zeros
+    let mut z = zeros(2, 2);
+    z[(0,0)] = 1.0;
+    z[(0,1)] = 2.0;
+    z[(1,0)] = 3.0;
+    z[(1,1)] = 4.0;
+    
+    // Simple but effective operations
+    let c = a * b; // Matrix multiplication (BLAS integrated)
+
+    // Easy to pretty print
+    c.print();
+    //       c[0] c[1]
+    // r[0]     1    3
+    // r[1]     2    4
+}
+```
+
+### 4. Batteries included
+
+Peroxide can do many things. Refer to `Covered contents`.
+
+### 5. Written in Rust
+
+Rust & Cargo are awesome for scientific computations. 
+You can use any external packages easily with Cargo, not make.
+And default runtime performance of Rust is also great. If you use many iterations for computations,
+then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.12.3`.
+Corresponding to `0.14.0` (not yet released).
 
 ## Pre-requisite
 
@@ -19,7 +83,7 @@ Corresponding to `0.12.3`.
 
 * Add next line to your `cargo.toml`
 ```toml
-peroxide = "0.12"
+peroxide = "0.13"
 ```
 
 ## Module Structure

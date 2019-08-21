@@ -67,9 +67,9 @@
 //!     ```
 
 #[cfg(feature = "native")]
-extern crate cblas;
+extern crate blas;
 #[cfg(feature = "native")]
-extern crate lapacke;
+extern crate lapack;
 
 extern crate pyo3;
 extern crate rand;

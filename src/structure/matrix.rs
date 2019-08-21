@@ -428,10 +428,10 @@
 extern crate csv;
 
 #[cfg(feature = "native")]
-extern crate cblas;
+extern crate blas;
 
 #[cfg(feature = "native")]
-use cblas::{daxpy, dgemv, dgemm, Layout, Transpose};
+use blas::{daxpy, dgemv, dgemm};
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
@@ -1818,13 +1818,12 @@ impl Mul<Vector> for Matrix {
                     Row => {
                         unsafe {
                             dgemv(
-                                Layout::RowMajor,
-                                Transpose::None,
+                                b'T',
                                 m_i32,
                                 n_i32,
                                 1f64,
                                 A,
-                                m_i32,
+                                n_i32,
                                 x,
                                 1,
                                 0f64,
@@ -1836,8 +1835,7 @@ impl Mul<Vector> for Matrix {
                     Col => {
                         unsafe {
                             dgemv(
-                                Layout::ColumnMajor,
-                                Transpose::None,
+                                b'N',
                                 m_i32,
                                 n_i32,
                                 1f64,
@@ -1878,13 +1876,12 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
                     Row => {
                         unsafe {
                             dgemv(
-                                Layout::RowMajor,
-                                Transpose::None,
+                                b'T',
                                 m_i32,
                                 n_i32,
                                 1f64,
                                 A,
-                                m_i32,
+                                n_i32,
                                 x,
                                 1,
                                 0f64,
@@ -1896,8 +1893,7 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
                     Col => {
                         unsafe {
                             dgemv(
-                                Layout::ColumnMajor,
-                                Transpose::None,
+                                b'N',
                                 m_i32,
                                 n_i32,
                                 1f64,
@@ -2751,7 +2747,7 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
 /// * m2: k x n matrix
 /// * result: m x n matrix
 #[cfg(feature = "native")]
-fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
+pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     let m = m1.row;
     let k = m1.col;
     assert_eq!(k, m2.row);
@@ -2768,25 +2764,29 @@ fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     match (m1.shape, m2.shape) {
         (Row, Row) => {
             unsafe {
-                dgemm(Layout::RowMajor, Transpose::None, Transpose::None, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
+                dgemm(b'N', b'N', n_i32, m_i32, k_i32, 1f64, b, n_i32, a, k_i32, 0f64, &mut c, n_i32);
             }
+            matrix(c, m, n, Row)
         }
         (Row, Col) => {
             unsafe {
-                dgemm(Layout::RowMajor, Transpose::None, Transpose::Ordinary, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
+                dgemm(b'T', b'N', n_i32, m_i32, k_i32, 1f64, b, k_i32, a, k_i32, 0f64, &mut c, n_i32);
             }
+            matrix(c, m, n, Row)
         }
         (Col, Col) => {
             unsafe {
-                dgemm(Layout::ColumnMajor, Transpose::None, Transpose::None, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
+                // (nxk) x (kxm) = n x m
+                dgemm(b'N', b'N', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
             }
+            matrix(c, m, n, Col)
         }
         (Col, Row) => {
             unsafe {
-                dgemm(Layout::ColumnMajor, Transpose::None, Transpose::Ordinary, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
+                dgemm(b'N', b'T', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
             }
+            matrix(c, m, n, Col)
         }
     }
 
-    matrix(c, m, n, m1.shape)
 }
