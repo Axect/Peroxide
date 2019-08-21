@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.13.0"
+version = "0.14.0"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Pure rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
@@ -19,6 +19,12 @@ csv = "1"
 rand = "0.7"
 special = "0.8"
 pyo3 = "0.7"
+cblas = { version = "0.2", optional = true }
+lapacke = { version = "0.2", optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
+
+[features]
+default = []
+native = ["cblas", "lapacke"]

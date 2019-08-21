@@ -320,18 +320,16 @@ pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
 /// use peroxide::*;
 ///
 /// let a = c!(1,2,3,4,5).to_matrix();
-/// let b = a.clone() + Normal(0,1).sample(5).to_matrix();
-/// lm!(b ~ a).print();
+/// let b = &a + &Normal(0,1).sample(5).to_matrix();
+/// lm(&a, &b).print();
 ///
 /// //        c[0]
 /// // r[0] 0.7219
 /// // r[1] 0.8058
 /// ```
 pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
-    let x_temp = input.clone();
-    let mut ones = vec![1f64; x_temp.row * x_temp.col];
-    ones.extend(&x_temp.data);
-    let x = matrix(ones, x_temp.row, x_temp.col + 1, x_temp.shape);
-    let t = target.clone();
-    x.pseudo_inv().unwrap() * t
+    let mut ones = vec![1f64; input.row * input.col];
+    ones.extend(&input.data);
+    let x = matrix(ones, input.row, input.col + 1, input.shape);
+    &x.pseudo_inv().unwrap() * target
 }

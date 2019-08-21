@@ -66,6 +66,11 @@
 //!     }
 //!     ```
 
+#[cfg(feature = "native")]
+extern crate cblas;
+#[cfg(feature = "native")]
+extern crate lapacke;
+
 extern crate pyo3;
 extern crate rand;
 

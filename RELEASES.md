@@ -1,3 +1,21 @@
+# Release 0.14.0 (2019-08-21) (Candidates)
+
+* **[Important]** Finally, BLAS integrated.
+    * You can choose `cblas, lapacke` by `native` features.
+        ```sh
+        cargo build --features native
+        ```
+    * Default features are no BLAS (Pure Rust)
+        ```sh
+        cargo build
+        ```
+    * To use BLAS in Rust can be bothered. Should refer to [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust)
+
+* BLAS implemented Ops
+    - [x] Matrix & Matrix Addition/Subtraction
+    - [x] Matrix & Scalar Addition/Subtraction
+    - [x] Matrix & Matrix Multiplication
+
 # Release 0.13.0 (2019-08-11)
 
 * **[Important]** Remove inefficient things

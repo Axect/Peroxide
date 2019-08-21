@@ -427,6 +427,12 @@
 
 extern crate csv;
 
+#[cfg(feature = "native")]
+extern crate cblas;
+
+#[cfg(feature = "native")]
+use cblas::{daxpy, dgemv, dgemm, Layout, Transpose};
+
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
@@ -1130,13 +1136,32 @@ impl Add<Matrix> for Matrix {
     fn add(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
-        let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-        for i in 0..self.row {
-            for j in 0..self.col {
-                result[(i, j)] += other[(i, j)];
+
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                if self.shape != other.shape {
+                    return self.add(other.change_shape());
+                }
+                let x = &self.data;
+                let mut y = other.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = 1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] += other[(i, j)];
+                    }
+                }
+                result
             }
         }
-        result
     }
 }
 
@@ -1147,13 +1172,32 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
     fn add(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
-        let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-        for i in 0..self.row {
-            for j in 0..self.col {
-                result[(i, j)] += other[(i, j)];
+
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                if self.shape != other.shape {
+                    return self.add(&other.change_shape());
+                }
+                let x = &self.data;
+                let mut y = other.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = 1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] += other[(i, j)];
+                    }
+                }
+                result
             }
         }
-        result
     }
 }
 
@@ -1173,7 +1217,21 @@ where
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
-        self.fmap(|x| x + other.into())
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![other.into(); x.len()];
+                let n_i32 = x.len() as i32;
+                unsafe {
+                    daxpy(n_i32, 1f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x + other.into())
+            }
+        }
     }
 }
 
@@ -1184,7 +1242,21 @@ where
 {
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
-        self.fmap(|x| x + other.into())
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![other.into(); x.len()];
+                let n_i32 = x.len() as i32;
+                unsafe {
+                    daxpy(n_i32, 1f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x + other.into())
+            }
+        }
     }
 }
 
@@ -1286,12 +1358,26 @@ impl Neg for Matrix {
     type Output = Self;
 
     fn neg(self) -> Self {
-        matrix(
-            self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
-            self.row,
-            self.col,
-            self.shape,
-        )
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let n_i32 = x.len() as i32;
+                unsafe {
+                    daxpy(n_i32, -1f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                matrix(
+                    self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                    self.row,
+                    self.col,
+                    self.shape,
+                )
+            }
+        }
     }
 }
 
@@ -1300,16 +1386,25 @@ impl<'a> Neg for &'a Matrix {
     type Output = Matrix;
 
     fn neg(self) -> Self::Output {
-        Matrix {
-            data: self
-                .data
-                .clone()
-                .into_iter()
-                .map(|x: f64| -x)
-                .collect::<Vec<f64>>(),
-            row: self.row,
-            col: self.col,
-            shape: self.shape,
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let n_i32 = x.len() as i32;
+                unsafe {
+                    daxpy(n_i32, -1f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                matrix(
+                    self.data.clone().into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                    self.row,
+                    self.col,
+                    self.shape,
+                )
+            }
         }
     }
 }
@@ -1334,13 +1429,31 @@ impl Sub<Matrix> for Matrix {
     fn sub(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
-        let mut result = self.clone();
-        for i in 0 .. self.row {
-            for j in 0 .. self.col {
-                result[(i,j)] -= other[(i,j)];
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                if self.shape != other.shape {
+                    return self.sub(other.change_shape());
+                }
+                let x = &other.data;
+                let mut y = self.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = -1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] -= other[(i, j)];
+                    }
+                }
+                result
             }
         }
-        result
     }
 }
 
@@ -1351,13 +1464,31 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
     fn sub(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
-        let mut result = self.clone();
-        for i in 0 .. self.row {
-            for j in 0 .. self.col {
-                result[(i,j)] -= other[(i,j)];
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                if self.shape != other.shape {
+                    return self.sub(&other.change_shape());
+                }
+                let x = &other.data;
+                let mut y = self.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = -1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] -= other[(i, j)];
+                    }
+                }
+                result
             }
         }
-        result
     }
 }
 
@@ -1369,7 +1500,21 @@ where
     type Output = Self;
 
     fn sub(self, other: T) -> Self {
-        self.fmap(|x| x - other.into())
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let mut y = self.data;
+                let x = vec![other.into(); y.len()];
+                let n_i32 = y.len() as i32;
+                unsafe {
+                    daxpy(n_i32, -1f64, &x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x - other.into())
+            }
+        }
     }
 }
 
@@ -1381,7 +1526,21 @@ where
     type Output = Matrix;
 
     fn sub(self, other: T) -> Self::Output {
-        self.fmap(|x| x - other.into())
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let mut y = self.data.clone();
+                let x = vec![other.into(); y.len()];
+                let n_i32 = y.len() as i32;
+                unsafe {
+                    daxpy(n_i32, -1f64, &x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x - other.into())
+            }
+        }
     }
 }
 
@@ -1451,7 +1610,23 @@ impl Mul<f64> for Matrix {
     type Output = Self;
 
     fn mul(self, other: f64) -> Self {
-        self.fmap(|x| x * other)
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other;
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x * other)
+            }
+        }
     }
 }
 
@@ -1459,7 +1634,7 @@ impl Mul<i64> for Matrix {
     type Output = Self;
 
     fn mul(self, other: i64) -> Self {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1467,7 +1642,7 @@ impl Mul<i32> for Matrix {
     type Output = Self;
 
     fn mul(self, other: i32) -> Self {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1475,7 +1650,7 @@ impl Mul<usize> for Matrix {
     type Output = Self;
 
     fn mul(self, other: usize) -> Self {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1483,7 +1658,23 @@ impl<'a> Mul<f64> for &'a Matrix {
     type Output = Matrix;
 
     fn mul(self, other: f64) -> Self::Output {
-        self.fmap(|x| x * other)
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other;
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                self.fmap(|x| x * other)
+            }
+        }
     }
 }
 
@@ -1491,7 +1682,7 @@ impl<'a> Mul<i64> for &'a Matrix {
     type Output = Matrix;
 
     fn mul(self, other: i64) -> Self::Output {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1499,7 +1690,7 @@ impl<'a> Mul<i32> for &'a Matrix {
     type Output = Matrix;
 
     fn mul(self, other: i32) -> Self::Output {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1507,7 +1698,7 @@ impl<'a> Mul<usize> for &'a Matrix {
     type Output = Matrix;
 
     fn mul(self, other: usize) -> Self::Output {
-        self.fmap(|x| x * (other as f64))
+        self.mul(other as f64)
     }
 }
 
@@ -1585,30 +1776,148 @@ impl<'a> Mul<&'a Matrix> for usize {
 /// let a = matrix!(1;4;1, 2, 2, Row);
 /// let b = matrix!(1;4;1, 2, 2, Col);
 /// assert_eq!(a * b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
-///
-/// let m = matrix!(1;4;1, 2, 2, Row);
-/// let v = c!(1,2);
-/// assert_eq!(m * v, matrix(c!(5,11),2,1,Col));
 /// ```
-impl<T> Mul<T> for Matrix
-where
-    T: LinearOps,
-{
+impl Mul<Matrix> for Matrix {
     type Output = Self;
 
-    fn mul(self, other: T) -> Self {
-        matmul(&self, &other.to_matrix())
+    fn mul(self, other: Self) -> Self {
+        match () {
+            #[cfg(feature = "native")]
+            () => blas_mul(&self, &other),
+            _ => matmul(&self, &other)
+        }
     }
 }
 
-impl<'a, 'b, T> Mul<&'b T> for &'a Matrix
-where
-    T: LinearOps,
-{
+impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
     type Output = Matrix;
 
-    fn mul(self, other: &'b T) -> Self::Output {
-        matmul(self, &other.to_matrix())
+    fn mul(self, other: &'b Matrix) -> Self::Output {
+        match () {
+            #[cfg(feature = "native")]
+            () => blas_mul(self, other),
+            _ => matmul(self, other)
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+impl Mul<Vector> for Matrix {
+    type Output = Self;
+
+    fn mul(self, other: Vector) -> Self::Output {
+        match() {
+            #[cfg(feature = "native")]
+            () => {
+                let x = &other;
+                let mut y = vec![0f64; self.row];
+                let A = &self.data;
+                let m_i32 = self.row as i32;
+                let n_i32 = self.col as i32;
+                match self.shape {
+                    Row => {
+                        unsafe {
+                            dgemv(
+                                Layout::RowMajor,
+                                Transpose::None,
+                                m_i32,
+                                n_i32,
+                                1f64,
+                                A,
+                                m_i32,
+                                x,
+                                1,
+                                0f64,
+                                &mut y,
+                                1
+                            );
+                        }
+                    }
+                    Col => {
+                        unsafe {
+                            dgemv(
+                                Layout::ColumnMajor,
+                                Transpose::None,
+                                m_i32,
+                                n_i32,
+                                1f64,
+                                A,
+                                m_i32,
+                                x,
+                                1,
+                                0f64,
+                                &mut y,
+                                1
+                            );
+                        }
+                    }
+                }
+                matrix(y, self.row, 1, self.shape)
+            }
+            _ => {
+                self.mul(other.to_matrix())
+            }
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
+    type Output = Matrix;
+
+    fn mul(self, other: &'b Vector) -> Self::Output {
+        match() {
+            #[cfg(feature = "native")]
+            () => {
+                let x = other;
+                let mut y = vec![0f64; self.row];
+                let A = &self.data;
+                let m_i32 = self.row as i32;
+                let n_i32 = self.col as i32;
+                match self.shape {
+                    Row => {
+                        unsafe {
+                            dgemv(
+                                Layout::RowMajor,
+                                Transpose::None,
+                                m_i32,
+                                n_i32,
+                                1f64,
+                                A,
+                                m_i32,
+                                x,
+                                1,
+                                0f64,
+                                &mut y,
+                                1
+                            );
+                        }
+                    }
+                    Col => {
+                        unsafe {
+                            dgemv(
+                                Layout::ColumnMajor,
+                                Transpose::None,
+                                m_i32,
+                                n_i32,
+                                1f64,
+                                A,
+                                m_i32,
+                                x,
+                                1,
+                                0f64,
+                                &mut y,
+                                1
+                            );
+                        }
+                    }
+                }
+                matrix(y, self.row, 1, self.shape)
+            }
+            _ => {
+                self.mul(&other.to_matrix())
+            }
+        }
     }
 }
 
@@ -2255,10 +2564,7 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(inv_a, pse_a); // Nearly equal
     /// ```
     fn pseudo_inv(&self) -> Option<Self> {
-        let x = self.clone();
-        let xt = self.t();
-
-        let xtx = xt * x;
+        let xtx = &self.t() * self;
         let inv_temp = xtx.inv();
 
         match inv_temp {
@@ -2350,7 +2656,7 @@ pub fn inv_l(l: Matrix) -> Matrix {
             let m1 = inv_l(l1);
             let m2 = l2;
             let m4 = inv_l(l4);
-            let m3 = -((m4.clone() * l3) * m1.clone());
+            let m3 = -(&(&m4 * &l3) * &m1);
 
             combine(m1, m2, m3, m4)
         }
@@ -2437,4 +2743,50 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
             combine(m1, m2, m3, m4)
         }
     }
+}
+
+/// Matrix multiplication with BLAS
+///
+/// * m1: m x k matrix
+/// * m2: k x n matrix
+/// * result: m x n matrix
+#[cfg(feature = "native")]
+fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
+    let m = m1.row;
+    let k = m1.col;
+    assert_eq!(k, m2.row);
+    let n = m2.col;
+
+    let m_i32 = m as i32;
+    let n_i32 = n as i32;
+    let k_i32 = k as i32;
+
+    let a = &m1.data;
+    let b = &m2.data;
+    let mut c = vec![0f64; m * n];
+
+    match (m1.shape, m2.shape) {
+        (Row, Row) => {
+            unsafe {
+                dgemm(Layout::RowMajor, Transpose::None, Transpose::None, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
+            }
+        }
+        (Row, Col) => {
+            unsafe {
+                dgemm(Layout::RowMajor, Transpose::None, Transpose::Ordinary, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
+            }
+        }
+        (Col, Col) => {
+            unsafe {
+                dgemm(Layout::ColumnMajor, Transpose::None, Transpose::None, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
+            }
+        }
+        (Col, Row) => {
+            unsafe {
+                dgemm(Layout::ColumnMajor, Transpose::None, Transpose::Ordinary, m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
+            }
+        }
+    }
+
+    matrix(c, m, n, m1.shape)
 }
