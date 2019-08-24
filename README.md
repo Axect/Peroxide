@@ -81,9 +81,12 @@ Corresponding to `0.14.0` (not yet released).
 
 ## Install
 
-* Add next line to your `cargo.toml`
+* Add next block to your `cargo.toml`
 ```toml
-peroxide = "0.13"
+[dependencies.peroxide]
+version = "0.14"
+default-features = false
+features = ["native"]
 ```
 
 ## Module Structure
