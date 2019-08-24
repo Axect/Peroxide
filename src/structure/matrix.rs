@@ -435,7 +435,7 @@ extern crate lapack;
 #[cfg(feature = "native")]
 use blas::{daxpy, dgemv, dgemm};
 #[cfg(feature = "native")]
-use lapack::{dgetrf, dgetri, dgetrs};
+use lapack::{dgetrf, dgetri, dgetrs, dgeqrf};
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
@@ -2897,6 +2897,14 @@ pub struct DGETRF {
     pub status: LAPACK_STATUS,
 }
 
+/// Temporary data structure from `dgeqrf`
+#[derive(Debug, Clone)]
+pub struct DGEQRF {
+    pub fact_mat: Matrix,
+    pub tau: Vec<f64>,
+    pub status: LAPACK_STATUS,
+}
+
 /// Peroxide version of `dgetrf`
 #[cfg(feature = "native")]
 pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
@@ -2946,8 +2954,18 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
     let (n, lda) = (result.col as i32, result.row as i32);
     let mut info = 0i32;
     let mut work = vec![0f64; result.col];
+
+    // Workspace Query
     unsafe {
-        dgetri(n, &mut result.data, lda, ipiv, &mut work,n, &mut info);
+        dgetri(n, &mut result.data, lda, ipiv, &mut work,-1, &mut info);
+    }
+
+    let optimal_lwork = work[0] as usize;
+    let mut optimal_work = vec![0f64; optimal_lwork];
+
+    // Real dgetri
+    unsafe {
+        dgetri(n, &mut result.data, lda, ipiv, &mut optimal_work, optimal_lwork as i32, &mut info);
     }
 
     if info == 0 {
@@ -2959,7 +2977,7 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
     }
 }
 
-/// Peroxide version of `dgetri`
+/// Peroxide version of `dgetrs`
 #[allow(non_snake_case)]
 #[cfg(feature = "native")]
 pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
@@ -2981,6 +2999,56 @@ pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
 
             if info == 0 {
                 Some(matrix(b_vec, A.col, b.col, Col))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+/// Peroxide version of `dgeqrf`
+#[allow(non_snake_case)]
+#[cfg(feature = "native")]
+pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
+    match mat.shape {
+        Row => lapack_dgeqrf(&mat.change_shape()),
+        Col => {
+            let m = mat.row as i32;
+            let n = mat.col as i32;
+            let mut A = mat.clone();
+            let mut tau = vec![0f64; min(mat.row, mat.col)];
+            let mut work = vec![0f64; mat.col];
+            let mut info = 0i32;
+
+            // Workspace query
+            unsafe {
+                dgeqrf(m, n, &mut A.data, m, &mut tau, &mut work, -1, &mut info);
+            }
+
+            let optimal_lwork = work[0] as usize;
+            let mut optimal_work = vec![0f64; optimal_lwork];
+
+            // Real dgeqrf
+            unsafe {
+                dgeqrf(m, n, &mut A.data, m, &mut tau, &mut optimal_work, optimal_lwork as i32, &mut info);
+            }
+
+            if info == 0 {
+                Some(
+                    DGEQRF {
+                        fact_mat: A,
+                        tau,
+                        status: LAPACK_STATUS::NonSingular,
+                    }
+                )
+            } else if info > 0 {
+                Some(
+                    DGEQRF {
+                        fact_mat: A,
+                        tau,
+                        status: LAPACK_STATUS::Singular,
+                    }
+                )
             } else {
                 None
             }

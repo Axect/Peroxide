@@ -1,10 +1,12 @@
-# Release 0.14.1 (2019-08-24) (Candidates)
+# Release 0.14.1 (2019-08-25) (Candidates)
 
 * More BLAS
     * Vector & Vector Addition/Subtraction (`daxpy`)
     * Vector & Scalar multiplication (`dscal`)
     * Vector & Vector dot product (`ddot`)
     * Vector Euclidean norm (`dnrm2`)
+* More LAPACK
+    * QR decomposition (`dgeqrf`)
 
 # Release 0.14.0 (2019-08-24)
 

@@ -265,7 +265,7 @@
 #[cfg(feature = "native")]
 extern crate blas;
 #[cfg(feature = "native")]
-use blas::{daxpy, ddot, dnrm2, dscal};
+use blas::{daxpy, ddot, dnrm2, dscal, idamax};
 
 use operation::extra_ops::Real;
 use std::cmp::min;
@@ -521,9 +521,22 @@ impl Algorithm for Vector {
     /// assert_eq!(v2.arg_max(),4);
     /// ```
     fn arg_max(&self) -> usize {
-        let v = self.clone();
-        let m = self.clone().into_iter().fold(MIN, |x, y| x.max(y));
-        v.into_iter().position(|x| x == m).unwrap()
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let idx: usize;
+                unsafe {
+                    idx = idamax(n_i32, self, 1) - 1;
+                }
+                idx
+            }
+            _ => {
+                let v = self.clone();
+                let m = self.clone().into_iter().fold(MIN, |x, y| x.max(y));
+                v.into_iter().position(|x| x == m).unwrap()
+            }
+        }
     }
 }
 
