@@ -1,4 +1,4 @@
-# Release 0.14.0 (2019-08-21) (Candidates)
+# Release 0.14.0 (2019-08-24)
 
 * **[Important]** Finally, BLAS integrated.
     * You can choose `blas, lapack` by `native` features.
@@ -11,11 +11,16 @@
         ```
     * To use BLAS in Rust can be bothered. Should refer to [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust)
 
-* BLAS implemented Ops
-    - [x] Matrix & Matrix Addition/Subtraction (`daxpy`)
-    - [x] Matrix & Scalar Addition/Subtraction (`daxpy`)
-    - [x] Matrix & Matrix Multiplication (`dgemm`)
-    - [x] Matrix & Vector Multiplication (`dgemv`)
+    * BLAS implemented Ops
+        - [x] Matrix & Matrix Addition/Subtraction (`daxpy`)
+        - [x] Matrix & Scalar Addition/Subtraction (`daxpy`)
+        - [x] Matrix & Matrix Multiplication (`dgemm`)
+        - [x] Matrix & Vector Multiplication (`dgemv`)
+    * LAPACK implemented ops
+        - [x] LU Factorization (`dgetrf`)
+        - [x] Inverse by LU (`dgetri`)
+        - [x] Solve by LU (`dgetrs`)
+* Move unnecessary `bin` files to example directory
 
 # Release 0.13.0 (2019-08-11)
 

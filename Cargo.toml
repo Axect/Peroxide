@@ -2,14 +2,14 @@
 name = "peroxide"
 version = "0.14.0"
 authors = ["axect <edeftg@gmail.com>"]
-description = "Pure rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
+description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
 license = "BSD-3-Clause"
 categories = ["science"]
 readme = "README.md"
 documentation = "https://docs.rs/peroxide/"
 keywords = ["Numeric", "R", "MATLAB", "Python", "Scientific"]
-exclude = ["example_data/", "src/bin/", "benches/"]
+exclude = ["example_data/", "src/bin/", "benches/", "example/"]
 
 [badges]
 maintenance = { status = "actively-developed" }

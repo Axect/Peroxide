@@ -429,9 +429,13 @@ extern crate csv;
 
 #[cfg(feature = "native")]
 extern crate blas;
+#[cfg(feature = "native")]
+extern crate lapack;
 
 #[cfg(feature = "native")]
 use blas::{daxpy, dgemv, dgemm};
+#[cfg(feature = "native")]
+use lapack::{dgetrf, dgetri, dgetrs};
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
@@ -444,6 +448,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
+use std::f64::NAN;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -1059,12 +1064,18 @@ impl Matrix {
 
 /// Common trait for Matrix & Vector
 pub trait LinearOps {
+    fn from_matrix(m: Matrix) -> Self;
     fn to_matrix(&self) -> Matrix;
     fn transpose(&self) -> Matrix;
     fn t(&self) -> Matrix;
 }
 
 impl LinearOps for Matrix {
+    /// Just Clone
+    fn from_matrix(m: Matrix) -> Self {
+        m
+    }
+
     /// Just clone
     fn to_matrix(&self) -> Self {
         self.clone()
@@ -1103,6 +1114,10 @@ impl LinearOps for Matrix {
 }
 
 impl LinearOps for Vector {
+    fn from_matrix(m: Matrix) -> Self {
+        m.data
+    }
+
     /// Vector to Column Matrix
     fn to_matrix(&self) -> Matrix {
         let l = self.len();
@@ -2436,16 +2451,48 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn det(&self) -> f64 {
         assert_eq!(self.row, self.col);
-        match self.lu() {
-            None => 0f64,
-            Some(pqlu) => {
-                let (p, q, _l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => NAN,
+                    Some(dgrf) => {
+                        match dgrf.status {
+                            LAPACK_STATUS::Singular => 0f64,
+                            LAPACK_STATUS::NonSingular => {
+                                let mat = &dgrf.fact_mat;
+                                let ipiv = &dgrf.ipiv;
+                                let n = mat.col;
+                                let mut sgn = 1i32;
+                                let mut d = 1f64;
+                                for i in 0 .. n {
+                                    d *= mat[(i,i)];
+                                }
+                                for i in 0 .. ipiv.len() {
+                                    if ipiv[i] - 1 != i as i32 {
+                                        sgn *= -1;
+                                    }
+                                }
+                                (sgn as f64) * d
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {
+                match self.lu() {
+                    None => 0f64,
+                    Some(pqlu) => {
+                        let (p, q, _l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
 
-                // sgn of perms
-                let sgn_p = 2.0 * (p.len() % 2) as f64 - 1.0;
-                let sgn_q = 2.0 * (q.len() % 2) as f64 - 1.0;
+                        // sgn of perms
+                        let sgn_p = 2.0 * (p.len() % 2) as f64 - 1.0;
+                        let sgn_q = 2.0 * (q.len() % 2) as f64 - 1.0;
 
-                u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
+                        u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
+                    }
+                }
             }
         }
     }
@@ -2527,18 +2574,32 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(b.inv(), None);
     /// ```
     fn inv(&self) -> Option<Self> {
-        match self.lu() {
-            None => None,
-            Some(pqlu) => {
-                let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-                let mut m = inv_u(u) * inv_l(l);
-                for (idx1, idx2) in q.into_iter().rev() {
-                    m = m.swap(idx1, idx2, Row);
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => None,
+                    Some(dgrf) => {
+                        lapack_dgetri(&dgrf)
+                    }
                 }
-                for (idx1, idx2) in p.into_iter().rev() {
-                    m = m.swap(idx1, idx2, Col);
+            }
+            _ => {
+                match self.lu() {
+                    None => None,
+                    Some(pqlu) => {
+                        let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+                        let mut m = inv_u(u) * inv_l(l);
+                        for (idx1, idx2) in q.into_iter().rev() {
+                            m = m.swap(idx1, idx2, Row);
+                        }
+                        for (idx1, idx2) in p.into_iter().rev() {
+                            m = m.swap(idx1, idx2, Col);
+                        }
+                        Some(m)
+                    }
                 }
-                Some(m)
             }
         }
     }
@@ -2566,6 +2627,34 @@ impl LinearAlgebra for Matrix {
         match inv_temp {
             None => None,
             Some(m) => Some(m * self.t()),
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
+    match () {
+        #[cfg(feature = "native")]
+        () => {
+            let opt_dgrf = lapack_dgetrf(A);
+            match opt_dgrf {
+                None => None,
+                Some(dgrf) => {
+                    match dgrf.status {
+                        LAPACK_STATUS::Singular => None,
+                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, b)
+                    }
+                }
+            }
+        }
+        _ => {
+            let opt_a_inv = A.inv();
+            match opt_a_inv {
+                None => None,
+                Some(a_inv) => {
+                    Some(&a_inv * b)
+                }
+            }
         }
     }
 }
@@ -2741,6 +2830,10 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
     }
 }
 
+// =============================================================================
+// BLAS & LAPACK Area
+// =============================================================================
+
 /// Matrix multiplication with BLAS
 ///
 /// * m1: m x k matrix
@@ -2788,5 +2881,109 @@ pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
             matrix(c, m, n, Col)
         }
     }
+}
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum LAPACK_STATUS {
+    Singular,
+    NonSingular,
+}
+
+/// Temporary data structure from `dgetrf`
+#[derive(Debug, Clone)]
+pub struct DGETRF {
+    pub fact_mat: Matrix,
+    pub ipiv: Vec<i32>,
+    pub status: LAPACK_STATUS,
+}
+
+/// Peroxide version of `dgetrf`
+#[cfg(feature = "native")]
+pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
+    let m = mat.row;
+    let n = mat.col;
+    let m_i32 = m as i32;
+    let n_i32 = n as i32;
+    // Should column major
+    let mut a = match mat.shape {
+        Row => mat.change_shape().data.clone(),
+        Col => mat.data.clone()
+    };
+
+    let mut info = 0i32;;
+    let mut ipiv: Vec<i32> = vec![0i32; std::cmp::min(m, n)];
+
+    unsafe {
+        dgetrf(m_i32, n_i32, &mut a, m_i32, &mut ipiv, &mut info);
+    }
+
+    if info < 0 {
+        None
+    } else if info == 0 {
+        Some(
+            DGETRF {
+                fact_mat: matrix(a, m, n, Col),
+                ipiv,
+                status: LAPACK_STATUS::NonSingular,
+            }
+        )
+    } else {
+        Some(
+            DGETRF {
+                fact_mat: matrix(a, m, n, Col),
+                ipiv,
+                status: LAPACK_STATUS::Singular,
+            }
+        )
+    }
+}
+
+/// Peroxide version of `dgetri`
+#[cfg(feature = "native")]
+pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
+    let mut result = dgrf.fact_mat.clone();
+    let ipiv = &dgrf.ipiv;
+    let (n, lda) = (result.col as i32, result.row as i32);
+    let mut info = 0i32;
+    let mut work = vec![0f64; result.col];
+    unsafe {
+        dgetri(n, &mut result.data, lda, ipiv, &mut work,n, &mut info);
+    }
+
+    if info == 0 {
+        Some(
+            result
+        )
+    } else {
+        None
+    }
+}
+
+/// Peroxide version of `dgetri`
+#[allow(non_snake_case)]
+#[cfg(feature = "native")]
+pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
+    match b.shape {
+        Row => lapack_dgetrs(dgrf, &b.change_shape()),
+        Col => {
+            let A = &dgrf.fact_mat;
+            let mut b_vec = b.data.clone();
+            let ipiv = &dgrf.ipiv;
+            let n = A.col as i32;
+            let nrhs = b.col as i32;
+            let lda = A.row as i32;
+            let ldb = b.row as i32;
+            let mut info = 0i32;
+
+            unsafe {
+                dgetrs(b'N', n, nrhs, &A.data, lda, ipiv, &mut b_vec, ldb, &mut info);
+            }
+
+            if info == 0 {
+                Some(matrix(b_vec, A.col, b.col, Col))
+            } else {
+                None
+            }
+        }
+    }
 }
