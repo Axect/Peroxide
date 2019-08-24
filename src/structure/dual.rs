@@ -609,6 +609,10 @@ impl VecOps for Vec<Dual> {
         self.zip_with(|x, y| x * y, other)
     }
 
+    fn s_mul(&self, scala: f64) -> Self {
+        self.fmap(|x| x * scala)
+    }
+
     fn div(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x / y, other)
     }

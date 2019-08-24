@@ -262,6 +262,11 @@
 //!     }
 //!     ```
 
+#[cfg(feature = "native")]
+extern crate blas;
+#[cfg(feature = "native")]
+use blas::{daxpy, ddot, dnrm2, dscal};
+
 use operation::extra_ops::Real;
 use std::cmp::min;
 use std::convert;
@@ -528,6 +533,7 @@ pub trait VecOps {
     fn add(&self, other: &Self) -> Self;
     fn sub(&self, other: &Self) -> Self;
     fn mul(&self, other: &Self) -> Self;
+    fn s_mul(&self, scala: f64) -> Self;
     fn div(&self, other: &Self) -> Self;
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn norm(&self) -> Self::Scalar;
@@ -540,17 +546,60 @@ impl VecOps for Vector {
 
     /// Addition
     fn add(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x + y, other)
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let mut y = other.clone();
+                unsafe {
+                    daxpy(n_i32, 1f64, self, 1, &mut y, 1);
+                }
+                y
+            }
+            _ => {
+                self.zip_with(|x, y| x + y, other)
+            }
+        }
     }
 
     /// Subtraction
     fn sub(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x - y, other)
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let mut y = self.clone();
+                unsafe {
+                    daxpy(n_i32, -1f64, other, 1, &mut y, 1);
+                }
+                y
+            }
+            _ => {
+                self.zip_with(|x, y| x - y, other)
+            }
+        }
     }
 
     /// Multiplication
     fn mul(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x * y, other)
+    }
+
+    fn s_mul(&self, scala: f64) -> Self {
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let mut x = self.clone();
+                let n_i32 = self.len() as i32;
+                unsafe {
+                    dscal(n_i32, scala, &mut x, 1);
+                }
+                x
+            }
+            _ => {
+                self.fmap(|x| scala * x)
+            }
+        }
     }
 
     /// Division
@@ -560,17 +609,43 @@ impl VecOps for Vector {
 
     /// Dot product
     fn dot(&self, other: &Self) -> f64 {
-        zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y)
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let res: f64;
+                unsafe {
+                    res = ddot(n_i32, self, 1, other, 1);
+                }
+                res
+            }
+            _ => {
+                zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y)
+            }
+        }
     }
 
     /// Norm
     fn norm(&self) -> f64 {
-        self.dot(&self).sqrt()
+        match () {
+            #[cfg(feature = "native")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let res: f64;
+                unsafe {
+                    res = dnrm2(n_i32, self, 1);
+                }
+                res
+            }
+            _ => {
+                self.dot(&self).sqrt()
+            }
+        }
     }
 
     /// Normalize
     fn normalize(&self) -> Self {
-        let n = self.norm();
-        self.fmap(|x| x / n)
+        let alpha = self.norm();
+        self.s_mul(1f64 / alpha)
     }
 }
