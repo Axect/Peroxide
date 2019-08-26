@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.14.1"
+version = "0.15.0"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
@@ -18,7 +18,7 @@ maintenance = { status = "actively-developed" }
 csv = "1"
 rand = "0.7"
 special = "0.8"
-pyo3 = "0.7"
+pyo3 = { version = "0.7", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }
 
@@ -27,4 +27,5 @@ rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
 default = []
-native = ["blas", "lapack"]
+openblas = ["blas", "lapack"]
+plot = ["pyo3"]

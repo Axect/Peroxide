@@ -1,5 +1,9 @@
-# Release 0.14.1 (2019-08-25) (Candidates)
+# Release 0.15.0 (2019-08-27)
 
+* **[Important]** More features
+    * You can choose next features
+        * `openblas` : BLAS & LAPACK back-end
+        * `plot` : Plot with matplotlib (depends on `pyo3` - should use nightly compiler)
 * More BLAS
     * Vector & Vector Addition/Subtraction (`daxpy`)
     * Vector & Scalar multiplication (`dscal`)
@@ -7,6 +11,8 @@
     * Vector Euclidean norm (`dnrm2`)
 * More LAPACK
     * QR decomposition (`dgeqrf`)
+        * get Q,R (`dorgqr`)
+    * get Condition number (`dgecon`)
 
 # Release 0.14.0 (2019-08-24)
 

@@ -9,15 +9,19 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 
 ## Why Peroxide?
 
-### 1. Back-end options
+### 1. Customize features
 
-Peroxide provides two back-end options.
+Peroxide provides various features.
 
-* Default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* BLAS - No pain, no gain. (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust)
+* default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
+* openblas - No pain, no gain. (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
+* plot - With matplotlib of python, we can draw any plots.
 
-So, if you are familiar with unix environment (can setup BLAS environment), then you can get one of the fastest scientific computation tools.
-Or if you hate dependencies from fortran, C/C++ libraries, then you can get comfortable scientific computation tools. 
+If you want to do high performance computation, then choose openblas feature.
+If you don't want to depend C/C++ or Fortran libraries, then choose default feature.
+If you want to draw plot with some great templates, then choose plot feature.
+
+You can choose openblas & plot simultaneously.
  
 ### 2. Easy to optimize
 
@@ -26,7 +30,7 @@ It means peroxide guarantees perfect performance for linear algebraic computatio
 
 ### 3. Friendly syntax
 
-Rust is so strange for Numpy, MATLAB, R users. Thus, it's harder to learn the more rust libraries.
+Rust is so strange for Numpy, MATLAB, R users. Thus, it's harder to learn the more rusty libraries.
 With peroxide, you can do heavy computations with R, Numpy, MATLAB like syntax.
 
 For example,
@@ -57,12 +61,69 @@ fn main() {
     //       c[0] c[1]
     // r[0]     1    3
     // r[1]     2    4
+
+    // Easy to do linear algebra
+    c.det().print();
+    c.inv().unwrap().print();
+
+    // and etc.
 }
 ```
 
 ### 4. Batteries included
 
-Peroxide can do many things. Refer to `Covered contents`.
+Peroxide can do many things. 
+
+* Linear Algebra
+    * Effective Matrix structure
+    * Transpose, Determinant, Diagonal
+    * LU Decomposition, Inverse matrix, Block partitioning
+    * Column, Row operations
+* Functional Programming
+    * More easy functional programming with `Vec<f64>`
+    * For matrix, there are three maps
+        * `fmap` : map for all elements
+        * `col_map` : map for column vectors
+        * `row_map` : map for row vectors
+* Automatic Differentiation
+    * Dual number system - for 1st order AD
+    * Hyper dual number system - for 2nd order AD
+    * Exact jacobian
+    * `Real` trait to constrain for `f64` and `Dual`
+    * `Number` structure to unify `f64` and `Dual`
+* Numerical Analysis
+    * Lagrange interpolation
+    * Cubic spline
+    * Non-linear regression
+        * Gradient Descent
+        * Gauss Newton
+        * Levenberg Marquardt
+    * Ordinary Differential Equation
+        * Euler
+        * Runge Kutta 4th order
+        * Backward Euler
+        * Gauss Legendre 4th order
+* Statistics
+    * More easy random with `rand` crate
+    * Probability Distributions
+        * Bernoulli
+        * Uniform
+        * Normal
+        * Gamma
+        * Beta
+    * RNG algorithms
+        * Acceptance Rejection
+        * Marsaglia Polar
+        * Ziggurat
+* Special functions
+    * Wrapper for `special` crate
+* Utils
+    * R-like macro & functions
+    * Matlab-like macro & functions
+    * Numpy-like macro & functions
+    * Julia-like macro & functions
+* Plotting
+    * With `pyo3` & `matplotlib`
 
 ### 5. Written in Rust
 
@@ -73,21 +134,42 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.14.0` (not yet released).
+Corresponding to `0.15.0`
 
 ## Pre-requisite
 
-* Python module : `matplotlib` for plotting
+* `openblas` feature - Need `OpenBLAS`
+* `plot` feature - Need `matplotlib` of python
 
 ## Install
 
 * Add next block to your `cargo.toml`
-```toml
-[dependencies.peroxide]
-version = "0.14"
-default-features = false
-features = ["native"]
-```
+
+1. Default
+    ```toml
+    peroxide = "0.15"
+    ```
+2. OpenBLAS
+    ```toml
+   [dependencies.peroxide]
+   version = "0.15"
+   default-features = false
+   features = ["openblas"] 
+   ```
+3. Plot
+    ```toml
+   [dependencies.peroxide]
+   version = "0.15"
+   default-features = false
+   features = ["plot"] 
+   ```
+4. OpenBLAS & Plot
+    ```toml
+   [dependencies.peroxide]
+   version = "0.15"
+   default-features = false
+   features = ["openblas"] 
+   ```
 
 ## Module Structure
 
@@ -149,58 +231,7 @@ features = ["native"]
 
 * [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
 
-## Covered Contents
 
-* Linear Algebra
-    * Effective Matrix structure
-    * Transpose, Determinant, Diagonal
-    * LU Decomposition, Inverse matrix, Block partitioning
-    * Column, Row operations
-* Functional Programming
-    * More easy functional programming with `Vec<f64>`
-    * For matrix, there are three maps
-        * `fmap` : map for all elements
-        * `col_map` : map for column vectors
-        * `row_map` : map for row vectors
-* Automatic Differentiation
-    * Dual number system - for 1st order AD
-    * Hyper dual number system - for 2nd order AD
-    * Exact jacobian
-    * `Real` trait to constrain for `f64` and `Dual`
-    * `Number` structure to unify `f64` and `Dual`
-* Numerical Analysis
-    * Lagrange interpolation
-    * Cubic spline
-    * Non-linear regression
-        * Gradient Descent
-        * Gauss Newton
-        * Levenberg Marquardt
-    * Ordinary Differential Equation
-        * Euler
-        * Runge Kutta 4th order
-        * Backward Euler
-        * Gauss Legendre 4th order
-* Statistics
-    * More easy random with `rand` crate
-    * Probability Distributions
-        * Bernoulli
-        * Uniform
-        * Normal
-        * Gamma
-        * Beta
-    * RNG algorithms
-        * Acceptance Rejection
-        * Marsaglia Polar
-        * Ziggurat
-* Special functions
-    * Wrapper for `special` crate
-* Utils
-    * R-like macro & functions
-    * Matlab-like macro & functions
-    * Numpy-like macro & functions
-    * Julia-like macro & functions
-* Plotting
-    * With `pyo3` & `matplotlib`
 
 
 ## Example

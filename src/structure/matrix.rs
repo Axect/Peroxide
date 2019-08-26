@@ -427,15 +427,15 @@
 
 extern crate csv;
 
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 extern crate blas;
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 extern crate lapack;
 
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 use blas::{daxpy, dgemv, dgemm};
-#[cfg(feature = "native")]
-use lapack::{dgetrf, dgetri, dgetrs, dgeqrf};
+#[cfg(feature = "openblas")]
+use lapack::{dgetrf, dgetri, dgetrs, dgeqrf, dorgqr, dgecon};
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
@@ -449,6 +449,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 use structure::vector::*;
 use util::useful::*;
 use std::f64::NAN;
+use eye_shape;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -1153,7 +1154,7 @@ impl Add<Matrix> for Matrix {
         assert_eq!(&self.col, &other.col);
 
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 if self.shape != other.shape {
                     return self.add(other.change_shape());
@@ -1189,7 +1190,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
         assert_eq!(self.col, other.col);
 
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 if self.shape != other.shape {
                     return self.add(&other.change_shape());
@@ -1233,7 +1234,7 @@ where
     type Output = Self;
     fn add(self, other: T) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![other.into(); x.len()];
@@ -1258,7 +1259,7 @@ where
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![other.into(); x.len()];
@@ -1374,7 +1375,7 @@ impl Neg for Matrix {
 
     fn neg(self) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1402,7 +1403,7 @@ impl<'a> Neg for &'a Matrix {
 
     fn neg(self) -> Self::Output {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1445,7 +1446,7 @@ impl Sub<Matrix> for Matrix {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 if self.shape != other.shape {
                     return self.sub(other.change_shape());
@@ -1480,7 +1481,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 if self.shape != other.shape {
                     return self.sub(&other.change_shape());
@@ -1516,7 +1517,7 @@ where
 
     fn sub(self, other: T) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let mut y = self.data;
                 let x = vec![other.into(); y.len()];
@@ -1542,7 +1543,7 @@ where
 
     fn sub(self, other: T) -> Self::Output {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let mut y = self.data.clone();
                 let x = vec![other.into(); y.len()];
@@ -1626,7 +1627,7 @@ impl Mul<f64> for Matrix {
 
     fn mul(self, other: f64) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1674,7 +1675,7 @@ impl<'a> Mul<f64> for &'a Matrix {
 
     fn mul(self, other: f64) -> Self::Output {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1797,7 +1798,7 @@ impl Mul<Matrix> for Matrix {
 
     fn mul(self, other: Self) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => blas_mul(&self, &other),
             _ => matmul(&self, &other)
         }
@@ -1809,7 +1810,7 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => blas_mul(self, other),
             _ => matmul(self, other)
         }
@@ -1822,7 +1823,7 @@ impl Mul<Vector> for Matrix {
 
     fn mul(self, other: Vector) -> Self::Output {
         match() {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = &other;
                 let mut y = vec![0f64; self.row];
@@ -1880,7 +1881,7 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
 
     fn mul(self, other: &'b Vector) -> Self::Output {
         match() {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let x = other;
                 let mut y = vec![0f64; self.row];
@@ -2452,7 +2453,7 @@ impl LinearAlgebra for Matrix {
     fn det(&self) -> f64 {
         assert_eq!(self.row, self.col);
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
@@ -2575,7 +2576,7 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn inv(&self) -> Option<Self> {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
@@ -2634,7 +2635,7 @@ impl LinearAlgebra for Matrix {
 #[allow(non_snake_case)]
 pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
     match () {
-        #[cfg(feature = "native")]
+        #[cfg(feature = "openblas")]
         () => {
             let opt_dgrf = lapack_dgetrf(A);
             match opt_dgrf {
@@ -2839,7 +2840,7 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
 /// * m1: m x k matrix
 /// * m2: k x n matrix
 /// * result: m x n matrix
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     let m = m1.row;
     let k = m1.col;
@@ -2905,8 +2906,16 @@ pub struct DGEQRF {
     pub status: LAPACK_STATUS,
 }
 
+///// Temporary data structure from `dgeev`
+//#[derive(Debug, Clone)]
+//pub struct DGEEV {
+//    pub fact_mat: Matrix,
+//    pub tau: Vec<f64>,
+//    pub status: LAPACK_STATUS,
+//}
+
 /// Peroxide version of `dgetrf`
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     let m = mat.row;
     let n = mat.col;
@@ -2947,7 +2956,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
 }
 
 /// Peroxide version of `dgetri`
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
     let mut result = dgrf.fact_mat.clone();
     let ipiv = &dgrf.ipiv;
@@ -2979,7 +2988,7 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
 
 /// Peroxide version of `dgetrs`
 #[allow(non_snake_case)]
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
     match b.shape {
         Row => lapack_dgetrs(dgrf, &b.change_shape()),
@@ -3008,7 +3017,7 @@ pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
 
 /// Peroxide version of `dgeqrf`
 #[allow(non_snake_case)]
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
     match mat.shape {
         Row => lapack_dgeqrf(&mat.change_shape()),
@@ -3053,5 +3062,99 @@ pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
                 None
             }
         }
+    }
+}
+
+#[allow(non_snake_case)]
+#[cfg(feature = "openblas")]
+impl DGETRF {
+    pub fn get_P(&self) -> Vec<i32> {
+        self.ipiv.clone()
+    }
+
+    pub fn get_L(&self) -> Matrix {
+        let mut l = self.fact_mat.clone();
+        for i in 0 .. l.row {
+            l[(i,i)] = 1f64;
+            for j in i+1 .. l.col {
+                l[(i,j)] = 0f64;
+            }
+        }
+        l
+    }
+
+    pub fn get_U(&self) -> Matrix {
+        let mut u = self.fact_mat.clone();
+        for i in 0 .. u.row {
+            for j in 0 .. i {
+                u[(i,j)] = 0f64;
+            }
+        }
+        u
+    }
+
+    pub fn get_cond(&self) -> Option<f64> {
+        let A = &self.fact_mat;
+        let lda = A.row as i32;
+        let n = A.col as i32;
+        let anorm = A.norm(One);
+        let mut work = vec![0f64; 4 * A.col];
+        let mut iwork = vec![0i32; A.col];
+        let mut info = 0i32;
+        let mut rcond = 0f64;
+
+        unsafe {
+            dgecon(b'1', n, &A.data, lda, anorm, &mut rcond, &mut work, &mut iwork, &mut info);
+        }
+
+        if info == 0 {
+            Some(rcond)
+        } else {
+            None
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+#[cfg(feature = "openblas")]
+impl DGEQRF {
+    pub fn get_Q(&self) -> Matrix {
+        let mut A = self.fact_mat.clone();
+        let m = A.row as i32;
+        let n = A.col as i32;
+        let k = min(m, n);
+        let lda = m;
+        let tau = &self.tau;
+        let mut lwork = -1i32;
+        let mut work = vec![0f64; 1];
+        let mut info = 0i32;
+
+        // Optimize
+        unsafe {
+            dorgqr(m, n, k, &mut A.data, lda, tau, &mut work, lwork, &mut info);
+        }
+
+        lwork = work[0] as i32;
+        work = vec![0f64; lwork as usize];
+
+        // Real dorgqr
+        unsafe {
+            dorgqr(m, n, k, &mut A.data, lda, tau, &mut work, lwork, &mut info);
+        }
+
+        A
+    }
+
+    pub fn get_R(&self) -> Matrix {
+        let qr = &self.fact_mat;
+        let row = min(qr.row, qr.col);
+        let col = qr.col;
+        let mut result = matrix(vec![0f64; row * col], row, col, qr.shape);
+        for i in 0 .. row {
+            for j in i .. col {
+                result[(i, j)] = qr[(i, j)];
+            }
+        }
+        result
     }
 }

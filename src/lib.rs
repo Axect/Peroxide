@@ -66,11 +66,12 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 extern crate blas;
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 extern crate lapack;
 
+#[cfg(feature = "plot")]
 extern crate pyo3;
 extern crate rand;
 
@@ -178,6 +179,7 @@ pub use numerical::ode::*;
 pub use operation::number::*;
 
 #[allow(unused_imports)]
+#[cfg(feature = "plot")]
 pub use util::plot::*;
 
 #[allow(unused_imports)]
