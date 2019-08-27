@@ -168,7 +168,7 @@ Corresponding to `0.15.0`
    [dependencies.peroxide]
    version = "0.15"
    default-features = false
-   features = ["openblas"] 
+   features = ["openblas", "plot"] 
    ```
 
 ## Module Structure
