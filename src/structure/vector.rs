@@ -262,9 +262,9 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 extern crate blas;
-#[cfg(feature = "native")]
+#[cfg(feature = "openblas")]
 use blas::{daxpy, ddot, dnrm2, dscal, idamax};
 
 use operation::extra_ops::Real;
@@ -546,8 +546,11 @@ pub trait VecOps {
     fn add(&self, other: &Self) -> Self;
     fn sub(&self, other: &Self) -> Self;
     fn mul(&self, other: &Self) -> Self;
-    fn s_mul(&self, scala: f64) -> Self;
     fn div(&self, other: &Self) -> Self;
+    fn s_add(&self, scala: f64) -> Self;
+    fn s_sub(&self, scala: f64) -> Self;
+    fn s_mul(&self, scala: f64) -> Self;
+    fn s_div(&self, scala: f64) -> Self;
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn norm(&self) -> Self::Scalar;
     fn normalize(&self) -> Self;
@@ -560,7 +563,7 @@ impl VecOps for Vector {
     /// Addition
     fn add(&self, other: &Self) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let n_i32 = self.len() as i32;
                 let mut y = other.clone();
@@ -578,7 +581,7 @@ impl VecOps for Vector {
     /// Subtraction
     fn sub(&self, other: &Self) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let n_i32 = self.len() as i32;
                 let mut y = self.clone();
@@ -598,9 +601,48 @@ impl VecOps for Vector {
         self.zip_with(|x, y| x * y, other)
     }
 
+    /// Division
+    fn div(&self, other: &Self) -> Self {
+        self.zip_with(|x, y| x / y, other)
+    }
+
+    fn s_add(&self, scala: f64) -> Self {
+        match () {
+            #[cfg(feature = "openblas")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let mut y = self.clone();
+                unsafe {
+                    daxpy(n_i32, 1f64, &vec![scala; self.len()], 1, &mut y, 1);
+                }
+                y
+            }
+            _ => {
+                self.fmap(|x| x + scala)
+            }
+        }
+    }
+
+    fn s_sub(&self, scala: f64) -> Self {
+        match () {
+            #[cfg(feature = "openblas")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let mut y = self.clone();
+                unsafe {
+                    daxpy(n_i32, -1f64, &vec![scala; self.len()], 1, &mut y, 1);
+                }
+                y
+            }
+            _ => {
+                self.fmap(|x| x - scala)
+            }
+        }
+    }
+
     fn s_mul(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let mut x = self.clone();
                 let n_i32 = self.len() as i32;
@@ -615,15 +657,27 @@ impl VecOps for Vector {
         }
     }
 
-    /// Division
-    fn div(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x / y, other)
+    fn s_div(&self, scala: f64) -> Self {
+        match () {
+            #[cfg(feature = "openblas")]
+            () => {
+                let mut x = self.clone();
+                let n_i32 = self.len() as i32;
+                unsafe {
+                    dscal(n_i32, 1f64/scala, &mut x, 1);
+                }
+                x
+            }
+            _ => {
+                self.fmap(|x| x / scala)
+            }
+        }
     }
 
     /// Dot product
     fn dot(&self, other: &Self) -> f64 {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -641,7 +695,7 @@ impl VecOps for Vector {
     /// Norm
     fn norm(&self) -> f64 {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "openblas")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -661,4 +715,24 @@ impl VecOps for Vector {
         let alpha = self.norm();
         self.s_mul(1f64 / alpha)
     }
+}
+
+#[cfg(feature = "openblas")]
+pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
+    assert_eq!(x.len(), y.len());
+    unsafe {
+        let n = x.len() as i32;
+        daxpy(n, a, x, 1, y, 1)
+    }
+}
+
+#[cfg(feature = "openblas")]
+pub fn blas_daxpy_return(a: f64, x: &Vec<f64>, y: &Vec<f64>) -> Vec<f64> {
+    assert_eq!(x.len(), y.len());
+    let mut result = y.clone();
+    let n = x.len() as i32;
+    unsafe {
+        daxpy(n, a, x, 1, &mut result, 1);
+    }
+    result
 }

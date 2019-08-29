@@ -213,6 +213,9 @@ use structure::matrix::{Matrix, Row, FP};
 use structure::vector::FPVector;
 use util::non_macro::{cat, zeros};
 use util::print::Printable;
+#[cfg(feature = "openblas")]
+use ::{blas_daxpy, blas_daxpy_return};
+use ::VecOps;
 
 /// Explicit ODE Methods
 ///
@@ -393,9 +396,18 @@ impl ODE for ExplicitODE {
                 // Set Derivative from state
                 (self.func)(&mut self.state);
                 let dt = self.step_size;
-                self.state
-                    .value
-                    .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
+
+                match () {
+                    #[cfg(feature = "openblas")]
+                    () => {
+                        blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
+                    }
+                    _ => {
+                        self.state
+                            .value
+                            .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
+                    }
+                }
                 self.state.param += dt;
             }
             RK4 => {
@@ -407,20 +419,51 @@ impl ODE for ExplicitODE {
                 (self.func)(&mut self.state);
 
                 let k1 = self.state.deriv.clone();
-                let k1_add = k1.fmap(|x| x * h2);
+                let k1_add = k1.s_mul(h2);
                 self.state.param += h2;
-                self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
+
+                match () {
+                    #[cfg(feature = "openblas")]
+                    () => {
+                        blas_daxpy(1f64, &k1_add, &mut self.state.value);
+                    }
+                    _ => {
+                        self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
+                    }
+                }
+
                 (self.func)(&mut self.state);
 
                 let k2 = self.state.deriv.clone();
                 let k2_add = k2.zip_with(|x, y| h2 * x - y, &k1_add);
-                self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
+
+                match () {
+                    #[cfg(feature = "openblas")]
+                    () => {
+                        blas_daxpy(1f64, &k2_add, &mut self.state.value);
+                    }
+                    _ => {
+                        self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
+                    }
+                }
+
                 (self.func)(&mut self.state);
 
                 let k3 = self.state.deriv.clone();
                 let k3_add = k3.zip_with(|x, y| h * x - y, &k2_add);
                 self.state.param += h2;
-                self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
+
+                match () {
+                    #[cfg(feature = "openblas")]
+                    () => {
+                        blas_daxpy(1f64, &k3_add, &mut self.state.value);
+                    }
+                    _ => {
+                        self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
+                    }
+                }
+
+
                 (self.func)(&mut self.state);
 
                 let k4 = self.state.deriv.clone();

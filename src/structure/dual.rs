@@ -609,10 +609,6 @@ impl VecOps for Vec<Dual> {
         self.zip_with(|x, y| x * y, other)
     }
 
-    fn s_mul(&self, scala: f64) -> Self {
-        self.fmap(|x| x * scala)
-    }
-
     fn div(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x / y, other)
     }
@@ -632,6 +628,22 @@ impl VecOps for Vec<Dual> {
 
     fn normalize(&self) -> Self {
         unimplemented!()
+    }
+
+    fn s_add(&self, scala: f64) -> Self {
+        self.fmap(|x| x + scala)
+    }
+
+    fn s_sub(&self, scala: f64) -> Self {
+        self.fmap(|x| x - scala)
+    }
+
+    fn s_mul(&self, scala: f64) -> Self {
+        self.fmap(|x| x * scala)
+    }
+
+    fn s_div(&self, scala: f64) -> Self {
+        self.fmap(|x| x / scala)
     }
 }
 

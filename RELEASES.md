@@ -1,3 +1,8 @@
+# Release 0.15.1 (2019-08-29)
+
+* More optimization of `vector.rs`
+* Can use `openblas` feature in `ode.rs`
+
 # Release 0.15.0 (2019-08-27)
 
 * **[Important]** More features
@@ -229,7 +234,6 @@
         let x_f64 = 2f64;
         let x_dual = dual(2, 1);
         let x_hyper = hyper_dual(2, 1, 0);
-    
     
         f(x_f64).print();
         f(x_dual).print();
