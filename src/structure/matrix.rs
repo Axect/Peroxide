@@ -433,23 +433,23 @@ extern crate blas;
 extern crate lapack;
 
 #[cfg(feature = "openblas")]
-use blas::{daxpy, dgemv, dgemm};
+use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "openblas")]
-use lapack::{dgetrf, dgetri, dgetrs, dgeqrf, dorgqr, dgecon};
+use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
+use eye_shape;
 use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
+use std::f64::NAN;
 use std::fmt;
 use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
-use std::f64::NAN;
-use eye_shape;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -1244,9 +1244,7 @@ where
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x + other.into())
-            }
+            _ => self.fmap(|x| x + other.into()),
         }
     }
 }
@@ -1269,9 +1267,7 @@ where
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x + other.into())
-            }
+            _ => self.fmap(|x| x + other.into()),
         }
     }
 }
@@ -1385,14 +1381,12 @@ impl Neg for Matrix {
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                matrix(
-                    self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
-                    self.row,
-                    self.col,
-                    self.shape,
-                )
-            }
+            _ => matrix(
+                self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                self.row,
+                self.col,
+                self.shape,
+            ),
         }
     }
 }
@@ -1413,14 +1407,16 @@ impl<'a> Neg for &'a Matrix {
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                matrix(
-                    self.data.clone().into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
-                    self.row,
-                    self.col,
-                    self.shape,
-                )
-            }
+            _ => matrix(
+                self.data
+                    .clone()
+                    .into_iter()
+                    .map(|x: f64| -x)
+                    .collect::<Vec<f64>>(),
+                self.row,
+                self.col,
+                self.shape,
+            ),
         }
     }
 }
@@ -1527,9 +1523,7 @@ where
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x - other.into())
-            }
+            _ => self.fmap(|x| x - other.into()),
         }
     }
 }
@@ -1553,9 +1547,7 @@ where
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x - other.into())
-            }
+            _ => self.fmap(|x| x - other.into()),
         }
     }
 }
@@ -1639,9 +1631,7 @@ impl Mul<f64> for Matrix {
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x * other)
-            }
+            _ => self.fmap(|x| x * other),
         }
     }
 }
@@ -1687,9 +1677,7 @@ impl<'a> Mul<f64> for &'a Matrix {
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
-            _ => {
-                self.fmap(|x| x * other)
-            }
+            _ => self.fmap(|x| x * other),
         }
     }
 }
@@ -1800,7 +1788,7 @@ impl Mul<Matrix> for Matrix {
         match () {
             #[cfg(feature = "openblas")]
             () => blas_mul(&self, &other),
-            _ => matmul(&self, &other)
+            _ => matmul(&self, &other),
         }
     }
 }
@@ -1812,7 +1800,7 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
         match () {
             #[cfg(feature = "openblas")]
             () => blas_mul(self, other),
-            _ => matmul(self, other)
+            _ => matmul(self, other),
         }
     }
 }
@@ -1822,7 +1810,7 @@ impl Mul<Vector> for Matrix {
     type Output = Self;
 
     fn mul(self, other: Vector) -> Self::Output {
-        match() {
+        match () {
             #[cfg(feature = "openblas")]
             () => {
                 let x = &other;
@@ -1831,46 +1819,16 @@ impl Mul<Vector> for Matrix {
                 let m_i32 = self.row as i32;
                 let n_i32 = self.col as i32;
                 match self.shape {
-                    Row => {
-                        unsafe {
-                            dgemv(
-                                b'T',
-                                m_i32,
-                                n_i32,
-                                1f64,
-                                A,
-                                n_i32,
-                                x,
-                                1,
-                                0f64,
-                                &mut y,
-                                1
-                            );
-                        }
-                    }
-                    Col => {
-                        unsafe {
-                            dgemv(
-                                b'N',
-                                m_i32,
-                                n_i32,
-                                1f64,
-                                A,
-                                m_i32,
-                                x,
-                                1,
-                                0f64,
-                                &mut y,
-                                1
-                            );
-                        }
-                    }
+                    Row => unsafe {
+                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
+                    },
+                    Col => unsafe {
+                        dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
+                    },
                 }
                 matrix(y, self.row, 1, self.shape)
             }
-            _ => {
-                self.mul(other.to_matrix())
-            }
+            _ => self.mul(other.to_matrix()),
         }
     }
 }
@@ -1880,7 +1838,7 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
     type Output = Matrix;
 
     fn mul(self, other: &'b Vector) -> Self::Output {
-        match() {
+        match () {
             #[cfg(feature = "openblas")]
             () => {
                 let x = other;
@@ -1889,46 +1847,16 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
                 let m_i32 = self.row as i32;
                 let n_i32 = self.col as i32;
                 match self.shape {
-                    Row => {
-                        unsafe {
-                            dgemv(
-                                b'T',
-                                m_i32,
-                                n_i32,
-                                1f64,
-                                A,
-                                n_i32,
-                                x,
-                                1,
-                                0f64,
-                                &mut y,
-                                1
-                            );
-                        }
-                    }
-                    Col => {
-                        unsafe {
-                            dgemv(
-                                b'N',
-                                m_i32,
-                                n_i32,
-                                1f64,
-                                A,
-                                m_i32,
-                                x,
-                                1,
-                                0f64,
-                                &mut y,
-                                1
-                            );
-                        }
-                    }
+                    Row => unsafe {
+                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
+                    },
+                    Col => unsafe {
+                        dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
+                    },
                 }
                 matrix(y, self.row, 1, self.shape)
             }
-            _ => {
-                self.mul(&other.to_matrix())
-            }
+            _ => self.mul(&other.to_matrix()),
         }
     }
 }
@@ -2312,7 +2240,7 @@ impl LinearAlgebra for Matrix {
                             }
                         }
                         m
-                    },
+                    }
                 }
             }
             Infinity => {
@@ -2458,27 +2386,25 @@ impl LinearAlgebra for Matrix {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
                     None => NAN,
-                    Some(dgrf) => {
-                        match dgrf.status {
-                            LAPACK_STATUS::Singular => 0f64,
-                            LAPACK_STATUS::NonSingular => {
-                                let mat = &dgrf.fact_mat;
-                                let ipiv = &dgrf.ipiv;
-                                let n = mat.col;
-                                let mut sgn = 1i32;
-                                let mut d = 1f64;
-                                for i in 0 .. n {
-                                    d *= mat[(i,i)];
-                                }
-                                for i in 0 .. ipiv.len() {
-                                    if ipiv[i] - 1 != i as i32 {
-                                        sgn *= -1;
-                                    }
-                                }
-                                (sgn as f64) * d
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::Singular => 0f64,
+                        LAPACK_STATUS::NonSingular => {
+                            let mat = &dgrf.fact_mat;
+                            let ipiv = &dgrf.ipiv;
+                            let n = mat.col;
+                            let mut sgn = 1i32;
+                            let mut d = 1f64;
+                            for i in 0..n {
+                                d *= mat[(i, i)];
                             }
+                            for i in 0..ipiv.len() {
+                                if ipiv[i] - 1 != i as i32 {
+                                    sgn *= -1;
+                                }
+                            }
+                            (sgn as f64) * d
                         }
-                    }
+                    },
                 }
             }
             _ => {
@@ -2581,27 +2507,23 @@ impl LinearAlgebra for Matrix {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
                     None => None,
-                    Some(dgrf) => {
-                        lapack_dgetri(&dgrf)
-                    }
+                    Some(dgrf) => lapack_dgetri(&dgrf),
                 }
             }
-            _ => {
-                match self.lu() {
-                    None => None,
-                    Some(pqlu) => {
-                        let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-                        let mut m = inv_u(u) * inv_l(l);
-                        for (idx1, idx2) in q.into_iter().rev() {
-                            m = m.swap(idx1, idx2, Row);
-                        }
-                        for (idx1, idx2) in p.into_iter().rev() {
-                            m = m.swap(idx1, idx2, Col);
-                        }
-                        Some(m)
+            _ => match self.lu() {
+                None => None,
+                Some(pqlu) => {
+                    let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+                    let mut m = inv_u(u) * inv_l(l);
+                    for (idx1, idx2) in q.into_iter().rev() {
+                        m = m.swap(idx1, idx2, Row);
                     }
+                    for (idx1, idx2) in p.into_iter().rev() {
+                        m = m.swap(idx1, idx2, Col);
+                    }
+                    Some(m)
                 }
-            }
+            },
         }
     }
 
@@ -2640,21 +2562,17 @@ pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
             let opt_dgrf = lapack_dgetrf(A);
             match opt_dgrf {
                 None => None,
-                Some(dgrf) => {
-                    match dgrf.status {
-                        LAPACK_STATUS::Singular => None,
-                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, b)
-                    }
-                }
+                Some(dgrf) => match dgrf.status {
+                    LAPACK_STATUS::Singular => None,
+                    LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, b),
+                },
             }
         }
         _ => {
             let opt_a_inv = A.inv();
             match opt_a_inv {
                 None => None,
-                Some(a_inv) => {
-                    Some(&a_inv * b)
-                }
+                Some(a_inv) => Some(&a_inv * b),
             }
         }
     }
@@ -2816,15 +2734,15 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
                 }
             }
             result
-        },
+        }
         _ => {
             let (a1, a2, a3, a4) = a.block();
             let (b1, b2, b3, b4) = b.block();
 
-            let m1 = matmul(&a1,&b1) + matmul(&a2,&b3);
-            let m2 = matmul(&a1,&b2) + matmul(&a2,&b4);
-            let m3 = matmul(&a3,&b1) + matmul(&a4,&b3);
-            let m4 = matmul(&a3,&b2) + matmul(&a4,&b4);
+            let m1 = matmul(&a1, &b1) + matmul(&a2, &b3);
+            let m2 = matmul(&a1, &b2) + matmul(&a2, &b4);
+            let m3 = matmul(&a3, &b1) + matmul(&a4, &b3);
+            let m4 = matmul(&a3, &b2) + matmul(&a4, &b4);
 
             combine(m1, m2, m3, m4)
         }
@@ -2858,26 +2776,34 @@ pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     match (m1.shape, m2.shape) {
         (Row, Row) => {
             unsafe {
-                dgemm(b'N', b'N', n_i32, m_i32, k_i32, 1f64, b, n_i32, a, k_i32, 0f64, &mut c, n_i32);
+                dgemm(
+                    b'N', b'N', n_i32, m_i32, k_i32, 1f64, b, n_i32, a, k_i32, 0f64, &mut c, n_i32,
+                );
             }
             matrix(c, m, n, Row)
         }
         (Row, Col) => {
             unsafe {
-                dgemm(b'T', b'N', n_i32, m_i32, k_i32, 1f64, b, k_i32, a, k_i32, 0f64, &mut c, n_i32);
+                dgemm(
+                    b'T', b'N', n_i32, m_i32, k_i32, 1f64, b, k_i32, a, k_i32, 0f64, &mut c, n_i32,
+                );
             }
             matrix(c, m, n, Row)
         }
         (Col, Col) => {
             unsafe {
                 // (nxk) x (kxm) = n x m
-                dgemm(b'N', b'N', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32);
+                dgemm(
+                    b'N', b'N', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, k_i32, 0f64, &mut c, m_i32,
+                );
             }
             matrix(c, m, n, Col)
         }
         (Col, Row) => {
             unsafe {
-                dgemm(b'N', b'T', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32);
+                dgemm(
+                    b'N', b'T', m_i32, n_i32, k_i32, 1f64, a, m_i32, b, n_i32, 0f64, &mut c, m_i32,
+                );
             }
             matrix(c, m, n, Col)
         }
@@ -2924,7 +2850,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     // Should column major
     let mut a = match mat.shape {
         Row => mat.change_shape().data.clone(),
-        Col => mat.data.clone()
+        Col => mat.data.clone(),
     };
 
     let mut info = 0i32;;
@@ -2937,21 +2863,17 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     if info < 0 {
         None
     } else if info == 0 {
-        Some(
-            DGETRF {
-                fact_mat: matrix(a, m, n, Col),
-                ipiv,
-                status: LAPACK_STATUS::NonSingular,
-            }
-        )
+        Some(DGETRF {
+            fact_mat: matrix(a, m, n, Col),
+            ipiv,
+            status: LAPACK_STATUS::NonSingular,
+        })
     } else {
-        Some(
-            DGETRF {
-                fact_mat: matrix(a, m, n, Col),
-                ipiv,
-                status: LAPACK_STATUS::Singular,
-            }
-        )
+        Some(DGETRF {
+            fact_mat: matrix(a, m, n, Col),
+            ipiv,
+            status: LAPACK_STATUS::Singular,
+        })
     }
 }
 
@@ -2966,7 +2888,7 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
 
     // Workspace Query
     unsafe {
-        dgetri(n, &mut result.data, lda, ipiv, &mut work,-1, &mut info);
+        dgetri(n, &mut result.data, lda, ipiv, &mut work, -1, &mut info);
     }
 
     let optimal_lwork = work[0] as usize;
@@ -2974,13 +2896,19 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
 
     // Real dgetri
     unsafe {
-        dgetri(n, &mut result.data, lda, ipiv, &mut optimal_work, optimal_lwork as i32, &mut info);
+        dgetri(
+            n,
+            &mut result.data,
+            lda,
+            ipiv,
+            &mut optimal_work,
+            optimal_lwork as i32,
+            &mut info,
+        );
     }
 
     if info == 0 {
-        Some(
-            result
-        )
+        Some(result)
     } else {
         None
     }
@@ -3003,7 +2931,9 @@ pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
             let mut info = 0i32;
 
             unsafe {
-                dgetrs(b'N', n, nrhs, &A.data, lda, ipiv, &mut b_vec, ldb, &mut info);
+                dgetrs(
+                    b'N', n, nrhs, &A.data, lda, ipiv, &mut b_vec, ldb, &mut info,
+                );
             }
 
             if info == 0 {
@@ -3039,25 +2969,30 @@ pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
 
             // Real dgeqrf
             unsafe {
-                dgeqrf(m, n, &mut A.data, m, &mut tau, &mut optimal_work, optimal_lwork as i32, &mut info);
+                dgeqrf(
+                    m,
+                    n,
+                    &mut A.data,
+                    m,
+                    &mut tau,
+                    &mut optimal_work,
+                    optimal_lwork as i32,
+                    &mut info,
+                );
             }
 
             if info == 0 {
-                Some(
-                    DGEQRF {
-                        fact_mat: A,
-                        tau,
-                        status: LAPACK_STATUS::NonSingular,
-                    }
-                )
+                Some(DGEQRF {
+                    fact_mat: A,
+                    tau,
+                    status: LAPACK_STATUS::NonSingular,
+                })
             } else if info > 0 {
-                Some(
-                    DGEQRF {
-                        fact_mat: A,
-                        tau,
-                        status: LAPACK_STATUS::Singular,
-                    }
-                )
+                Some(DGEQRF {
+                    fact_mat: A,
+                    tau,
+                    status: LAPACK_STATUS::Singular,
+                })
             } else {
                 None
             }
@@ -3074,10 +3009,10 @@ impl DGETRF {
 
     pub fn get_L(&self) -> Matrix {
         let mut l = self.fact_mat.clone();
-        for i in 0 .. l.row {
-            l[(i,i)] = 1f64;
-            for j in i+1 .. l.col {
-                l[(i,j)] = 0f64;
+        for i in 0..l.row {
+            l[(i, i)] = 1f64;
+            for j in i + 1..l.col {
+                l[(i, j)] = 0f64;
             }
         }
         l
@@ -3085,9 +3020,9 @@ impl DGETRF {
 
     pub fn get_U(&self) -> Matrix {
         let mut u = self.fact_mat.clone();
-        for i in 0 .. u.row {
-            for j in 0 .. i {
-                u[(i,j)] = 0f64;
+        for i in 0..u.row {
+            for j in 0..i {
+                u[(i, j)] = 0f64;
             }
         }
         u
@@ -3104,7 +3039,9 @@ impl DGETRF {
         let mut rcond = 0f64;
 
         unsafe {
-            dgecon(b'1', n, &A.data, lda, anorm, &mut rcond, &mut work, &mut iwork, &mut info);
+            dgecon(
+                b'1', n, &A.data, lda, anorm, &mut rcond, &mut work, &mut iwork, &mut info,
+            );
         }
 
         if info == 0 {
@@ -3150,8 +3087,8 @@ impl DGEQRF {
         let row = min(qr.row, qr.col);
         let col = qr.col;
         let mut result = matrix(vec![0f64; row * col], row, col, qr.shape);
-        for i in 0 .. row {
-            for j in i .. col {
+        for i in 0..row {
+            for j in i..col {
                 result[(i, j)] = qr[(i, j)];
             }
         }

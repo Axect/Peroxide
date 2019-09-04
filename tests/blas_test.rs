@@ -5,7 +5,7 @@ use peroxide::*;
 #[cfg(feature = "native")]
 fn daxpy_test() {
     let a = ml_matrix("1 2; 3 4");
-    let b = matrix(vec![1, 3, 2, 4], 2, 2,  Col);
+    let b = matrix(vec![1, 3, 2, 4], 2, 2, Col);
     let c = ml_matrix("2 4;6 8");
 
     assert_eq!(&a + &b, c.clone());
@@ -32,7 +32,7 @@ fn dgemm_test() {
     let rr = &a * &b;
     let rc = &a * &(b.change_shape());
     let cr = &(a.change_shape()) * &b;
-    let cc  = &(a.change_shape()) * &(b.change_shape());
+    let cc = &(a.change_shape()) * &(b.change_shape());
 
     assert_eq!(rc.clone(), cr.clone());
     assert_eq!(rr, rc);
@@ -45,7 +45,7 @@ fn dgemm_test() {
     let rr2 = &a2 * &b2;
     let rc2 = &a2 * &(b2.change_shape());
     let cr2 = &(a2.change_shape()) * &b2;
-    let cc2  = &(a2.change_shape()) * &(b2.change_shape());
+    let cc2 = &(a2.change_shape()) * &(b2.change_shape());
 
     assert_eq!(rc2.clone(), cr2.clone());
     assert_eq!(rr2, rc2);
@@ -63,5 +63,4 @@ fn dgemm_test() {
     assert_eq!(rc3.clone(), cr3.clone());
     assert_eq!(rr3, rc3);
     assert_eq!(cr3, cc3);
-
 }

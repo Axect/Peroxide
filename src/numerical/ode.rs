@@ -213,9 +213,9 @@ use structure::matrix::{Matrix, Row, FP};
 use structure::vector::FPVector;
 use util::non_macro::{cat, zeros};
 use util::print::Printable;
+use VecOps;
 #[cfg(feature = "openblas")]
-use ::{blas_daxpy, blas_daxpy_return};
-use ::VecOps;
+use {blas_daxpy, blas_daxpy_return};
 
 /// Explicit ODE Methods
 ///
@@ -462,7 +462,6 @@ impl ODE for ExplicitODE {
                         self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
                     }
                 }
-
 
                 (self.func)(&mut self.state);
 

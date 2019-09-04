@@ -1,3 +1,9 @@
+# Release 0.15.2 (2019-09-04)
+
+* Come back to Travis-CI (only default feature)
+* Legendre Polynomial (`legendre_polynomial(n: usize) -> Polynomial`)
+* Gauss-Legendre Quadrature based on numerical table (up to `n=16`)
+
 # Release 0.15.1 (2019-08-29)
 
 * More optimization of `vector.rs`

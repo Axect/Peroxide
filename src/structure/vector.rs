@@ -572,9 +572,7 @@ impl VecOps for Vector {
                 }
                 y
             }
-            _ => {
-                self.zip_with(|x, y| x + y, other)
-            }
+            _ => self.zip_with(|x, y| x + y, other),
         }
     }
 
@@ -590,9 +588,7 @@ impl VecOps for Vector {
                 }
                 y
             }
-            _ => {
-                self.zip_with(|x, y| x - y, other)
-            }
+            _ => self.zip_with(|x, y| x - y, other),
         }
     }
 
@@ -617,9 +613,7 @@ impl VecOps for Vector {
                 }
                 y
             }
-            _ => {
-                self.fmap(|x| x + scala)
-            }
+            _ => self.fmap(|x| x + scala),
         }
     }
 
@@ -634,9 +628,7 @@ impl VecOps for Vector {
                 }
                 y
             }
-            _ => {
-                self.fmap(|x| x - scala)
-            }
+            _ => self.fmap(|x| x - scala),
         }
     }
 
@@ -651,9 +643,7 @@ impl VecOps for Vector {
                 }
                 x
             }
-            _ => {
-                self.fmap(|x| scala * x)
-            }
+            _ => self.fmap(|x| scala * x),
         }
     }
 
@@ -664,13 +654,11 @@ impl VecOps for Vector {
                 let mut x = self.clone();
                 let n_i32 = self.len() as i32;
                 unsafe {
-                    dscal(n_i32, 1f64/scala, &mut x, 1);
+                    dscal(n_i32, 1f64 / scala, &mut x, 1);
                 }
                 x
             }
-            _ => {
-                self.fmap(|x| x / scala)
-            }
+            _ => self.fmap(|x| x / scala),
         }
     }
 
@@ -686,9 +674,7 @@ impl VecOps for Vector {
                 }
                 res
             }
-            _ => {
-                zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y)
-            }
+            _ => zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y),
         }
     }
 
@@ -704,9 +690,7 @@ impl VecOps for Vector {
                 }
                 res
             }
-            _ => {
-                self.dot(&self).sqrt()
-            }
+            _ => self.dot(&self).sqrt(),
         }
     }
 

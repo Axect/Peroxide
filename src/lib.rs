@@ -184,3 +184,6 @@ pub use util::plot::*;
 
 #[allow(unused_imports)]
 pub use numerical::optimize::*;
+
+#[allow(unused_imports)]
+pub use special::legendre::*;

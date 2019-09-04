@@ -103,6 +103,8 @@ Peroxide can do many things.
         * Runge Kutta 4th order
         * Backward Euler
         * Gauss Legendre 4th order
+    * Numerical Integration
+        * Gauss-Legendre Quadrature
 * Statistics
     * More easy random with `rand` crate
     * Probability Distributions
@@ -134,7 +136,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.15.0`
+Corresponding to `0.15.2`
 
 ## Pre-requisite
 

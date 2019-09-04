@@ -341,6 +341,46 @@ impl Div<Polynomial> for Polynomial {
     }
 }
 
+impl Mul<Polynomial> for usize {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: Polynomial) -> Self::Output {
+        rhs.mul(self as f64)
+    }
+}
+
+impl Mul<Polynomial> for i32 {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: Polynomial) -> Self::Output {
+        rhs.mul(self as f64)
+    }
+}
+
+impl Mul<Polynomial> for i64 {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: Polynomial) -> Self::Output {
+        rhs.mul(self as f64)
+    }
+}
+
+impl Mul<Polynomial> for f32 {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: Polynomial) -> Self::Output {
+        rhs.mul(self as f64)
+    }
+}
+
+impl Mul<Polynomial> for f64 {
+    type Output = Polynomial;
+
+    fn mul(self, rhs: Polynomial) -> Self::Output {
+        rhs.mul(self as f64)
+    }
+}
+
 // =============================================================================
 // Extra operations for Polynomial
 // =============================================================================
