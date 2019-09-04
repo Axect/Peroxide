@@ -58,7 +58,7 @@
 //!     let mut y = x.fmap(|t| t.powi(2));
 //!     y = zip_with(|a, b| a + b, &y, &normal2.sample(y.len()));
 //!
-//!     // Initial paramter
+//!     // Initial parameter
 //!     let n_init = vec![1f64];
 //!     let data = hstack!(x.clone(), y.clone());
 //!
@@ -75,15 +75,18 @@
 //!     let z = quad(&x, NumberVector::from_f64_vec(p)).to_f64_vec();
 //!
 //!     // Plot
-//!     let mut plt = Plot2D::new();
-//!     plt.set_domain(x)
-//!         .insert_image(y)    // plot data
-//!         .insert_image(z)    // plot fit
-//!         .set_legend(vec!["Data", "Fit"])
-//!         .set_title("Test ($y=x^2$ with noise)")
-//!         .set_path("example_data/lm_test.png")
-//!         .set_marker(vec![Point, Line])
-//!         .savefig().expect("Can't draw a plot");
+//!     #[cfg(feature = "plot")]
+//!     {
+//!         let mut plt = Plot2D::new();
+//!         plt.set_domain(x)
+//!             .insert_image(y)    // plot data
+//!             .insert_image(z)    // plot fit
+//!             .set_legend(vec!["Data", "Fit"])
+//!             .set_title("Test ($y=x^2$ with noise)")
+//!             .set_path("example_data/lm_test.png")
+//!             .set_marker(vec![Point, Line])
+//!             .savefig().expect("Can't draw a plot");
+//!     }
 //! }
 //!
 //! fn quad(x: &Vec<f64>, n: Vec<Number>) -> Vec<Number> {
