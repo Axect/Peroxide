@@ -12,6 +12,7 @@ keywords = ["Numeric", "R", "MATLAB", "Python", "Scientific"]
 exclude = ["example_data/", "src/bin/", "benches/", "example/"]
 
 [badges]
+travis-ci = { repository = "axect/peroxide" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]

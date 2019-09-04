@@ -3,6 +3,7 @@
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
 [![builds.sr.ht status](https://builds.sr.ht/~axect/Peroxide/.build.yml.svg)](https://builds.sr.ht/~axect/Peroxide/.build.yml?)
+[![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)](https://travis-ci.org/Axect/Peroxide) 
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
 Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
