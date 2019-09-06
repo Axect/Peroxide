@@ -1,5 +1,4 @@
 use structure::polynomial::{poly, Polynomial};
-use zip_with;
 
 /// Legendre Polynomial
 ///

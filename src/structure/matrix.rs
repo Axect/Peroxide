@@ -436,15 +436,15 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "openblas")]
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
+#[cfg(feature = "openblas")]
+use std::f64::NAN;
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
-use eye_shape;
 use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
-use std::f64::NAN;
 use std::fmt;
 use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 #[allow(unused_imports)]
@@ -2810,6 +2810,7 @@ pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     }
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum LAPACK_STATUS {
     Singular,
@@ -2853,7 +2854,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
         Col => mat.data.clone(),
     };
 
-    let mut info = 0i32;;
+    let mut info = 0i32;
     let mut ipiv: Vec<i32> = vec![0i32; std::cmp::min(m, n)];
 
     unsafe {

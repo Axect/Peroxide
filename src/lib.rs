@@ -84,6 +84,7 @@ pub mod numerical;
 pub mod operation;
 pub mod special;
 pub mod util;
+pub mod redox;
 
 #[allow(unused_imports)]
 pub use macros::{julia_macro::*, matlab_macro::*, r_macro::*};
@@ -187,3 +188,6 @@ pub use numerical::optimize::*;
 
 #[allow(unused_imports)]
 pub use special::legendre::*;
+
+#[allow(unused_imports)]
+pub use redox::redoxable::*;

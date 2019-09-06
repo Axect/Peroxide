@@ -150,7 +150,8 @@ Corresponding to `0.15.2`
 
 1. Default
     ```toml
-    peroxide = "0.15"
+   [dependencies]
+   peroxide = "0.15"
     ```
 2. OpenBLAS
     ```toml

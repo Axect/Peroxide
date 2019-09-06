@@ -1,4 +1,5 @@
 extern crate peroxide;
+#[allow(unused_imports)]
 use peroxide::*;
 
 #[test]
