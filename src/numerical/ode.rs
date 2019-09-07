@@ -214,7 +214,7 @@ use structure::vector::FPVector;
 use util::non_macro::{cat, zeros};
 use util::print::Printable;
 use VecOps;
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 use {blas_daxpy, blas_daxpy_return};
 
 /// Explicit ODE Methods
@@ -398,7 +398,7 @@ impl ODE for ExplicitODE {
                 let dt = self.step_size;
 
                 match () {
-                    #[cfg(feature = "openblas")]
+                    #[cfg(feature = "oxidize")]
                     () => {
                         blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
                     }
@@ -423,7 +423,7 @@ impl ODE for ExplicitODE {
                 self.state.param += h2;
 
                 match () {
-                    #[cfg(feature = "openblas")]
+                    #[cfg(feature = "oxidize")]
                     () => {
                         blas_daxpy(1f64, &k1_add, &mut self.state.value);
                     }
@@ -438,7 +438,7 @@ impl ODE for ExplicitODE {
                 let k2_add = k2.zip_with(|x, y| h2 * x - y, &k1_add);
 
                 match () {
-                    #[cfg(feature = "openblas")]
+                    #[cfg(feature = "oxidize")]
                     () => {
                         blas_daxpy(1f64, &k2_add, &mut self.state.value);
                     }
@@ -454,7 +454,7 @@ impl ODE for ExplicitODE {
                 self.state.param += h2;
 
                 match () {
-                    #[cfg(feature = "openblas")]
+                    #[cfg(feature = "oxidize")]
                     () => {
                         blas_daxpy(1f64, &k3_add, &mut self.state.value);
                     }

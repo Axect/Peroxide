@@ -1,5 +1,6 @@
 use std::ops::{Add, Deref, Index, IndexMut};
 
+/// Smart pointer of Vector
 pub struct RedoxVector<T> {
     pub data: Vec<T>
 }

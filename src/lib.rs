@@ -66,13 +66,18 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 extern crate blas;
-#[cfg(feature = "openblas")]
+
+#[cfg(feature = "oxidize")]
 extern crate lapack;
 
 #[cfg(feature = "plot")]
 extern crate pyo3;
+
+#[cfg(feature = "simd")]
+extern crate packed_simd;
+
 extern crate rand;
 
 pub mod statistics;

@@ -1,3 +1,7 @@
+# Release 0.15.3 (2019-09-07)
+
+* Smart pointer of Vector - `RedoxVector`
+
 # Release 0.15.2 (2019-09-04)
 
 * Come back to Travis-CI (only default feature)

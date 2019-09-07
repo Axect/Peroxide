@@ -262,10 +262,15 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 extern crate blas;
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 use blas::{daxpy, ddot, dnrm2, dscal, idamax};
+
+#[cfg(feature = "oxidize")]
+extern crate packed_simd;
+#[cfg(feature = "oxidize")]
+use self::packed_simd::{f64x8, f64x4};
 
 use operation::extra_ops::Real;
 use std::cmp::min;
@@ -562,34 +567,12 @@ impl VecOps for Vector {
 
     /// Addition
     fn add(&self, other: &Self) -> Self {
-        match () {
-            #[cfg(feature = "openblas")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let mut y = other.clone();
-                unsafe {
-                    daxpy(n_i32, 1f64, self, 1, &mut y, 1);
-                }
-                y
-            }
-            _ => self.zip_with(|x, y| x + y, other),
-        }
+        self.zip_with(|x, y| x + y, other)
     }
 
     /// Subtraction
     fn sub(&self, other: &Self) -> Self {
-        match () {
-            #[cfg(feature = "openblas")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let mut y = self.clone();
-                unsafe {
-                    daxpy(n_i32, -1f64, other, 1, &mut y, 1);
-                }
-                y
-            }
-            _ => self.zip_with(|x, y| x - y, other),
-        }
+        self.zip_with(|x, y| x - y, other)
     }
 
     /// Multiplication
@@ -604,14 +587,27 @@ impl VecOps for Vector {
 
     fn s_add(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
-                let n_i32 = self.len() as i32;
-                let mut y = self.clone();
-                unsafe {
-                    daxpy(n_i32, 1f64, &vec![scala; self.len()], 1, &mut y, 1);
+                match self.len() {
+                    n if n % 8 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(8)
+                            .map(f64x8::from_slice_unaligned)
+                            .map(|x| x + scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    n if n % 4 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(4)
+                            .map(f64x4::from_slice_unaligned)
+                            .map(|x| x + scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    _ => self.fmap(|x| x + scala)
                 }
-                y
             }
             _ => self.fmap(|x| x + scala),
         }
@@ -619,14 +615,27 @@ impl VecOps for Vector {
 
     fn s_sub(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
-                let n_i32 = self.len() as i32;
-                let mut y = self.clone();
-                unsafe {
-                    daxpy(n_i32, -1f64, &vec![scala; self.len()], 1, &mut y, 1);
+                match self.len() {
+                    n if n % 8 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(8)
+                            .map(f64x8::from_slice_unaligned)
+                            .map(|x| x - scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    n if n % 4 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(4)
+                            .map(f64x4::from_slice_unaligned)
+                            .map(|x| x - scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    _ => self.fmap(|x| x - scala)
                 }
-                y
             }
             _ => self.fmap(|x| x - scala),
         }
@@ -634,14 +643,27 @@ impl VecOps for Vector {
 
     fn s_mul(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
-                let mut x = self.clone();
-                let n_i32 = self.len() as i32;
-                unsafe {
-                    dscal(n_i32, scala, &mut x, 1);
+                match self.len() {
+                    n if n % 8 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(8)
+                            .map(f64x8::from_slice_unaligned)
+                            .map(|x| x * scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    n if n % 4 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(4)
+                            .map(f64x4::from_slice_unaligned)
+                            .map(|x| x * scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    _ => self.fmap(|x| x * scala)
                 }
-                x
             }
             _ => self.fmap(|x| scala * x),
         }
@@ -649,14 +671,27 @@ impl VecOps for Vector {
 
     fn s_div(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
-                let mut x = self.clone();
-                let n_i32 = self.len() as i32;
-                unsafe {
-                    dscal(n_i32, 1f64 / scala, &mut x, 1);
+                match self.len() {
+                    n if n % 8 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(8)
+                            .map(f64x8::from_slice_unaligned)
+                            .map(|x| x / scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    n if n % 4 == 0 => {
+                        let mut z = vec![0f64; n];
+                        self.chunks_exact(4)
+                            .map(f64x4::from_slice_unaligned)
+                            .map(|x| x / scala)
+                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
+                        z
+                    }
+                    _ => self.fmap(|x| x / scala)
                 }
-                x
             }
             _ => self.fmap(|x| x / scala),
         }
@@ -665,7 +700,7 @@ impl VecOps for Vector {
     /// Dot product
     fn dot(&self, other: &Self) -> f64 {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -681,7 +716,7 @@ impl VecOps for Vector {
     /// Norm
     fn norm(&self) -> f64 {
         match () {
-            #[cfg(feature = "openblas")]
+            #[cfg(feature = "oxidize")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -701,7 +736,7 @@ impl VecOps for Vector {
     }
 }
 
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
     assert_eq!(x.len(), y.len());
     unsafe {
@@ -710,7 +745,7 @@ pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
     }
 }
 
-#[cfg(feature = "openblas")]
+#[cfg(feature = "oxidize")]
 pub fn blas_daxpy_return(a: f64, x: &Vec<f64>, y: &Vec<f64>) -> Vec<f64> {
     assert_eq!(x.len(), y.len());
     let mut result = y.clone();
