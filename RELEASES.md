@@ -1,6 +1,7 @@
-# Release 0.15.3 (2019-09-07)
+# Release 0.15.3 (2019-09-08) (Candidates)
 
 * Smart pointer of Vector - `RedoxVector`
+* SIMD integrated - `packed_simd`
 
 # Release 0.15.2 (2019-09-04)
 
