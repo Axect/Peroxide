@@ -4,7 +4,7 @@ use peroxide::*;
 #[test]
 fn test_jacobian() {
     let x = c!(1, 0);
-    let j = jacobian(f, x);
+    let j = jacobian(f, &x);
     assert_eq!(j, ml_matrix("0 1; 5 1"));
 }
 

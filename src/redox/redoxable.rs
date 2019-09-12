@@ -1,70 +1,59 @@
 use std::ops::{Add, Deref, Index, IndexMut};
+use structure::vector::VecOps;
 
 /// Smart pointer of Vector
-pub struct RedoxVector<T> {
-    pub data: Vec<T>
+pub struct RedoxVector {
+    pub data: Vec<f64>
 }
 
-impl<T: Default + Clone> RedoxVector<T> {
+impl RedoxVector {
     pub fn new(n: usize) -> Self {
         RedoxVector {
-            data: vec![T::default(); n]
+            data: vec![f64::default(); n]
         }
     }
 
-    pub fn from_vec(v: Vec<T>) -> Self {
+    pub fn from_vec(v: Vec<f64>) -> Self {
         RedoxVector {
             data: v
         }
     }
 }
 
-impl<T> Deref for RedoxVector<T> {
-    type Target = Vec<T>;
+impl Deref for RedoxVector {
+    type Target = Vec<f64>;
 
     fn deref(&self) -> &Self::Target {
         &self.data
     }
 }
 
-impl<T> Index<usize> for RedoxVector<T> {
-    type Output = T;
+impl Index<usize> for RedoxVector {
+    type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
         self.data.index(index)
     }
 }
 
-impl<T> IndexMut<usize> for RedoxVector<T> {
-    fn index_mut(&mut self, index: usize) -> &mut T {
+impl IndexMut<usize> for RedoxVector {
+    fn index_mut(&mut self, index: usize) -> &mut f64 {
         self.data.index_mut(index)
     }
 }
 
-impl<T> Add<RedoxVector<T>> for RedoxVector<T>
-where T: Default + Add<Output=T> + Copy + Clone
-{
-    type Output = RedoxVector<T>;
+impl Add<RedoxVector> for RedoxVector {
+    type Output = RedoxVector;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let mut rv: RedoxVector<T> = RedoxVector::new((*self).len());
-        for i in 0 .. rv.len() {
-            rv[i] = self[i] + rhs[i];
-        }
-        rv
+        RedoxVector::from_vec(self.data.add(&rhs.data))
     }
 }
 
-impl<'a, 'b, T> Add<&'b RedoxVector<T>> for &'a RedoxVector<T>
-where T: Default + Add<Output=T> + Copy + Clone
-{
-    type Output = RedoxVector<T>;
+impl<'a, 'b> Add<&'b RedoxVector> for &'a RedoxVector {
+    type Output = RedoxVector;
 
-    fn add(self, rhs: &'b RedoxVector<T>) -> Self::Output {
-        let mut rv: RedoxVector<T> = RedoxVector::new((*self).len());
-        for i in 0 .. rv.len() {
-            rv[i] = self[i] + rhs[i];
-        }
-        rv
+    fn add(self, rhs: &'b RedoxVector) -> Self::Output {
+        RedoxVector::from_vec(self.data.add(&rhs.data))
     }
 }

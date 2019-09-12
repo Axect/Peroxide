@@ -198,7 +198,7 @@ impl Optimizer {
 
         // Declare mutable values
         let mut p = p_init_vec.to_matrix();
-        let mut j = jacobian(f, p_init_vec.clone());
+        let mut j = jacobian(f, &p_init_vec);
         let mut y_hat = f(p_init.clone()).to_f64_vec().to_matrix();
         let mut jtj = &j.t() * &j;
 
@@ -207,7 +207,7 @@ impl Optimizer {
                 for _i in 0..max_iter {
                     let h = alpha * j.t() * (&y - &y_hat);
                     p = &p + &h;
-                    j = jacobian(f, p.data.clone());
+                    j = jacobian(f, &p.data);
                     y_hat = f(NumberVector::from_f64_vec(p.data.clone()))
                         .to_f64_vec()
                         .to_matrix();
@@ -231,7 +231,7 @@ impl Optimizer {
                     }
 
                     let p_temp = &p + &h;
-                    let j_temp = jacobian(f, p.data.clone());
+                    let j_temp = jacobian(f, &p.data);
                     let y_hat_temp = f(NumberVector::from_f64_vec(p_temp.data.clone()))
                         .to_f64_vec()
                         .to_matrix();

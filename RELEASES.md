@@ -1,7 +1,8 @@
-# Release 0.15.3 (2019-09-08) (Candidates)
+# Release 0.15.3 (2019-09-08)
 
 * Smart pointer of Vector - `RedoxVector`
 * SIMD integrated - `packed_simd`
+* Revive Gauss-Legendre 4th order ODE solver
 
 # Release 0.15.2 (2019-09-04)
 

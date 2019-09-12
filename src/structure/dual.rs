@@ -539,11 +539,13 @@ impl Dualist for Vec<Dual> {
     }
 }
 
-pub fn merge_dual(y: Vec<f64>, dy: Vec<f64>) -> Vec<Dual> {
-    y.into_iter()
-        .zip(&dy)
-        .map(|(t, &dt)| Dual::new(t, dt))
-        .collect::<Vec<Dual>>()
+pub fn merge_dual(y: &Vec<f64>, dy: &Vec<f64>) -> Vec<Dual> {
+    let mut result = vec![dual(0, 0); y.len()];
+
+    for i in 0 .. y.len() {
+        result[i] = dual(y[i], dy[i]);
+    }
+    result
 }
 
 impl FPVector for Vec<Dual> {

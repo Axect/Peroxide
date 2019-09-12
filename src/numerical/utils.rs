@@ -17,7 +17,7 @@ use util::non_macro::{cat, zeros};
 /// use peroxide::*;
 ///
 /// let x = c!(1, 1);
-/// let j = jacobian(f, x);
+/// let j = jacobian(f, &x);
 /// j.print();
 ///
 /// //      c[0] c[1]
@@ -35,7 +35,7 @@ use util::non_macro::{cat, zeros};
 /// }
 /// ```
 #[allow(non_snake_case)]
-pub fn jacobian<F>(g: F, x: Vec<f64>) -> Matrix
+pub fn jacobian<F>(g: F, x: &Vec<f64>) -> Matrix
 where
     F: Fn(Vec<Number>) -> Vec<Number>,
 {
@@ -43,8 +43,36 @@ where
 
     let f = |x: Vec<Dual>| g(NumberVector::from_dual_vec(x)).to_dual_vec();
 
-    let x_var: Vec<Dual> = merge_dual(x.clone(), vec![1f64; l]);
-    let x_const = x.clone().conv_dual();
+    let x_var: Vec<Dual> = merge_dual(&x, &vec![1f64; l]);
+    let x_const = x.conv_dual();
+
+    let l2 = f(x_const.clone()).len();
+
+    let mut J = zeros(l2, l);
+
+    let mut x_temp = x_const.clone();
+
+    for i in 0..l {
+        x_temp[i] = x_var[i];
+        let dual_temp = f(x_temp.clone());
+        let slope_temp = dual_temp.slopes();
+        for j in 0..l2 {
+            J[(j, i)] = slope_temp[j];
+        }
+        x_temp = x_const.clone();
+    }
+    J
+}
+
+#[allow(non_snake_case)]
+pub fn jacobian_dual<F>(f: F, x: &Vec<f64>) -> Matrix
+where
+    F: Fn(Vec<Dual>) -> Vec<Dual>,
+{
+    let l = x.len();
+
+    let x_var: Vec<Dual> = merge_dual(&x, &vec![1f64; l]);
+    let x_const = x.conv_dual();
 
     let l2 = f(x_const.clone()).len();
 
