@@ -15,7 +15,7 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 Peroxide provides various features.
 
 * default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* openblas - No pain, no gain. (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
+* oxidize - No pain, no gain - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * plot - With matplotlib of python, we can draw any plots.
 
 If you want to do high performance computation, then choose openblas feature.
@@ -26,7 +26,7 @@ You can choose openblas & plot simultaneously.
  
 ### 2. Easy to optimize
 
-Peroxide uses 1D data structure to describe matrix. So, it's too easy to integrate BLAS.
+Peroxide uses 1D data structure to describe matrix. So, it's too easy to integrate BLAS & SIMD.
 It means peroxide guarantees perfect performance for linear algebraic computations.
 
 ### 3. Friendly syntax
@@ -137,11 +137,11 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.15.2`
+Corresponding to `0.15.3`
 
 ## Pre-requisite
 
-* `openblas` feature - Need `OpenBLAS`
+* `oxidize` feature - Need `OpenBLAS`
 * `plot` feature - Need `matplotlib` of python
 
 ## Install
@@ -153,12 +153,12 @@ Corresponding to `0.15.2`
    [dependencies]
    peroxide = "0.15"
     ```
-2. OpenBLAS
+2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
    version = "0.15"
    default-features = false
-   features = ["openblas"] 
+   features = ["oxidize"] 
    ```
 3. Plot
     ```toml
@@ -167,12 +167,12 @@ Corresponding to `0.15.2`
    default-features = false
    features = ["plot"] 
    ```
-4. OpenBLAS & Plot
+4. OpenBLAS + SIMD & Plot
     ```toml
    [dependencies.peroxide]
    version = "0.15"
    default-features = false
-   features = ["openblas", "plot"] 
+   features = ["oxidize", "plot"] 
    ```
 
 ## Module Structure
@@ -234,9 +234,6 @@ Corresponding to `0.15.2`
 ## Documentation
 
 * [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide/)
-
-
-
 
 ## Example
 
@@ -312,7 +309,7 @@ fn main() {
         .set_title("Test Figure")
         .set_fig_size((10, 6))
         .set_dpi(300)
-        .set_legends(vec!["RK4"])
+        .set_legend(vec!["RK4"])
         .set_path("example_data/test_plot.png");
 
     plt.savefig();
@@ -355,7 +352,7 @@ fn main() {
         .set_title("Test Figure")
         .set_fig_size((10, 6))
         .set_dpi(300)
-        .set_legends(vec!["RK4"])
+        .set_legend(vec!["RK4"])
         .set_path("example_data/test_plot.png");
 
     plt.savefig();
