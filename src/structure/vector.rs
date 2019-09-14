@@ -402,8 +402,8 @@ impl FPVector for Vector {
     fn skip(&self, n: usize) -> Vector {
         let l = self.len();
         let mut v = vec![0f64; l - n];
-        for i in n..l {
-            v[i - n] = self[i];
+        for (i, j) in (n..l).enumerate() {
+            v[i] = self[j];
         }
         return v;
     }

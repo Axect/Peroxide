@@ -40,12 +40,7 @@ impl MATLAB for Matrix {
                     .collect::<Vec<f64>>()
             })
             .collect::<Vec<f64>>();
-        Matrix {
-            data: data,
-            row: r,
-            col: c,
-            shape: Row,
-        }
+        matrix(data, r, c, Row)
     }
 }
 
@@ -63,12 +58,7 @@ impl PYTHON for Matrix {
                 data[idx] = v[i][j].into();
             }
         }
-        Matrix {
-            data: data,
-            row: r,
-            col: c,
-            shape: Row,
-        }
+        matrix(data, r, c, Row)
     }
 }
 
@@ -77,11 +67,6 @@ impl R for Matrix {
     where
         T: convert::Into<f64>,
     {
-        Matrix {
-            data: v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),
-            row: x,
-            col: y,
-            shape: shape,
-        }
+        matrix(v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(), x, y, shape)
     }
 }

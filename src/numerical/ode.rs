@@ -210,7 +210,7 @@ use operation::extra_ops::Real;
 use operation::mut_ops::MutFP;
 use std::collections::HashMap;
 use structure::dual::Dual;
-use structure::matrix::{Matrix, Row, FP, LinearAlgebra};
+use structure::matrix::{Matrix, FP, LinearAlgebra};
 use structure::vector::FPVector;
 use numerical::utils::jacobian_dual;
 use util::non_macro::{cat, concat, zeros, eye};
@@ -474,7 +474,7 @@ impl ODE for ExplicitODE {
                         break;
                     }
                 }
-                return result.take(key, Row);
+                return result.take_row(key);
             }
             _ => {
                 for i in 1..self.times + 1 {
@@ -766,7 +766,7 @@ impl ODE for ImplicitODE {
                         break;
                     }
                 }
-                return result.take(key, Row);
+                return result.take_row(key);
             }
             _ => {
                 for i in 1..self.times + 1 {

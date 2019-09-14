@@ -1,3 +1,56 @@
+# Release 0.16.0 (2019-09-14)
+
+## Now, peroxide meets low level
+
+### Added
+* `operation::mut_ops::MutMatrix`
+    * `fn col_mut(&mut self, idx: usize) -> Vec<*mut f64>`
+    * `fn row_mut(&mut self, idx: usize) -> Vec<*mut f64>`
+* `structure::Matrix::FP::{col_mut_map, row_mut_map}`
+    
+### Modified
+* `structure::matrix::Matrix`
+    * `fn ptr(&self) -> *const f64`
+    * `fn mut_ptr(&self) -> *mut f64`
+    * `Index for Matrix`
+    * `IndexMut for Matrix`
+
+### Example
+```rust
+fn main() {
+    // ===================================
+    // Low Level
+    // ===================================
+    let mut a = ml_matrix("1 2; 3 4");
+    a.print();
+    //      c[0] c[1]
+    // r[0]    1    2
+    // r[1]    3    4
+
+    unsafe {
+        let mut p: Vec<*mut f64> = a.col_mut(1); // Mutable second column
+        for i in 0 .. p.len() {
+            *p[i] = i as f64;
+        }
+    }
+
+    a.print();
+    //      c[0] c[1]
+    // r[0]    1    0
+    // r[1]    3    1
+    
+    // ===================================
+    // High Level
+    // ===================================
+    let mut b = ml_matrix("1 2 3; 4 5 6");
+    b.col_mut_map(|x| x.normalize());
+    b.print();
+    //        c[0]   c[1]   c[2]
+    // r[0] 0.2425 0.3714 0.4472
+    // r[1] 0.9701 0.9285 0.8944
+}
+```
+
 # Release 0.15.3 (2019-09-12)
 
 * Smart pointer of Vector - `RedoxVector`

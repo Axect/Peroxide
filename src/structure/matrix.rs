@@ -447,9 +447,12 @@ use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
+use std::iter;
+use std::slice::{Iter, IterMut};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
+use MutMatrix;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -624,6 +627,14 @@ impl PartialEq for Matrix {
 /// Main matrix structure
 #[allow(dead_code)]
 impl Matrix {
+    pub fn ptr(&self) -> *const f64 {
+        &self.data[0] as *const f64
+    }
+
+    pub fn mut_ptr(&mut self) -> *mut f64 {
+        &mut self.data[0] as *mut f64
+    }
+
     /// Change Bindings
     ///
     /// `Row` -> `Col` or `Col` -> `Row`
@@ -653,12 +664,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                Self {
-                    data: data.clone(),
-                    row: r,
-                    col: c,
-                    shape: Col,
-                }
+                matrix(data.clone(),r,c,Col)
             }
             Col => {
                 for i in 0..l {
@@ -666,12 +672,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                Self {
-                    data: data.clone(),
-                    row: r,
-                    col: c,
-                    shape: Row,
-                }
+                matrix(data.clone(),r,c,Row)
             }
         }
     }
@@ -701,13 +702,13 @@ impl Matrix {
             let part = if r <= 10 {
                 key_row = r;
                 key_col = 100;
-                self.take(100, Col)
+                self.take_col(100)
             } else if c <= 10 {
                 key_row = 100;
                 key_col = c;
-                self.take(100, Row)
+                self.take_row(100)
             } else {
-                self.take(20, Row).take(20, Col)
+                self.take_row(20).take_col(20)
             };
             return format!(
                 "Result is too large to print - {}x{}\nonly print {}x{} parts:\n{}",
@@ -1002,6 +1003,25 @@ impl Matrix {
         }
 
         Ok(m)
+    }
+
+    /// Should check shape
+    pub fn subs(&mut self, idx: usize, v: &Vec<f64>) {
+        let p = &mut self.mut_ptr();
+        match self.shape {
+            Row => {
+                let c = self.col;
+                unsafe {
+                    p.add(idx * c).copy_from(v.as_ptr(), c);
+                }
+            }
+            Col => {
+                let r = self.row;
+                unsafe {
+                    p.add(idx * r).copy_from(v.as_ptr(), r);
+                }
+            }
+        }
     }
 
     /// Substitute Col
@@ -1888,13 +1908,7 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Vector {
     fn mul(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
         let l = self.len();
-        Matrix {
-            data: self.clone(),
-            row: 1,
-            col: l,
-            shape: Col,
-        }
-        .mul(other.clone())
+        matrix(self.clone(), 1, l, Col).mul(other.clone())
     }
 }
 
@@ -1914,11 +1928,21 @@ impl Index<(usize, usize)> for Matrix {
     type Output = f64;
 
     fn index(&self, pair: (usize, usize)) -> &f64 {
+        let p = self.ptr();
         let i = pair.0;
         let j = pair.1;
+        assert!(i < self.row && j < self.col, "Index out of range");
         match self.shape {
-            Row => &self.data[i * self.col + j],
-            Col => &self.data[i + j * self.row],
+            Row => {
+                unsafe {
+                    &*p.add(i * self.col + j)
+                }
+            }   
+            Col => {
+                unsafe {
+                    &*p.add(i + j * self.row)
+                }  
+            },
         }
     }
 }
@@ -1942,14 +1966,20 @@ impl IndexMut<(usize, usize)> for Matrix {
         let j = pair.1;
         let r = self.row;
         let c = self.col;
+        assert!(i < self.row && j < self.col, "Index out of range");
+        let mut p = self.mut_ptr();
         match self.shape {
             Row => {
                 let idx = i * c + j;
-                &mut self.data[idx]
+                unsafe {
+                    &mut *p.add(idx)
+                }
             }
             Col => {
                 let idx = i + j * r;
-                &mut self.data[idx]
+                unsafe {
+                    &mut *p.add(idx)
+                }
             }
         }
     }
@@ -1959,8 +1989,10 @@ impl IndexMut<(usize, usize)> for Matrix {
 // Functional Programming Tools (Hand-written)
 // =============================================================================
 pub trait FP {
-    fn take(&self, n: usize, shape: Shape) -> Matrix;
-    fn skip(&self, n: usize, shape: Shape) -> Matrix;
+    fn take_row(&self, n: usize) -> Matrix;
+    fn take_col(&self, n: usize) -> Matrix;
+    fn skip_row(&self, n: usize) -> Matrix;
+    fn skip_col(&self, n: usize) -> Matrix;
     fn fmap<F>(&self, f: F) -> Matrix
     where
         F: Fn(f64) -> f64;
@@ -1968,6 +2000,12 @@ pub trait FP {
     where
         F: Fn(Vec<f64>) -> Vec<f64>;
     fn row_map<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>;
+    fn col_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>;
+    fn row_mut_map<F>(&mut self, f: F)
     where
         F: Fn(Vec<f64>) -> Vec<f64>;
     fn reduce<F, T>(&self, init: T, f: F) -> f64
@@ -1980,78 +2018,72 @@ pub trait FP {
 }
 
 impl FP for Matrix {
-    fn take(&self, n: usize, shape: Shape) -> Self {
-        match shape {
+    fn take_row(&self, n: usize) -> Self {
+        if n >= self.row {
+            return self.clone();
+        }
+        match self.shape {
             Row => {
-                if n >= self.row {
-                    return self.clone();
-                }
-                match self.shape {
-                    Row => {
-                        let new_data = self
-                            .data
-                            .clone()
-                            .into_iter()
-                            .take(n * self.col)
-                            .collect::<Vec<f64>>();
-                        matrix(new_data, n, self.col, Row)
-                    }
-                    Col => {
-                        let mut temp_data: Vec<f64> = Vec::new();
-                        for i in 0..n {
-                            temp_data.extend(self.row(i));
-                        }
-                        matrix(temp_data, n, self.col, Row)
-                    }
-                }
+                let new_data = self
+                    .data
+                    .clone()
+                    .into_iter()
+                    .take(n * self.col)
+                    .collect::<Vec<f64>>();
+                matrix(new_data, n, self.col, Row)
             }
             Col => {
-                if n >= self.col {
-                    return self.clone();
+                let mut temp_data: Vec<f64> = Vec::new();
+                for i in 0..n {
+                    temp_data.extend(self.row(i));
                 }
-                match self.shape {
-                    Col => {
-                        let new_data = self
-                            .data
-                            .clone()
-                            .into_iter()
-                            .take(n * self.row)
-                            .collect::<Vec<f64>>();
-                        matrix(new_data, self.row, n, Col)
-                    }
-                    Row => {
-                        let mut temp_data: Vec<f64> = Vec::new();
-                        for i in 0..n {
-                            temp_data.extend(self.col(i));
-                        }
-                        matrix(temp_data, self.row, n, Col)
-                    }
-                }
+                matrix(temp_data, n, self.col, Row)
             }
         }
     }
 
-    fn skip(&self, n: usize, shape: Shape) -> Self {
-        match shape {
-            Row => {
-                assert!(n < self.row, "Skip range is larger than row of matrix");
-
-                let mut temp_data: Vec<f64> = Vec::new();
-                for i in n..self.row {
-                    temp_data.extend(self.row(i));
-                }
-                matrix(temp_data, self.row - n, self.col, Row)
-            }
+    fn take_col(&self, n: usize) -> Self {
+        if n >= self.col {
+            return self.clone();
+        }
+        match self.shape {
             Col => {
-                assert!(n < self.col, "Skip range is larger than col of matrix");
-
+                let new_data = self
+                    .data
+                    .clone()
+                    .into_iter()
+                    .take(n * self.row)
+                    .collect::<Vec<f64>>();
+                matrix(new_data, self.row, n, Col)
+            }
+            Row => {
                 let mut temp_data: Vec<f64> = Vec::new();
-                for i in n..self.col {
+                for i in 0..n {
                     temp_data.extend(self.col(i));
                 }
-                matrix(temp_data, self.row, self.col - n, Col)
+                matrix(temp_data, self.row, n, Col)
             }
         }
+    }
+
+    fn skip_row(&self, n: usize) -> Self {
+        assert!(n < self.row, "Skip range is larger than row of matrix");
+
+        let mut temp_data: Vec<f64> = Vec::new();
+        for i in n..self.row {
+            temp_data.extend(self.row(i));
+        }
+        matrix(temp_data, self.row - n, self.col, Row)
+    }
+
+    fn skip_col(&self, n: usize) -> Self {
+        assert!(n < self.col, "Skip range is larger than col of matrix");
+
+        let mut temp_data: Vec<f64> = Vec::new();
+        for i in n..self.col {
+            temp_data.extend(self.col(i));
+        }
+        matrix(temp_data, self.row, self.col - n, Col)
     }
 
     fn fmap<F>(&self, f: F) -> Matrix
@@ -2071,12 +2103,7 @@ impl FP for Matrix {
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
-        let mut result = Matrix {
-            data: vec![0f64; self.row * self.col],
-            row: self.row,
-            col: self.col,
-            shape: Col,
-        };
+        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Col);
 
         for i in 0..self.row {
             result.subs_col(i, &f(self.col(i)));
@@ -2089,18 +2116,43 @@ impl FP for Matrix {
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
-        let mut result = Matrix {
-            data: vec![0f64; self.row * self.col],
-            row: self.row,
-            col: self.col,
-            shape: Row,
-        };
+        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
 
         for i in 0..self.col {
             result.subs_row(i, &f(self.row(i)));
         }
 
         result
+    }
+
+    fn col_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>,
+    {
+        for i in 0 .. self.col {
+            unsafe {
+                let mut p = self.col_mut(i);
+                let fv = f(self.col(i));
+                for j in 0..p.len() {
+                    *p[j] = fv[j];
+                }
+            }
+        }
+    }
+
+    fn row_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Vec<f64>) -> Vec<f64>,
+    {
+        for i in 0 .. self.col {
+            unsafe {
+                let mut p = self.row_mut(i);
+                let fv = f(self.row(i));
+                for j in 0 .. p.len() {
+                    *p[j] = fv[j];
+                }
+            }
+        }
     }
 
     fn reduce<F, T>(&self, init: T, f: F) -> f64

@@ -189,7 +189,7 @@ Corresponding to `0.15.3`
       - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
     - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula
-    - [gauss_legendre.rs](src/numerical/gauss_legendre.rs) : Gauss-Legendre 4th order
+    - [gauss_legendre.rs](src/grave/gauss_legendre.rs) : Gauss-Legendre 4th order
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method

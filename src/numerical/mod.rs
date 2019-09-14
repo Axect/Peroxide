@@ -1,7 +1,7 @@
 //! Differential equations & Numerical Analysis tools
 
 //pub mod bdf;
-pub mod gauss_legendre;
+//pub mod gauss_legendre;
 pub mod interp;
 pub mod newton;
 pub mod ode;
