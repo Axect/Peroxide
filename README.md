@@ -17,6 +17,7 @@ Peroxide provides various features.
 * default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
 * oxidize - No pain, no gain - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * plot - With matplotlib of python, we can draw any plots.
+* serde - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation, then choose openblas feature.
 If you don't want to depend C/C++ or Fortran libraries, then choose default feature.
