@@ -23,6 +23,7 @@ pyo3 = { version = "0.7", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }
 packed_simd = { version = "0.3", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]

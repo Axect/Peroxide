@@ -78,6 +78,9 @@ extern crate pyo3;
 #[cfg(feature = "simd")]
 extern crate packed_simd;
 
+#[cfg(feature = "serde")]
+extern crate serde;
+
 extern crate rand;
 
 pub mod statistics;
@@ -87,9 +90,9 @@ pub mod macros;
 pub mod ml;
 pub mod numerical;
 pub mod operation;
+pub mod redox;
 pub mod special;
 pub mod util;
-pub mod redox;
 
 #[allow(unused_imports)]
 pub use macros::{julia_macro::*, matlab_macro::*, r_macro::*};
