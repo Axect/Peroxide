@@ -447,8 +447,6 @@ use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
-use std::iter;
-use std::slice::{Iter, IterMut};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
@@ -1967,7 +1965,7 @@ impl IndexMut<(usize, usize)> for Matrix {
         let r = self.row;
         let c = self.col;
         assert!(i < self.row && j < self.col, "Index out of range");
-        let mut p = self.mut_ptr();
+        let p = self.mut_ptr();
         match self.shape {
             Row => {
                 let idx = i * c + j;

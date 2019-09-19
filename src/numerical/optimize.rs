@@ -126,10 +126,10 @@ pub enum OptOption {
 /// * Gradient Descent
 /// * Gauss Newton
 /// * Levenberg Marquardt
-pub struct Optimizer {
+pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
     domain: Vec<f64>,
     observed: Vec<f64>,
-    func: fn(&Vec<f64>, Vec<Number>) -> Vec<Number>,
+    func: Box<F>,
     param: Vec<Number>,
     max_iter: usize,
     error: f64,
@@ -137,8 +137,8 @@ pub struct Optimizer {
     option: HashMap<OptOption, bool>,
 }
 
-impl Optimizer {
-    pub fn new(data: Matrix, func: fn(&Vec<f64>, Vec<Number>) -> Vec<Number>) -> Self {
+impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
+    pub fn new(data: Matrix, func: F) -> Self {
         let mut default_option: HashMap<OptOption, bool> = HashMap::new();
         default_option.insert(InitParam, false);
         default_option.insert(MaxIter, false);
@@ -146,7 +146,7 @@ impl Optimizer {
         Optimizer {
             domain: data.col(0),
             observed: data.col(1),
-            func,
+            func: Box::new(func),
             param: vec![],
             max_iter: 0,
             error: 0f64,

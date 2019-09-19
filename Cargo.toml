@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.16.0"
+version = "0.16.1"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
@@ -16,10 +16,10 @@ travis-ci = { repository = "axect/peroxide" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-csv = "1"
+csv = "1.1"
 rand = "0.7"
 special = "0.8"
-pyo3 = { version = "0.7", optional = true }
+pyo3 = { version = "0.8", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }
 packed_simd = { version = "0.3", optional = true }
