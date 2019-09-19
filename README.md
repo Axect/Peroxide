@@ -14,16 +14,16 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 
 Peroxide provides various features.
 
-* default - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* oxidize - No pain, no gain - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
-* plot - With matplotlib of python, we can draw any plots.
-* serde - serialization with [Serde](https://serde.rs/).
+* `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
+* `oxidize` - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
+* `plot` - With matplotlib of python, we can draw any plots.
+* `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation, then choose openblas feature.
 If you don't want to depend C/C++ or Fortran libraries, then choose default feature.
 If you want to draw plot with some great templates, then choose plot feature.
 
-You can choose openblas & plot simultaneously.
+You can choose any features simultaneously.
  
 ### 2. Easy to optimize
 
@@ -138,12 +138,12 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.15.3`
+Corresponding to `0.16.1`
 
 ## Pre-requisite
 
-* `oxidize` feature - Need `OpenBLAS`
-* `plot` feature - Need `matplotlib` of python
+* For `oxidize` feature - Need `OpenBLAS`
+* For `plot` feature - Need `matplotlib` of python
 
 ## Install
 
@@ -152,26 +152,26 @@ Corresponding to `0.15.3`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.15"
+   peroxide = "0.16"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.15"
+   version = "0.16"
    default-features = false
    features = ["oxidize"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.15"
+   version = "0.16"
    default-features = false
    features = ["plot"] 
    ```
 4. OpenBLAS + SIMD & Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.15"
+   version = "0.16"
    default-features = false
    features = ["oxidize", "plot"] 
    ```
@@ -189,12 +189,11 @@ Corresponding to `0.15.3`
       - [mod.rs](src/ml/mod.rs)
       - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
-    - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula
-    - [gauss_legendre.rs](src/grave/gauss_legendre.rs) : Gauss-Legendre 4th order
+    - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula (deprecated)
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
-    - [ode.rs](src/numerical/ode.rs) : Main ODE solver
+    - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
     - [spline.rs](src/numerical/spline.rs) : Natural Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
@@ -203,6 +202,9 @@ Corresponding to `0.15.3`
     - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
     - [mod.rs](src/operation/mod.rs)
     - [number.rs](src/operation/number.rs) : Number type (include `f64`, `Dual`)
+  - __redox__ : To wrap `Vec` (Not yet integrated)
+    - [mod.rs](src/redox/mod.rs)
+    - [redoxable.rs](src/redox/redoxable.rs)
   - __special__ : Wrapper for `special` crate
     - [mod.rs](src/special/mod.rs)
     - [function.rs](src/special/function.rs) : Special functions
@@ -225,7 +227,6 @@ Corresponding to `0.15.3`
     - [mod.rs](src/util/mod.rs)
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style 
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
-    - [pickle.rs](src/util/pickle.rs) : To handle `pickle` data structure
     - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
     - [print.rs](src/util/print.rs) : To print conveniently
     - [useful.rs](src/util/useful.rs) : Useful utils to implement library
@@ -483,6 +484,17 @@ fn main() {
         .optimize();
     p.print();
     opt.get_error().print();
+
+    let mut plt = Plot2D::new();
+    plt.set_domain(domain)
+        .insert_image(y)
+        .insert_image(p)
+        .set_legend(vec!["real", "fit"])
+        .set_title("Levenberg-Marquardt Algorithm")
+        .set_path("example_data/lm_test.png")
+        .set_marker(vec![Point, Line])
+        .savefig()
+        .expect("Can't draw a plot");
 }
 
 fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {

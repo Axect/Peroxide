@@ -1,3 +1,8 @@
+# Release 0.16.1 (2019-09-19)
+
+* More generic `optimize`
+    * function pointer -> `Box<F>`
+
 # Release 0.16.0 (2019-09-14)
 
 ## Now, peroxide meets low level
