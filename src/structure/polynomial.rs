@@ -1,4 +1,6 @@
 use operation::extra_ops::PowOps;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use structure::matrix::*;
 #[allow(unused_imports)]
@@ -16,6 +18,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// Polynomial Structure
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polynomial {
     pub coef: Vector,
 }
