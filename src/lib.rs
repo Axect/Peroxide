@@ -4,7 +4,7 @@
 //!
 //! `peroxide` has various components for scientific computation.
 //!
-//! * Linear Algebra
+//! * Linear Algebra (with BLAS & LAPACK)
 //!     * Matrix operations
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
@@ -31,6 +31,10 @@
 //!     * Interpolation
 //!     * Spline
 //!     * Polynomial
+//!     * Gauss-Legendre Quadrature
+//! * Optimization
+//!     * Gradient Descent
+//!     * Levenberg-Marquardt
 //! * Differential Equations
 //!     * Explicit
 //!         * Runge-Kutta 4th order
@@ -39,7 +43,6 @@
 //!         * Backward Euler
 //!         * Gauss-Legendre 4th order
 //! * Communication with Python
-//!     * Support `pickle` type
 //!     * Plot with `matplotlib`
 //!
 //! ## Quick Start
@@ -47,10 +50,33 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.11.5`
+//! * Current document version is corresponding to `0.16.2`
 //!
+//! 1. Default
 //!     ```toml
-//!     peroxide = "0.11"
+//!     [dependencies]
+//!     peroxide = "0.16"
+//!     ```
+//! 2. OpenBLAS & SIMD
+//!     ```toml
+//!     [dependencies.peroxide]
+//!     version = "0.16"
+//!     default-features = false
+//!     features = ["oxidize"]
+//!     ```
+//! 3. Plot
+//!     ```toml
+//!     [dependencies.peroxide]
+//!     version = "0.16"
+//!     default-features = false
+//!     features = ["plot"]
+//!     ```
+//! 4. Together
+//!     ```toml
+//!     [dependencies.peroxide]
+//!     version = "0.16"
+//!     default-features = false
+//!     features = ["oxidize", "plot"]
 //!     ```
 //!
 //! ## Import all at once
