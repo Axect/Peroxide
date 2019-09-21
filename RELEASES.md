@@ -1,3 +1,8 @@
+# Release 0.16.2 (2019-09-21)
+
+* Now, we can insert pair of data to `plot`
+    * `fn insert_pair(&self, pait: (Vec<f64>, Vec<f64>)) -> &mut Self`
+
 # Release 0.16.1 (2019-09-19)
 
 * More generic `optimize`
