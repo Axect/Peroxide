@@ -105,7 +105,7 @@
 //! * `row(&self, index: usize) -> Vec<f64>` : Extract specific row as `Vec<f64>`
 //! * `col(&self, index: usize) -> Vec<f64>` : Extract specific column as `Vec<f64>`
 //! * `diag(&self) -> Vec<f64>`: Extract diagonal components as `Vec<f64>`
-//! * `swap(&self, usize, usize, Shape) -> Matrix`: Swap two rows or columns
+//! * `swap(&self, usize, usize, Shape)`: Swap two rows or columns (unsafe function)
 //! * `subs_col(&mut self, usize, Vec<f64>)`: Substitute column with `Vec<f64>`
 //! * `subs_row(&mut self, usize, Vec<f64>)`: Substitute row with `Vec<f64>`
 //!
@@ -114,12 +114,15 @@
 //!     use peroxide::*;
 //!
 //!     fn main() {
-//!         let a = ml_matrix("1 2; 3 4");
+//!         let mut a = ml_matrix("1 2; 3 4");
 //!
 //!         a.row(0).print(); // [1, 2]
 //!         a.col(0).print(); // [1, 3]
 //!         a.diag().print(); // [1, 4]
-//!         a.swap(0, 1, Row).print();
+//!         unsafe {
+//!             a.swap(0, 1, Row);
+//!         }
+//!         a.print();
 //!         //      c[0] c[1]
 //!         // r[0]    3    4
 //!         // r[1]    1    2
@@ -823,48 +826,6 @@ impl Matrix {
         container
     }
 
-    /// Swap row or col
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.swap(0,1,Row), matrix(c!(3,4,1,2),2,2,Row));
-    /// assert_eq!(a.swap(0,1,Col), matrix(c!(2,4,1,3),2,2,Col));
-    /// ```
-    pub fn swap(&self, idx1: usize, idx2: usize, shape: Shape) -> Self {
-        match shape {
-            Row => {
-                let mut v: Vector = Vec::new();
-                for k in 0..self.row {
-                    if k == idx1 {
-                        v.extend(&self.row(idx2));
-                    } else if k == idx2 {
-                        v.extend(&self.row(idx1));
-                    } else {
-                        v.extend(&self.row(k));
-                    }
-                }
-                matrix(v, self.row, self.col, Row)
-            }
-            Col => {
-                let mut v: Vector = Vec::new();
-                for k in 0..self.col {
-                    if k == idx1 {
-                        v.extend(&self.col(idx2));
-                    } else if k == idx2 {
-                        v.extend(&self.col(idx1));
-                    } else {
-                        v.extend(&self.col(k));
-                    }
-                }
-                matrix(v, self.row, self.col, Col)
-            }
-        }
-    }
-
     /// Write to CSV
     ///
     /// # Examples
@@ -1023,6 +984,7 @@ impl Matrix {
     }
 
     /// Substitute Col
+    #[inline]
     pub fn subs_col(&mut self, idx: usize, v: &Vec<f64>) {
         for i in 0..self.row {
             self[(i, idx)] = v[i];
@@ -1030,6 +992,7 @@ impl Matrix {
     }
 
     /// Substitute Row
+    #[inline]
     pub fn subs_row(&mut self, idx: usize, v: &Vec<f64>) {
         for j in 0..self.col {
             self[(idx, j)] = v[j];
@@ -2369,11 +2332,15 @@ impl LinearAlgebra for Matrix {
                 }
             }
             if k != row_idx {
-                container = container.swap(k, row_idx, Row); // Row perm
+                unsafe {
+                    container.swap(k, row_idx, Row); // Row perm
+                }
                 p.push((k, row_idx));
             }
             if k != col_idx {
-                container = container.swap(k, col_idx, Col); // Col perm
+                unsafe {
+                    container.swap(k, col_idx, Col); // Col perm
+                }
                 q.push((k, col_idx));
             }
         }
@@ -2566,10 +2533,14 @@ impl LinearAlgebra for Matrix {
                     let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
                     let mut m = inv_u(u) * inv_l(l);
                     for (idx1, idx2) in q.into_iter().rev() {
-                        m = m.swap(idx1, idx2, Row);
+                        unsafe {
+                            m.swap(idx1, idx2, Row);
+                        }
                     }
                     for (idx1, idx2) in p.into_iter().rev() {
-                        m = m.swap(idx1, idx2, Col);
+                        unsafe {
+                            m.swap(idx1, idx2, Col);
+                        }
                     }
                     Some(m)
                 }

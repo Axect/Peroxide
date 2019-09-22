@@ -1,3 +1,18 @@
+# Release 0.16.3 (2019-09-23)
+
+## More mutable operations
+
+### Added
+
+* `util::low_level`
+    * `unsafe fn copy_vec_ptr(dst: &mut Vec<*mut f64>, src: &Vec<f64>)`
+    * `unsafe fn swap_vec_ptr(lhs: &mut Vec<*mut f64>, rhs: &mut Vec<*mut f64>)`
+
+### Modified
+
+* `structure::matrix::Matrix::swap` -> `operation::mut_ops::MutMatrix::swap`
+    * Now `swap` becomes mutable function
+
 # Release 0.16.2 (2019-09-21)
 
 * Now, we can insert pair of data to `plot`
