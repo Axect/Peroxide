@@ -1,5 +1,5 @@
 use ::{Matrix, Shape};
-use util::low_level::{swap_vec_ptr, copy_vec_ptr};
+use util::low_level::{swap_vec_ptr};
 
 pub trait MutFP {
     type Scalar;
