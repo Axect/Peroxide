@@ -1,4 +1,5 @@
 use ::{Matrix, Shape};
+use util::low_level::swap_vec_ptr;
 
 pub trait MutFP {
     type Scalar;
@@ -35,6 +36,7 @@ impl MutFP for Vec<f64> {
 pub trait MutMatrix {
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64>;
     unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut f64>;
+    unsafe fn swap_mut(&mut self, idx1: usize, idx2: usize, shape: Shape);
 }
 
 impl MutMatrix for Matrix {
@@ -84,6 +86,17 @@ impl MutMatrix for Matrix {
                     v[i] = p.add(idx + i * self.row);
                 }
                 v
+            }
+        }
+    }
+
+    unsafe fn swap_mut(&mut self, idx1: usize, idx2: usize, shape: Shape) {
+        match shape {
+            Shape::Col => {
+                swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2))
+            }
+            Shape::Row => {
+                swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2))
             }
         }
     }
