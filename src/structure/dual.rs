@@ -68,7 +68,7 @@ use structure::vector::*;
 ///
 /// But they are private fields.
 /// You should use `value` or `slope` function to extract them.
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialOrd)]
 pub struct Dual {
     x: f64,
     dx: f64,

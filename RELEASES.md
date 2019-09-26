@@ -1,3 +1,9 @@
+# Release 0.16.5 (2019-09-26)
+
+
+* Remove `NumError` for `Number`
+* Add `PartialOrd` for `Number, Dual, HyperDual`
+
 # Release 0.16.4 (2019-09-26)
 
 ## Safe Optimization

@@ -49,7 +49,7 @@ use structure::vector::*;
 /// # Description
 ///
 /// For second order differentiation
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, PartialOrd)]
 pub struct HyperDual {
     x: f64,
     dx: f64,

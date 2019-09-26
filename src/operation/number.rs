@@ -1,20 +1,14 @@
 use operation::extra_ops::{ExpLogOps, PowOps, Real, TrigOps};
-use operation::number::Number::{D, E, F};
+use operation::number::Number::{D, F};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use std::process::exit;
 use structure::dual::Dual;
 use structure::hyper_dual::HyperDual;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum NumError {
-    DiffType,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub enum Number {
     F(f64),
     D(Dual),
-    E(NumError),
 }
 
 impl Default for Number {
@@ -30,7 +24,6 @@ impl Neg for Number {
         match self {
             F(x) => F(-x),
             D(x) => D(-x),
-            E(x) => E(x),
         }
     }
 }
@@ -44,8 +37,6 @@ impl Add for Number {
             (D(x), D(y)) => D(x + y),
             (F(x), D(y)) => D(x + y),
             (D(x), F(y)) => D(x + y),
-            (E(x), _) => E(x),
-            (_, E(y)) => E(y),
         }
     }
 }
@@ -75,8 +66,6 @@ impl Sub for Number {
             (D(x), D(y)) => D(x - y),
             (F(x), D(y)) => D(x - y),
             (D(x), F(y)) => D(x - y),
-            (E(x), _) => E(x),
-            (_, E(y)) => E(y),
         }
     }
 }
@@ -106,8 +95,6 @@ impl Mul for Number {
             (D(x), D(y)) => D(x * y),
             (F(x), D(y)) => D(x * y),
             (D(x), F(y)) => D(x * y),
-            (E(x), _) => E(x),
-            (_, E(y)) => E(y),
         }
     }
 }
@@ -137,8 +124,6 @@ impl Div for Number {
             (D(x), D(y)) => D(x / y),
             (F(x), D(y)) => D(x / y),
             (D(x), F(y)) => D(x / y),
-            (E(x), _) => E(x),
-            (_, E(y)) => E(y),
         }
     }
 }
@@ -164,7 +149,6 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.exp()),
             D(x) => D(x.exp()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -172,7 +156,6 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.ln()),
             D(x) => D(x.exp()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -180,7 +163,6 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.log(base)),
             D(x) => D(x.log(base)),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -188,7 +170,6 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.log2()),
             D(x) => D(x.log2()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -196,7 +177,6 @@ impl ExpLogOps for Number {
         match self {
             F(x) => F(x.log10()),
             D(x) => D(x.log10()),
-            E(x) => E(x.to_owned()),
         }
     }
 }
@@ -206,7 +186,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.sin()),
             D(x) => D(x.sin()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -214,7 +193,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.cos()),
             D(x) => D(x.cos()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -222,7 +200,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.tan()),
             D(x) => D(x.tan()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -230,7 +207,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.asin()),
             D(x) => D(x.asin()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -238,7 +214,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.acos()),
             D(x) => D(x.acos()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -246,7 +221,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.atan()),
             D(x) => D(x.atan()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -254,7 +228,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.sinh()),
             D(x) => D(x.sinh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -262,7 +235,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.cosh()),
             D(x) => D(x.cosh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -270,7 +242,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.tanh()),
             D(x) => D(x.tanh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -278,7 +249,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.asinh()),
             D(x) => D(x.asinh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -286,7 +256,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.acosh()),
             D(x) => D(x.acosh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -294,7 +263,6 @@ impl TrigOps for Number {
         match self {
             F(x) => F(x.atanh()),
             D(x) => D(x.atanh()),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -302,7 +270,6 @@ impl TrigOps for Number {
         match self {
             F(x) => (F(x.sin()), F(x.cos())),
             D(x) => (D(x.sin()), D(x.cos())),
-            E(x) => (E(x.to_owned()), E(x.to_owned())),
         }
     }
 }
@@ -312,7 +279,6 @@ impl PowOps for Number {
         match self {
             F(x) => F(x.powi(n)),
             D(x) => D(x.powi(n)),
-            E(x) => E(x.to_owned()),
         }
     }
 
@@ -323,8 +289,6 @@ impl PowOps for Number {
             (F(x), D(y)) => D(Dual::from_f64(*x).powf(*y)),
             (D(x), F(y)) => D(x.powf(Dual::from_f64(*y))),
             (D(x), D(y)) => D(x.powf(*y)),
-            (E(x), _) => E(x.to_owned()),
-            (_, E(y)) => E(y.to_owned()),
             _ => unreachable!(),
         }
     }
@@ -333,7 +297,6 @@ impl PowOps for Number {
         match self {
             F(x) => F(x.sqrt()),
             D(x) => D(x.sqrt()),
-            E(x) => E(x.to_owned()),
         }
     }
 }
@@ -343,10 +306,6 @@ impl Real for Number {
         match self {
             F(x) => x.to_owned(),
             D(x) => x.to_f64(),
-            E(x) => {
-                eprintln!("error {:?}", x.to_owned());
-                exit(1);
-            }
         }
     }
 
@@ -358,10 +317,6 @@ impl Real for Number {
         match self {
             F(x) => x.to_dual(),
             D(x) => x.to_owned(),
-            E(x) => {
-                eprintln!("error {:?}", x.to_owned());
-                exit(1);
-            }
         }
     }
 
@@ -409,7 +364,6 @@ impl Div<Number> for f64 {
         match rhs {
             F(x) => F(self / x),
             D(x) => D(self / x),
-            E(x) => E(x),
         }
     }
 }
