@@ -72,7 +72,7 @@
 //!     opt.get_error().print();    // Optimized RMSE
 //!
 //!     // To prepare plotting
-//!     let z = quad(&x, NumberVector::from_f64_vec(p)).to_f64_vec();
+//!     let z = quad(&x, NumberVector::from_f64_vec(p)).unwrap().to_f64_vec();
 //!
 //!     // Plot
 //!     //#[cfg(feature = "plot")]
@@ -89,11 +89,13 @@
 //!     //}
 //! }
 //!
-//! fn quad(x: &Vec<f64>, n: Vec<Number>) -> Vec<Number> {
-//!     x.clone().into_iter()
-//!         .map(|t| Number::from_f64(t))
-//!         .map(|t| t.powf(n[0]))
-//!         .collect()
+//! fn quad(x: &Vec<f64>, n: Vec<Number>) -> Option<Vec<Number>> {
+//!     Some(
+//!         x.clone().into_iter()
+//!             .map(|t| Number::from_f64(t))
+//!             .map(|t| t.powf(n[0]))
+//!             .collect()
+//!     )
 //! }
 //! ```
 //!
@@ -126,7 +128,7 @@ pub enum OptOption {
 /// * Gradient Descent
 /// * Gauss Newton
 /// * Levenberg Marquardt
-pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
+pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
     domain: Vec<f64>,
     observed: Vec<f64>,
     func: Box<F>,
@@ -137,7 +139,7 @@ pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
     option: HashMap<OptOption, bool>,
 }
 
-impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
+impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
     pub fn new(data: Matrix, func: F) -> Self {
         let mut default_option: HashMap<OptOption, bool> = HashMap::new();
         default_option.insert(InitParam, false);
@@ -190,7 +192,8 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
         let (p_init, max_iter) = (self.param.clone(), self.max_iter);
-        let f = |p: Vec<Number>| (self.func)(&x_vec, p);
+        let safe_f = |p: Vec<Number>| (self.func)(&x_vec, p.clone()).unwrap();
+        let unsafe_f = |p: Vec<Number>| (self.func)(&x_vec, p);
 
         // Take various form of initial data
         let p_init_vec = p_init.to_f64_vec();
@@ -198,19 +201,35 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
 
         // Declare mutable values
         let mut p = p_init_vec.to_matrix();
-        let mut j = jacobian(f, &p_init_vec);
-        let mut y_hat = f(p_init.clone()).to_f64_vec().to_matrix();
+        let mut j = jacobian(safe_f, &p_init_vec);
+        let mut y_hat = safe_f(p_init.clone()).to_f64_vec().to_matrix();
         let mut jtj = &j.t() * &j;
+        let mut valid_p = p.clone();
+        let mut err_stack = 0usize;
 
         match self.method {
             GradientDescent(alpha) => {
-                for _i in 0..max_iter {
+                for i in 0..max_iter {
                     let h = alpha * j.t() * (&y - &y_hat);
-                    p = &p + &h;
-                    j = jacobian(f, &p.data);
-                    y_hat = f(NumberVector::from_f64_vec(p.data.clone()))
-                        .to_f64_vec()
-                        .to_matrix();
+                    let p_cand = &p + &h;
+                    match unsafe_f(NumberVector::from_f64_vec(p_cand.data.clone())) {
+                        Some(value) => {
+                            p = p_cand;
+                            valid_p = p.clone();
+                            err_stack = 0;
+                            j = jacobian(safe_f, &p.data);
+                            y_hat = value.to_f64_vec().to_matrix();
+                        }
+                        None => {
+                            if i < max_iter - 1 && err_stack < 3 {
+                                p = p_cand;
+                                err_stack += 1;
+                            } else {
+                                p = valid_p;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -222,7 +241,7 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
                 let lambda_0 = 1e-3;
                 let mut lambda = lambda_0 * max(jtj.diag());
 
-                for _i in 0..max_iter {
+                for i in 0..max_iter {
                     let h: Matrix;
 
                     match (jtj.clone() + lambda * jtj.to_diag()).inv() {
@@ -231,27 +250,38 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Vec<Number> {
                     }
 
                     let p_temp = &p + &h;
-                    let j_temp = jacobian(f, &p.data);
-                    let y_hat_temp = f(NumberVector::from_f64_vec(p_temp.data.clone()))
-                        .to_f64_vec()
-                        .to_matrix();
-                    let chi2_temp = ((&y - &y_hat_temp).t() * (&y - &y_hat_temp))[(0, 0)];
-
-                    let rho = (chi2 - chi2_temp)
-                        / (h.t() * (lambda * jtj.to_diag() * h.clone() + j.t() * (&y - &y_hat)))
-                            [(0, 0)];
-
-                    if rho > 0f64 {
-                        p = p_temp;
-                        j = j_temp;
-                        jtj = &j.t() * &j;
-                        y_hat = y_hat_temp;
-                        chi2 = chi2_temp;
-                        lambda *= max(vec![1f64 / 3f64, 1f64 - (2f64 * rho - 1f64).powi(3)]);
-                        nu = 2f64;
-                    } else {
-                        lambda *= nu;
-                        nu *= 2f64;
+                    match unsafe_f(NumberVector::from_f64_vec(p_temp.data.clone())) {
+                        Some(value) => {
+                            let j_temp = jacobian(safe_f, &p.data);
+                            let y_hat_temp = value.to_f64_vec().to_matrix();
+                            let chi2_temp = ((&y - &y_hat_temp).t() * (&y - &y_hat_temp))[(0, 0)];
+                            let rho = (chi2 - chi2_temp)
+                                / (h.t() * (lambda * jtj.to_diag() * h.clone() + j.t() * (&y - &y_hat)))
+                                    [(0, 0)];
+                            if rho > 0f64 {
+                                p = p_temp;
+                                valid_p = p.clone();
+                                err_stack = 0;
+                                j = j_temp;
+                                jtj = &j.t() * &j;
+                                y_hat = y_hat_temp;
+                                chi2 = chi2_temp;
+                                lambda *= max(vec![1f64 / 3f64, 1f64 - (2f64 * rho - 1f64).powi(3)]);
+                                nu = 2f64;
+                            } else {
+                                lambda *= nu;
+                                nu *= 2f64;
+                            }
+                        }
+                        None => {
+                            if i < max_iter - 1 && err_stack < 3 { 
+                                p = p_temp;
+                                err_stack += 1;
+                            } else {
+                                p = valid_p;
+                                break;
+                            }
+                        }
                     }
                 }
             }

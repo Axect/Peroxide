@@ -448,7 +448,6 @@ impl ExpLogOps for Dual {
     }
 
     fn ln(&self) -> Self {
-        assert_ne!(self.value(), 0.);
         let val = self.value().ln();
         let dval = self.slope() / self.value();
         Dual::new(val, dval)

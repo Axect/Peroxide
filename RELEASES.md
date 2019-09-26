@@ -1,3 +1,20 @@
+# Release 0.16.4 (2019-09-26)
+
+## Safe Optimization
+
+### Modified 
+
+#### Remove unnecessary assertions
+
+* `structure::dual::ExpLogOps::ln`
+* `structure::hyperdual::Div`
+* `structure::hyperdual::ExpLogOps::ln`
+
+#### Safe optimization
+
+* `numerical::optimize`
+    * `F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>>`
+
 # Release 0.16.3 (2019-09-23)
 
 ## More mutable operations

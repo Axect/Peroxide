@@ -131,7 +131,6 @@ impl Div<HyperDual> for HyperDual {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        assert_ne!(rhs.x, 0f64);
         let (x, dx, ddx) = self.extract();
         let (y, dy, ddy) = rhs.extract();
 
@@ -372,7 +371,6 @@ impl ExpLogOps for HyperDual {
     }
 
     fn ln(&self) -> Self {
-        assert!(self.x > 0f64, "Logarithm Domain Error");
         let x = self.x.ln();
         let dx = self.dx / self.x;
         let ddx = self.ddx / self.x - self.dx.powi(2) / self.x.powi(2);
