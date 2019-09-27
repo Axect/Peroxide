@@ -19,6 +19,7 @@ maintenance = { status = "actively-developed" }
 csv = "1.1"
 rand = "0.7"
 special = "0.8"
+indexmap = "1.2"
 pyo3 = { version = "0.8", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }

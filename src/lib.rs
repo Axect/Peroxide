@@ -109,6 +109,8 @@ extern crate serde;
 
 extern crate rand;
 
+extern crate indexmap;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]

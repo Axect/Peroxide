@@ -1,12 +1,13 @@
+extern crate indexmap;
+use indexmap::IndexMap;
 use std::{ fmt, ops::Index, hash::Hash, collections::HashMap, fmt::Debug };
-use structure::matrix::{Matrix, py_matrix};
+use structure::matrix::{ Matrix, Shape::*, matrix };
 use std::cmp::{ max, min };
 use util::useful::tab;
 
 #[derive(Debug, Clone)]
 pub struct DataFrame<T> where T: Hash + Eq + Clone {
-    header: HashMap<T, usize>,
-    data: Vec<Vec<f64>>,
+    pub data: IndexMap<T, Vec<f64>>,
 }
 
 impl<T> fmt::Display for DataFrame<T> where T: Hash + Eq + Clone + Debug {
@@ -17,94 +18,100 @@ impl<T> fmt::Display for DataFrame<T> where T: Hash + Eq + Clone + Debug {
 
 #[allow(unused_parens)]
 impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
-    pub fn new(header: Vec<T>, data: Vec<Vec<f64>>) -> Self {
-        let mut hash_header: HashMap<T, usize> = HashMap::new();
-        let l = header.len();
-        header.into_iter().zip((0 .. l)).for_each(|(t, i)| {
-            let result = hash_header.insert(t, i);
-            match result {
-                None => (),
-                Some(_) => panic!("Can't assign value to duplicated key"),
-            }
-        });
+    pub fn new() -> Self {
         DataFrame {
-            header: hash_header,
-            data,
+            data: IndexMap::new()
         }
     }
 
-    pub fn find_data(&self, head: T) -> &Vec<f64> {
-        let i = self.header.get(&head).unwrap();
-        &self.data[*i]
+    pub fn insert(&mut self, key: T, value: Vec<f64>) {
+        self.data.insert(key, value);
+    }
+
+    pub fn get(&self, head: T) -> &Vec<f64> {
+        &self.data.get(&head).unwrap()
     }
 
     pub fn to_matrix(&self) -> Matrix {
-        py_matrix(self.data.clone())
+        let mut data: Vec<f64> = vec![];
+        let mut r = 0usize;
+        let mut c = 0usize;
+        self.data.values().for_each(|v| {
+            if r == 0 {
+                r = v.len();
+            } else {
+                assert_eq!(r, v.len());
+            }
+            c += 1;
+            data.extend(v);
+        });
+        matrix(data, r, c, Col)
+    }
+
+    pub fn from_matrix(header: Vec<T>, mat: Matrix) -> Self {
+        let mut df: DataFrame<T> = DataFrame::new();
+        for i in 0 .. mat.col {
+            df.insert(header[i].clone(), mat.col(i));
+        }
+        df
     }
 
     pub fn spread(&self) -> String {
-        // Find maximum length of data
-        let sample = self.data.clone();
-        let r: usize = sample.clone()
-            .into_iter()
-            .map(|x| x.len())
-            .fold(0, |x, y| max(x, y));
-        let c = self.data.len();
+        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
 
         if r > 100 {
             return format!(
-                "Result is too larget! Print this result is not efficient!"
+                "Data is too large to print!"
             );
-        }        
+        }
 
-        let mut space: usize = sample
-            .into_iter()
-            .map(
-                |t| t.into_iter().map(|x| min(format!("{:.4}", x).len(), x.to_string().len())).fold(0, |x,y| max(x,y)), // Choose minimum of approx vs normal
-            )
-            .fold(0, |x, y| max(x, y))
-            + 1;
+        let mut space: usize = {
+            let mut l = 0usize;
+            for v in self.data.values() {
+                for elem in v.into_iter() {
+                    let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
+                    l = max(l, l2);
+                }
+            }
+            l + 1
+        };
 
         if space < 5 {
             space = 5;
         }
 
-        let head_iter = self.header.clone();
-
         let mut result = String::new();
-
         result.push_str(&tab("", 5));
-        for i in 0 .. c {
-            for (head, j) in head_iter.iter() {
-                if *j == i {
-                    result.push_str(&tab(&format!("{:?}", head), space)); // Header
-                    break;
-                }
-            }
+
+        for k in self.data.keys() {
+            result.push_str(&tab(&format!("{:?}", k), space));
         }
         result.push('\n');
 
-        for i in 0..r {
+        for i in 0 .. r {
             result.push_str(&tab(&format!("r[{}]", i), 5));
-            for j in 0..c {
-                let st1 = format!("{:.4}", self.data[j][i]); // Round at fourth position
-                let st2 = self.data[j][i].to_string(); // Normal string
-                let mut st = st2.clone();
+            for v in self.data.values() {
+                if i < v.len() {
+                    let elem = v[i];
+                    let st1 = format!("{:.4}", elem);
+                    let st2 = elem.to_string();
+                    let mut st = st2.clone();
 
-                // Select more small thing
-                if st1.len() < st2.len() {
-                    st = st1;
+                    if st1.len() < st2.len() {
+                        st = st1;
+                    }
+
+                    result.push_str(&tab(&st, space));
+                } else {
+                    result.push_str(&tab("", space));
                 }
-
-                result.push_str(&tab(&st, space));
             }
             if i == (r - 1) {
                 break;
             }
-            result.push('\n');
+            result.push('\n')
         }
-
-        return result;
+        result
     }
 }
 
@@ -112,6 +119,6 @@ impl<T> Index<T> for DataFrame<T> where T: Hash + Clone + Eq + Debug {
     type Output = Vec<f64>;
 
     fn index(&self, index: T) -> &Self::Output {
-        self.find_data(index)
+        self.get(index)
     }
 }
