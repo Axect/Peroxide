@@ -17,6 +17,8 @@ use structure::multinomial::*;
 use structure::polynomial::*;
 #[allow(unused_imports)]
 use structure::vector::*;
+#[allow(unused_imports)]
+use structure::dataframe::*;
 
 pub trait Printable {
     fn print(&self);
@@ -147,5 +149,11 @@ impl Printable for Number {
 impl Printable for Vec<Number> {
     fn print(&self) {
         println!("{:?}", self);
+    }
+}
+
+impl<T: Debug + Clone + std::hash::Hash + Eq> Printable for DataFrame<T> {
+    fn print(&self) {
+        println!("{}", self)
     }
 }

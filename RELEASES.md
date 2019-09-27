@@ -17,11 +17,10 @@
 - [x] Convert to Col matrix
 - [x] Call by header (`Index` with header)
 - [ ] Call by row
-- [ ] `IndexMut` with header
+- [x] `IndexMut` with header
 - [ ] Any column operations
 - [ ] Read from csv
 - [ ] Write to csv
-- [ ] Plot
 
 # Release 0.16.5 (2019-09-26)
 
