@@ -9,10 +9,11 @@
 //! use peroxide::{Number, OptMethod, OptOption};
 //! use std::collections::HashMap;
 //!
-//! pub struct Optimizer {
+//! pub struct Optimizer<F>
+//! where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
 //!     domain: Vec<f64>,
 //!     observed: Vec<f64>,
-//!     func: fn(&Vec<f64>, Vec<Number>) -> Vec<Number>,
+//!     func: Box<F>,
 //!     param: Vec<Number>,
 //!     max_iter: usize,
 //!     error: f64,
@@ -128,6 +129,9 @@ pub enum OptOption {
 /// * Gradient Descent
 /// * Gauss Newton
 /// * Levenberg Marquardt
+///
+/// # Caution
+/// * `func` should be boxed. (This allows more generic function)
 pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
     domain: Vec<f64>,
     observed: Vec<f64>,

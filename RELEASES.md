@@ -1,5 +1,25 @@
-# Release 0.16.5 (2019-09-26)
+# Release 0.17.0 (2019-09-27) (Candidates)
 
+## DataFrame (Alpha stage)
+
+### Added
+
+* `structure/dataframe.rs`
+
+### Implement level for DataFrame
+
+- [x] Pretty print
+- [x] Convert to Row matrix
+- [ ] Convert to Col matrix
+- [x] Call by header (`Index` with header)
+- [ ] Call by row
+- [ ] `IndexMut` with header
+- [ ] Any column operations
+- [ ] Read from csv
+- [ ] Write to csv
+- [ ] Plot
+
+# Release 0.16.5 (2019-09-26)
 
 * Remove `NumError` for `Number`
 * Add `PartialOrd` for `Number, Dual, HyperDual`
