@@ -9,6 +9,7 @@
 ### Implement level for DataFrame
 
 - [x] Pretty print
+- [ ] Able to print different length
 - [x] Convert to Row matrix
 - [ ] Convert to Col matrix
 - [x] Call by header (`Index` with header)
