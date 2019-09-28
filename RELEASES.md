@@ -1,6 +1,6 @@
-# Release 0.17.0 (2019-09-27) (Candidates)
+# Release 0.17.0 (2019-09-28) (Candidates)
 
-## DataFrame (Alpha stage)
+## DataFrame
 
 ### Added
 
@@ -9,18 +9,28 @@
 ### New dependency
 
 * `indexmap`
+* `netcdf`
+
+### New feature
+
+* `dataframe`
 
 ### Implement level for DataFrame
 
 - [x] Pretty print
 - [x] Able to print different length
 - [x] Convert to Col matrix
+- [x] Initialize with header
 - [x] Call by header (`Index` with header)
 - [ ] Call by row
+- [x] Insert pair
+- [x] Insert row
 - [x] `IndexMut` with header
 - [ ] Any column operations
-- [ ] Read from csv
-- [ ] Write to csv
+- [x] Read from csv
+- [x] Write to csv
+- [ ] Read from netcdf
+- [x] Write to netcdf
 
 # Release 0.16.5 (2019-09-26)
 

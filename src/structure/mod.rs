@@ -13,4 +13,5 @@ pub mod matrix;
 pub mod multinomial;
 pub mod polynomial;
 pub mod vector;
+#[cfg(feature = "dataframe")]
 pub mod dataframe;

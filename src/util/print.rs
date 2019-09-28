@@ -18,6 +18,7 @@ use structure::polynomial::*;
 #[allow(unused_imports)]
 use structure::vector::*;
 #[allow(unused_imports)]
+#[cfg(feature = "dataframe")]
 use structure::dataframe::*;
 
 pub trait Printable {
@@ -152,7 +153,8 @@ impl Printable for Vec<Number> {
     }
 }
 
-impl<T: Debug + Clone + std::hash::Hash + Eq> Printable for DataFrame<T> {
+#[cfg(feature = "dataframe")]
+impl Printable for DataFrame {
     fn print(&self) {
         println!("{}", self)
     }

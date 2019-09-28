@@ -109,7 +109,11 @@ extern crate serde;
 
 extern crate rand;
 
+#[cfg(feature = "dataframe")]
 extern crate indexmap;
+
+#[cfg(feature = "dataframe")]
+extern crate netcdf;
 
 pub mod statistics;
 pub mod structure;
@@ -232,4 +236,5 @@ pub use redox::redoxable::*;
 pub use util::low_level::*;
 
 #[allow(unused_imports)]
+#[cfg(feature = "dataframe")]
 pub use structure::dataframe::*;

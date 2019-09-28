@@ -1,50 +1,76 @@
 extern crate indexmap;
+extern crate csv;
+extern crate netcdf;
+
 use indexmap::IndexMap;
+use self::csv::{ ReaderBuilder, StringRecord, WriterBuilder };
+use std::error::Error;
 use std::ops::{ Index, IndexMut };
 use std::{ fmt, hash::Hash, fmt::Debug };
+use std::collections::HashMap;
 use structure::matrix::{ Matrix, Shape::*, matrix };
 use std::cmp::{ max, min };
 use util::useful::tab;
 
 #[derive(Debug, Clone)]
-pub struct DataFrame<T> where T: Hash + Eq + Clone {
-    pub data: IndexMap<T, Vec<f64>>,
+pub struct DataFrame {
+    pub data: IndexMap<String, Vec<f64>>,
 }
 
-impl<T> fmt::Display for DataFrame<T> where T: Hash + Eq + Clone + Debug {
+impl fmt::Display for DataFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.spread())
     }
 }
 
-impl<T> Index<T> for DataFrame<T> where T: Hash + Clone + Eq + Debug {
+impl Index<&str> for DataFrame {
     type Output = Vec<f64>;
 
-    fn index(&self, index: T) -> &Self::Output {
+    fn index(&self, index: &str) -> &Self::Output {
         self.get(index)
     }
 }
 
-impl<T> IndexMut<T> for DataFrame<T> where T: Hash + Clone + Eq + Debug {
-    fn index_mut(&mut self, index: T) -> &mut Self::Output {
-        self.data.get_mut(&index).unwrap()
+impl IndexMut<&str> for DataFrame {
+    fn index_mut(&mut self, index: &str) -> &mut Self::Output {
+        self.data.get_mut(index).unwrap()
     }
 }
 
 #[allow(unused_parens)]
-impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
+impl DataFrame {
     pub fn new() -> Self {
         DataFrame {
             data: IndexMap::new()
         }
     }
 
-    pub fn insert(&mut self, key: T, value: Vec<f64>) {
-        self.data.insert(key, value);
+    pub fn with_header(header: Vec<&str>) -> Self {
+        let l = header.len();
+        Self::from_matrix(
+            header,
+            Matrix {
+                data: vec![],
+                row: 0,
+                col: l,
+                shape: Col,
+            }
+        )
     }
 
-    pub fn get(&self, head: T) -> &Vec<f64> {
-        &self.data.get(&head).unwrap()
+    pub fn insert(&mut self, key: &str, value: Vec<f64>) {
+        self.data.insert(key.to_owned(), value);
+    }
+
+    pub fn insert_row(&mut self, value: Vec<f64>) {
+        assert_eq!(self.data.len(), value.len());
+        for (v, val) in self.data.values_mut().zip(value) {
+            v.push(val);
+        }
+    }
+
+    pub fn get(&self, head: &str) -> &Vec<f64> {
+        &self.data.get(head).unwrap()
     }
 
     pub fn to_matrix(&self) -> Matrix {
@@ -63,10 +89,10 @@ impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
         matrix(data, r, c, Col)
     }
 
-    pub fn from_matrix(header: Vec<T>, mat: Matrix) -> Self {
-        let mut df: DataFrame<T> = DataFrame::new();
+    pub fn from_matrix(header: Vec<&str>, mat: Matrix) -> Self {
+        let mut df: DataFrame = DataFrame::new();
         for i in 0 .. mat.col {
-            df.insert(header[i].clone(), mat.col(i));
+            df.insert(header[i], mat.col(i));
         }
         df
     }
@@ -86,7 +112,6 @@ impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
                         let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
                         l = max(l, l2);
                     }
-                    let v_len = v.len();
                     if v.len() < r-5 {
                         continue
                     } else {
@@ -105,7 +130,7 @@ impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
             }
             
             for k in self.data.keys() {
-                result.push_str(&tab(&format!("{:?}", k), space));
+                result.push_str(&tab(k, space));
             }
             result.push('\n');
 
@@ -177,7 +202,7 @@ impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
         }
 
         for k in self.data.keys() {
-            result.push_str(&tab(&format!("{:?}", k), space));
+            result.push_str(&tab(k, space));
         }
         result.push('\n');
 
@@ -206,5 +231,90 @@ impl<T> DataFrame<T> where T: Hash + Eq + Clone + Debug {
         }
         result
     }
+    
 }
 
+pub trait WithCSV: Sized {
+    fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+    fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
+}
+
+impl WithCSV for DataFrame {
+    fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let mut wtr = WriterBuilder::new().from_path(file_path)?;
+        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
+        let c: usize = self.data.len();
+        wtr.write_record(self.data.keys().map(|x| x.to_string()).collect::<Vec<String>>())?;
+
+        for i in 0 .. r {
+            let mut record: Vec<String> = vec!["".to_string(); c];
+            for (j, v) in self.data.values().enumerate() {
+                if i < v.len() {
+                    record[j] = v[i].to_string();
+                }
+            }
+            wtr.write_record(record)?;
+        }
+        wtr.flush()?;
+        Ok(())
+    }
+
+    fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>> {
+        let mut rdr = ReaderBuilder::new()
+            .has_headers(true)
+            .delimiter(delimiter as u8)
+            .from_path(file_path)?;
+        
+        let headers_vec = rdr.headers()?;
+        let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
+        let l = headers.len();
+        let mut result = DataFrame::from_matrix(headers, Matrix {
+            data: vec![], 
+            row: 0, 
+            col: l, 
+            shape: Col
+        });
+
+        for rec in rdr.deserialize() {
+            let record: HashMap<String, String> = rec?;
+            println!("{:?}", record);
+            for head in record.keys() {
+                let value = &record[head];
+                if value.len() > 0 {
+                    (&mut result[&head]).push(value.parse::<f64>().unwrap());
+                }
+            }
+        } 
+
+        Ok(result)
+    }
+}
+
+pub trait WithNetCDF: Sized { 
+    fn write_cdf(&self, file_path: &str) -> Result<(), Box<dyn Error>>;         
+    fn read_cdf(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
+}                                                                               
+                                                                                
+impl WithNetCDF for DataFrame {         
+    fn write_cdf(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let mut f = netcdf::create(file_path)?;
+        
+        for (i, (k, v)) in self.data.iter().enumerate() {
+            let dim_name = format!("{}th col", i);
+            let dim = v.len();
+            f.root.add_dimension(&dim_name, dim as u64)?;
+            f.root.add_variable(
+                k,
+                &vec![dim_name],
+                v
+            )?;
+        }
+
+        Ok(())
+    }
+    fn read_cdf(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> {
+        let f = netcdf::open(file_path)?;
+        
+        unimplemented!()
+    }
+}
