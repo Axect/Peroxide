@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.17.1"
+version = "0.17.2"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
@@ -27,11 +27,7 @@ lapack = { version = "0.16", optional = true }
 packed_simd = { version = "0.3", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
-[dependencies.netcdf-sys]
-path = "third_party/netcdf-sys"
-
 [package.metadata.docs.rs]
-all-features = true
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
