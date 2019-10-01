@@ -27,6 +27,9 @@ lapack = { version = "0.16", optional = true }
 packed_simd = { version = "0.3", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
+[dependencies.netcdf-sys]
+path = "third_party/netcdf-sys"
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
