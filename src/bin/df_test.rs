@@ -5,16 +5,13 @@ use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
     #[cfg(feature = "dataframe")]
     {
-        let mut a: DataFrame = DataFrame::new();
-        a.insert("x", c!(1,2,3,4,5));
-        a.insert("y", c!(4,5,6));
-        a.insert("z", c!(7,8,9));
-        a.print();
-        a.write_csv("example_data/df_test.csv")?;
-        a.write_cdf("example_data/df_test.cdf")?;
+        let mut a = DataFrame::new();
 
-        let b = DataFrame::read_csv("example_data/df_test.csv", ',')?;
-        b.print();
+        a.insert("x", vec![1f64, 2f64, 3f64]);
+        a.insert("y", vec![4f64, 5f64]);
+        a.insert("z", vec![6f64]);
+
+        a.print();
     }
     Ok(())
 }

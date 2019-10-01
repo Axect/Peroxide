@@ -1,4 +1,4 @@
-# Release 0.17.0 (2019-09-28) (Candidates)
+# Release 0.17.0 (2019-10-01)
 
 ## DataFrame
 
@@ -29,7 +29,7 @@
 - [ ] Any column operations
 - [x] Read from csv
 - [x] Write to csv
-- [ ] Read from netcdf
+- [x] Read from netcdf
 - [x] Write to netcdf
 
 # Release 0.16.5 (2019-09-26)

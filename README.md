@@ -17,6 +17,7 @@ Peroxide provides various features.
 * `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
 * `oxidize` - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * `plot` - With matplotlib of python, we can draw any plots.
+* `dataframe` - Dataframe & netcdf
 * `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation, then choose openblas feature.
@@ -128,6 +129,10 @@ Peroxide can do many things.
     * Julia-like macro & functions
 * Plotting
     * With `pyo3` & `matplotlib`
+* DataFrame
+    * Convert with Matrix
+    * Read & Write `csv` files
+    * Read & Write `netcdf` files
 
 ### 5. Written in Rust
 
@@ -138,12 +143,13 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.16.1`
+Corresponding to `0.17.0`
 
 ## Pre-requisite
 
 * For `oxidize` feature - Need `OpenBLAS`
 * For `plot` feature - Need `matplotlib` of python
+* For `dataframe` feature - Need `netcdf`
 
 ## Install
 
@@ -168,12 +174,19 @@ Corresponding to `0.16.1`
    default-features = false
    features = ["plot"] 
    ```
-4. OpenBLAS + SIMD & Plot
+4. DataFrame
+    ```toml
+    [dependencies.peroxide]
+    version = "0.17"
+    default-features = false
+    features = ["dataframe"]
+    ```
+4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.16"
+   version = "0.17"
    default-features = false
-   features = ["oxidize", "plot"] 
+   features = ["oxidize", "plot", "dataframe"] 
    ```
 
 ## Module Structure
@@ -215,7 +228,7 @@ Corresponding to `0.16.1`
     - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
-    - [dataframe.rs](src/structure/dataframe.rs) : Not yet implemented
+    - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
     - [dual.rs](src/structure/dual.rs) : Dual number system for automatic differentiation
     - [hyper_dual.rs](src/structure/hyper_dual.rs) : Hyper dual number system for automatic differentiation
     - [matrix.rs](src/structure/matrix.rs) : Matrix
