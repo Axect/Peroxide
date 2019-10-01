@@ -3,6 +3,8 @@ packages:
     - rustup
     - python
     - python-matplotlib
+    - git
+    - netcdf
 sources:
     - https://git.sr.ht/~axect/Peroxide
 tasks:
