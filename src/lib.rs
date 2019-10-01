@@ -44,39 +44,48 @@
 //!         * Gauss-Legendre 4th order
 //! * Communication with Python
 //!     * Plot with `matplotlib`
+//! * DataFrame
+//!     * Read & Write with `netcdf` or `csv` format
 //!
 //! ## Quick Start
 //!
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.16.2`
+//! * Current document version is corresponding to `0.17.1`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.16"
+//!     peroxide = "0.17"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.16"
+//!     version = "0.17"
 //!     default-features = false
 //!     features = ["oxidize"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.16"
+//!     version = "0.17"
 //!     default-features = false
 //!     features = ["plot"]
+//!     ```
+//! 4. DataFrame
+//!     ```toml
+//!     [dependencies.peroxide]
+//!     version = "0.17"
+//!     default-features = false
+//!     features = ["dataframe"]
 //!     ```
 //! 4. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.16"
+//!     version = "0.17"
 //!     default-features = false
-//!     features = ["oxidize", "plot"]
+//!     features = ["oxidize", "plot", "dataframe"]
 //!     ```
 //!
 //! ## Import all at once

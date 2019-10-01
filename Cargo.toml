@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.17.0"
+version = "0.17.1"
 authors = ["axect <edeftg@gmail.com>"]
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
@@ -28,6 +28,7 @@ packed_simd = { version = "0.3", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [package.metadata.docs.rs]
+all-features = true
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
