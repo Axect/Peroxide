@@ -79,6 +79,27 @@
 //!         // r[1] -1.0000       1
 //!     }
 //!     ```
+//! 
+//! ### For `DataFrame`
+//! 
+//! * Similar to Matrix but, `Value` is `DataFrame`
+//! * `cov` means covariance matrix.
+//! 
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::*;
+//! 
+//! fn main() {
+//!     let mut m = DataFrame::with_header(vec!["x", "y", "z"]);
+//!     m["x"] = c!(1,2,3);
+//!     m["y"] = c!(3,2,1);
+//!     
+//!     m.cov().print();
+//!     //         c[0]    c[1]
+//!     // r[0]  1.0000 -1.0000
+//!     // r[1] -1.0000  1.0000
+//! }
+//! ```
 
 use structure::matrix::*;
 use structure::vector::*;
