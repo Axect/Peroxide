@@ -140,7 +140,7 @@ extern crate indexmap;
 extern crate csv;
 extern crate netcdf;
 
-use indexmap::IndexMap;
+use indexmap::{ IndexMap, map::Keys };
 use self::csv::{ ReaderBuilder, StringRecord, WriterBuilder };
 use std::error::Error;
 use std::io::ErrorKind;
@@ -210,6 +210,10 @@ impl DataFrame {
 
     pub fn get(&self, head: &str) -> &Vec<f64> {
         &self.data.get(head).unwrap()
+    }
+
+    pub fn headers(&self) -> Keys<String, Vec<f64>> {
+        self.data.keys()
     }
 
     pub fn to_matrix(&self) -> Matrix {

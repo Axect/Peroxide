@@ -82,6 +82,8 @@
 
 use structure::matrix::*;
 use structure::vector::*;
+#[cfg(feature = "dataframe")]
+use structure::dataframe::*;
 
 /// Statistics Trait
 ///
@@ -267,6 +269,44 @@ impl Statistics for Matrix {
             }
         }
         m
+    }
+}
+
+#[cfg(feature = "dataframe")]
+impl Statistics for DataFrame {
+    type Array = Matrix;
+    type Value = Self;
+
+    fn mean(&self) -> Self::Value {
+        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+        for k in self.headers() {
+            df[k] = vec![self[k].mean()];
+        }
+        df
+    }
+
+    fn var(&self) -> Self::Value {
+        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+        for k in self.headers() {
+            df[k] = vec![self[k].var()];
+        }
+        df
+    }
+
+    fn sd(&self) -> Self::Value {
+        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+        for k in self.headers() {
+            df[k] = vec![self[k].sd()];
+        }
+        df
+    }
+
+    fn cov(&self) -> Self::Array {
+        self.to_matrix().cov()
+    }
+
+    fn cor(&self) -> Self::Array {
+        self.to_matrix().cor()
     }
 }
 

@@ -1,3 +1,11 @@
+# Release 0.17.3 (2019-10-03)
+
+* Implement `Statistics` for `DataFrame`
+
+# Release 0.17.2 (2019-10-02)
+
+* With surge, new documentation web sites available - [peroxide.info](http://peroxide.info)
+
 # Release 0.17.0 (2019-10-01)
 
 ## DataFrame

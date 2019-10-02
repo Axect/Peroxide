@@ -5,7 +5,8 @@
 //! * Dual
 //! * Hyper Dual
 //! * Polynomial
-//! * Multinomial
+//! * DataFrame (only for `dataframe` feature)
+//! * Multinomial (not yet implemented)
 
 pub mod dual;
 pub mod hyper_dual;
