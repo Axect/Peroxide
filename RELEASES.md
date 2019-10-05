@@ -1,3 +1,8 @@
+# Release 0.17.4 (2019-10-06) (Candidates)
+
+* Cubic spline structure (By [schrieveslaach](https://github.com/schrieveslaach))
+* Add documentation for `DataFrame`
+
 # Release 0.17.3 (2019-10-03)
 
 * Implement `Statistics` for `DataFrame`

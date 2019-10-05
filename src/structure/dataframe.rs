@@ -156,6 +156,7 @@ pub struct DataFrame {
     pub data: IndexMap<String, Vec<f64>>,
 }
 
+/// Pretty view for DataFrame
 impl fmt::Display for DataFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.spread())
@@ -178,12 +179,14 @@ impl IndexMut<&str> for DataFrame {
 
 #[allow(unused_parens)]
 impl DataFrame {
+    /// Declare empty DataFrame
     pub fn new() -> Self {
         DataFrame {
             data: IndexMap::new()
         }
     }
 
+    /// Declare empty DataFrame with header
     pub fn with_header(header: Vec<&str>) -> Self {
         let l = header.len();
         Self::from_matrix(
@@ -197,10 +200,12 @@ impl DataFrame {
         )
     }
 
+    /// Insert key & value pair (or only value)
     pub fn insert(&mut self, key: &str, value: Vec<f64>) {
         self.data.insert(key.to_owned(), value);
     }
 
+    /// Insert row
     pub fn insert_row(&mut self, value: Vec<f64>) {
         assert_eq!(self.data.len(), value.len());
         for (v, val) in self.data.values_mut().zip(value) {
@@ -208,14 +213,17 @@ impl DataFrame {
         }
     }
 
+    /// Get value by ref
     pub fn get(&self, head: &str) -> &Vec<f64> {
         &self.data.get(head).unwrap()
     }
 
+    /// Get iterator of headers
     pub fn headers(&self) -> Keys<String, Vec<f64>> {
         self.data.keys()
     }
 
+    /// Convert to matrix
     pub fn to_matrix(&self) -> Matrix {
         let mut data: Vec<f64> = vec![];
         let mut r = 0usize;
@@ -232,6 +240,7 @@ impl DataFrame {
         matrix(data, r, c, Col)
     }
 
+    /// Convert from matrix
     pub fn from_matrix(header: Vec<&str>, mat: Matrix) -> Self {
         let mut df: DataFrame = DataFrame::new();
         for i in 0 .. mat.col {
@@ -240,6 +249,7 @@ impl DataFrame {
         df
     }
 
+    /// For pretty print
     pub fn spread(&self) -> String {
         let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
 
@@ -377,11 +387,13 @@ impl DataFrame {
     
 }
 
+/// To deal with CSV file format
 pub trait WithCSV: Sized {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
 }
 
+/// CSV with DataFrame (inefficient)
 impl WithCSV for DataFrame {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
@@ -432,11 +444,13 @@ impl WithCSV for DataFrame {
     }
 }
 
+/// To deal with NetCDF file format
 pub trait WithNetCDF: Sized { 
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;         
     fn read_nc(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
 }                                                                               
                                                                                 
+/// NetCDF with DataFrame (efficient)
 impl WithNetCDF for DataFrame {         
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut f = netcdf::create(file_path)?;
