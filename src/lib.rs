@@ -5,37 +5,37 @@
 //! `peroxide` has various components for scientific computation.
 //!
 //! * Linear Algebra (with BLAS & LAPACK)
-//!     * Matrix operations
+//!     * [Matrix](structure/matrix/index.html) operations
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
-//!     * Vector operations
+//!     * [Vector](structure/vector/index.html) operations
 //! * Statistics
-//!     * Statistical operations
+//!     * [Statistical operations](statistics/stat/index.html)
 //!         * `mean, var, sd`
 //!         * `factorial, P, C, H`
-//!     * Distributions
+//!     * [Distributions](statistics/dist/index.html)
 //!         * Bernoulli
 //!         * Uniform
 //!         * Normal
 //!         * Gamma
 //!         * Beta
-//! * Special functions (Using `special` crate)
+//! * [Special functions](special/function/index.html) (Using `special` crate)
 //!     * Gaussian
 //!     * Gamma
 //!     * Beta
 //!     * Error
 //! * Automatic Differentiation
-//!     * Dual number system
-//!     * Hyper dual number system
+//!     * [Dual number system](structure/dual/index.html)
+//!     * [Hyper dual number system](structure/hyper_dual/index.html)
 //! * Numerical Utils
-//!     * Interpolation
-//!     * Spline
-//!     * Polynomial
-//!     * Gauss-Legendre Quadrature
-//! * Optimization
+//!     * [Interpolation](numerical/interp/index.html)
+//!     * [Spline](numerical/spline/index.html)
+//!     * [Polynomial](structure/polynomial/index.html)
+//!     * [Gauss-Legendre Quadrature](special/legendre/fn.gauss_legendre_quadrature.html)
+//! * [Optimization](numerical/optimize/index.html)
 //!     * Gradient Descent
 //!     * Levenberg-Marquardt
-//! * Differential Equations
+//! * [Differential Equations](numerical/ode/index.html)
 //!     * Explicit
 //!         * Runge-Kutta 4th order
 //!         * Euler methods
@@ -43,8 +43,8 @@
 //!         * Backward Euler
 //!         * Gauss-Legendre 4th order
 //! * Communication with Python
-//!     * Plot with `matplotlib`
-//! * DataFrame
+//!     * [Plot with `matplotlib`](util/plot/index.html)
+//! * [DataFrame](structure/dataframe/index.html)
 //!     * Read & Write with `netcdf` or `csv` format
 //!
 //! ## Quick Start
