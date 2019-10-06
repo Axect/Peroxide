@@ -262,14 +262,14 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate blas;
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, dscal, idamax};
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate packed_simd;
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 use self::packed_simd::{f64x8, f64x4};
 
 use operation::extra_ops::Real;
@@ -587,7 +587,7 @@ impl VecOps for Vector {
 
     fn s_add(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 match self.len() {
                     n if n % 8 == 0 => {
@@ -615,7 +615,7 @@ impl VecOps for Vector {
 
     fn s_sub(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 match self.len() {
                     n if n % 8 == 0 => {
@@ -643,7 +643,7 @@ impl VecOps for Vector {
 
     fn s_mul(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 match self.len() {
                     n if n % 8 == 0 => {
@@ -671,7 +671,7 @@ impl VecOps for Vector {
 
     fn s_div(&self, scala: f64) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 match self.len() {
                     n if n % 8 == 0 => {
@@ -700,7 +700,7 @@ impl VecOps for Vector {
     /// Dot product
     fn dot(&self, other: &Self) -> f64 {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -716,7 +716,7 @@ impl VecOps for Vector {
     /// Norm
     fn norm(&self) -> f64 {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let n_i32 = self.len() as i32;
                 let res: f64;
@@ -736,7 +736,7 @@ impl VecOps for Vector {
     }
 }
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
     assert_eq!(x.len(), y.len());
     unsafe {
@@ -745,7 +745,7 @@ pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
     }
 }
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn blas_daxpy_return(a: f64, x: &Vec<f64>, y: &Vec<f64>) -> Vec<f64> {
     assert_eq!(x.len(), y.len());
     let mut result = y.clone();

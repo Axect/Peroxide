@@ -64,7 +64,7 @@
 //!     [dependencies.peroxide]
 //!     version = "0.17"
 //!     default-features = false
-//!     features = ["oxidize"]
+//!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
@@ -85,7 +85,7 @@
 //!     [dependencies.peroxide]
 //!     version = "0.17"
 //!     default-features = false
-//!     features = ["oxidize", "plot", "dataframe"]
+//!     features = ["O3", "plot", "dataframe"]
 //!     ```
 //!
 //! ## Import all at once
@@ -101,10 +101,10 @@
 //!     }
 //!     ```
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate blas;
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate lapack;
 
 #[cfg(feature = "plot")]

@@ -15,7 +15,7 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 Peroxide provides various features.
 
 * `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* `oxidize` - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
+* `O3` - SIMD + OpenBLAS (Perfect performance but hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * `plot` - With matplotlib of python, we can draw any plots.
 * `dataframe` - Dataframe & netcdf
 * `serde` - serialization with [Serde](https://serde.rs/).
@@ -147,7 +147,7 @@ Corresponding to `0.17.0`
 
 ## Pre-requisite
 
-* For `oxidize` feature - Need `OpenBLAS`
+* For `O3` feature - Need `OpenBLAS`
 * For `plot` feature - Need `matplotlib` of python
 * For `dataframe` feature - Need `netcdf`
 
@@ -165,7 +165,7 @@ Corresponding to `0.17.0`
    [dependencies.peroxide]
    version = "0.17"
    default-features = false
-   features = ["oxidize"] 
+   features = ["O3"] 
    ```
 3. Plot
     ```toml
@@ -186,7 +186,7 @@ Corresponding to `0.17.0`
    [dependencies.peroxide]
    version = "0.17"
    default-features = false
-   features = ["oxidize", "plot", "dataframe"] 
+   features = ["O3", "plot", "dataframe"] 
    ```
 
 ## Module Structure

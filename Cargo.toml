@@ -32,6 +32,6 @@ rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
 default = []
-oxidize = ["blas", "lapack", "packed_simd"]
+O3 = ["blas", "lapack", "packed_simd"]
 plot = ["pyo3"]
 dataframe = ["netcdf", "indexmap"]
