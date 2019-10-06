@@ -10,3 +10,4 @@ Cargo.lock
 *.py
 *.vs
 *.cdf
+*.nc

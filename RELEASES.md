@@ -1,3 +1,22 @@
+# Release 0.18.0 (2019-10-06)
+
+## Important
+
+* Rename feature : `oxidize` -> `O3`
+
+## Other enhancement
+
+### Added
+
+* Cubic spline structure (By [schrieveslaach](https://github.com/schrieveslaach))
+* Add documentation for `DataFrame`
+
+### Modified
+
+* `structure::DataFrame::WithNetCDF`
+    * Modify `read_nc(file_path: &str, header: Vec<&str>)` -> `read_nc(file_path: &str)`
+    * Add `read_nc_by_header(file_path: &str, header: Vec<&str>)`
+
 # Release 0.17.3 (2019-10-03)
 
 * Implement `Statistics` for `DataFrame`

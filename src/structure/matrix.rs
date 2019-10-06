@@ -430,16 +430,16 @@
 
 extern crate csv;
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate blas;
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 extern crate lapack;
 
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 use std::f64::NAN;
 
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
@@ -1135,7 +1135,7 @@ impl Add<Matrix> for Matrix {
         assert_eq!(&self.col, &other.col);
 
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 if self.shape != other.shape {
                     return self.add(other.change_shape());
@@ -1171,7 +1171,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
         assert_eq!(self.col, other.col);
 
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 if self.shape != other.shape {
                     return self.add(&other.change_shape());
@@ -1215,7 +1215,7 @@ where
     type Output = Self;
     fn add(self, other: T) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![other.into(); x.len()];
@@ -1238,7 +1238,7 @@ where
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![other.into(); x.len()];
@@ -1352,7 +1352,7 @@ impl Neg for Matrix {
 
     fn neg(self) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1378,7 +1378,7 @@ impl<'a> Neg for &'a Matrix {
 
     fn neg(self) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1423,7 +1423,7 @@ impl Sub<Matrix> for Matrix {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 if self.shape != other.shape {
                     return self.sub(other.change_shape());
@@ -1458,7 +1458,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 if self.shape != other.shape {
                     return self.sub(&other.change_shape());
@@ -1494,7 +1494,7 @@ where
 
     fn sub(self, other: T) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let mut y = self.data;
                 let x = vec![other.into(); y.len()];
@@ -1518,7 +1518,7 @@ where
 
     fn sub(self, other: T) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let mut y = self.data.clone();
                 let x = vec![other.into(); y.len()];
@@ -1600,7 +1600,7 @@ impl Mul<f64> for Matrix {
 
     fn mul(self, other: f64) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1646,7 +1646,7 @@ impl<'a> Mul<f64> for &'a Matrix {
 
     fn mul(self, other: f64) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
@@ -1767,7 +1767,7 @@ impl Mul<Matrix> for Matrix {
 
     fn mul(self, other: Self) -> Self {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => blas_mul(&self, &other),
             _ => matmul(&self, &other),
         }
@@ -1779,7 +1779,7 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => blas_mul(self, other),
             _ => matmul(self, other),
         }
@@ -1792,7 +1792,7 @@ impl Mul<Vector> for Matrix {
 
     fn mul(self, other: Vector) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = &other;
                 let mut y = vec![0f64; self.row];
@@ -1820,7 +1820,7 @@ impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
 
     fn mul(self, other: &'b Vector) -> Self::Output {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let x = other;
                 let mut y = vec![0f64; self.row];
@@ -2398,7 +2398,7 @@ impl LinearAlgebra for Matrix {
     fn det(&self) -> f64 {
         assert_eq!(self.row, self.col);
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
@@ -2519,7 +2519,7 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn inv(&self) -> Option<Self> {
         match () {
-            #[cfg(feature = "oxidize")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
@@ -2578,7 +2578,7 @@ impl LinearAlgebra for Matrix {
 #[allow(non_snake_case)]
 pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
     match () {
-        #[cfg(feature = "oxidize")]
+        #[cfg(feature = "O3")]
         () => {
             let opt_dgrf = lapack_dgetrf(A);
             match opt_dgrf {
@@ -2779,7 +2779,7 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
 /// * m1: m x k matrix
 /// * m2: k x n matrix
 /// * result: m x n matrix
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn blas_mul(m1: &Matrix, m2: &Matrix) -> Matrix {
     let m = m1.row;
     let k = m1.col;
@@ -2863,7 +2863,7 @@ pub struct DGEQRF {
 //}
 
 /// Peroxide version of `dgetrf`
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     let m = mat.row;
     let n = mat.col;
@@ -2900,7 +2900,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
 }
 
 /// Peroxide version of `dgetri`
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
     let mut result = dgrf.fact_mat.clone();
     let ipiv = &dgrf.ipiv;
@@ -2938,7 +2938,7 @@ pub fn lapack_dgetri(dgrf: &DGETRF) -> Option<Matrix> {
 
 /// Peroxide version of `dgetrs`
 #[allow(non_snake_case)]
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
     match b.shape {
         Row => lapack_dgetrs(dgrf, &b.change_shape()),
@@ -2969,7 +2969,7 @@ pub fn lapack_dgetrs(dgrf: &DGETRF, b: &Matrix) -> Option<Matrix> {
 
 /// Peroxide version of `dgeqrf`
 #[allow(non_snake_case)]
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
     match mat.shape {
         Row => lapack_dgeqrf(&mat.change_shape()),
@@ -3023,7 +3023,7 @@ pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
 }
 
 #[allow(non_snake_case)]
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 impl DGETRF {
     pub fn get_P(&self) -> Vec<i32> {
         self.ipiv.clone()
@@ -3075,7 +3075,7 @@ impl DGETRF {
 }
 
 #[allow(non_snake_case)]
-#[cfg(feature = "oxidize")]
+#[cfg(feature = "O3")]
 impl DGEQRF {
     pub fn get_Q(&self) -> Matrix {
         let mut A = self.fact_mat.clone();
