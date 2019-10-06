@@ -1,6 +1,7 @@
 extern crate peroxide;
 #[allow(unused_imports)]
 use peroxide::*;
+use std::fs::remove_file;
 
 #[test]
 #[cfg(feature = "dataframe")]
@@ -44,4 +45,6 @@ fn read_write_nc_test() {
     dg.print();
 
     assert_eq!(df, dg);
+
+    remove_file("example_data/ex.nc");
 }
