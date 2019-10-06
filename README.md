@@ -143,7 +143,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.17.0`
+Corresponding to `0.18.0`
 
 ## Pre-requisite
 
@@ -158,33 +158,33 @@ Corresponding to `0.17.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.17"
+   peroxide = "0.18"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.17"
+   version = "0.18"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.17"
+   version = "0.18"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
     [dependencies.peroxide]
-    version = "0.17"
+    version = "0.18"
     default-features = false
     features = ["dataframe"]
     ```
 4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.17"
+   version = "0.18"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```
