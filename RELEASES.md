@@ -1,3 +1,7 @@
+# Release 0.18.1 (2019-10-07)
+
+* Fix limitation of key length: 5 -> unlimited
+
 # Release 0.18.0 (2019-10-06)
 
 ## Important
