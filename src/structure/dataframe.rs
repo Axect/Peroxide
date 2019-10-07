@@ -379,6 +379,9 @@ impl DataFrame {
         }
 
         for k in self.data.keys() {
+            if k.len() > space {
+                space = k.len() + 1;
+            }
             result.push_str(&tab(k, space));
         }
         result.push('\n');
