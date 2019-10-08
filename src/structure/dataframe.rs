@@ -180,7 +180,7 @@ impl Index<&str> for DataFrame {
 impl IndexMut<&str> for DataFrame {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
         match self.data.get_mut(index) {
-            Some(mut v) => v,
+            Some(v) => v,
             None => panic!("There are no corresponding value"),
         }
     }
@@ -235,7 +235,7 @@ impl DataFrame {
     pub fn set_header(&mut self, header: Vec<&str>) {
         for i in 0..header.len() {
             match self.data.get_index_mut(i) {
-                Some((mut k, _)) => {
+                Some((k, _)) => {
                     *k = header[i].to_string();
                 }
                 None => panic!("New header is longer than original header"),
@@ -448,7 +448,6 @@ impl WithCSV for DataFrame {
 
         let headers_vec = rdr.headers()?;
         let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
-        let l = headers.len();
         let mut result = DataFrame::with_header(headers);
 
         for rec in rdr.deserialize() {
@@ -480,8 +479,9 @@ impl WithNetCDF for DataFrame {
         for (i, (k, v)) in self.data.iter().enumerate() {
             let dim_name = format!("{}th col", i);
             let dim = v.len();
-            f.root.add_dimension(&dim_name, dim as u64)?;
-            f.root.add_variable(k, &vec![dim_name], v)?;
+            f.add_dimension(&dim_name, dim)?;
+            let var = &mut f.add_variable::<f64>(k, &[&dim_name])?;
+            var.put_values(v, None, None)?;
         }
 
         Ok(())
@@ -490,8 +490,9 @@ impl WithNetCDF for DataFrame {
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new();
-        for (k, v) in f.root.variables.iter() {
-            let data: Vec<f64> = v.get_double(false)?;
+        for (k, v) in f.variables().iter() {
+            let mut data: Vec<f64> = vec![0.0; v.len()];
+            v.values_to(&mut data, None, None)?;
             df.insert(k, data);
         }
         Ok(df)
@@ -501,11 +502,12 @@ impl WithNetCDF for DataFrame {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::with_header(header.clone());
         for k in header {
-            let val = match f.root.variables.get(k) {
+            let val = match f.variables().get(k) {
                 Some(v) => v,
                 None => panic!("There are no corresponding values"),
             };
-            let data: Vec<f64> = val.get_double(false)?;
+            let mut data: Vec<f64> = vec![0.0; val.len()];
+            val.values_to(&mut data, None, None)?;
             df[k] = data;
         }
         Ok(df)
