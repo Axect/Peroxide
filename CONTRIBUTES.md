@@ -1,4 +1,4 @@
-# Contibutes
+# Contributes
 
 Peroxide follows [Gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow).
 Don't need to much precise, but it's good to obey some simple rules.
