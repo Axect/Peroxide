@@ -524,6 +524,10 @@ fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {
 
 To see [RELEASES.md](./RELEASES.md)
 
+## Contributes Guide
+
+See [CONTRIBUTES.md](./CONTRIBUTES.md)
+
 ## TODO
 
 To see [TODO.md](./TODO.md)
