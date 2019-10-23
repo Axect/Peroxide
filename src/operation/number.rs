@@ -1,7 +1,6 @@
 use operation::extra_ops::{ExpLogOps, PowOps, Real, TrigOps};
 use operation::number::Number::{D, F};
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use std::process::exit;
 use structure::dual::Dual;
 use structure::hyper_dual::HyperDual;
 

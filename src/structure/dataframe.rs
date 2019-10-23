@@ -6,7 +6,7 @@
 //!     * `DataFrame::new()` - Empty dataframe
 //!     * `DataFrame::with_header(header: Vec<&str>)` - Empty dataframe with header
 //!     * `DataFrame::from_matrix(mat: Matrix)` - from matrix
-//! 
+//!
 //! ### Example
 //!
 //!
@@ -89,13 +89,13 @@
 //!
 //! ### Example (Benchmark codes)
 //!
-//! #### 1. netcdf 
+//! #### 1. netcdf
 //!
 //! ```rust
 //! extern crate peroxide;
 //! use peroxide::*;
 //! use std::error::Error;
-//! 
+//!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut df = DataFrame::with_header(vec!["x", "y", "z"]);
 //!     df["x"] = vec![0f64; 1000_000];
@@ -113,14 +113,14 @@
 //!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! #### 2. CSV
 //!
 //! ```rust
 //! extern crate peroxide;
 //! use peroxide::*;
 //! use std::error::Error;
-//! 
+//!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut df = DataFrame::with_header(vec!["x", "y", "z"]);
 //!     df["x"] = vec![0f64; 1000_000];
@@ -137,20 +137,18 @@
 //! }
 //! ```
 
-
-extern crate indexmap;
 extern crate csv;
+extern crate indexmap;
 extern crate netcdf;
 
-use indexmap::{ IndexMap, map::Keys };
-use self::csv::{ ReaderBuilder, StringRecord, WriterBuilder };
-use std::error::Error;
-use std::io::ErrorKind;
-use std::ops::{ Index, IndexMut };
-use std::{ fmt, hash::Hash, fmt::Debug };
+use self::csv::{ReaderBuilder, WriterBuilder};
+use indexmap::{map::Keys, IndexMap};
+use std::cmp::{max, min};
 use std::collections::HashMap;
-use structure::matrix::{ Matrix, Shape::*, matrix };
-use std::cmp::{ max, min };
+use std::error::Error;
+use std::ops::{Index, IndexMut};
+use std::{fmt, fmt::Debug};
+use structure::matrix::{matrix, Matrix, Shape::*};
 use util::useful::tab;
 
 #[derive(Debug, Clone)]
@@ -182,8 +180,8 @@ impl Index<&str> for DataFrame {
 impl IndexMut<&str> for DataFrame {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
         match self.data.get_mut(index) {
-            Some(mut v) => v,
-            None => panic!("There are no corresponding value")
+            Some(v) => v,
+            None => panic!("There are no corresponding value"),
         }
     }
 }
@@ -193,7 +191,7 @@ impl DataFrame {
     /// Declare empty DataFrame
     pub fn new() -> Self {
         DataFrame {
-            data: IndexMap::new()
+            data: IndexMap::new(),
         }
     }
 
@@ -201,12 +199,10 @@ impl DataFrame {
     pub fn with_header(header: Vec<&str>) -> Self {
         let l = header.len();
         let mut data = IndexMap::with_capacity(l);
-        for i in 0 .. l {
+        for i in 0..l {
             data.insert(header[i].to_string(), vec![]);
         }
-        DataFrame {
-            data
-        }
+        DataFrame { data }
     }
 
     pub fn len(&self) -> usize {
@@ -237,12 +233,12 @@ impl DataFrame {
     }
 
     pub fn set_header(&mut self, header: Vec<&str>) {
-        for i in 0 .. header.len() {
+        for i in 0..header.len() {
             match self.data.get_index_mut(i) {
-                Some((mut k, _)) => {
+                Some((k, _)) => {
                     *k = header[i].to_string();
                 }
-                None => panic!("New header is longer than original header")
+                None => panic!("New header is longer than original header"),
             }
         }
     }
@@ -267,7 +263,7 @@ impl DataFrame {
     /// Convert from matrix
     pub fn from_matrix(mat: Matrix) -> Self {
         let mut df: DataFrame = DataFrame::new();
-        for i in 0 .. mat.col {
+        for i in 0..mat.col {
             df.insert(format!("{}", i).as_str(), mat.col(i));
         }
         df
@@ -289,14 +285,13 @@ impl DataFrame {
                         let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
                         l = max(l, l2);
                     }
-                    if v.len() < r-5 {
-                        continue
+                    if v.len() < r - 5 {
+                        continue;
                     } else {
-                        for elem in v.into_iter().skip(r-5) {
+                        for elem in v.into_iter().skip(r - 5) {
                             let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
                             l = max(l, l2);
                         }
-
                     }
                 }
                 l + 1
@@ -305,13 +300,13 @@ impl DataFrame {
             if space < 5 {
                 space = 5;
             }
-            
+
             for k in self.data.keys() {
                 result.push_str(&tab(k, space));
             }
             result.push('\n');
 
-            for i in 0 .. 5 {
+            for i in 0..5 {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
                 for v in self.data.values() {
                     if i < v.len() {
@@ -336,7 +331,7 @@ impl DataFrame {
                 result.push_str(&tab("...", space));
             }
             result.push('\n');
-            for i in r-5 .. r {
+            for i in r - 5..r {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
                 for v in self.data.values() {
                     if i < v.len() {
@@ -354,7 +349,7 @@ impl DataFrame {
                         result.push_str(&tab("", space));
                     }
                 }
-                if i == r-1 {
+                if i == r - 1 {
                     break;
                 }
                 result.push('\n');
@@ -386,7 +381,7 @@ impl DataFrame {
         }
         result.push('\n');
 
-        for i in 0 .. r {
+        for i in 0..r {
             result.push_str(&tab(&format!("r[{}]", i), 5));
             for v in self.data.values() {
                 if i < v.len() {
@@ -411,7 +406,6 @@ impl DataFrame {
         }
         result
     }
-    
 }
 
 /// To deal with CSV file format
@@ -426,9 +420,14 @@ impl WithCSV for DataFrame {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
         let c: usize = self.data.len();
-        wtr.write_record(self.data.keys().map(|x| x.to_string()).collect::<Vec<String>>())?;
+        wtr.write_record(
+            self.data
+                .keys()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>(),
+        )?;
 
-        for i in 0 .. r {
+        for i in 0..r {
             let mut record: Vec<String> = vec!["".to_string(); c];
             for (j, v) in self.data.values().enumerate() {
                 if i < v.len() {
@@ -446,10 +445,9 @@ impl WithCSV for DataFrame {
             .has_headers(true)
             .delimiter(delimiter as u8)
             .from_path(file_path)?;
-        
+
         let headers_vec = rdr.headers()?;
         let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
-        let l = headers.len();
         let mut result = DataFrame::with_header(headers);
 
         for rec in rdr.deserialize() {
@@ -460,33 +458,30 @@ impl WithCSV for DataFrame {
                     (&mut result[&head]).push(value.parse::<f64>().unwrap());
                 }
             }
-        } 
+        }
 
         Ok(result)
     }
 }
 
 /// To deal with NetCDF file format
-pub trait WithNetCDF: Sized { 
-    fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;         
+pub trait WithNetCDF: Sized {
+    fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>>;
     fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
-}                                                                               
-                                                                                
+}
+
 /// NetCDF with DataFrame (efficient)
-impl WithNetCDF for DataFrame {         
+impl WithNetCDF for DataFrame {
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut f = netcdf::create(file_path)?;
-        
+
         for (i, (k, v)) in self.data.iter().enumerate() {
             let dim_name = format!("{}th col", i);
             let dim = v.len();
-            f.root.add_dimension(&dim_name, dim as u64)?;
-            f.root.add_variable(
-                k,
-                &vec![dim_name],
-                v
-            )?;
+            f.add_dimension(&dim_name, dim)?;
+            let var = &mut f.add_variable::<f64>(k, &[&dim_name])?;
+            var.put_values(v, None, None)?;
         }
 
         Ok(())
@@ -495,8 +490,9 @@ impl WithNetCDF for DataFrame {
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new();
-        for (k, v) in f.root.variables.iter() {
-            let data: Vec<f64> = v.get_double(false)?;
+        for (k, v) in f.variables().iter() {
+            let mut data: Vec<f64> = vec![0.0; v.len()];
+            v.values_to(&mut data, None, None)?;
             df.insert(k, data);
         }
         Ok(df)
@@ -506,14 +502,14 @@ impl WithNetCDF for DataFrame {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::with_header(header.clone());
         for k in header {
-            let val = match f.root.variables.get(k) {
+            let val = match f.variables().get(k) {
                 Some(v) => v,
                 None => panic!("There are no corresponding values"),
             };
-            let data: Vec<f64> = val.get_double(false)?;
+            let mut data: Vec<f64> = vec![0.0; val.len()];
+            val.values_to(&mut data, None, None)?;
             df[k] = data;
         }
         Ok(df)
     }
 }
-
