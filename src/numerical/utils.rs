@@ -44,6 +44,37 @@ where
     jacobian_real(Box::new(f), x)
 }
 
+/// Jacobian Matrix for Real input
+///
+/// # Description
+/// : Exact jacobian matrix using Automatic Differenitation
+///
+/// # Type
+/// (Box<F>, &Vec<T>) -> Matrix where F: Fn(&Vec<Dual>) -> Vec<Dual>, T: Real
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let x = c!(1, 1);
+/// let j = jacobian_real(Box::new(f), &x);
+/// j.print();
+///
+/// //      c[0] c[1]
+/// // r[0]    1    1
+/// // r[1]   -1    2
+///
+/// fn f(xs: &Vec<Dual>) -> Vec<Dual> {
+///     let x = xs[0];
+///     let y = xs[1];
+///
+///     vec![
+///        x - y,
+///        x + 2.*y,
+///    ]
+/// }
+/// ```
 #[allow(non_snake_case)]
 pub fn jacobian_real<F, T>(f: Box<F>, x: &Vec<T>) -> Matrix
 where
