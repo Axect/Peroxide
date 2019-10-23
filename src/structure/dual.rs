@@ -122,6 +122,14 @@ impl Dual {
     pub fn extract(&self) -> (f64, f64) {
         (self.x, self.dx)
     }
+
+    pub fn set_value(&mut self, v: f64) {
+        self.x = v
+    }
+    
+    pub fn set_slope(&mut self, dv: f64) {
+        self.dx = dv
+    }
 }
 
 pub fn dual<T: Into<f64> + Copy>(x: T, dx: T) -> Dual {

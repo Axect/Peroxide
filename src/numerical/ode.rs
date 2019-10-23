@@ -212,7 +212,7 @@ use std::collections::HashMap;
 use structure::dual::Dual;
 use structure::matrix::{Matrix, FP, LinearAlgebra};
 use structure::vector::FPVector;
-use numerical::utils::jacobian_dual;
+use numerical::utils::jacobian_real;
 use util::non_macro::{cat, concat, zeros, eye};
 use util::print::Printable;
 use {VecOps, VecWithDual, Dualist};
@@ -687,7 +687,7 @@ impl ODE for ImplicitODE {
                 let mut err = 1f64;
 
                 // 1. Combine two functions to one function
-                let g = |k: Vec<Dual>| -> Vec<Dual> {
+                let g = |k: &Vec<Dual>| -> Vec<Dual> {
                     let k1 = k.take(n);
                     let k2 = k.skip(n);
                     concat(
@@ -711,10 +711,10 @@ impl ODE for ImplicitODE {
                 // 2. Obtain Jacobian
                 let I = eye(2 * n);
 
-                let mut Dg = jacobian_dual(g, &k_curr);
+                let mut Dg = jacobian_real(Box::new(g), &k_curr);
                 let mut DG = &I - &Dg;
                 let mut DG_inv = DG.inv().unwrap();
-                let mut G = k_curr.sub(&g(k_curr.conv_dual()).values());
+                let mut G = k_curr.sub(&g(&k_curr.conv_dual()).values());
                 let mut num_iter: usize = 0;
 
                 // 3. Iteration
@@ -722,10 +722,10 @@ impl ODE for ImplicitODE {
                     let DGG = &DG_inv * &G;
                     let k_prev = k_curr.clone();
                     k_curr.mut_zip_with(|x, y| x - y, &DGG.col(0));
-                    Dg = jacobian_dual(g, &k_curr);
+                    Dg = jacobian_real(Box::new(g), &k_curr);
                     DG = &I - &Dg;
                     DG_inv = DG.inv().unwrap();
-                    G = k_curr.sub(&g(k_curr.conv_dual()).values());
+                    G = k_curr.sub(&g(&k_curr.conv_dual()).values());
                     err = k_curr.sub(&k_prev).norm();
                     num_iter += 1;
                 }
