@@ -1,3 +1,7 @@
+# Release 0.18.2 (2019-10-23)
+
+* Improve generic of `jacobian`
+
 # Release 0.18.1 (2019-10-07)
 
 * Fix limitation of key length: 5 -> unlimited
