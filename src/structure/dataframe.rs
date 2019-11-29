@@ -102,7 +102,7 @@
 //!     df["y"] = vec![0f64; 1000_000];
 //!     df["z"] = vec![0f64; 1000_000];
 //!
-//!     df.write_nc("example_data/df_bench.nc")?;
+//!     // df.write_nc("example_data/df_bench.nc")?;
 //!
 //!     // read_nc(path: &str, header: Vec<&str>)
 //!     let dg = DataFrame::read_nc("example_data/df_bench.nc")?;
