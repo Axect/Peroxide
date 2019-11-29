@@ -292,6 +292,9 @@ impl DataFrame {
                     }
                 }
                 space = max(space + 1,  5);
+                if k.len() >= space {
+                    space = k.len() + 1;
+                }
                 result.push_str(&tab(k, space));
                 space_map.insert(k.to_string(), space);
                 result.push('\n');
@@ -364,7 +367,7 @@ impl DataFrame {
                 space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
             }
             space = max(space + 1, 5);
-            if k.len() > space {
+            if k.len() >= space {
                 space = k.len() + 1;
             }
             result.push_str(&tab(k, space));
