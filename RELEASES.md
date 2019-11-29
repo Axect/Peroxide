@@ -1,3 +1,7 @@
+# Release 0.18.3 (2019-11-29)
+
+* Fix global spacing of `dataframe` to column-wise spacing.
+
 # Release 0.18.2 (2019-10-23)
 
 * Improve generic of `jacobian`
