@@ -1,3 +1,7 @@
+# Release 0.18.4 (2019-11-29)
+
+* Fix spacing constraint - space should be larger than length of key
+
 # Release 0.18.3 (2019-11-29)
 
 * Fix global spacing of `dataframe` to column-wise spacing.
