@@ -278,37 +278,30 @@ impl DataFrame {
         if r > 100 {
             let lc1 = ((r as f64).log10() as usize) + 5;
             result.push_str(&tab("", lc1));
-            let mut space: usize = {
-                let mut l = 0usize;
-                for v in self.data.values() {
-                    for elem in v.clone().into_iter().take(5) {
-                        let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
-                        l = max(l, l2);
-                    }
-                    if v.len() < r - 5 {
-                        continue;
-                    } else {
-                        for elem in v.into_iter().skip(r - 5) {
-                            let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
-                            l = max(l, l2);
-                        }
+
+            let mut space_map: IndexMap<String, usize> = IndexMap::new();
+            for k in self.data.keys() {
+                let v = &self[&k];
+                let mut space = 0usize;
+                for elem in v.clone().into_iter().take(5) {
+                    space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
+                }
+                if v.len() >= r-5 {
+                    for elem in v.into_iter().skip(r-5) {
+                        space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
                     }
                 }
-                l + 1
-            };
-
-            if space < 5 {
-                space = 5;
-            }
-
-            for k in self.data.keys() {
+                space = max(space + 1,  5);
                 result.push_str(&tab(k, space));
+                space_map.insert(k.to_string(), space);
+                result.push('\n');
             }
-            result.push('\n');
 
             for i in 0..5 {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
-                for v in self.data.values() {
+                for k in self.data.keys() {
+                    let v = &self[&k];
+                    let space = space_map[k];
                     if i < v.len() {
                         let elem = v[i];
                         let st1 = format!("{:.4}", elem);
@@ -327,13 +320,16 @@ impl DataFrame {
                 result.push('\n');
             }
             result.push_str(&tab("...", lc1));
-            for _k in self.data.keys() {
+            for k in self.data.keys() {
+                let space = space_map[k];
                 result.push_str(&tab("...", space));
             }
             result.push('\n');
             for i in r - 5..r {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
-                for v in self.data.values() {
+                for k in self.data.keys() {
+                    let v = &self[&k];
+                    let space = space_map[k];
                     if i < v.len() {
                         let elem = v[i];
                         let st1 = format!("{:.4}", elem);
@@ -358,32 +354,29 @@ impl DataFrame {
         }
 
         result.push_str(&tab("", 5));
-        let mut space: usize = {
-            let mut l = 0usize;
-            for v in self.data.values() {
-                for elem in v.into_iter() {
-                    let l2 = min(format!("{:.4}", elem).len(), elem.to_string().len());
-                    l = max(l, l2);
-                }
-            }
-            l + 1
-        };
 
-        if space < 5 {
-            space = 5;
-        }
+        let mut space_map: IndexMap<String, usize> = IndexMap::new();
 
         for k in self.data.keys() {
+            let value = &self[&k];
+            let mut space = 0usize;
+            for elem in value {
+                space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
+            }
+            space = max(space + 1, 5);
             if k.len() > space {
                 space = k.len() + 1;
             }
             result.push_str(&tab(k, space));
+            space_map.insert(k.to_string(), space);
         }
         result.push('\n');
 
         for i in 0..r {
             result.push_str(&tab(&format!("r[{}]", i), 5));
-            for v in self.data.values() {
+            for k in self.data.keys() {
+                let v = &self[&k];
+                let space = space_map[k];
                 if i < v.len() {
                     let elem = v[i];
                     let st1 = format!("{:.4}", elem);
