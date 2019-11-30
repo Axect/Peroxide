@@ -297,8 +297,8 @@ impl DataFrame {
                 }
                 result.push_str(&tab(k, space));
                 space_map.insert(k.to_string(), space);
-                result.push('\n');
             }
+            result.push('\n');
 
             for i in 0..5 {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
