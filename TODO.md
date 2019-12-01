@@ -1,6 +1,13 @@
 # TODO
 
-## 2019.07.31
+## 2019.12.01
+
+### Primary
+
+- [ ] Add new feature - `rug`
+- [ ] Implement higher order automatic derivatives
+
+### Subs
 
 - [ ] Implement various pdf
     - [x] Bernoulli
@@ -10,10 +17,9 @@
     - [ ] Student's t
     - [ ] Wishart
 - [ ] Implement special polynomial
-    - [ ] Legendre
+    - [x] Legendre
     - [ ] Bessel
     - [ ] Hermite
-- [ ] Implement DataFrame
 - [ ] Determine main API
 - [ ] Implement convenient structure of Neural Network
 - [ ] Documentized
@@ -26,8 +32,7 @@
     - [x] ODE
     - [ ] Macros
     - [ ] Machine Learning
-    - [ ] Optimize
-- [ ] Export distributions using Pickle
+    - [x] Optimize
 - [ ] Fill `ExtraOps` for `HyperDual`
 
 ## Complete
@@ -41,3 +46,4 @@
         - [x] Gauss-Newton (But not yet merged)
         - [x] Gradient Descent
         - [x] Levenberg-Marquardt
+- [x] Implement DataFrame
