@@ -1,3 +1,9 @@
+# Release 0.18.6 (2019-12-05)
+
+* Add missing trait bound for `Real` trait
+* Fix error of `plot.rs`
+    * Change python library dependency : `pylab` -> `matplotlib.pyplot`
+
 # Release 0.18.5 (2019-11-30)
 
 * **[Hotfix]** Fix spacing bug for `r>100` cases.

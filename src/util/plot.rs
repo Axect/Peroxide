@@ -330,7 +330,7 @@ impl Plot for Plot2D {
         let path = self.path.clone();
 
         // Global variables to plot
-        let globals = vec![("plt", py.import("pylab")?)].into_py_dict(py);
+        let globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py);
         globals.set_item("x", x)?;
         globals.set_item("y", ys)?;
         globals.set_item("pair", pairs)?;

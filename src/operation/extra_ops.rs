@@ -24,7 +24,7 @@
 //!     }
 //!     ```
 
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub, Neg};
 use structure::dual::Dual;
 use structure::hyper_dual::HyperDual;
 
@@ -62,6 +62,8 @@ pub trait Real:
     PowOps
     + TrigOps
     + ExpLogOps
+    + Neg
+    + PartialOrd
     + Add<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
