@@ -2,7 +2,7 @@
 
 * Add missing trait bound for `Real` trait
 * Fix error of `plot.rs`
-    * Change depencency : `pylab` -> `matplotlib.pyplot`
+    * Change python library dependency : `pylab` -> `matplotlib.pyplot`
 
 # Release 0.18.5 (2019-11-30)
 
