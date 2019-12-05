@@ -8,7 +8,7 @@ license = "BSD-3-Clause"
 categories = ["science"]
 readme = "README.md"
 documentation = "http://peroxide.info"
-keywords = ["Numeric", "R", "MATLAB", "Python", "Science", "Dataframe", "Plot"]
+keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
 exclude = ["example_data/", "src/bin/", "benches/", "example/"]
 
 [badges]
