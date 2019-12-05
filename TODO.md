@@ -1,11 +1,12 @@
 # TODO
 
-## 2019.12.01
+## 2019.12.05
 
 ### Primary
 
 - [ ] Add new feature - `rug`
 - [ ] Implement higher order automatic derivatives
+- [ ] Make or Use pure Rust plot library
 
 ### Subs
 
