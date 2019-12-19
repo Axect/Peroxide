@@ -137,10 +137,6 @@
 //! }
 //! ```
 
-extern crate csv;
-extern crate indexmap;
-extern crate netcdf;
-
 use self::csv::{ReaderBuilder, WriterBuilder};
 use indexmap::{map::Keys, IndexMap};
 use std::cmp::{max, min};
@@ -150,10 +146,12 @@ use std::ops::{Index, IndexMut};
 use std::{fmt, fmt::Debug};
 use structure::matrix::{matrix, Matrix, Shape::*};
 use util::useful::tab;
+use json::JsonValue;
 
 #[derive(Debug, Clone)]
 pub struct DataFrame {
     pub data: IndexMap<String, Vec<f64>>,
+    pub max_size: usize,
 }
 
 impl PartialEq for DataFrame {
@@ -192,6 +190,7 @@ impl DataFrame {
     pub fn new() -> Self {
         DataFrame {
             data: IndexMap::new(),
+            max_size: 0usize,
         }
     }
 
@@ -202,15 +201,23 @@ impl DataFrame {
         for i in 0..l {
             data.insert(header[i].to_string(), vec![]);
         }
-        DataFrame { data }
+        DataFrame { data, max_size: 0usize }
     }
 
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
+    pub fn get_max_size(&self) -> usize {
+        self.max_size
+    }
+
     /// Insert key & value pair (or only value)
     pub fn insert(&mut self, key: &str, value: Vec<f64>) {
+        let l = value.len();
+        if l > self.max_size {
+            max_size = l;
+        }
         self.data.insert(key.to_owned(), value);
     }
 
@@ -220,6 +227,7 @@ impl DataFrame {
         for (v, val) in self.data.values_mut().zip(value) {
             v.push(val);
         }
+        self.max_size += 1;
     }
 
     /// Get value by ref
@@ -271,7 +279,7 @@ impl DataFrame {
 
     /// For pretty print
     pub fn spread(&self) -> String {
-        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
+        let r: usize = self.max_size;
 
         let mut result = String::new();
 
@@ -414,7 +422,7 @@ pub trait WithCSV: Sized {
 impl WithCSV for DataFrame {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
-        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
+        let r: usize = self.max_size;
         let c: usize = self.data.len();
         wtr.write_record(
             self.data
@@ -507,5 +515,30 @@ impl WithNetCDF for DataFrame {
             df[k] = data;
         }
         Ok(df)
+    }
+}
+
+pub trait WithJSON {
+    fn to_json_value(&self) -> JsonValue;
+    fn from_json_value(val: JsonValue) -> Self;
+}
+
+impl WithJSON for DataFrame {
+    fn to_json_value(&self) -> JsonValue {
+        let r = self.max_size;
+        let mut values = Vec::<JsonValue>::new();
+        for i in 0 .. r {
+            let mut row_object = JsonValue::new_object();
+            for head in self.headers() {
+                row_object.insert(head, self.data[head][i]).expect("Can't insert row object");
+            }
+            values.push(row_object);
+        }
+
+        JsonValue::Array(values)
+    }
+
+    fn from_json_value(val: JsonValue) -> Self {
+        unimplemented!()
     }
 }
