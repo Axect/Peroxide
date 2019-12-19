@@ -124,6 +124,9 @@ extern crate indexmap;
 #[cfg(feature = "dataframe")]
 extern crate netcdf;
 
+#[cfg(feature = "dataframe")]
+extern crate json;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
