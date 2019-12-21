@@ -2,6 +2,7 @@
 
 * Remove travis-ci error in `examples`
 * Remove some legacy codes
+* No differences with `0.19.2`
 
 # Release 0.19.2 (2019-12-21)
 
