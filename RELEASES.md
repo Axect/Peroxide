@@ -1,4 +1,14 @@
-# Release 0.19.1 (2019-12-21)
+# Release 0.19.3 (2019-12-21)
+
+* Remove travis-ci error in `examples`
+* Remove some legacy codes
+* No differences with `0.19.2`
+
+# Release 0.19.2 (2019-12-21)
+
+* Remove test errors of `dataframe.rs`
+
+# Release 0.19.1 (2019-12-21) (Yanked)
 
 * New dependency - `rand_distr`
     * Now, any distributions are depend on `rand_distr`
