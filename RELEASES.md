@@ -1,3 +1,11 @@
+# Release 0.19.0 (2019-12-19)
+
+* New dependency in `dataframe` feature - `json`
+* Add `WithJSON` trait in `dataframe.rs`
+* Implement `WithJSON` for `DataFrame`
+    - [x] `to_json_value`
+    - [ ] `from_json_value`
+
 # Release 0.18.6 (2019-12-05)
 
 * Add missing trait bound for `Real` trait
