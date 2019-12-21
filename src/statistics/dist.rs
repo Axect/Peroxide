@@ -8,7 +8,7 @@
 //!     * \[ \] Dirichlet
 //!     * \[x\] Gamma
 //!     * \[x\] Normal
-//!     * \[ \] Student's t
+//!     * \[x\] Student's t
 //!     * \[x\] Uniform
 //!     * \[ \] Wishart
 //! * There are two enums to represent probability distribution
@@ -100,8 +100,9 @@
 //! * To generate normal random number, there are two famous algorithms
 //!     * Marsaglia-Polar method
 //!     * Ziggurat algorithm
-//! * In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.
-//!     * Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.
+//! * In peroxide (after ver 0.19.1), use `rand_distr` to generate random normal samples.
+//! * ~In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.~
+//!     * ~Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.~
 //!     ```rust
 //!     extern crate peroxide;
 //!     use peroxide::*;
@@ -122,12 +123,14 @@
 //! ### Gamma Distribution
 
 extern crate rand;
+extern crate rand_distr;
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
+use self::rand_distr::Distribution;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use special::function::*;
-use statistics::rand::ziggurat;
+//use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
 use std::convert::Into;
 use std::f64::consts::E;
@@ -139,6 +142,7 @@ use std::f64::consts::E;
 #[derive(Debug, Clone)]
 pub enum OPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Bernoulli(T),
+    StudentT(T),
 }
 
 /// Two parameter distribution
@@ -166,6 +170,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for OPDist
     fn params(&self) -> Self::Parameter {
         match self {
             Bernoulli(mu) => (*mu).into(),
+            StudentT(nu) => (*nu).into(),
         }
     }
 }
@@ -221,6 +226,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 }
                 v
             }
+            StudentT(nu) => {
+                let mut rng = thread_rng();
+                let stud = rand_distr::StudentT::<f64>::new((*nu).into()).unwrap();
+                stud.sample_iter(&mut rng).take(n).collect()
+            }
         }
     }
 
@@ -232,6 +242,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 } else {
                     1f64 - (*prob).into()
                 }
+            }
+            StudentT(nu) => {
+                let dof = (*nu).into();
+                let t = x.into();
+                1f64 / (dof.sqrt() * beta(0.5f64, dof / 2f64)) * (1f64 + t.powi(2) / dof).powf(-(dof + 1f64) / 2f64)
             }
         }
     }
@@ -252,64 +267,79 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             }
             Normal(m, s) => {
                 let mut rng = thread_rng();
-                let mut v = vec![0f64; n];
-
-                for i in 0..n {
-                    v[i] = ziggurat(&mut rng, (*s).into()) + (*m).into();
-                }
-                v
+                let normal = rand_distr::Normal::<f64>::new((*m).into(), (*s).into()).unwrap();
+                normal.sample_iter(&mut rng).take(n).collect()
             }
+//            Normal(m, s) => {
+//                let mut rng = thread_rng();
+//                let mut v = vec![0f64; n];
+//
+//                for i in 0..n {
+//                    v[i] = ziggurat(&mut rng, (*s).into()) + (*m).into();
+//                }
+//                v
+//            }
             Beta(a, b) => {
-                let mut rng1 = thread_rng();
-                let mut rng2 = thread_rng();
-                let mut v = vec![0f64; n];
-
-                let a_f64 = (*a).into();
-                let b_f64 = (*b).into();
-
-                // For acceptance-rejection method
-                let c_x = (a_f64 - 1f64) / (a_f64 + b_f64 - 2f64);
-                let c = self.pdf(c_x); // Beta(mode(x) | a, b)
-
-                let mut iter_num = 0usize;
-
-                while iter_num < n {
-                    let u1 = rng1.gen_range(0f64, 1f64);
-                    let u2 = rng2.gen_range(0f64, 1f64);
-
-                    if u2 <= 1f64 / c * self.pdf(u1) {
-                        v[iter_num] = u1;
-                        iter_num += 1;
-                    }
-                }
-                v
+                let mut rng = thread_rng();
+                let beta = rand_distr::Beta::<f64>::new((*a).into(), (*b).into()).unwrap();
+                beta.sample_iter(&mut rng).take(n).collect()
             }
-            Gamma(a, b) => {
-                let a_f64 = (*a).into();
-                let b_f64 = (*b).into();
-
-                // for Marsaglia & Tsang's Method
-                let d = a_f64 - 1f64 / 3f64;
-                let c = 1f64 / (9f64 * d).sqrt();
-
-                let mut rng1 = thread_rng();
-                let mut rng2 = thread_rng();
-
-                let mut v = vec![0f64; n];
-                let mut iter_num = 0usize;
-
-                while iter_num < n {
-                    let u = rng1.gen_range(0f64, 1f64);
-                    let z = ziggurat(&mut rng2, 1f64);
-                    let w = (1f64 + c * z).powi(3);
-
-                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
-                        v[iter_num] = d * w / b_f64;
-                        iter_num += 1;
-                    }
-                }
-                v
+//            Beta(a, b) => {
+//                let mut rng1 = thread_rng();
+//                let mut rng2 = thread_rng();
+//                let mut v = vec![0f64; n];
+//
+//                let a_f64 = (*a).into();
+//                let b_f64 = (*b).into();
+//
+//                // For acceptance-rejection method
+//                let c_x = (a_f64 - 1f64) / (a_f64 + b_f64 - 2f64);
+//                let c = self.pdf(c_x); // Beta(mode(x) | a, b)
+//
+//                let mut iter_num = 0usize;
+//
+//                while iter_num < n {
+//                    let u1 = rng1.gen_range(0f64, 1f64);
+//                    let u2 = rng2.gen_range(0f64, 1f64);
+//
+//                    if u2 <= 1f64 / c * self.pdf(u1) {
+//                        v[iter_num] = u1;
+//                        iter_num += 1;
+//                    }
+//                }
+//                v
+//            }
+            Gamma(shape, scale) => {
+                let mut rng = thread_rng();
+                let gamma = rand_distr::Gamma::<f64>::new((*shape).into(), (*scale).into()).unwrap();
+                gamma.sample_iter(&mut rng).take(n).collect()
             }
+//            Gamma(a, b) => {
+//                let a_f64 = (*a).into();
+//                let b_f64 = (*b).into();
+//
+//                // for Marsaglia & Tsang's Method
+//                let d = a_f64 - 1f64 / 3f64;
+//                let c = 1f64 / (9f64 * d).sqrt();
+//
+//                let mut rng1 = thread_rng();
+//                let mut rng2 = thread_rng();
+//
+//                let mut v = vec![0f64; n];
+//                let mut iter_num = 0usize;
+//
+//                while iter_num < n {
+//                    let u = rng1.gen_range(0f64, 1f64);
+//                    let z = ziggurat(&mut rng2, 1f64);
+//                    let w = (1f64 + c * z).powi(3);
+//
+//                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
+//                        v[iter_num] = d * w / b_f64;
+//                        iter_num += 1;
+//                    }
+//                }
+//                v
+//            }
         }
     }
 
@@ -357,6 +387,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
     fn mean(&self) -> Self::Value {
         match self {
             Bernoulli(mu) => (*mu).into(),
+            StudentT(nu) => 0f64,
         }
     }
 
@@ -366,12 +397,17 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
                 let mu_f64 = (*mu).into();
                 mu_f64 * (1f64 - mu_f64)
             }
+            StudentT(nu) => {
+                let nu_f64 = (*nu).into();
+                nu_f64 / (nu_f64 - 2f64)
+            }
         }
     }
 
     fn sd(&self) -> Self::Value {
         match self {
             Bernoulli(_mu) => self.var().sqrt(),
+            StudentT(_nu) => self.var().sqrt(),
         }
     }
 

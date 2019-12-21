@@ -1,3 +1,13 @@
+# Release 0.19.1 (2019-12-21)
+
+* New dependency - `rand_distr`
+    * Now, any distributions are depend on `rand_distr`
+* Add `StudentT` distribution
+* Rename `example` to `examples`
+    * Now use `cargo build --examples`. But it should require all features so, not recommended.
+    Instead of this, you can see real examples in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallary).
+
+
 # Release 0.19.0 (2019-12-19)
 
 * New dependency in `dataframe` feature - `json`
