@@ -76,14 +76,16 @@
 //! }
 //! ```
 //!
-//! ## Read & Write with `netcdf` & `csv`
+//! ## Read & Write with `netcdf`, `csv` & `json`
 //!
-//! * `netcdf` is more efficient than `csv`
+//! * Effectiveness : `netcdf` >> `json` > `csv`
+//! * File size : `netcdf` > `json` >> `csv`
 //!
 //! | Command | Mean [s] | Min [s] | Max [s] | Relative |
 //! |:---|---:|---:|---:|---:|
 //! | `./target/release/df_bench_csv --features dataframe` | 1.027 ± 0.016 | 0.998 | 1.056 | 27.0 |
 //! | `./target/release/df_bench_nc --features dataframe` | 0.038 ± 0.002 | 0.035 | 0.042 | 1.0 |
+//! | `./target/release/df_bench_json --features dataframe` | 0.652 ± 0.021 | 0.619 | 0.619 | 1.0 |
 //!
 //! * Benchmark codes are as follows.
 //!
@@ -136,10 +138,34 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! #### 3. JSON
+//!
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::*;
+//! use std::fs::File;
+//! use std::error::Error;
+//! use std::io::BufWriter;
+//!
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let mut df = DataFrame::with_header(vec!["x", "y", "z"]);
+//!     df["x"] = vec![0f64; 1000_000];
+//!     df["y"] = vec![0f64; 1000_000];
+//!     df["z"] = vec![0f64; 1000_000];
+//!
+//!     let json = df.to_json_value();
+//!
+//!     // To write JSON
+//!     // let file = File::create("example_data/df_bench.json")?;
+//!     // let mut writer = BufWriter::new(file);
+//!     // json.write(&mut writer)?;
+//!
+//!     Ok(())
+//! }
+//! ```
 
 extern crate csv;
-extern crate indexmap;
-extern crate netcdf;
 
 use self::csv::{ReaderBuilder, WriterBuilder};
 use indexmap::{map::Keys, IndexMap};
@@ -150,6 +176,7 @@ use std::ops::{Index, IndexMut};
 use std::{fmt, fmt::Debug};
 use structure::matrix::{matrix, Matrix, Shape::*};
 use util::useful::tab;
+use json::JsonValue;
 
 #[derive(Debug, Clone)]
 pub struct DataFrame {
@@ -271,7 +298,7 @@ impl DataFrame {
 
     /// For pretty print
     pub fn spread(&self) -> String {
-        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
 
         let mut result = String::new();
 
@@ -414,7 +441,7 @@ pub trait WithCSV: Sized {
 impl WithCSV for DataFrame {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
-        let r: usize = self.data.values().fold(0, |val, v2| max(val, v2.len()));
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
         let c: usize = self.data.len();
         wtr.write_record(
             self.data
@@ -507,5 +534,30 @@ impl WithNetCDF for DataFrame {
             df[k] = data;
         }
         Ok(df)
+    }
+}
+
+pub trait WithJSON {
+    fn to_json_value(&self) -> JsonValue;
+    fn from_json_value(val: JsonValue) -> Self;
+}
+
+impl WithJSON for DataFrame {
+    fn to_json_value(&self) -> JsonValue {
+        let r = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let mut values = Vec::<JsonValue>::new();
+        for i in 0 .. r {
+            let mut row_object = JsonValue::new_object();
+            for head in self.headers() {
+                row_object.insert(head, self.data[head][i]).expect("Can't insert row object");
+            }
+            values.push(row_object);
+        }
+
+        JsonValue::Array(values)
+    }
+
+    fn from_json_value(val: JsonValue) -> Self {
+        unimplemented!()
     }
 }

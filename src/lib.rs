@@ -124,6 +124,9 @@ extern crate indexmap;
 #[cfg(feature = "dataframe")]
 extern crate netcdf;
 
+#[cfg(feature = "dataframe")]
+extern crate json;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
@@ -205,9 +208,11 @@ pub use util::api::*;
 //pub use numerical::gauss_legendre::*;
 
 #[allow(unused_imports)]
+#[cfg(feature = "special")]
 pub use statistics::dist::*;
 
 #[allow(unused_imports)]
+#[cfg(feature = "special")]
 pub use special::function::*;
 
 #[allow(unused_imports)]

@@ -4,6 +4,7 @@ use std::ops::Range;
 use operation::extra_ops::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::convert::{From, Into};
 #[allow(unused_imports)]
 use structure::matrix::*;
 #[allow(unused_imports)]
@@ -227,14 +228,38 @@ impl std::convert::Into<Vec<Polynomial>> for CubicSpline {
     }
 }
 
-impl std::convert::From<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
+impl From<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
     fn from(polynomials: Vec<(Range<f64>, Polynomial)>) -> Self {
         CubicSpline { polynomials }
     }
 }
 
-impl std::convert::Into<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
+impl Into<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
     fn into(self) -> Vec<(Range<f64>, Polynomial)> {
         self.polynomials
+    }
+}
+
+impl Calculus for CubicSpline {
+    fn diff(&self) -> Self {
+        let mut polynomials: Vec<(Range<f64>, Polynomial)> = self.clone().into();
+
+        polynomials = polynomials
+            .into_iter()
+            .map(|(r, poly)| (r, poly.diff()))
+            .collect();
+
+        Self::from(polynomials)
+    }
+
+    fn integral(&self) -> Self {
+        let mut polynomials: Vec<(Range<f64>, Polynomial)> = self.clone().into();
+
+        polynomials = polynomials
+            .into_iter()
+            .map(|(r, poly)| (r, poly.integral()))
+            .collect();
+
+        Self::from(polynomials)
     }
 }
