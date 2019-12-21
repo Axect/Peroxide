@@ -14,8 +14,6 @@ fn main() {
 
     let a = tdma(prev, center, post, y);
     a.print();
-    // a.write_single_pickle("example_data/tdma.pickle")
-    //     .expect("Can't write pickle file");
 }
 
 /// RHS with Dirichlet Boundary Condition
