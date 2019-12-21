@@ -11,3 +11,4 @@ Cargo.lock
 *.vs
 *.cdf
 *.nc
+*.json
