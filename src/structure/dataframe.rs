@@ -76,14 +76,16 @@
 //! }
 //! ```
 //!
-//! ## Read & Write with `netcdf` & `csv`
+//! ## Read & Write with `netcdf`, `csv` & `json`
 //!
-//! * `netcdf` is more efficient than `csv`
+//! * Effectiveness : `netcdf` >> `json` > `csv`
+//! * File size : `netcdf` > `json` >> `csv`
 //!
 //! | Command | Mean [s] | Min [s] | Max [s] | Relative |
 //! |:---|---:|---:|---:|---:|
 //! | `./target/release/df_bench_csv --features dataframe` | 1.027 ± 0.016 | 0.998 | 1.056 | 27.0 |
 //! | `./target/release/df_bench_nc --features dataframe` | 0.038 ± 0.002 | 0.035 | 0.042 | 1.0 |
+//! | `./target/release/df_bench_json --features dataframe` | 0.652 ± 0.021 | 0.619 | 0.619 | 1.0 |
 //!
 //! * Benchmark codes are as follows.
 //!
@@ -136,6 +138,34 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! #### 3. JSON
+//!
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::*;
+//! use std::fs::File;
+//! use std::error::Error;
+//! use std::io::BufWriter;
+//!
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let mut df = DataFrame::with_header(vec!["x", "y", "z"]);
+//!     df["x"] = vec![0f64; 1000_000];
+//!     df["y"] = vec![0f64; 1000_000];
+//!     df["z"] = vec![0f64; 1000_000];
+//!
+//!     let json = df.to_json_value();
+//!
+//!     // To write JSON
+//!     // let file = File::create("example_data/df_bench.json")?;
+//!     // let mut writer = BufWriter::new(file);
+//!     // json.write(&mut writer)?;
+//!
+//!     Ok(())
+//! }
+//! ```
+
+extern crate csv;
 
 use self::csv::{ReaderBuilder, WriterBuilder};
 use indexmap::{map::Keys, IndexMap};
@@ -151,7 +181,6 @@ use json::JsonValue;
 #[derive(Debug, Clone)]
 pub struct DataFrame {
     pub data: IndexMap<String, Vec<f64>>,
-    pub max_size: usize,
 }
 
 impl PartialEq for DataFrame {
@@ -190,7 +219,6 @@ impl DataFrame {
     pub fn new() -> Self {
         DataFrame {
             data: IndexMap::new(),
-            max_size: 0usize,
         }
     }
 
@@ -201,23 +229,15 @@ impl DataFrame {
         for i in 0..l {
             data.insert(header[i].to_string(), vec![]);
         }
-        DataFrame { data, max_size: 0usize }
+        DataFrame { data }
     }
 
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
-    pub fn get_max_size(&self) -> usize {
-        self.max_size
-    }
-
     /// Insert key & value pair (or only value)
     pub fn insert(&mut self, key: &str, value: Vec<f64>) {
-        let l = value.len();
-        if l > self.max_size {
-            max_size = l;
-        }
         self.data.insert(key.to_owned(), value);
     }
 
@@ -227,7 +247,6 @@ impl DataFrame {
         for (v, val) in self.data.values_mut().zip(value) {
             v.push(val);
         }
-        self.max_size += 1;
     }
 
     /// Get value by ref
@@ -279,7 +298,7 @@ impl DataFrame {
 
     /// For pretty print
     pub fn spread(&self) -> String {
-        let r: usize = self.max_size;
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
 
         let mut result = String::new();
 
@@ -422,7 +441,7 @@ pub trait WithCSV: Sized {
 impl WithCSV for DataFrame {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
-        let r: usize = self.max_size;
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
         let c: usize = self.data.len();
         wtr.write_record(
             self.data
@@ -525,7 +544,7 @@ pub trait WithJSON {
 
 impl WithJSON for DataFrame {
     fn to_json_value(&self) -> JsonValue {
-        let r = self.max_size;
+        let r = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
         let mut values = Vec::<JsonValue>::new();
         for i in 0 .. r {
             let mut row_object = JsonValue::new_object();

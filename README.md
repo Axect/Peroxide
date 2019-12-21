@@ -143,7 +143,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.18.0`
+Corresponding to `0.19.0`
 
 ## Pre-requisite
 
