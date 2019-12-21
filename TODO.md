@@ -1,6 +1,6 @@
 # TODO
 
-## 2019.12.05
+## 2019.12.21
 
 ### Primary
 
@@ -10,6 +10,9 @@
 
 ### Subs
 
+- [ ] Implement `WithJSON` for `DataFrame`
+    - [x] `to_json_value`
+    - [ ] `from_json_value`
 - [ ] Implement various pdf
     - [x] Bernoulli
     - [x] Beta
