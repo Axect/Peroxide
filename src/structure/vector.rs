@@ -71,6 +71,7 @@
 //!     * `div(&self, other: Vec<f64>) -> Vec<f64>`
 //!     * `dot(&self, other: Vec<f64>) -> f64`
 //!     * `norm(&self) -> f64`
+//!     * `sum(&self) -> f64`
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -86,6 +87,7 @@
 //!         a.div(&b).print();
 //!         a.dot(&b).print();
 //!         a.norm().print();
+//!         a.sum().print();
 //!
 //!         // [5, 5, 5, 5]
 //!         // [-3, -1, 1, 3]
@@ -93,6 +95,7 @@
 //!         // [0.25, 0.6667, 1.5, 4]
 //!         // 20
 //!         // 5.477225575051661 // sqrt(30)
+//!         // 10
 //!     }
 //!     ```
 //!
@@ -265,7 +268,7 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{daxpy, ddot, dnrm2, dscal, idamax};
+use blas::{daxpy, ddot, dnrm2, dscal, idamax, dasum};
 
 #[cfg(feature = "O3")]
 extern crate packed_simd;
@@ -527,7 +530,7 @@ impl Algorithm for Vector {
     /// ```
     fn arg_max(&self) -> usize {
         match () {
-            #[cfg(feature = "native")]
+            #[cfg(feature = "O3")]
             () => {
                 let n_i32 = self.len() as i32;
                 let idx: usize;
@@ -557,6 +560,7 @@ pub trait VecOps {
     fn s_mul(&self, scala: f64) -> Self;
     fn s_div(&self, scala: f64) -> Self;
     fn dot(&self, other: &Self) -> Self::Scalar;
+    fn sum(&self) -> Self::Scalar;
     fn norm(&self) -> Self::Scalar;
     fn normalize(&self) -> Self;
 }
@@ -710,6 +714,21 @@ impl VecOps for Vector {
                 res
             }
             _ => zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y),
+        }
+    }
+
+    fn sum(&self) -> Self::Scalar {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let res: f64;
+                unsafe {
+                    res = dasum(n_i32, self, 1);
+                }
+                res
+            }
+            _ => reduce(|x, y| x + y, 0f64, self)
         }
     }
 
