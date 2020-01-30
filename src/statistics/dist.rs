@@ -3,14 +3,13 @@
 //! ## Probability Distribution
 //!
 //! * There are some famous pdf in Peroxide (not checked pdfs will be implemented soon)
-//!     * \[x\] Bernoulli
-//!     * \[x\] Beta
-//!     * \[ \] Dirichlet
-//!     * \[x\] Gamma
-//!     * \[x\] Normal
-//!     * \[x\] Student's t
-//!     * \[x\] Uniform
-//!     * \[ \] Wishart
+//!     * Bernoulli
+//!     * Beta
+//!     * Dirichlet
+//!     * Gamma
+//!     * Normal
+//!     * Student's t
+//!     * Uniform
 //! * There are two enums to represent probability distribution
 //!     * `OPDist<T>` : One parameter distribution (Bernoulli)
 //!     * `TPDist<T>` : Two parameter distribution (Uniform, Normal, Beta, Gamma)
@@ -101,8 +100,8 @@
 //!     * Marsaglia-Polar method
 //!     * Ziggurat algorithm
 //! * In peroxide (after ver 0.19.1), use `rand_distr` to generate random normal samples.
-//! * ~In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.~
-//!     * ~Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.~
+//! * <del>In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.</del>
+//!     * <del>Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.</del>
 //!     ```rust
 //!     extern crate peroxide;
 //!     use peroxide::*;
