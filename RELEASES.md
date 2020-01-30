@@ -1,3 +1,12 @@
+# Release 0.19.4 (2020-01-30)
+
+* Modify `vector`
+    * Replace last `native` with `O3`
+    * Add `sum` to `VecOps`
+* Modify documentation of `dist`
+    * Remove checkbox
+    * Replace `~` with `<del>` tag
+
 # Release 0.19.3 (2019-12-21)
 
 * Remove travis-ci error in `examples`
