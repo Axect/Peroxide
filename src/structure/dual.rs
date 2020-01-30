@@ -654,6 +654,14 @@ impl VecOps for Vec<Dual> {
     fn s_div(&self, scala: f64) -> Self {
         self.fmap(|x| x / scala)
     }
+
+    fn sum(&self) -> Self::Scalar {
+        let mut s = dual(0f64, 0f64);
+        for x in self {
+            s = s + *x;
+        }
+        s
+    }
 }
 
 // =============================================================================
