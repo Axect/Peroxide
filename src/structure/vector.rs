@@ -71,6 +71,7 @@
 //!     * `div(&self, other: Vec<f64>) -> Vec<f64>`
 //!     * `dot(&self, other: Vec<f64>) -> f64`
 //!     * `norm(&self) -> f64`
+//!     * `sum(&self) -> f64`
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -86,6 +87,7 @@
 //!         a.div(&b).print();
 //!         a.dot(&b).print();
 //!         a.norm().print();
+//!         a.sum().print();
 //!
 //!         // [5, 5, 5, 5]
 //!         // [-3, -1, 1, 3]
@@ -93,6 +95,7 @@
 //!         // [0.25, 0.6667, 1.5, 4]
 //!         // 20
 //!         // 5.477225575051661 // sqrt(30)
+//!         // 10
 //!     }
 //!     ```
 //!
