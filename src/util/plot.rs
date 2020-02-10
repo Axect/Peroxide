@@ -54,16 +54,17 @@
 //!     let x = result.col(0);
 //!     let y = result.col(1);
 //!
-//!     let mut plt = Plot2D::new();
-//!     plt.set_domain(x)
-//!         .insert_image(y)
-//!         .set_title("Test Figure")
-//!         .set_fig_size((10, 6))
-//!         .set_dpi(300)
-//!         .set_legend(vec!["RK4"])
-//!         .set_path("example_data/test_plot.png");
+//!     // Remove below comments to execute
+//!     //let mut plt = Plot2D::new();
+//!     //plt.set_domain(x)
+//!     //    .insert_image(y)
+//!     //    .set_title("Test Figure")
+//!     //    .set_fig_size((10, 6))
+//!     //    .set_dpi(300)
+//!     //    .set_legend(vec!["RK4"])
+//!     //    .set_path("example_data/test_plot.png");
 //!
-//!     plt.savefig();
+//!     //plt.savefig();
 //! }
 //!
 //! fn test_fn(st: &mut State<f64>) {
