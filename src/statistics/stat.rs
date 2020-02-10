@@ -108,6 +108,8 @@ use structure::matrix::*;
 use structure::vector::*;
 #[cfg(feature = "dataframe")]
 use structure::dataframe::*;
+use order_stat::{kth_by};
+use self::QType::*;
 
 /// Statistics Trait
 ///
@@ -396,4 +398,96 @@ pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     ones.extend(&input.data);
     let x = matrix(ones, input.row, input.col + 1, input.shape);
     &x.pseudo_inv().unwrap() * target
+}
+
+// =============================================================================
+// Ordered Statistics (Use `order-stat`
+// =============================================================================
+/// Trait for Ordered Statistics
+///
+/// * `median`
+/// * `quantile`
+pub trait OrderedStat {
+    type Array;
+    type Value;
+
+    fn median(&self) -> Self::Value;
+    fn quantile(&self, q: f64, qtype: QType) -> Self::Value;
+    fn quantiles(&self, q: Vec<f64>, qtype: QType) -> Self::Array;
+}
+
+/// R Quantile Type enums
+#[derive(Debug, Copy, Clone)]
+pub enum QType {
+    Type1,
+    Type2,
+    Type3,
+    Type4,
+    Type5,
+    Type6,
+    Type7,
+    Type8,
+    Type9,
+}
+
+impl OrderedStat for Vector {
+    type Array = Self;
+    type Value = f64;
+
+    fn median(&self) -> Self::Value {
+        self.quantile(0.5, Type2)
+    }
+
+    fn quantile(&self, q: f64, qtype: QType) -> Self::Value {
+        let mut m = self.clone();
+        quantile_mut(&mut m, q, qtype)
+    }
+
+    fn quantiles(&self, q: Vec<f64>, qtype: QType) -> Self::Array {
+        let mut v = vec![0f64; q.len()];
+        let mut m = self.clone();
+        for i in 0 .. q.len() {
+            v[i] = quantile_mut(&mut m, q[i], qtype);
+        }
+        v
+    }
+}
+
+fn quantile_mut(v: &mut [f64], q: f64, t: QType) -> f64 {
+    let l = v.len();
+    let p = 1f64 / (l as f64);
+    let k = (q / p) as usize;
+    match t {
+        Type1 => {
+            let k = if q == 0f64 {
+                0
+            } else if q - (k as f64) * p > 0f64 {
+                k
+            } else {
+                k - 1
+            };
+            *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+        }
+        Type2 => {
+            if q - (k as f64) * p > 0f64 {
+                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+            } else if q == 0f64 {
+                let k = 0;
+                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+            } else if q == 1f64 {
+                let k = l - 1;
+                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+            } else {
+                let prev = *kth_by(v, k-1, |x,y| x.partial_cmp(y).unwrap());
+                let next = *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap());
+                (prev + next) / 2f64
+            }
+        }
+        _ => unimplemented!()
+    }
+}
+
+pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
+    let q_vec = vec![0.0, 0.25, 0.5, 0.75, 1.0];
+    v.quantiles(q_vec, qtype)
 }

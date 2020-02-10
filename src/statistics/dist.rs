@@ -386,7 +386,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
     fn mean(&self) -> Self::Value {
         match self {
             Bernoulli(mu) => (*mu).into(),
-            StudentT(nu) => 0f64,
+            StudentT(_) => 0f64,
         }
     }
 
