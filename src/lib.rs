@@ -127,6 +127,10 @@ extern crate netcdf;
 #[cfg(feature = "dataframe")]
 extern crate json;
 
+extern crate order_stat;
+
+extern crate float_cmp;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
