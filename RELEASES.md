@@ -1,3 +1,24 @@
+# Release 0.20.0 (2020-02-10) (Candidates)
+
+## Important
+
+* New dependencies
+    * `order-stat` : For ordered statistics
+    * `float-cmp` : To compare floating numbers conveniently
+* `OrderedStat`
+    * Now, we can calculate quantile (perfectly matched with R quantile)
+    * Implemented list
+        - [x] Type1
+        - [x] Type2
+        - [ ] Type3, ... , Type 9
+
+## Other Enhancement
+
+### Modified
+
+* Update `REAME.md`
+* Fix comments of `plot.rs`
+
 # Release 0.19.4 (2020-01-30)
 
 * Modify `vector`
