@@ -1,4 +1,5 @@
 extern crate special;
+extern crate special_fun;
 use self::special::{Error, Gamma};
 
 use std::f64::consts::PI;
@@ -24,6 +25,13 @@ pub fn digamma(x: f64) -> f64 {
     x.digamma()
 }
 
+/// Regularized incomplete gamma integral (Lower)
+///
+/// Wrapper of `igam` function of `special-fun` crate
+pub fn inc_gamma(a: f64, x: f64) -> f64 {
+    special_fun::cephes_double::igam(a, x)
+}
+
 /// Error function
 ///
 /// Wrapper of `error` function of `special` crate
@@ -46,8 +54,29 @@ pub fn erf_inv(x: f64) -> f64 {
 }
 
 /// Beta function
-///
-/// Wrapper of `inc_beta` function of `special` crate
 pub fn beta(a: f64, b: f64) -> f64 {
-    gamma(a) * gamma(b) / gamma(a + b)
+    special_fun::cephes_double::beta(a, b)
+}
+
+/// Incomplete Beta function
+///
+/// Wrapper of `incbet` function of `special-fun` crate
+pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
+    special_fun::cephes_double::incbet(a, b, x)
+}
+
+/// Phi (CDF for Normal Dist)
+///
+/// $$\Phi(x) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right) \right]$$
+pub fn phi(x: f64) -> f64 {
+    0.5 * (1f64 + erf(x / 2f64.sqrt()))
+}
+
+/// Hypergeometric function 2F1
+///
+/// Wrapper of `hyp2f1` function of `special-fun` crate
+pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
+    unsafe {
+        special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
+    }
 }

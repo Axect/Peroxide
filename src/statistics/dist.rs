@@ -132,7 +132,7 @@ use special::function::*;
 //use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
 use std::convert::Into;
-use std::f64::consts::E;
+use std::f64::consts::{E, PI};
 
 /// One parameter distribution
 ///
@@ -200,6 +200,12 @@ pub trait RNG {
     /// # Type
     /// `f64 -> f64`
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64;
+
+    /// Cumulative Distribution Function
+    ///
+    /// # Type
+    /// `f64` -> `f64`
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64;
 }
 
 /// RNG for OPDist
@@ -246,6 +252,37 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 let dof = (*nu).into();
                 let t = x.into();
                 1f64 / (dof.sqrt() * beta(0.5f64, dof / 2f64)) * (1f64 + t.powi(2) / dof).powf(-(dof + 1f64) / 2f64)
+            }
+        }
+    }
+
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        match self {
+            Bernoulli(prob) => {
+                let k: f64 = x.into();
+                if k < 0f64 {
+                    0f64
+                } else if k < 1f64 {
+                    1f64 - (*prob).into()
+                } else {
+                    1f64
+                }
+            }
+            StudentT(nu) => {
+                let x: f64 = x.into();
+                let nu: f64 = (*nu).into();
+                let odd_nu = (nu + 1f64) / 2f64;
+                let even_nu = nu / 2f64;
+
+                if x > 0f64 {
+                    let x_t = nu / (x.powi(2) + nu);
+                    1f64 - 0.5 * inc_beta(even_nu, 0.5, x_t)
+                } else if x < 0f64 {
+                    self.cdf(-x) - 0.5
+                } else {
+                    0.5
+                }
+                // 0.5f64 + x * gamma(odd_nu) * hyp2f1(0.5, odd_nu, 1.5, -x.powi(2) / (*nu).into()) / (PI * (*nu).into()).sqrt() * gamma(even_nu)
             }
         }
     }
@@ -377,6 +414,39 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             }
         }
     }
+
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        let x: f64 = x.into();
+        match self {
+            Uniform(a, b) => {
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                if x < a {
+                    0f64
+                } else if x <= b {
+                    (x - a) / (b - a)
+                } else {
+                    1f64
+                }
+            }
+            Normal(m, s) => {
+                phi((x - (*m).into()) / (*s).into())
+            }
+            Beta(a, b) => {
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                inc_beta(a, b, x)
+            }
+            Gamma(a, b) => {
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                inc_gamma(a, b * x)
+            }
+        }
+    }
 }
 
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> {
@@ -386,7 +456,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> 
     fn mean(&self) -> Self::Value {
         match self {
             Bernoulli(mu) => (*mu).into(),
-            StudentT(nu) => 0f64,
+            StudentT(_) => 0f64,
         }
     }
 

@@ -1,3 +1,38 @@
+# Release 0.20.0 (2020-02-25)
+
+## Important
+
+* New dependencies
+    * `order-stat` : For ordered statistics
+    * `float-cmp` : To compare floating numbers conveniently
+    * `special-fun` : To use additional special functions
+* `OrderedStat`
+    * Now, we can calculate quantile (perfectly matched with R quantile)
+    * Implemented list
+        - [x] Type1
+        - [x] Type2
+        - [ ] Type3, ... , Type 9
+* Remove `special` feature - Now, `special`, `special-fun` are necessary dependencies.
+* New method over `RNG` trait. - `cdf`
+
+## Other Enhancement
+
+### Added
+
+* Some additional R macros
+    * `rnorm`
+    * `dnorm`
+    * `prorm`
+* Some additional special functions
+    * `inc_beta` : Regularized incomplete Beta integral
+    * `inc_gamma` : Regularized incomplete lower Gamma integral
+    * `hyp2f1` : Hypergeometric function
+
+### Modified
+
+* Update `REAME.md`
+* Fix comments of `plot.rs`
+
 # Release 0.19.4 (2020-01-30)
 
 * Modify `vector`

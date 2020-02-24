@@ -113,16 +113,21 @@ Peroxide can do many things.
         * Gauss-Legendre Quadrature
 * Statistics
     * More easy random with `rand` crate
+    * Ordered Statistics
+        * Median
+        * Quantile (Matched with R quantile)
     * Probability Distributions
         * Bernoulli
         * Uniform
         * Normal
         * Gamma
         * Beta
+        * Student's-t
     * RNG algorithms
         * Acceptance Rejection
         * Marsaglia Polar
         * Ziggurat
+        * Wrapper for `rand-dist` crate
 * Special functions
     * Wrapper for `special` crate
 * Utils
@@ -146,7 +151,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.19.0`
+Corresponding to `0.19.4`
 
 ## Pre-requisite
 
@@ -330,7 +335,8 @@ fn main() {
         .set_legend(vec!["RK4"])
         .set_path("example_data/test_plot.png");
 
-    plt.savefig();
+    // Remove below comments to activate
+    //plt.savefig();
 }
 
 fn test_fn(st: &mut State<f64>) {
@@ -340,6 +346,46 @@ fn test_fn(st: &mut State<f64>) {
     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
 }
 ```
+
+### Basic Runge-Kutta 4th order with exporting netcdf
+
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+
+    let mut ode_solver = ExplicitODE::new(test_fn);
+
+    ode_solver
+        .set_method(ExMethod::RK4)
+        .set_initial_condition(init_state)
+        .set_step_size(0.01)
+        .set_times(1000);
+
+    let result = ode_solver.integrate();
+
+    let x = result.col(0);
+    let y = result.col(1);
+
+    // Construct DataFrame
+    let mut df = DataFrame::with_headers(vec!["x", "y"]);
+    df["x"] = x;
+    df["y"] = y;
+
+    // Write netcdf (Remove below comment)
+    //df.write_nc("example_data/rk4_test.nc").expect("Can't write nc files");
+}
+
+fn test_fn(st: &mut State<f64>) {
+    let x = st.param;
+    let y = &st.value;
+    let dy = &mut st.deriv;
+    dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+}
+```
+
 
 ### Basic Runge-Kutta 4th order with Stop condition
 
@@ -513,11 +559,13 @@ fn main() {
         .expect("Can't draw a plot");
 }
 
-fn f(domain: &Vec<f64>, p: Vec<Number>) -> Vec<Number> {
-    domain.clone().into_iter()
-        .map(|t| Number::from_f64(t))
-        .map(|t| p[0] * (-t / p[1]).exp() + p[2] * t * (-t / p[3]).exp())
-        .collect()
+fn f(domain: &Vec<f64>, p: Vec<Number>) -> Option<Vec<Number>> {
+    Some(
+        domain.clone().into_iter()
+            .map(|t| Number::from_f64(t))
+            .map(|t| p[0] * (-t / p[1]).exp() + p[2] * t * (-t / p[3]).exp())
+            .collect()
+    )
 }
 ```
 
