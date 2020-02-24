@@ -58,6 +58,13 @@ pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
     special_fun::cephes_double::incbet(a, b, x)
 }
 
+/// Phi (CDF for Normal Dist)
+///
+/// $$\Phi(x) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right) \right]$$
+pub fn phi(x: f64) -> f64 {
+    0.5 * (1f64 + erf(x / 2f64.sqrt()))
+}
+
 /// Hypergeometric function 2F1
 ///
 /// Wrapper of `hyp2f1` function of `special-fun` crate

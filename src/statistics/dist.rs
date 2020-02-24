@@ -416,7 +416,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
     }
 
     fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
-        let x: f64 = (*x).into();
+        let x: f64 = x.into();
         match self {
             Uniform(a, b) => {
                 unimplemented!()
