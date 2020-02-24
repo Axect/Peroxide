@@ -25,6 +25,13 @@ pub fn digamma(x: f64) -> f64 {
     x.digamma()
 }
 
+/// Regularized incomplete gamma integral (Lower)
+///
+/// Wrapper of `igam` function of `special-fun` crate
+pub fn inc_gamma(a: f64, x: f64) -> f64 {
+    special_fun::cephes_double::igam(a, x)
+}
+
 /// Error function
 ///
 /// Wrapper of `error` function of `special` crate

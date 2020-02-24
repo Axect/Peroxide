@@ -419,16 +419,31 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
         let x: f64 = x.into();
         match self {
             Uniform(a, b) => {
-                unimplemented!()
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                if x < a {
+                    0f64
+                } else if x <= b {
+                    (x - a) / (b - a)
+                } else {
+                    1f64
+                }
             }
             Normal(m, s) => {
-                unimplemented!()
+                phi((x - (*m).into()) / (*s).into())
             }
             Beta(a, b) => {
-                unimplemented!()
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                inc_beta(a, b, x)
             }
             Gamma(a, b) => {
-                unimplemented!()
+                let a: f64 = (*a).into();
+                let b: f64 = (*b).into();
+
+                inc_gamma(a, b * x)
             }
         }
     }
