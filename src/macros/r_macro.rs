@@ -329,6 +329,34 @@ macro_rules! dnorm {
     }};
 }
 
+/// R like `pnorm`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = pnorm!(2, 2, 1);
+/// println!("{:?}", a); // 0.5
+///
+/// let b = pnorm!(0); // same as pnorm!(0,0,1)
+/// println!("{:?}", b);
+/// ```
+#[macro_export]
+macro_rules! pnorm {
+    ( $x:expr, $mean:expr, $sd:expr ) => {{
+        let x = $x as f64;
+        let mean = $mean as f64;
+        let sd = $sd as f64;
+        let normal = Normal(mean, sd);
+        normal.cdf(x)
+    }};
+
+    ( $x:expr ) => {
+        pnorm!($x, 0, 1)
+    }
+}
+
 /// R like lm
 ///
 /// # Caution
