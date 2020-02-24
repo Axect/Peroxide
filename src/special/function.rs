@@ -47,10 +47,15 @@ pub fn erf_inv(x: f64) -> f64 {
 }
 
 /// Beta function
-///
-/// Wrapper of `inc_beta` function of `special` crate
 pub fn beta(a: f64, b: f64) -> f64 {
-    gamma(a) * gamma(b) / gamma(a + b)
+    special_fun::cephes_double::beta(a, b)
+}
+
+/// Incomplete Beta function
+///
+/// Wrapper of `incbet` function of `special-fun` crate
+pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
+    special_fun::cephes_double::incbet(a, b, x)
 }
 
 /// Hypergeometric function 2F1
