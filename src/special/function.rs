@@ -1,4 +1,5 @@
 extern crate special;
+extern crate special_fun;
 use self::special::{Error, Gamma};
 
 use std::f64::consts::PI;
