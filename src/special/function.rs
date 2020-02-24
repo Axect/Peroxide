@@ -52,3 +52,12 @@ pub fn erf_inv(x: f64) -> f64 {
 pub fn beta(a: f64, b: f64) -> f64 {
     gamma(a) * gamma(b) / gamma(a + b)
 }
+
+/// Hypergeometric function 2F1
+///
+/// Wrapper of `hyp2f1` function of `special-fun` crate
+pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
+    unsafe {
+        special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
+    }
+}
