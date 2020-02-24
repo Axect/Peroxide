@@ -3,7 +3,6 @@
 use operation::number::Number;
 use rand::distributions::uniform::SampleUniform;
 #[allow(unused_imports)]
-#[cfg(feature = "special")]
 use statistics::dist::*;
 use std::fmt::Debug;
 #[allow(unused_imports)]
@@ -130,14 +129,12 @@ impl Printable for HyperDual {
     }
 }
 
-#[cfg(feature = "special")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for OPDist<T> {
     fn print(&self) {
         println!("{:?}", self);
     }
 }
 
-#[cfg(feature = "special")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPDist<T> {
     fn print(&self) {
         println!("{:?}", self);
