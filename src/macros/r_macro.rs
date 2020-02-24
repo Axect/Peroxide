@@ -1,3 +1,16 @@
+//! R like macros
+//!
+//! # List
+//!
+//! * `c`
+//! * `seq`
+//! * `matrix`
+//! * `cbind`
+//! * `rbind`
+//! * `runif`
+//! * `rnorm`
+//! * `dnorm`
+
 extern crate rand;
 pub use self::rand::prelude::*;
 
@@ -259,6 +272,60 @@ macro_rules! runif {
 
     ( $x0:expr ) => {{
         runif!($x0, 0, 1)
+    }};
+}
+
+/// R like random normal
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = rnorm!(5, 2, 1);
+/// println!("{:?}", a);
+///
+/// let b = rnorm!(5); // same as rnorm!(5,0,1)
+/// println!("{:?}", b);
+/// ```
+#[macro_export]
+macro_rules! rnorm {
+    ( $n:expr, $mean:expr, $sd:expr ) => {{
+        let n: usize = $n;
+        let normal = Normal($mean as f64, $sd as f64);
+        normal.sample(n)
+    }};
+
+    ( $n:expr ) => {{
+        rnorm!($n, 0, 1)
+    }};
+}
+
+/// R like `dnorm`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = dnorm!(2, 2, 1);
+/// println!("{:?}", a); // 0.3989422804014327
+///
+/// let b = dnorm!(0); // same as dnorm!(0,0,1)
+/// println!("{:?}", b);
+/// ```
+#[macro_export]
+macro_rules! dnorm {
+    ( $x:expr, $mean: expr, $sd:expr ) => {{
+        let x = $x as f64;
+        let mean = $mean as f64;
+        let sd = $sd as f64;
+        let normal = Normal(mean, sd);
+        normal.pdf(x)
+    }};
+
+    ( $x:expr ) => {{
+        dnorm!($x, 0, 1)
     }};
 }
 

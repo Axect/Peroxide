@@ -13,4 +13,8 @@ Cargo.lock
 *.nc
 *.json
 
+<<<<<<< HEAD
 src/bin/*
+=======
+src/bin/*
+>>>>>>> macro
