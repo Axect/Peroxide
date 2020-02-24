@@ -23,8 +23,8 @@ csv = "1.1"
 rand = "0.7"
 rand_distr = "0.2"
 order-stat = "0.1"
-special = { version = "0.8", optional = true }
-special-fun = { version = "0.2", optional = true }
+special = "0.8"
+special-fun = "0.2"
 indexmap = { version = "1.3", optional = true }
 netcdf = { version = "0.2", optional = true, default_features = false, features = ["indexmap"] }
 pyo3 = { version = "0.8", optional = true }
@@ -38,7 +38,7 @@ json = { version = "0.12", optional = true }
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
 
 [features]
-default = ["special", "special-fun"]
+default = []
 O3 = ["blas", "lapack", "packed_simd"]
 plot = ["pyo3"]
 dataframe = ["netcdf", "indexmap", "json"]
