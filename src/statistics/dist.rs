@@ -200,6 +200,12 @@ pub trait RNG {
     /// # Type
     /// `f64 -> f64`
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64;
+
+    /// Cumulative Distribution Function
+    ///
+    /// # Type
+    /// `f64` -> `f64`
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64;
 }
 
 /// RNG for OPDist
@@ -246,6 +252,24 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 let dof = (*nu).into();
                 let t = x.into();
                 1f64 / (dof.sqrt() * beta(0.5f64, dof / 2f64)) * (1f64 + t.powi(2) / dof).powf(-(dof + 1f64) / 2f64)
+            }
+        }
+    }
+
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        match self {
+            Bernoulli(prob) => {
+                let k: f64 = x.into();
+                if k < 0f64 {
+                    0f64
+                } else if k < 1f64 {
+                    1f64 - (*prob).into()
+                } else {
+                    1f64
+                }
+            }
+            StudentT(nu) => {
+                unimplemented!()
             }
         }
     }
@@ -376,6 +400,10 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     * E.powf(-b_f64 * x.into())
             }
         }
+    }
+
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        unimplemented!()
     }
 }
 
