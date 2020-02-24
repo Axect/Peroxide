@@ -12,3 +12,5 @@ Cargo.lock
 *.cdf
 *.nc
 *.json
+
+src/bin/*
