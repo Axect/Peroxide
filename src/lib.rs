@@ -210,11 +210,9 @@ pub use util::api::*;
 //pub use numerical::gauss_legendre::*;
 
 #[allow(unused_imports)]
-#[cfg(feature = "special")]
 pub use statistics::dist::*;
 
 #[allow(unused_imports)]
-#[cfg(feature = "special")]
 pub use special::function::*;
 
 #[allow(unused_imports)]

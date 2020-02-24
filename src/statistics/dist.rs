@@ -270,9 +270,19 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
             }
             StudentT(nu) => {
                 let x: f64 = x.into();
-                let odd_nu = ((*nu).into() + 1f64) / 2f64;
-                let even_nu = (*nu).into() / 2f64;
-                0.5f64 + x * gamma(odd_nu) * hyp2f1(0.5, odd_nu, 1.5, -x.powi(2) / (*nu).into()) / (PI * (*nu).into()).sqrt() * gamma(even_nu)
+                let nu: f64 = (*nu).into();
+                let odd_nu = (nu + 1f64) / 2f64;
+                let even_nu = nu / 2f64;
+
+                if x > 0f64 {
+                    let x_t = nu / (x.powi(2) + nu);
+                    1f64 - 0.5 * inc_beta(even_nu, 0.5, x_t)
+                } else if x < 0f64 {
+                    self.cdf(-x) - 0.5
+                } else {
+                    0.5
+                }
+                // 0.5f64 + x * gamma(odd_nu) * hyp2f1(0.5, odd_nu, 1.5, -x.powi(2) / (*nu).into()) / (PI * (*nu).into()).sqrt() * gamma(even_nu)
             }
         }
     }
