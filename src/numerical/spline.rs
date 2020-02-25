@@ -1,5 +1,5 @@
 use std::cmp::{max, min};
-use std::ops::Range;
+use std::ops::{Index, Range};
 // For pow
 use operation::extra_ops::PowOps;
 #[cfg(feature = "serde")]
@@ -217,6 +217,24 @@ impl CubicSpline {
 
         self.polynomials.extend(polynomials);
     }
+
+    /// Returns the number of polynimials that describe the `CubicSpline`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let x = c!(0.9, 1.3, 1.9, 2.1);
+    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    ///
+    /// let s = CubicSpline::from_nodes(x, y);
+    ///
+    /// assert_eq!(s.number_of_polynomials(), 3);
+    /// ```
+    pub fn number_of_polynomials(&self) -> usize {
+        self.polynomials.len()
+    }
 }
 
 impl std::convert::Into<Vec<Polynomial>> for CubicSpline {
@@ -237,6 +255,14 @@ impl From<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
 impl Into<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
     fn into(self) -> Vec<(Range<f64>, Polynomial)> {
         self.polynomials
+    }
+}
+
+impl Index<usize> for CubicSpline {
+    type Output = (Range<f64>, Polynomial);
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.polynomials[index]
     }
 }
 
