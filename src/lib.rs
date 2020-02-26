@@ -46,44 +46,48 @@
 //!     * [Plot with `matplotlib`](util/plot/index.html)
 //! * [DataFrame](structure/dataframe/index.html)
 //!     * Read & Write with `netcdf` or `csv` format
+//! * Macros
+//!     * [R macros](macros/r_macro/index.html)
+//!     * [Matlab macros](macros/matlab_macro/index.html)
+//!     * [Julia macros](macros/julia_macro/index.html)
 //!
 //! ## Quick Start
 //!
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.18.0`
+//! * Current document version is corresponding to `0.20.1`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.18"
+//!     peroxide = "0.20"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.18"
+//!     version = "0.20"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.18"
+//!     version = "0.20"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.18"
+//!     version = "0.20"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.18"
+//!     version = "0.20"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```
