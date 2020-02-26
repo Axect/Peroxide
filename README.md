@@ -1,7 +1,7 @@
 # Peroxide
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
-[![On docs.rs](https://docs.rs/peroxide/badge.svg)](http://peroxide.info)
+[![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://peroxide.surge.sh)
 
 [![builds.sr.ht status](https://builds.sr.ht/~axect/Peroxide/.build.yml.svg)](https://builds.sr.ht/~axect/Peroxide/.build.yml?)
 [![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)](https://travis-ci.org/Axect/Peroxide)
@@ -151,7 +151,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.19.4`
+Corresponding to `0.20.1`
 
 ## Pre-requisite
 
@@ -166,33 +166,33 @@ Corresponding to `0.19.4`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.19"
+   peroxide = "0.20"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.19"
+   version = "0.20"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.19"
+   version = "0.20"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
     [dependencies.peroxide]
-    version = "0.19"
+    version = "0.20"
     default-features = false
     features = ["dataframe"]
     ```
 4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.19"
+   version = "0.20"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```
@@ -256,7 +256,7 @@ Corresponding to `0.19.4`
 
 ## Documentation
 
-* [![On docs.rs](https://docs.rs/peroxide/badge.svg)](http://peroxide.info)
+* [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://peroxide.surge.sh)
 
 ## Example
 
