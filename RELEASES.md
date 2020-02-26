@@ -1,3 +1,14 @@
+# Release 0.20.1 (2020-02-26)
+
+* Add Accessoires to `CubicSpline` (By [schrieveslaach](https://github.com/schrieveslaach))
+    - return number of polynomials
+    - access element through `std::ops::Index`
+* Move `docs` domain : [https://peroxide.surge.sh](https://peroxide.surge.sh)
+* Add more R macros
+    * `rt`
+    * `dt`
+    * `pt`
+
 # Release 0.20.0 (2020-02-25)
 
 ## Important

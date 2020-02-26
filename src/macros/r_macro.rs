@@ -10,6 +10,11 @@
 //! * `runif`
 //! * `rnorm`
 //! * `dnorm`
+//! * `pnorm`
+//! * `rt`
+//! * `dt`
+//! * `pt`
+//! * `lm`
 
 extern crate rand;
 pub use self::rand::prelude::*;
@@ -355,6 +360,65 @@ macro_rules! pnorm {
     ( $x:expr ) => {
         pnorm!($x, 0, 1)
     }
+}
+
+/// R like random Student's t
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = rt!(5, 1);
+/// println!("{:?}", a);
+/// ```
+#[macro_export]
+macro_rules! rt {
+    ( $n:expr, $df:expr ) => {{
+        let n: usize = $n;
+        let t = StudentT($df as f64);
+        t.sample(n)
+    }};
+}
+
+/// R like `dt`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = dt!(1, 1);
+/// println!("{:?}", a);
+/// ```
+#[macro_export]
+macro_rules! dt {
+    ( $x:expr, $df:expr ) => {{
+        let x = $x as f64;
+        let df = $df as f64;
+        let t = StudentT(df);
+        t.pdf(x)
+    }};
+}
+
+/// R like `pt`
+///
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// let a = pt!(1, 1);
+/// println!("{:?}", a); // 0.5
+/// ```
+#[macro_export]
+macro_rules! pt {
+    ( $x:expr, $df:expr ) => {{
+        let x = $x as f64;
+        let df = $df as f64;
+        let t = StudentT(df);
+        t.cdf(x)
+    }};
 }
 
 /// R like lm
