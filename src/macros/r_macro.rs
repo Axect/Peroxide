@@ -10,6 +10,11 @@
 //! * `runif`
 //! * `rnorm`
 //! * `dnorm`
+//! * `pnorm`
+//! * `rt`
+//! * `dt`
+//! * `pt`
+//! * `lm`
 
 extern crate rand;
 pub use self::rand::prelude::*;
