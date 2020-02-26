@@ -389,7 +389,7 @@ macro_rules! rt {
 /// use peroxide::*;
 ///
 /// let a = dt!(1, 1);
-/// println!("{:?}", a); // 0.3989422804014327
+/// println!("{:?}", a);
 /// ```
 #[macro_export]
 macro_rules! dt {
