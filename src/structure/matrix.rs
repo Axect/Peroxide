@@ -449,7 +449,7 @@ use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
 use std::fmt;
-use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
+use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
@@ -1872,6 +1872,103 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Vector {
         matrix(self.clone(), 1, l, Col).mul(other.clone())
     }
 }
+
+// =============================================================================
+// Standard Operation for Matrix (DIV)
+// =============================================================================
+/// Element-wise division between Matrix vs f64
+impl Div<f64> for Matrix {
+    type Output = Self;
+
+    fn div(self, other: f64) -> Self {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other;
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, 1f64/a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => self.fmap(|x| x / other),
+        }
+    }
+}
+
+impl Div<i64> for Matrix {
+    type Output = Self;
+
+    fn div(self, other: i64) -> Self {
+        self.div(other as f64)
+    }
+}
+
+impl Div<i32> for Matrix {
+    type Output = Self;
+
+    fn div(self, other: i32) -> Self {
+        self.div(other as f64)
+    }
+}
+
+impl Div<usize> for Matrix {
+    type Output = Self;
+
+    fn div(self, other: usize) -> Self {
+        self.div(other as f64)
+    }
+}
+
+impl<'a> Div<f64> for &'a Matrix {
+    type Output = Matrix;
+
+    fn div(self, other: f64) -> Self::Output {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other;
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, 1f64 / a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => self.fmap(|x| x / other),
+        }
+    }
+}
+
+impl<'a> Div<i64> for &'a Matrix {
+    type Output = Matrix;
+
+    fn div(self, other: i64) -> Self::Output {
+        self.div(other as f64)
+    }
+}
+
+impl<'a> Div<i32> for &'a Matrix {
+    type Output = Matrix;
+
+    fn div(self, other: i32) -> Self::Output {
+        self.div(other as f64)
+    }
+}
+
+impl<'a> Div<usize> for &'a Matrix {
+    type Output = Matrix;
+
+    fn div(self, other: usize) -> Self::Output {
+        self.div(other as f64)
+    }
+}
+
 
 /// Index for Matrix
 ///
