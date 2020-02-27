@@ -1,3 +1,7 @@
+# Release 0.20.3 (2020-02-28)
+
+* Add `Div` for `Matrix`
+
 # Release 0.20.2 (2020-02-27)
 
 ## Hotfix
