@@ -1,3 +1,12 @@
+# Release 0.20.2 (2020-02-27)
+
+## Hotfix
+* Revert `cfg(feature="special")` as `cfg(feature="specials")` for WASM.
+    * `specials = ["special", "special-fun"]`
+    
+## TODO
+* Implement special functions by pure Rust.
+
 # Release 0.20.1 (2020-02-26)
 
 * Add Accessoires to `CubicSpline` (By [schrieveslaach](https://github.com/schrieveslaach))
