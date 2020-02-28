@@ -19,6 +19,29 @@ pub fn factorial(n: usize) -> usize {
     p
 }
 
+/// Double Factorial
+///
+/// # Type
+/// : `usize -> usize`
+///
+/// # Usage
+///
+/// ```
+/// extern crate peroxide;
+/// use peroxide::*;
+///
+/// assert_eq!(double_factorial(7), 105);
+/// ```
+pub fn double_factorial(n: usize) -> usize {
+    let mut s = 1usize;
+    let mut n = n;
+    while n >= 2 {
+        s *= n;
+        n -= 2;
+    }
+    s
+}
+
 /// Permutation
 ///
 /// # Usage

@@ -133,6 +133,8 @@ extern crate json;
 
 extern crate order_stat;
 
+extern crate puruspe;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
