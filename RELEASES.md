@@ -1,3 +1,13 @@
+# Release 0.20.4 (2020-02-28) (Candidates)
+
+* New dependency - `puruspe` (PURe RUSt SPEcial function library)
+* Re-implement special functions by `puruspe`
+    - [x] `gamma`
+    - [x] `inc_gamma`
+    - [ ] `beta`
+    - [ ] `erf`
+    - [ ] `erfc`
+
 # Release 0.20.3 (2020-02-28)
 
 * Add `Div` for `Matrix`
