@@ -128,7 +128,6 @@ use self::rand::prelude::*;
 use self::rand_distr::Distribution;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
-#[cfg(feature = "specials")]
 use special::function::*;
 //use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
@@ -192,7 +191,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist
 ///
 /// # Methods
 /// * `sample`: extract samples
-#[cfg(feature = "specials")]
 pub trait RNG {
     /// Extract samples of distributions
     fn sample(&self, n: usize) -> Vec<f64>;
@@ -211,7 +209,6 @@ pub trait RNG {
 }
 
 /// RNG for OPDist
-#[cfg(feature = "specials")]
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
     fn sample(&self, n: usize) -> Vec<f64> {
         match self {
@@ -251,7 +248,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                     1f64 - (*prob).into()
                 }
             }
-            #[cfg(feature = "specials")]
             StudentT(nu) => {
                 let dof = (*nu).into();
                 let t = x.into();
@@ -293,7 +289,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
 }
 
 /// RNG for TPDist
-#[cfg(feature = "specials")]
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
     fn sample(&self, n: usize) -> Vec<f64> {
         match self {

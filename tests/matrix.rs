@@ -53,7 +53,6 @@ fn test_row() {
     assert_eq!(a.row(0), c!(1, 2));
 }
 
-#[cfg(feature = "specials")]
 #[test]
 fn test_print() {
     let op = Bernoulli(0);

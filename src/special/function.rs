@@ -1,7 +1,3 @@
-extern crate special;
-extern crate special_fun;
-use self::special::{Error, Gamma};
-
 use std::f64::consts::PI;
 use special::lanczos::{gamma_approx, ln_gamma_approx};
 
@@ -45,12 +41,12 @@ pub fn poch(x: f64, n: usize) -> f64 {
     s
 }
 
-/// Digamma function
-///
-/// Wrapper of `digamma` function of `special` crate
-pub fn digamma(x: f64) -> f64 {
-    x.digamma()
-}
+// /// Digamma function
+// ///
+// /// Wrapper of `digamma` function of `special` crate
+// pub fn digamma(x: f64) -> f64 {
+//     x.digamma()
+// }
 
 /// Regularized incomplete gamma integral (Lower)
 ///
@@ -61,35 +57,44 @@ pub fn inc_gamma(a: f64, x: f64) -> f64 {
 
 /// Error function
 ///
-/// Wrapper of `error` function of `special` crate
+/// Wrapper of `erf` function of `puruspe` crate
 pub fn erf(x: f64) -> f64 {
-    x.error()
+    puruspe::erf(x)
 }
 
 /// Complement error function
 ///
-/// Wrapper of `compl_error` function of `special` crate
+/// Wrapper of `erfc` function of `puruspe` crate
 pub fn erfc(x: f64) -> f64 {
-    x.compl_error()
+    puruspe::erfc(x)
 }
 
 /// Inverse error function
 ///
-/// Wrapper of `inv_error` function of `special` crate
+/// Wrapper of `inverf` function of `puruspe` crate
 pub fn erf_inv(x: f64) -> f64 {
-    x.inv_error()
+   puruspe::inverf(x)
+}
+
+/// Inverse complementary error function
+///
+/// Wrapper of `inverfc` function of `puruspe` crate
+pub fn erfc_inv(p: f64) -> f64 {
+    puruspe::inverfc(p)
 }
 
 /// Beta function
+///
+/// Wrapper of `beta` function of `puruspe` crate
 pub fn beta(a: f64, b: f64) -> f64 {
-    special_fun::cephes_double::beta(a, b)
+    puruspe::beta(a, b)
 }
 
 /// Incomplete Beta function
 ///
-/// Wrapper of `incbet` function of `special-fun` crate
+/// Wrapper of `betai` function of `puruspe` crate
 pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
-    special_fun::cephes_double::incbet(a, b, x)
+    puruspe::betai(a, b, x)
 }
 
 /// Phi (CDF for Normal Dist)
@@ -99,11 +104,11 @@ pub fn phi(x: f64) -> f64 {
     0.5 * (1f64 + erf(x / 2f64.sqrt()))
 }
 
-/// Hypergeometric function 2F1
-///
-/// Wrapper of `hyp2f1` function of `special-fun` crate
-pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
-    unsafe {
-        special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
-    }
-}
+// /// Hypergeometric function 2F1
+// ///
+// /// Wrapper of `hyp2f1` function of `special-fun` crate
+// pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
+//     unsafe {
+//         special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
+//     }
+// }
