@@ -110,3 +110,12 @@ where
         t
     }
 }
+
+/// Signum function
+pub fn sgn(x: usize) -> f64 {
+    if x % 2 == 0 {
+        1f64
+    } else {
+        -1f64
+    }
+}

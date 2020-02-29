@@ -4,13 +4,11 @@ use peroxide::*;
 const SAMPLE_SIZE: usize = 10000;
 
 fn main() {
-    #[cfg(feature = "specials")]
     example();
 
     println!("Hello, World!")
 }
 
-#[cfg(feature = "specials")]
 fn example() {
     let mu: f64 = 0.1;
     let b = Bernoulli(mu);

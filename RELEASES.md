@@ -1,3 +1,25 @@
+# Release 0.21.0 (2020-03-01)
+
+## Independence day of `special`
+
+## Important
+
+* Remove dependencies - `special`, `special-fun`
+    * Now, use special functions & distributions for WASM.
+* New dependency - [puruspe](https://github.com/Axect/puruspe) (**PUR**e **RUS**t **SPE**cial function library)
+* Re-implement special functions by `puruspe`
+    - [x] `ln_gamma`
+    - [x] `gamma`
+    - [x] `inc_gamma`
+    - [x] `inv_inc_gamma`
+    - [x] `beta`
+    - [x] `inc_beta`
+    - [x] `inv_inc_beta`
+    - [x] `erf`
+    - [x] `erfc`
+    - [x] `inv_erf`
+    - [x] `inv_erfc`
+
 # Release 0.20.3 (2020-02-28)
 
 * Add `Div` for `Matrix`

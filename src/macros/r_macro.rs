@@ -294,7 +294,6 @@ macro_rules! runif {
 /// println!("{:?}", b);
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! rnorm {
     ( $n:expr, $mean:expr, $sd:expr ) => {{
         let n: usize = $n;
@@ -321,7 +320,6 @@ macro_rules! rnorm {
 /// println!("{:?}", b);
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! dnorm {
     ( $x:expr, $mean: expr, $sd:expr ) => {{
         let x = $x as f64;
@@ -350,7 +348,6 @@ macro_rules! dnorm {
 /// println!("{:?}", b);
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! pnorm {
     ( $x:expr, $mean:expr, $sd:expr ) => {{
         let x = $x as f64;
@@ -376,7 +373,6 @@ macro_rules! pnorm {
 /// println!("{:?}", a);
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! rt {
     ( $n:expr, $df:expr ) => {{
         let n: usize = $n;
@@ -396,7 +392,6 @@ macro_rules! rt {
 /// println!("{:?}", a);
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! dt {
     ( $x:expr, $df:expr ) => {{
         let x = $x as f64;
@@ -417,7 +412,6 @@ macro_rules! dt {
 /// println!("{:?}", a); // 0.5
 /// ```
 #[macro_export]
-#[cfg(feature = "specials")]
 macro_rules! pt {
     ( $x:expr, $df:expr ) => {{
         let x = $x as f64;

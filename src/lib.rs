@@ -133,6 +133,8 @@ extern crate json;
 
 extern crate order_stat;
 
+extern crate puruspe;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
@@ -141,7 +143,6 @@ pub mod ml;
 pub mod numerical;
 pub mod operation;
 pub mod redox;
-#[cfg(feature = "specials")]
 pub mod special;
 pub mod util;
 
@@ -218,7 +219,6 @@ pub use util::api::*;
 pub use statistics::dist::*;
 
 #[allow(unused_imports)]
-#[cfg(feature = "specials")]
 pub use special::function::*;
 
 #[allow(unused_imports)]
@@ -247,7 +247,6 @@ pub use util::plot::*;
 pub use numerical::optimize::*;
 
 #[allow(unused_imports)]
-#[cfg(feature = "specials")]
 pub use special::legendre::*;
 
 #[allow(unused_imports)]
