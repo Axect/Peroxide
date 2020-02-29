@@ -55,6 +55,13 @@ pub fn inc_gamma(a: f64, x: f64) -> f64 {
     puruspe::gammp(a, x)
 }
 
+/// Inverse of regularized incomplete gamma integral (Lower)
+///
+/// Wrapper of `invgammp` function of `puruspe` crate
+pub fn inv_inc_gamma(p: f64, a:f64) -> f64 {
+    puruspe::invgammp(p, a)
+}
+
 /// Error function
 ///
 /// Wrapper of `erf` function of `puruspe` crate
@@ -72,14 +79,14 @@ pub fn erfc(x: f64) -> f64 {
 /// Inverse error function
 ///
 /// Wrapper of `inverf` function of `puruspe` crate
-pub fn erf_inv(x: f64) -> f64 {
+pub fn inv_erf(x: f64) -> f64 {
    puruspe::inverf(x)
 }
 
 /// Inverse complementary error function
 ///
 /// Wrapper of `inverfc` function of `puruspe` crate
-pub fn erfc_inv(p: f64) -> f64 {
+pub fn inv_erfc(p: f64) -> f64 {
     puruspe::inverfc(p)
 }
 
@@ -90,11 +97,18 @@ pub fn beta(a: f64, b: f64) -> f64 {
     puruspe::beta(a, b)
 }
 
-/// Incomplete Beta function
+/// Regularized incomplete Beta function
 ///
 /// Wrapper of `betai` function of `puruspe` crate
 pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
     puruspe::betai(a, b, x)
+}
+
+/// Inverse regularized incomplete beta function
+///
+/// Wrapper of `invbetai` function of `puruspe` crate
+pub fn inv_inv_beta(p: f64, a: f64, b: f64) -> f64 {
+    puruspe::invbetai(p, a, b)
 }
 
 /// Phi (CDF for Normal Dist)
