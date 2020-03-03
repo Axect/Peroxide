@@ -78,6 +78,8 @@
 //! It draws next image
 //!
 //! ![test_plot](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/test_plot.png)
+//!
+//! But now, the recommended way is exporting `netcdf` files. Refer to [dataframe](../../structure/dataframe/index.html)
 
 extern crate pyo3;
 use self::pyo3::types::IntoPyDict;
