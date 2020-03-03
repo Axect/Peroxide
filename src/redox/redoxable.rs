@@ -1,6 +1,5 @@
 use std::ops::{Add, Deref, Index, IndexMut, Sub, Neg, Mul, Div};
-use structure::vector::VecOps;
-use std::net::Shutdown::Read;
+use structure::vector::{VecOps, FPVector};
 use PowOps;
 
 /// Smart pointer of Vector
@@ -159,11 +158,11 @@ impl<'a, 'b> Mul<&'b RedoxVector> for &'a RedoxVector {
 
 impl PowOps for RedoxVector {
     fn powi(&self, n: i32) -> Self {
-        RedoxVector::from_vec(self.data.into_iter().map(|x| x.powi(n)).collect())
+        RedoxVector::from_vec(self.data.fmap(|x| x.powi(n)))
     }
 
     fn powf(&self, f: f64) -> Self {
-        RedoxVector::from_vec(self.data.into_iter().map(|x| x.powf(f)).collect())
+        RedoxVector::from_vec(self.data.fmap(|x| x.powf(f)))
     }
 
     fn pow(&self, f: Self) -> Self {
@@ -171,7 +170,7 @@ impl PowOps for RedoxVector {
     }
 
     fn sqrt(&self) -> Self {
-        RedoxVector::from_vec(self.data.into_iter().map(|x| x.sqrt()).collect())
+        RedoxVector::from_vec(self.data.fmap(|x| x.sqrt()))
     }
 }
 
