@@ -163,7 +163,7 @@ impl PowOps for RedoxVector {
     }
 
     fn powf(&self, f: f64) -> Self {
-        RedoxVector::from_vec(self.data.into_iter().map(|x| x.powf(n)).collect())
+        RedoxVector::from_vec(self.data.into_iter().map(|x| x.powf(f)).collect())
     }
 
     fn pow(&self, f: Self) -> Self {
