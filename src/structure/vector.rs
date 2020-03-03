@@ -99,6 +99,8 @@
 //!     }
 //!     ```
 //!
+//! * If you want to find more flexible operations, see [Redox](../../redox/index.html)
+//!
 //! ## Concatenation
 //!
 //! There are two concatenation operations.

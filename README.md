@@ -151,7 +151,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.20.1`
+Corresponding to `0.21.1`
 
 ## Pre-requisite
 
@@ -166,33 +166,33 @@ Corresponding to `0.20.1`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.20"
+   peroxide = "0.21"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.20"
+   version = "0.21"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.20"
+   version = "0.21"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
-    [dependencies.peroxide]
-    version = "0.20"
-    default-features = false
-    features = ["dataframe"]
-    ```
+   [dependencies.peroxide]
+   version = "0.21"
+   default-features = false
+   features = ["dataframe"]
+   ```
 4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.20"
+   version = "0.21"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```
@@ -223,10 +223,10 @@ Corresponding to `0.20.1`
     - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
     - [mod.rs](src/operation/mod.rs)
     - [number.rs](src/operation/number.rs) : Number type (include `f64`, `Dual`)
-  - __redox__ : To wrap `Vec` (Not yet integrated)
+  - __redox__ : Smart pointer of `Vec<f64>`
     - [mod.rs](src/redox/mod.rs)
     - [redoxable.rs](src/redox/redoxable.rs)
-  - __special__ : Wrapper for `special` crate
+  - __special__ : Special functions written in pure Rust
     - [mod.rs](src/special/mod.rs)
     - [function.rs](src/special/function.rs) : Special functions
   - __statistics__ : Statistical Tools
@@ -288,7 +288,7 @@ fn main() {
 
     // Plot (Thanks to inline-python)
     python! {
-        import pylab as plt
+        import matplotlib.pyplot as plt
         plt.plot('x, 'y)
         plt.show()
     }
@@ -347,7 +347,7 @@ fn test_fn(st: &mut State<f64>) {
 }
 ```
 
-### Basic Runge-Kutta 4th order with exporting netcdf
+### Basic Runge-Kutta 4th order with exporting `netcdf` (Recommended)
 
 ```rust
 extern crate peroxide;
