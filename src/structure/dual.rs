@@ -486,7 +486,17 @@ impl PowOps for Dual {
         Dual::new(val, dval)
     }
 
-    fn powf(&self, f: Self) -> Self {
+    fn powf(&self, f: f64) -> Self {
+        if f == 0f64 {
+            return Dual::new(1f64, 0f64);
+        }
+        let x = self.x;
+        let val = x.powf(f);
+        let dval = f * x.powf(f - 1f64) * self.dx;
+        Dual::new(val, dval)
+    }
+
+    fn pow(&self, f: Self) -> Self {
         let x = self.value();
         let dx = self.slope();
         let n = f.value();
@@ -495,7 +505,7 @@ impl PowOps for Dual {
     }
 
     fn sqrt(&self) -> Self {
-        self.powf(Dual::new(0.5f64, 0f64))
+        self.powf(0.5)
     }
 }
 

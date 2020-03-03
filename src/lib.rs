@@ -9,6 +9,7 @@
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
 //!     * [Vector](structure/vector/index.html) operations
+//!     * [Redox](redox/index.html) for convenient Vector operations
 //! * Statistics
 //!     * [Statistical operations](statistics/stat/index.html)
 //!         * `mean, var, sd`
@@ -19,11 +20,14 @@
 //!         * Normal
 //!         * Gamma
 //!         * Beta
-//! * [Special functions](special/function/index.html) (Using `special` crate)
+//!         * Student's t
+//! * [Special functions](special/function/index.html) (Using `puruspe` crate)
 //!     * Gaussian
 //!     * Gamma
 //!     * Beta
 //!     * Error
+//!     * Incomplete Gamma
+//!     * Incomplete Beta
 //! * Automatic Differentiation
 //!     * [Dual number system](structure/dual/index.html)
 //!     * [Hyper dual number system](structure/hyper_dual/index.html)
@@ -32,6 +36,7 @@
 //!     * [Spline](numerical/spline/index.html)
 //!     * [Polynomial](structure/polynomial/index.html)
 //!     * [Gauss-Legendre Quadrature](special/legendre/fn.gauss_legendre_quadrature.html)
+//!     * [Lanczos Approximation](special/lanczos/index.html)
 //! * [Optimization](numerical/optimize/index.html)
 //!     * Gradient Descent
 //!     * Levenberg-Marquardt
@@ -56,38 +61,38 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.20.1`
+//! * Current document version is corresponding to `0.21.1`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.20"
+//!     peroxide = "0.21"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.20"
+//!     version = "0.21"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.20"
+//!     version = "0.21"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.20"
+//!     version = "0.21"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.20"
+//!     version = "0.21"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```

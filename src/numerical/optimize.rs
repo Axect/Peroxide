@@ -94,7 +94,7 @@
 //!     Some(
 //!         x.clone().into_iter()
 //!             .map(|t| Number::from_f64(t))
-//!             .map(|t| t.powf(n[0]))
+//!             .map(|t| t.pow(n[0]))
 //!             .collect()
 //!     )
 //! }

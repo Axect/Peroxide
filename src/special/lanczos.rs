@@ -1,3 +1,5 @@
+//! Lanczos approximation Coefficient generator
+
 use std::f64::consts::PI;
 use structure::matrix::Matrix;
 use util::non_macro::zeros;
