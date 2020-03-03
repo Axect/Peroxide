@@ -1,3 +1,17 @@
+# Release 0.21.1 (2020-03-03)
+
+## Important
+
+* Modify `PowOps`
+    * Rename `powf(&self, Self)` to `pow(&self, Self)`
+    * Create `powf(&self, f64)`
+    
+## Other enhancement
+
+* Implement `std::ops` for `RedoxVector`
+* Implement `PowOps` for `RedoxVector`
+* Update Documents
+
 # Release 0.21.0 (2020-03-01)
 
 ## Independence day of `special`
