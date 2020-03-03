@@ -22,6 +22,7 @@
 //! * `Sub` : With `f64` or `RedoxVector`
 //! * `Mul` : With `f64` or `RedoxVector` (`Mul<RedoxVector> for RedoxVector` implies dot product)
 //! * `Div` : With `f64`
+//! * `PowOps`
 
 pub mod redoxable;
 
