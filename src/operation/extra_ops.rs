@@ -30,7 +30,8 @@ use structure::hyper_dual::HyperDual;
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
-    fn powf(&self, f: Self) -> Self;
+    fn powf(&self, f: f64) -> Self;
+    fn pow(&self, f: Self) -> Self;
     fn sqrt(&self) -> Self;
 }
 
@@ -92,6 +93,10 @@ impl PowOps for f64 {
     }
 
     fn powf(&self, f: f64) -> Self {
+        (*self).powf(f)
+    }
+
+    fn pow(&self, f: f64) -> Self {
         (*self).powf(f)
     }
 
