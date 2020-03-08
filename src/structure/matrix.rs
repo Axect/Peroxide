@@ -1046,13 +1046,16 @@ impl Matrix {
 
 /// Common trait for Matrix & Vector
 pub trait LinearOps {
+    type Operator;
     fn from_matrix(m: Matrix) -> Self;
     fn to_matrix(&self) -> Matrix;
-    fn transpose(&self) -> Matrix;
-    fn t(&self) -> Matrix;
+    fn transpose(&self) -> Self::Operator;
+    fn t(&self) -> Self::Operator;
 }
 
 impl LinearOps for Matrix {
+    type Operator = Self;
+
     /// Just Clone
     fn from_matrix(m: Matrix) -> Self {
         m
@@ -1095,7 +1098,9 @@ impl LinearOps for Matrix {
     }
 }
 
-impl LinearOps for Vector {
+impl LinearOps for Vec<f64> {
+    type Operator = Matrix;
+
     fn from_matrix(m: Matrix) -> Self {
         m.data
     }

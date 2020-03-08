@@ -16,3 +16,4 @@ pub mod polynomial;
 pub mod vector;
 #[cfg(feature = "dataframe")]
 pub mod dataframe;
+pub mod sparse;
