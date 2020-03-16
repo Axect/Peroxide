@@ -1,3 +1,25 @@
+# Release 0.21.2 (2020-03-17)
+
+## Important
+
+* Add `Eigen`
+    * Implement *jacobi method*
+
+## Example
+```rust
+extern crate peroxide;
+use peroxide::*;
+
+fn main() {
+    let a = MATLAB::new("1 2; 2 3");
+    let eigen = eigen(&a, Jacobi);
+    let (eig_val, eig_vec) = eigen.extract();
+
+    eig_val.print();
+    eig_vec.print();
+}
+```
+
 # Release 0.21.1 (2020-03-03)
 
 ## Important
