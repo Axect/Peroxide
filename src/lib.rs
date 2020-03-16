@@ -263,3 +263,5 @@ pub use util::low_level::*;
 #[allow(unused_imports)]
 #[cfg(feature = "dataframe")]
 pub use structure::dataframe::*;
+
+pub use numerical::eigen::*;
