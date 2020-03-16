@@ -1,12 +1,13 @@
 # TODO
 
-## 2019.12.21
+## 2020.03.17
 
 ### Primary
 
 - [ ] Add new feature - `rug`
 - [ ] Implement higher order automatic derivatives
 - [ ] Make or Use pure Rust plot library
+- [ ] Implement more Eigenvalue algorithms
 
 ### Subs
 
@@ -18,7 +19,7 @@
     - [x] Beta
     - [ ] Dirichlet
     - [x] Gamma
-    - [ ] Student's t
+    - [x] Student's t
     - [ ] Wishart
 - [ ] Implement special polynomial
     - [x] Legendre

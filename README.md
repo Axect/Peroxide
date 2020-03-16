@@ -85,6 +85,7 @@ Peroxide can do many things.
     * Transpose, Determinant, Diagonal
     * LU Decomposition, Inverse matrix, Block partitioning
     * Column, Row operations
+    * Eigenvalue, Eigenvector
 * Functional Programming
     * More easy functional programming with `Vec<f64>`
     * For matrix, there are three maps
@@ -129,7 +130,7 @@ Peroxide can do many things.
         * Ziggurat
         * Wrapper for `rand-dist` crate
 * Special functions
-    * Wrapper for `special` crate
+    * Wrapper for `pururspe` crate (pure rust)
 * Utils
     * R-like macro & functions
     * Matlab-like macro & functions
@@ -151,7 +152,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.21.1`
+Corresponding to `0.21.2`
 
 ## Pre-requisite
 

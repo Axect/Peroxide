@@ -10,6 +10,7 @@
 //!         * LU, Determinant, Inverse
 //!     * [Vector](structure/vector/index.html) operations
 //!     * [Redox](redox/index.html) for convenient Vector operations
+//!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms 
 //! * Statistics
 //!     * [Statistical operations](statistics/stat/index.html)
 //!         * `mean, var, sd`
@@ -61,7 +62,7 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.21.1`
+//! * Current document version is corresponding to `0.21.2`
 //!
 //! 1. Default
 //!     ```toml
@@ -263,3 +264,5 @@ pub use util::low_level::*;
 #[allow(unused_imports)]
 #[cfg(feature = "dataframe")]
 pub use structure::dataframe::*;
+
+pub use numerical::eigen::*;
