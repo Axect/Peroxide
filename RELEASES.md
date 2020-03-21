@@ -1,3 +1,12 @@
+# Release 0.21.3 (2020-03-21)
+
+* Add `operation/row_ops.rs`
+    * Add `RawMatrix`
+    * `row_ptr(&self, usize) -> Vec<*const f64>`
+    * `col_ptr(&self, usize) -> Vec<*const f64>`
+* Add `as_slice, as_mut_slice` for `Matrix`
+* Add `ptr_to_vec` in `util/low_level`
+
 # Release 0.21.2 (2020-03-17)
 
 ## Important
