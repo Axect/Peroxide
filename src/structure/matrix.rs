@@ -628,12 +628,46 @@ impl PartialEq for Matrix {
 /// Main matrix structure
 #[allow(dead_code)]
 impl Matrix {
+    /// Raw pointer for `self.data`
     pub fn ptr(&self) -> *const f64 {
         &self.data[0] as *const f64
     }
 
+    /// Raw mutable pointer for `self.data`
     pub fn mut_ptr(&mut self) -> *mut f64 {
         &mut self.data[0] as *mut f64
+    }
+
+    /// Slice of `self.data`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    /// 
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Col);
+    /// let b = a.as_slice();
+    /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
+    /// ```
+    pub fn as_slice<'a>(&'a self) -> &'a [f64] {
+        &self.data[..]
+    }
+
+    /// Mutable slice of `self.data`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let mut a = matrix(vec![1,2,3,4], 2, 2, Col);
+    /// let mut b = a.as_mut_slice();
+    /// b[0] = 5f64;
+    /// assert_eq!(b, &[5f64, 2f64, 3f64, 4f64]);
+    /// assert_eq!(a, matrix(vec![5,2,3,4], 2, 2, Col));
+    /// ```
+    pub fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f64] {
+        &mut self.data[..]
     }
 
     /// Change Bindings
@@ -665,7 +699,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data.clone(),r,c,Col)
+                matrix(data,r,c,Col)
             }
             Col => {
                 for i in 0..l {
@@ -673,7 +707,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data.clone(),r,c,Row)
+                matrix(data,r,c,Row)
             }
         }
     }
