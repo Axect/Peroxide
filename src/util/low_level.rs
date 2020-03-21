@@ -11,3 +11,7 @@ pub unsafe fn swap_vec_ptr(lhs: &mut Vec<*mut f64>, rhs: &mut Vec<*mut f64>) {
         std::ptr::swap(l, r);
     }
 }
+
+pub unsafe fn ptr_to_vec<'a>(pv: &'a Vec<*const f64>) -> Vec<f64> {
+    pv.iter().map(|&x| *x).collect()
+}
