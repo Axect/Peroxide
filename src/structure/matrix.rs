@@ -441,8 +441,9 @@ use blas::{daxpy, dgemm, dgemv};
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
-
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
+use matrixmultiply;
+
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
 use std::cmp::{max, min};
@@ -2866,45 +2867,100 @@ pub fn inv_u(u: Matrix) -> Matrix {
 }
 
 fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
-    match (a.row, a.col) {
-        (p, q) if p <= 100 && q <= 100 => {
-            let r_self = a.row;
-            let c_self = a.col;
-            let new_other = b;
-            let r_other = new_other.row;
-            let c_other = new_other.col;
+    let mut c = matrix(vec![0f64; a.row * b.col], a.row, b.col, a.shape);
+    gemm(1f64, a, b, 0f64, &mut c);
+    c
+}
 
-            assert_eq!(c_self, r_other);
-
-            let r_new = r_self;
-            let c_new = c_other;
-
-            let mut result = matrix(vec![0f64; r_new * c_new], r_new, c_new, a.shape);
-
-            for i in 0..r_new {
-                for j in 0..c_new {
-                    let mut s = 0f64;
-                    for k in 0..c_self {
-                        s += a[(i, k)] * new_other[(k, j)];
-                    }
-                    result[(i, j)] = s;
-                }
-            }
-            result
+fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
+    let m = a.row;
+    let k = a.col;
+    let n = b.col;
+    let (rsa, csa) = match a.shape {
+        Row => {
+            (a.col as isize, 1isize)
         }
-        _ => {
-            let (a1, a2, a3, a4) = a.block();
-            let (b1, b2, b3, b4) = b.block();
-
-            let m1 = matmul(&a1, &b1) + matmul(&a2, &b3);
-            let m2 = matmul(&a1, &b2) + matmul(&a2, &b4);
-            let m3 = matmul(&a3, &b1) + matmul(&a4, &b3);
-            let m4 = matmul(&a3, &b2) + matmul(&a4, &b4);
-
-            combine(m1, m2, m3, m4)
+        Col => {
+            (1isize, a.row as isize)
         }
+    };
+    let (rsb, csb) = match b.shape {
+        Row => {
+            (b.col as isize, 1isize)
+        }
+        Col => {
+            (1isize, b.row as isize)
+        }
+    };
+    let (rsc, csc) = match c.shape {
+        Row => {
+            (c.col as isize, 1isize)
+        }
+        Col => {
+            (1isize, c.row as isize)
+        }
+    };
+
+    unsafe {
+        matrixmultiply::dgemm(
+            m,
+            k,
+            n,
+            alpha,
+            a.ptr(),
+            rsa,
+            csa,
+            b.ptr(),
+            rsb,
+            csb,
+            beta,
+            c.mut_ptr(),
+            rsc,
+            csc,
+        )
     }
 }
+
+//fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
+//    match (a.row, a.col) {
+//        (p, q) if p <= 100 && q <= 100 => {
+//            let r_self = a.row;
+//            let c_self = a.col;
+//            let new_other = b;
+//            let r_other = new_other.row;
+//            let c_other = new_other.col;
+//
+//            assert_eq!(c_self, r_other);
+//
+//            let r_new = r_self;
+//            let c_new = c_other;
+//
+//            let mut result = matrix(vec![0f64; r_new * c_new], r_new, c_new, a.shape);
+//
+//            for i in 0..r_new {
+//                for j in 0..c_new {
+//                    let mut s = 0f64;
+//                    for k in 0..c_self {
+//                        s += a[(i, k)] * new_other[(k, j)];
+//                    }
+//                    result[(i, j)] = s;
+//                }
+//            }
+//            result
+//        }
+//        _ => {
+//            let (a1, a2, a3, a4) = a.block();
+//            let (b1, b2, b3, b4) = b.block();
+//
+//            let m1 = matmul(&a1, &b1) + matmul(&a2, &b3);
+//            let m2 = matmul(&a1, &b2) + matmul(&a2, &b4);
+//            let m3 = matmul(&a3, &b1) + matmul(&a4, &b3);
+//            let m4 = matmul(&a3, &b2) + matmul(&a4, &b4);
+//
+//            combine(m1, m2, m3, m4)
+//        }
+//    }
+//}
 
 // =============================================================================
 // BLAS & LAPACK Area
