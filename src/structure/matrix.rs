@@ -665,7 +665,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data.clone(),r,c,Col)
+                matrix(data,r,c,Col)
             }
             Col => {
                 for i in 0..l {
@@ -673,7 +673,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data.clone(),r,c,Row)
+                matrix(data,r,c,Row)
             }
         }
     }
