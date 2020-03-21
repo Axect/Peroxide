@@ -2872,7 +2872,7 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
     c
 }
 
-fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
+pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     let m = a.row;
     let k = a.col;
     let n = b.col;
