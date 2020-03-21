@@ -266,3 +266,5 @@ pub use util::low_level::*;
 pub use structure::dataframe::*;
 
 pub use numerical::eigen::*;
+
+pub use operation::raw_ops::*;
