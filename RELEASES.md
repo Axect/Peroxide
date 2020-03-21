@@ -1,3 +1,13 @@
+# Release 0.21.4 (2020-03-21)
+
+## Important
+
+* New dependency - `matrixmultiply`
+* Change default matrix multiplication behavior - depend on `matrixmultiply`
+* If size of matrix is smaller than `1000 x 1000`, `default` is faster than `O3`
+* New function - `gemm` : Wrapper of `dgemm` of `matrixmultiply`
+    * `gemm(alpha, A, B, beta, C)` : `C = alpha * A * B + beta * C`  
+
 # Release 0.21.3 (2020-03-21)
 
 * Add `operation/row_ops.rs`

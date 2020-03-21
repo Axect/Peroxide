@@ -62,7 +62,7 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.21.2`
+//! * Current document version is corresponding to `0.21.4`
 //!
 //! 1. Default
 //!     ```toml
@@ -110,6 +110,13 @@
 //!         //Some codes...
 //!     }
 //!     ```
+//!
+//! ## Useful tips for features
+//!
+//! * After `0.21.4`, if size of matrix is smaller than `1000 x 1000`, default is more effective than `O3` feature.
+//! * To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
+//!     * `plot` feature has limited plot abilities.
+//!     * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
 
 #[cfg(feature = "O3")]
 extern crate blas;
@@ -140,6 +147,8 @@ extern crate json;
 extern crate order_stat;
 
 extern crate puruspe;
+
+extern crate matrixmultiply;
 
 pub mod statistics;
 pub mod structure;
