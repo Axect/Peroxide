@@ -141,6 +141,8 @@ extern crate order_stat;
 
 extern crate puruspe;
 
+extern crate matrixmultiply;
+
 pub mod statistics;
 pub mod structure;
 #[macro_use]
