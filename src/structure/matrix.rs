@@ -363,7 +363,7 @@
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
-//!         let pqlu = a.lu().unwrap(); // unwrap because of Option
+//!         let pqlu = a.complete_lu().unwrap(); // unwrap because of Option
 //!         let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
 //!         assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
 //!         assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
@@ -442,7 +442,7 @@ use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
-use matrixmultiply;
+use ::matrixmultiply;
 
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
@@ -454,7 +454,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
-use MutMatrix;
+use ::{MutMatrix, eye_shape};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -2300,7 +2300,8 @@ pub enum Norm {
 /// Linear algebra trait
 pub trait LinearAlgebra {
     fn norm(&self, norm: Norm) -> f64;
-    fn lu(&self) -> Option<PQLU>;
+    fn lu(&self) -> Option<PLU>;
+    fn complete_lu(&self) -> Option<PQLU>;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
@@ -2316,7 +2317,145 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
-/// Data structure for LU decomposition
+/// Data structure for partial pivoting LU decomposition
+#[derive(Debug, Clone)]
+pub struct PLU {
+    pub n: usize,
+    pub lu: Matrix,
+    pub p: Vec<usize>,
+    pub d: f64,
+}
+
+impl PLU {
+    fn from_matrix(a: &Matrix) -> Option<Self> {
+        let mut lu = a.clone();
+        let n = a.row;
+        let mut p = vec![0usize; n];
+        let tiny = 1e-40;
+        let mut vv: Vec<f64> = vec![0f64; n];
+        let mut d = 1f64;
+        for i in 0 .. n {
+            let mut big = 0f64;
+            for j in 0 .. n {
+                let temp = lu[(i, j)].abs();
+                if temp > big {
+                    big = temp;
+                }
+                if big == 0f64 {
+                    return None;
+                }
+                vv[i] = 1f64 / big;
+            }
+        }
+        for k in 0 .. n {
+            let mut big = 0f64;
+            let mut imax = 0usize;
+            for i in k .. n {
+                let temp = vv[i] * lu[(i, k)].abs();
+                if temp > big {
+                    big = temp;
+                    imax = i;
+                }
+            }
+            if k != imax {
+                for j in 0 .. n {
+                    let temp = lu[(imax, j)];
+                    lu[(imax, j)] = lu[(k, j)];
+                    lu[(k, j)] = temp;
+                }
+                d = -d;
+                vv[imax] = vv[k];
+            }
+            p[k] = imax;
+            if lu[(k, k)] == 0f64 {
+                lu[(k, k)] = tiny;
+            }
+            for i in k+1 .. n {
+                lu[(i, k)] /= lu[(k, k)];
+                let temp = lu[(i, k)];
+                for j in k+1 .. n {
+                    lu[(i, j)] -= temp * lu[(k, j)];
+                }
+            }
+        }
+
+        Some(
+            Self {
+                n,
+                lu,
+                p,
+                d
+            }
+        )
+    }
+
+    pub fn solve(&self, b: &Vec<f64>) -> Vec<f64> {
+        let mut ii = 0usize;
+        let mut x = vec![0f64; self.n];
+        assert_eq!(b.len(), self.n, "LU solve bad size");
+        for i in 0 .. self.n {
+            x[i] = b[i];
+        }
+        for i in 0 .. self.n {
+            let ip = self.p[i];
+            let mut sum = x[ip];
+            x[ip] = x[i];
+            if ii != 0 {
+                for j in ii-1 .. i {
+                    sum -= self.lu[(i, j)] * x[j];
+                }
+            } else if sum != 0f64 {
+                ii = i + 1;
+            }
+            x[i] = sum;
+        }
+        for i in (0 .. self.n).rev() {
+            let mut sum = x[i];
+            for j in i + 1..self.n {
+                sum -= self.lu[(i, j)] * x[j];
+            }
+            x[i] = sum / self.lu[(i, i)];
+        }
+        x
+    }
+
+    pub fn solve_mat(&self, b: &Matrix) -> Matrix {
+        b.col_map(|c| self.solve(&c))
+    }
+
+    //pub fn solve_mat(&self, b: &Matrix) -> Matrix {
+    //    let m = b.col;
+    //    let mut x = matrix(vec![0f64; self.n * m], self.n, m, b.shape);
+    //    assert_eq!(b.row, self.n, "LU solve bad sizes");
+    //    let mut xx = vec![0f64; self.n];
+
+    //    for j in 0 .. m {
+    //        for i in 0 .. self.n {
+    //            xx[i] = b[(i, j)];
+    //            xx = self.solve(&xx);
+    //            for i in 0 .. self.n {
+    //                x[(i, j)] = xx[i];
+    //            }
+    //        }
+    //    }
+    //    x
+    //}
+
+    pub fn inv(&self) -> Matrix {
+        let id = eye_shape(self.n, self.lu.shape);
+        self.solve_mat(&id)
+    }
+
+    pub fn det(&self) -> f64 {
+        let mut dd = self.d;
+        for i in 0 .. self.n {
+            dd *= self.lu[(i, i)];
+        }
+        dd
+    }
+}
+
+/// Data structure for Complete Pivoting LU decomposition
 ///
 /// # Usage
 /// ```rust
@@ -2324,7 +2463,7 @@ pub fn diag(n: usize) -> Matrix {
 /// use peroxide::*;
 ///
 /// let a = ml_matrix("1 2;3 4");
-/// let pqlu = a.lu().unwrap();
+/// let pqlu = a.complete_lu().unwrap();
 /// let (p, q, l, u) = pqlu.extract();
 /// // p, q are permutations
 /// // l, u are matrices
@@ -2347,6 +2486,18 @@ impl PQLU {
             self.l.clone(),
             self.u.clone(),
         )
+    }
+
+    pub fn det(&self) -> f64 {
+        // sgn of perms
+        let sgn_p = 2.0 * (self.p.len() % 2) as f64 - 1.0;
+        let sgn_q = 2.0 * (self.q.len() % 2) as f64 - 1.0;
+
+        self.u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
+    }
+
+    pub fn inv(&self) -> Matrix {
+        unimplemented!()
     }
 }
 
@@ -2410,7 +2561,24 @@ impl LinearAlgebra for Matrix {
         }
     }
 
-    /// LU Decomposition Implements
+    /// LU Decomposition Implements (Partial Pivot)
+    ///
+    /// # Description
+    /// It use partial pivoting LU decomposition.
+    /// If you want to whole L, U matrices, use `complete_lu` instead.
+    ///
+    /// # Caution
+    /// It returns `PLU`.
+    /// `PLU` has four useful methods.
+    /// * `solve` : Solve linear system
+    /// * `solve_mat` : Solve linear system of matrix
+    /// * `inv` : Inverse via LU
+    /// * `det` : Inverse via LU
+    fn lu(&self) -> Option<PLU> {
+        PLU::from_matrix(self)
+    }
+
+    /// LU Decomposition Implements (Complete Pivot)
     ///
     /// # Description
     /// It use complete pivoting LU decomposition.
@@ -2428,14 +2596,14 @@ impl LinearAlgebra for Matrix {
     /// use peroxide::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// let pqlu = a.lu().unwrap();
+    /// let pqlu = a.complete_lu().unwrap();
     /// let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
     /// assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
     /// assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
     /// assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
     /// assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
     /// ```
-    fn lu(&self) -> Option<PQLU> {
+    fn complete_lu(&self) -> Option<PQLU> {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
@@ -2564,15 +2732,7 @@ impl LinearAlgebra for Matrix {
             _ => {
                 match self.lu() {
                     None => 0f64,
-                    Some(pqlu) => {
-                        let (p, q, _l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-
-                        // sgn of perms
-                        let sgn_p = 2.0 * (p.len() % 2) as f64 - 1.0;
-                        let sgn_q = 2.0 * (q.len() % 2) as f64 - 1.0;
-
-                        u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
-                    }
+                    Some(lu) => lu.det()
                 }
             }
         }
@@ -2664,31 +2824,37 @@ impl LinearAlgebra for Matrix {
                     Some(dgrf) => lapack_dgetri(&dgrf),
                 }
             }
-            _ => match self.lu() {
-                None => None,
-                Some(pqlu) => {
-                    let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-                    let mut m = inv_u(u) * inv_l(l);
-                    for (idx1, idx2) in q.into_iter().rev() {
-                        unsafe {
-                            m.swap(idx1, idx2, Row);
-                        }
-                    }
-                    for (idx1, idx2) in p.into_iter().rev() {
-                        unsafe {
-                            m.swap(idx1, idx2, Col);
-                        }
-                    }
-                    Some(m)
+            // _ => match self.complete_lu() {
+            //     None => None,
+            //     Some(pqlu) => {
+            //         let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+            //         let mut m = inv_u(u) * inv_l(l);
+            //         for (idx1, idx2) in q.into_iter().rev() {
+            //             unsafe {
+            //                 m.swap(idx1, idx2, Row);
+            //             }
+            //         }
+            //         for (idx1, idx2) in p.into_iter().rev() {
+            //             unsafe {
+            //                 m.swap(idx1, idx2, Col);
+            //             }
+            //         }
+            //         Some(m)
+            //     }
+            // },
+            _ => {
+                match self.lu() {
+                    None => None,
+                    Some(lu) => Some(lu.inv())
                 }
-            },
+            }
         }
     }
 
     /// Moore-Penrose Pseudo inverse
     ///
     /// # Description
-    /// `(X^T X)^{-1} X`
+    /// `$(X^T X)^{-1} X$`
     ///
     /// # Examples
     /// ```
@@ -2702,12 +2868,11 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(inv_a, pse_a); // Nearly equal
     /// ```
     fn pseudo_inv(&self) -> Option<Self> {
-        let xtx = &self.t() * self;
-        let inv_temp = xtx.inv();
-
-        match inv_temp {
+        let xt = self.t();
+        let xtx = &xt * self;
+        match xtx.lu() {
             None => None,
-            Some(m) => Some(m * self.t()),
+            Some(lu) => Some(lu.inv() * xt)
         }
     }
 }
@@ -2727,10 +2892,11 @@ pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
             }
         }
         _ => {
-            let opt_a_inv = A.inv();
-            match opt_a_inv {
+            match A.lu() {
                 None => None,
-                Some(a_inv) => Some(&a_inv * b),
+                Some(lu) => {
+                    Some(lu.solve_mat(b))
+                }
             }
         }
     }
