@@ -152,7 +152,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.21.2`
+Corresponding to `0.21.4`
 
 ## Pre-requisite
 
@@ -267,6 +267,8 @@ Corresponding to `0.21.2`
 * [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://peroxide.surge.sh)
 
 ## Example
+
+[Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery)
 
 ### Basic Runge-Kutta 4th order with inline-python
 
