@@ -442,7 +442,7 @@ use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
-use matrixmultiply;
+use ::matrixmultiply;
 
 pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
@@ -454,7 +454,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
-use MutMatrix;
+use ::{MutMatrix, eye_shape};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -2316,7 +2316,7 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
-/// Data structure for LU decomposition
+/// Data structure for Complete Pivoting LU decomposition
 ///
 /// # Usage
 /// ```rust
@@ -2347,6 +2347,30 @@ impl PQLU {
             self.l.clone(),
             self.u.clone(),
         )
+    }
+
+    pub fn det(&self) -> f64 {
+        // sgn of perms
+        let sgn_p = 2.0 * (self.p.len() % 2) as f64 - 1.0;
+        let sgn_q = 2.0 * (self.q.len() % 2) as f64 - 1.0;
+
+        self.u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
+    }
+
+    pub fn inv(&self) -> Matrix {
+        let (p, q, l, u) = self.extract();
+        let mut m = inv_u(u) * inv_l(l);
+        for (idx1, idx2) in q.into_iter().rev() {
+            unsafe {
+                m.swap(idx1, idx2, Row);
+            }
+        }
+        for (idx1, idx2) in p.into_iter().rev() {
+            unsafe {
+                m.swap(idx1, idx2, Col);
+            }
+        }
+        m
     }
 }
 
@@ -2410,7 +2434,7 @@ impl LinearAlgebra for Matrix {
         }
     }
 
-    /// LU Decomposition Implements
+    /// LU Decomposition Implements (Complete Pivot)
     ///
     /// # Description
     /// It use complete pivoting LU decomposition.
@@ -2505,7 +2529,7 @@ impl LinearAlgebra for Matrix {
                 }
                 u[(i, k)] = reference[(i, k)] - s;
                 // Check non-zero diagonal
-                if nearly_eq(u[(i, i)], 0) {
+                if u[(i, i)].abs() <= 1e-40 {
                     return None;
                 }
             }
@@ -2564,15 +2588,7 @@ impl LinearAlgebra for Matrix {
             _ => {
                 match self.lu() {
                     None => 0f64,
-                    Some(pqlu) => {
-                        let (p, q, _l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-
-                        // sgn of perms
-                        let sgn_p = 2.0 * (p.len() % 2) as f64 - 1.0;
-                        let sgn_q = 2.0 * (q.len() % 2) as f64 - 1.0;
-
-                        u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
-                    }
+                    Some(lu) => lu.det()
                 }
             }
         }
@@ -2667,28 +2683,22 @@ impl LinearAlgebra for Matrix {
             _ => match self.lu() {
                 None => None,
                 Some(pqlu) => {
-                    let (p, q, l, u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-                    let mut m = inv_u(u) * inv_l(l);
-                    for (idx1, idx2) in q.into_iter().rev() {
-                        unsafe {
-                            m.swap(idx1, idx2, Row);
-                        }
-                    }
-                    for (idx1, idx2) in p.into_iter().rev() {
-                        unsafe {
-                            m.swap(idx1, idx2, Col);
-                        }
-                    }
-                    Some(m)
+                    Some(pqlu.inv())
                 }
             },
+            // _ => {
+            //     match self.lu() {
+            //         None => None,
+            //         Some(lu) => Some(lu.inv())
+            //     }
+            // }
         }
     }
 
     /// Moore-Penrose Pseudo inverse
     ///
     /// # Description
-    /// `(X^T X)^{-1} X`
+    /// `$(X^T X)^{-1} X^T$`
     ///
     /// # Examples
     /// ```
@@ -2702,12 +2712,11 @@ impl LinearAlgebra for Matrix {
     /// assert_eq!(inv_a, pse_a); // Nearly equal
     /// ```
     fn pseudo_inv(&self) -> Option<Self> {
-        let xtx = &self.t() * self;
-        let inv_temp = xtx.inv();
-
-        match inv_temp {
+        let xt = self.t();
+        let xtx = &xt * self;
+        match xtx.inv() {
             None => None,
-            Some(m) => Some(m * self.t()),
+            Some(m) => Some(m * xt)
         }
     }
 }
@@ -2727,10 +2736,9 @@ pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
             }
         }
         _ => {
-            let opt_a_inv = A.inv();
-            match opt_a_inv {
+            match A.pseudo_inv() {
                 None => None,
-                Some(a_inv) => Some(&a_inv * b),
+                Some(m) => Some(&m * b)
             }
         }
     }

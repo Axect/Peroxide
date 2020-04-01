@@ -1,3 +1,14 @@
+# Release 0.21.5 (2020-04-02)
+
+* Fix a bug for `det`, `inv` & `pseudo_inv` for large matrix
+    * Set precision of `lu` to more lower : `1e-7` to `1e-40`
+    
+## TODO
+
+* QR decomposition
+* Effective pseudo inverse algorithm using QR
+* Enhance performance of `Matrix`
+
 # Release 0.21.4 (2020-03-21)
 
 ## Important
