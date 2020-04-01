@@ -6,7 +6,6 @@ use std::ops::Mul;
 use ::{Matrix, zeros};
 use ::{LinearAlgebra, Norm};
 use ::{PQLU, LinearOps};
-use PLU;
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -138,12 +137,8 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().norm(norm)
     }
 
-    fn lu(&self) -> Option<PLU> {
+    fn lu(&self) -> Option<PQLU> {
         self.to_dense().lu()
-    }
-
-    fn complete_lu(&self) -> Option<PQLU> {
-        self.to_dense().complete_lu()
     }
 
     fn det(&self) -> f64 {
