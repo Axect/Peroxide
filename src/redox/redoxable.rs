@@ -165,7 +165,7 @@ impl PowOps for RedoxVector {
         RedoxVector::from_vec(self.data.fmap(|x| x.powf(f)))
     }
 
-    fn pow(&self, f: Self) -> Self {
+    fn pow(&self, _f: Self) -> Self {
         unimplemented!()
     }
 

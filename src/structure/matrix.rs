@@ -454,7 +454,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
 #[allow(unused_imports)]
 use structure::vector::*;
 use util::useful::*;
-use ::{MutMatrix, eye_shape};
+use ::MutMatrix;
 
 pub type Perms = Vec<(usize, usize)>;
 

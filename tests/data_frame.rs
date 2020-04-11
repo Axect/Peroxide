@@ -1,7 +1,7 @@
 extern crate peroxide;
 #[allow(unused_imports)]
 use peroxide::*;
-use std::fs::remove_file;
+// use std::fs::remove_file;
 
 #[test]
 #[cfg(feature = "dataframe")]

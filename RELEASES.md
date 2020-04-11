@@ -1,3 +1,12 @@
+# Release 0.21.6 (2020-04-11)
+
+* Create `util/wrapper.rs` : Wrapper for other crates.
+    * Trait `SampleRNG` : Extract random sample from `Vec<T>`
+        * `sample(&self, n: usize) -> Vec<Self::Item>`
+* More `Printable`
+    * `Vec<usize>`, `Vec<u32>`, `Vec<u64>`
+    * `Vec<isize>`, `Vec<i32>`, `Vec<i64>`
+
 # Release 0.21.5 (2020-04-02)
 
 * Fix a bug for `det`, `inv` & `pseudo_inv` for large matrix

@@ -13,11 +13,11 @@ fn main() {
 
     let mut ex_test2 = ex_test.clone();
 
-    let results = ex_test.integrate();
+    let _results = ex_test.integrate();
 
     ex_test2.set_method(ExMethod::RK4);
 
-    let results2 = ex_test2.integrate();
+    let _results2 = ex_test2.integrate();
 
     // let mut wt = SimpleWriter::new();
     // wt.set_path("example_data/lorenz.pickle")
