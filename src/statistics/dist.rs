@@ -132,7 +132,7 @@ use special::function::*;
 //use statistics::rand::ziggurat;
 use statistics::stat::Statistics;
 use std::convert::Into;
-use std::f64::consts::{E, PI};
+use std::f64::consts::E;
 
 /// One parameter distribution
 ///
@@ -271,7 +271,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
             StudentT(nu) => {
                 let x: f64 = x.into();
                 let nu: f64 = (*nu).into();
-                let odd_nu = (nu + 1f64) / 2f64;
+                let _odd_nu = (nu + 1f64) / 2f64;
                 let even_nu = nu / 2f64;
 
                 if x > 0f64 {
