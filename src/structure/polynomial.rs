@@ -396,7 +396,7 @@ impl PowOps for Polynomial {
         result
     }
 
-    fn powf(&self, f: f64) -> Self {
+    fn powf(&self, _f: f64) -> Self {
         unimplemented!()
     }
 

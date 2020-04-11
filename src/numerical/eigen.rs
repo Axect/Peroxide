@@ -91,8 +91,8 @@ impl JacobiTemp {
         let mut b = a.diag();
         let d = &mut self.d;
         let mut z = vec![0f64; n];
-        let mut h = 0f64;
-        let mut n_rot = self.n_rot;
+        let mut h: f64;
+        let mut _n_rot = self.n_rot;
 
         for i in 1 .. 51 {
             let mut sm = 0f64;
@@ -148,7 +148,7 @@ impl JacobiTemp {
                         for j in 0 .. n {
                             rot(v, s, tau, j, ip, j, iq);
                         }
-                        n_rot += 1;
+                        _n_rot += 1;
                     }
                 }
             }
@@ -173,7 +173,7 @@ fn rot(a: &mut Matrix, s: f64, tau: f64, i: usize, j: usize, k: usize, l: usize)
 ///
 /// * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 fn eigsrt(d: &mut Vec<f64>, v: &mut Matrix) {
-    let mut k = 0usize;
+    let mut k: usize;
     let n = d.len();
     for i in 0 .. n-1 {
         k = i;

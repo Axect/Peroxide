@@ -12,7 +12,7 @@ fn main() {
         .set_step_size(0.01)
         .set_times(1000);
 
-    let result = ode_solver.integrate();
+    let _result = ode_solver.integrate();
 
     // let mut st = SimpleWriter::new();
     // st.set_path("example_data/rk4_test.pickle")
