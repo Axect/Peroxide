@@ -277,3 +277,5 @@ pub use structure::dataframe::*;
 pub use numerical::eigen::*;
 
 pub use operation::raw_ops::*;
+
+pub use util::wrapper::*;
