@@ -455,6 +455,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
 use structure::vector::*;
 use util::useful::*;
 use ::MutMatrix;
+use eye;
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -2301,6 +2302,7 @@ pub enum Norm {
 pub trait LinearAlgebra {
     fn norm(&self, norm: Norm) -> f64;
     fn lu(&self) -> Option<PQLU>;
+    fn qr(&self) -> QR;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
@@ -2371,6 +2373,22 @@ impl PQLU {
             }
         }
         m
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct QR {
+    pub q: Matrix,
+    pub r: Matrix,
+}
+
+impl QR {
+    pub fn q(&self) -> &Matrix {
+        &self.q
+    }
+
+    pub fn r(&self) -> &Matrix {
+        &self.r
     }
 }
 
@@ -2544,6 +2562,35 @@ impl LinearAlgebra for Matrix {
         }
 
         Some(PQLU { p, q, l, u })
+    }
+
+    /// QR Decomposition
+    ///
+    /// Translation of [RosettaCode#Python](https://rosettacode.org/wiki/QR_decomposition#Python)
+    #[allow(non_snake_case)]
+    fn qr(&self) -> QR {
+        let m = self.row;
+        let n = self.col;
+
+        let mut r = self.clone();
+        let mut q = eye(m);
+        let sub = if m == n { 1 } else { 0 };
+        for i in 0 .. n - sub {
+            let mut H = eye(m);
+            let hh = gen_householder(&self.col(i).skip(i));
+            for j in i .. m {
+                for k in i .. m {
+                    H[(j, k)] = hh[(j-i, k-i)];
+                }
+            }
+            q = &q * &H;
+            r = &H * &r;
+        }
+
+        QR {
+            q,
+            r,
+        }
     }
 
     /// Determinant
@@ -2880,6 +2927,7 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
     c
 }
 
+/// GEMM wrapper for Matrixmultiply
 pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     let m = a.row;
     let k = a.col;
@@ -3316,4 +3364,14 @@ impl DGEQRF {
         }
         result
     }
+}
+
+#[allow(non_snake_case)]
+pub fn gen_householder(a: &Vec<f64>) -> Matrix {
+    let mut v = a.fmap(|t| t / (a[0] + a.norm() * a[0].signum()));
+    v[0] = 1f64;
+    let mut H = eye(a.len());
+    let vt = v.to_matrix();
+    H = H - 2f64 / v.dot(&v) * (&vt * &vt.t());
+    H
 }
