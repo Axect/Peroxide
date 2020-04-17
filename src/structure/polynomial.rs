@@ -155,7 +155,7 @@ impl Polynomial {
         Self { coef }
     }
 
-    /// Evaluate polynomial with value
+    /// Evaluate polynomial with value according to Horner's method
     ///
     /// # Examples
     /// ```
@@ -164,15 +164,22 @@ impl Polynomial {
     ///
     /// let a = poly(c!(1,3,2));
     /// assert_eq!(a.eval(1), 6_f64);
+    ///
+    /// let b = poly(c!(1, 1, -2, -2));
+    /// let x = 2_f64.sqrt();
+    /// let horner_evaluation = b.eval(x);
+    /// let naive_evaluation = x.powf(3.0) + x.powf(2.0) - 2.0*x - 2.0;
+    /// assert_eq!(horner_evaluation, 0_f64);
+    /// assert_ne!(naive_evaluation, horner_evaluation);
     /// ```
     pub fn eval<T>(&self, x: T) -> f64
     where
         T: convert::Into<f64> + Copy,
     {
         let l = self.coef.len() - 1;
-        let mut s = 0f64;
-        for i in 0..l + 1 {
-            s += self.coef[i] * x.into().powf((l - i) as f64);
+        let mut s = self.coef[0];
+        for i in 0..l {
+            s = self.coef[i+1] + x.into()*s;
         }
         s
     }
