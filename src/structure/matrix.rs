@@ -2303,6 +2303,7 @@ pub trait LinearAlgebra {
     fn norm(&self, norm: Norm) -> f64;
     fn lu(&self) -> Option<PQLU>;
     fn qr(&self) -> QR;
+    fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
@@ -2591,6 +2592,48 @@ impl LinearAlgebra for Matrix {
             q,
             r,
         }
+    }
+
+    /// Reduced Row Echelon Form
+    /// 
+    /// Implementation of [RosettaCode](https://rosettacode.org/wiki/Reduced_row_echelon_form)
+    fn rref(&self) -> Matrix {
+        let mut lead = 0usize;
+        let mut result = self.clone();
+        for r in 0 .. self.row {
+            if self.col <= lead {
+                break;
+            }
+            let mut i = r;
+            while result[(i, lead)] == 0f64 {
+                i += 1;
+                if self.row == i {
+                    i = r;
+                    lead += 1;
+                    if self.col == lead {
+                        break;
+                    }
+                }
+            }
+            unsafe {
+                result.swap(i, r, Row);
+            }
+            let tmp = result[(r, lead)];
+            if tmp != 0f64 {
+                unsafe {
+                    result.row_mut(r).iter_mut().for_each(|t| *(*t) /= tmp);
+                }
+            }
+            for j in 0 .. result.row {
+                if j != r {
+                    let tmp1 = result.row(r).s_mul(result[(j, lead)]);
+                    let tmp2 = result.row(j).sub(&tmp1);
+                    result.subs_row(j, &tmp2);
+                }
+            }
+            lead += 1;
+        }
+        result
     }
 
     /// Determinant

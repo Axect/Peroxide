@@ -1,3 +1,11 @@
+# Release 0.21.7 (2020-04-22) (Candidates)
+
+* QR Decomposition
+    * Add `qr(&self) -> QR` in `LinearAlgebra` trait
+    * Add `QR` to represent QR decomposition
+* Reduced Row Echelon Form
+    * Add `rref(&self) -> Matrix` in `LinearAlgebra` trait
+
 # Release 0.21.6 (2020-04-11)
 
 * Create `util/wrapper.rs` : Wrapper for other crates.
