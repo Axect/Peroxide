@@ -161,6 +161,9 @@ impl LinearAlgebra for SPMatrix {
     fn pseudo_inv(&self) -> Option<Matrix> {
         self.to_dense().pseudo_inv()
     }
+    fn rref(&self) -> Matrix { 
+        self.to_dense().rref()
+    }
 }
 
 /// Matrix multiplication with vector
