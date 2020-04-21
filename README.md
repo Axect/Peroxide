@@ -130,7 +130,7 @@ Peroxide can do many things.
         * Ziggurat
         * Wrapper for `rand-dist` crate
 * Special functions
-    * Wrapper for `pururspe` crate (pure rust)
+    * Wrapper for `puruspe` crate (pure rust)
 * Utils
     * R-like macro & functions
     * Matlab-like macro & functions
