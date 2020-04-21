@@ -1,6 +1,9 @@
 extern crate rand;
 use rand::prelude::*;
 
+// =============================================================================
+// Random Wrapper
+// =============================================================================
 /// Extract no-duplicate sample from Vector
 pub trait SampleRNG {
     type Item;
