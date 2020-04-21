@@ -1,10 +1,16 @@
-# Release 0.21.7 (2020-04-22) (Candidates)
+# Release 0.21.7 (2020-04-22)
+
+## More `LinearAlgebra`
 
 * QR Decomposition
     * Add `qr(&self) -> QR` in `LinearAlgebra` trait
     * Add `QR` to represent QR decomposition
 * Reduced Row Echelon Form
     * Add `rref(&self) -> Matrix` in `LinearAlgebra` trait
+
+## More Efficient
+
+* Modify Polynomial evaluate algorithm via Horner's Method (Thanks to [Nateckert](https://github.com/Nateckert))
 
 # Release 0.21.6 (2020-04-11)
 
