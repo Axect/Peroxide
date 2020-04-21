@@ -84,6 +84,8 @@ Peroxide can do many things.
     * Effective Matrix structure
     * Transpose, Determinant, Diagonal
     * LU Decomposition, Inverse matrix, Block partitioning
+    * QR Decomposition
+    * Reduced Row Echelon form
     * Column, Row operations
     * Eigenvalue, Eigenvector
 * Functional Programming
@@ -152,7 +154,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.21.5`
+Corresponding to `0.21.7`
 
 ## Pre-requisite
 
@@ -219,6 +221,7 @@ Corresponding to `0.21.5`
       - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
     - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula (deprecated)
+    - [eigen.rs](src/numerica;/eigen.rs) : Eigenvalue, Eigenvector algorithm
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
@@ -259,6 +262,7 @@ Corresponding to `0.21.5`
     - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
     - [print.rs](src/util/print.rs) : To print conveniently
     - [useful.rs](src/util/useful.rs) : Useful utils to implement library
+    - [wrapper.rs](src/util/wrapper.rs) : Wrapper for other crates (e.g. rand)
     - [writer.rs](src/util/writer.rs) : More convenient write system
 
 

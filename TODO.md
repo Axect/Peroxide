@@ -1,6 +1,6 @@
 # TODO
 
-## 2020.03.17
+## 2020.04.22
 
 ### Primary
 
@@ -39,6 +39,9 @@
     - [ ] Machine Learning
     - [x] Optimize
 - [ ] Fill `ExtraOps` for `HyperDual`
+- [ ] Add Statistical regression
+    - [ ] Gaussian Kernel
+    - [ ] Logistic Kernel
 
 ## Complete
 

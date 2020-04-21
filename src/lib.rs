@@ -8,6 +8,8 @@
 //!     * [Matrix](structure/matrix/index.html) operations
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
+//!         * QR Decomposition
+//!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
 //!     * [Redox](redox/index.html) for convenient Vector operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms 
