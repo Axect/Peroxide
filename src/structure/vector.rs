@@ -71,7 +71,15 @@
 //!     * `div(&self, other: Vec<f64>) -> Vec<f64>`
 //!     * `dot(&self, other: Vec<f64>) -> f64`
 //!     * `norm(&self) -> f64`
+//!     * `norm_l1(&self) -> f64`
+//!     * `norm_l2(&self) -> f64`
+//!     * `norm_linf(&self) -> f64`
+//!     * `norm_lp(&self, p: f64) -> f64`
 //!     * `sum(&self) -> f64`
+//!     * `s_add(&self, scalar: f64) -> Self`
+//!     * `s_sub(&self, scalar: f64) -> Self`
+//!     * `s_mul(&self, scalar: f64) -> Self`
+//!     * `s_div(&self, scalar: f64) -> Self`
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -96,6 +104,18 @@
 //!         // 20
 //!         // 5.477225575051661 // sqrt(30)
 //!         // 10
+//!
+//!         let scalar = 2.0;
+//!
+//!         a.s_add(scalar).print();
+//!         a.s_sub(scalar).print();
+//!         a.s_mul(scalar).print();
+//!         a.s_div(scalar).print();
+//!
+//!         // [3, 4, 5, 6]
+//!         // [-1, 0, 1, 2]
+//!         // [2, 4, 6, 8]
+//!         // [0.5, 1, 1.5, 3]
 //!     }
 //!     ```
 //!
@@ -564,6 +584,10 @@ pub trait VecOps {
     fn dot(&self, other: &Self) -> Self::Scalar;
     fn sum(&self) -> Self::Scalar;
     fn norm(&self) -> Self::Scalar;
+    fn norm_l1(&self) -> Self::Scalar;
+    fn norm_l2(&self) -> Self::Scalar;
+    fn norm_linf(&self) -> Self::Scalar;
+    fn norm_lp(&self, p: f64) -> Self::Scalar;
     fn normalize(&self) -> Self;
 }
 
@@ -748,6 +772,42 @@ impl VecOps for Vector {
             }
             _ => self.dot(&self).sqrt(),
         }
+    }
+
+    /// Norm L1, also known as Manhattan Norm
+    /// Sum of the absolute value of each element
+    fn norm_l1(&self) -> f64 {
+        self.iter().map(|x| x.abs()).sum()
+    }
+
+    /// Norm L2, also known as Euclidean Norm
+    /// Square root of the sum of the square of each element
+    fn norm_l2(&self) -> f64 {
+        let sum_squared: f64 = self.iter().map(|x| x.powi(2)).sum();
+        sum_squared.sqrt()
+    }
+
+    /// Norm L-Infinity, also known as Maximum Norm
+    /// Maximum of the absolute value of the elements
+    fn norm_linf(&self) -> f64 {
+        let mut max = self[0].abs();
+
+        for i in 1..self.len() {
+            max = max.max(self[i].abs());
+        }
+
+        max
+    }
+
+    /// Norm L-p, also known as p-Norm
+    /// p=1 is the L1-norm (Manhattan Norm)
+    /// p=2 is the L2-norm (Euclidean Norm)
+    fn norm_lp(&self, p: f64) -> f64 {
+        if p < 1.0 {
+            panic!("L-p norm is only defined for p>=1, the given value was p={}", p)
+        }
+        let sum_p : f64 = self.iter().map(|x| x.abs().powf(p)).sum();
+        sum_p.powf(1.0/p)
     }
 
     /// Normalize
