@@ -645,6 +645,29 @@ impl VecOps for Vec<Dual> {
         unimplemented!()
     }
 
+    /// Norm L1, also known as Manhattan Norm
+    /// Sum of the absolute value of each element
+    fn norm_l1(&self) -> Self::Scalar  {
+        unimplemented!()
+    }
+
+    /// Norm L2, also known as Euclidean Norm
+    /// Square root of the sum of the square of each element
+    fn norm_l2(&self) -> Self::Scalar  {
+        unimplemented!()
+    }
+
+    /// Norm L-Infinity, also known as Maximum Norm
+    /// Maximum of the absolute value of the elements
+    fn norm_linf(&self) -> Self::Scalar  {
+        unimplemented!()
+    }
+
+    /// Norm L-p, also known as p-Norm
+    fn norm_lp(&self, p: f64) -> Self::Scalar  {
+        unimplemented!()
+    }
+
     fn normalize(&self) -> Self {
         unimplemented!()
     }
