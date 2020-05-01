@@ -183,6 +183,36 @@ impl CubicSpline {
     {
         let x = x.into();
 
+        self.polynomial(x).eval(x)
+    }
+
+    /// Returns a reference the `Polynomial` at the given point `x`.
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::*;
+    ///
+    /// let x = c!(0.9, 1.3, 1.9, 2.1);
+    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    ///
+    /// let s = CubicSpline::from_nodes(x, y);
+    ///
+    /// let p = s.polynomial(2.0);
+    /// let v = p.eval(1.9);
+    ///
+    /// assert_eq!((v * 100.0).round() / 100.0, 1.85)
+    /// ```
+    ///
+    /// If `x` is outside of the range of polynomials, the first or last polynomial will be
+    /// returned, depending if `x` is lower of the first interpolation point or higher of the last
+    /// interpolation point.
+    pub fn polynomial<T>(&self, x: T) -> &Polynomial
+        where
+        T: std::convert::Into<f64> + Copy,
+    {
+        let x  = x.into();
+
         let index = match self.polynomials.binary_search_by(|(range, _)| {
             if range.contains(&x) {
                 core::cmp::Ordering::Equal
@@ -196,7 +226,7 @@ impl CubicSpline {
             Err(index) => max(0, min(index, self.polynomials.len() - 1)),
         };
 
-        self.polynomials[index].1.eval(x)
+        &self.polynomials[index].1
     }
 
     pub fn extend_with_nodes(&mut self, node_x: Vector, node_y: Vector) {
