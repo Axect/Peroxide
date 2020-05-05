@@ -1,3 +1,18 @@
+# Release 0.21.8 (2020-05-05) (Candidate)
+
+## More `MutOps`
+
+* `swap_with_perm` : Swap with permutation
+
+## More `LinearAlgebra`
+
+* Gaussian elimination with LU decomposition
+
+## TODO
+
+* `Perm * Matrix` : Syntactic sugar for `swap_with_perm(_, Row)`
+* `Matrix * Perm` : Syntactic sugar for `swap_with_perm(_, Col)`
+
 # Release 0.21.7 (2020-04-22)
 
 ## More `LinearAlgebra`
