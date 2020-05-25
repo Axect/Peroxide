@@ -445,3 +445,50 @@ impl Calculus for Polynomial {
         Self::new(result)
     }
 }
+
+// =============================================================================
+// Useful Polynomial
+// =============================================================================
+pub fn lagrange_polynomial(node_x: Vector, node_y: Vector) -> Polynomial {
+    assert_eq!(node_x.len(), node_y.len());
+    let l = node_x.len();
+    let mut result = Polynomial::new(vec![0f64; l]);
+
+    for i in 0..l {
+        let fixed_val = node_x[i];
+        let prod = node_y[i];
+        let mut id = poly(vec![1f64]);
+
+        for j in 0..l {
+            if j == i {
+                continue;
+            } else {
+                let target_val = node_x[j];
+                let denom = fixed_val - target_val;
+                id = id * (poly(vec![1f64, -target_val]) / denom);
+            }
+        }
+        result = result + (id * prod);
+    }
+    result
+}
+
+/// Legendre Polynomial
+///
+/// # Description
+/// : Generate `n`-th order of Legendre polynomial
+pub fn legendre_polynomial(n: usize) -> Polynomial {
+    match n {
+        0 => poly(vec![1f64]),       // 1
+        1 => poly(vec![1f64, 0f64]), // x
+        2 => poly(vec![1.5, 0f64, -0.5]),
+        3 => poly(vec![2.5, 0f64, -1.5, 0f64]),
+        _ => {
+            let k = n - 1;
+            let k_f64 = k as f64;
+            ((2f64 * k_f64 + 1f64) * poly(vec![1f64, 0f64]) * legendre_polynomial(k)
+                - k_f64 * legendre_polynomial(k - 1))
+                / (k_f64 + 1f64)
+        }
+    }
+}

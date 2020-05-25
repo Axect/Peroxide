@@ -9,3 +9,4 @@ pub mod optimize;
 pub mod spline;
 pub mod utils;
 pub mod eigen;
+pub mod integral;
