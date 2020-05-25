@@ -264,9 +264,6 @@ pub use util::plot::*;
 pub use numerical::optimize::*;
 
 #[allow(unused_imports)]
-pub use special::legendre::*;
-
-#[allow(unused_imports)]
 pub use redox::redoxable::*;
 
 #[allow(unused_imports)]
