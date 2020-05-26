@@ -1,3 +1,32 @@
+# Release 0.22.0 (2020-05-25)
+
+## Add Numerical integration
+
+* `numerical/integral.rs`
+    * Newton Cotes quadrature - `integrate(f, (a, b), NewtonCotes(usize))`
+    * Gauss Legendre quadrature - `integrate(f, (a, b), GaussLegendre(usize))`
+
+## More `MutOps`
+
+* `swap_with_perm` : Swap with permutation
+
+## More `CubicSpline` (By [schrieveslaach](https://github.com/schrieveslaach))
+
+* `polynomial(&self, x: T) -> Polynomial` : Returns a reference the `Polynomial` at the given point `x`.
+
+## More `Vector::norm` (By [nateckert](https://github.com/Nateckert))
+
+* Add more `norm` for `Vec<f64>`: `norm_l1(&self), norm_l2(&self), norm_linf(&self), norm_lp(&self)`
+
+## TODO
+
+* Gaussian elimination with LU decomposition
+* `Perm * Matrix` : Syntactic sugar for `swap_with_perm(_, Row)`
+* `Matrix * Perm` : Syntactic sugar for `swap_with_perm(_, Col)`
+* More numerical integrations
+* Unify vector norms
+* Make `csv` to `optional`
+
 # Release 0.21.7 (2020-04-22)
 
 ## More `LinearAlgebra`
