@@ -38,8 +38,8 @@
 //!     * [Interpolation](numerical/interp/index.html)
 //!     * [Spline](numerical/spline/index.html)
 //!     * [Polynomial](structure/polynomial/index.html)
-//!     * [Gauss-Legendre Quadrature](special/legendre/fn.gauss_legendre_quadrature.html)
 //!     * [Lanczos Approximation](special/lanczos/index.html)
+//!     * [Numerical Integrations](numerical/integral/index.html)
 //! * [Optimization](numerical/optimize/index.html)
 //!     * Gradient Descent
 //!     * Levenberg-Marquardt
