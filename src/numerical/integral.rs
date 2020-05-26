@@ -4,6 +4,7 @@ use crate::structure::polynomial::{
 };
 use crate::structure::vector::FPVector;
 use crate::util::non_macro::seq;
+pub use Integral::{GaussLegendre, NewtonCotes};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Integral {

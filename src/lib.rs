@@ -278,3 +278,5 @@ pub use numerical::eigen::*;
 pub use operation::raw_ops::*;
 
 pub use util::wrapper::*;
+
+pub use numerical::integral::*;
