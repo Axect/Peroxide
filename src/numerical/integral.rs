@@ -1,9 +1,9 @@
-use crate::structure::polynomial::{
+use structure::polynomial::{
     lagrange_polynomial,
     Calculus,
 };
-use crate::structure::vector::FPVector;
-use crate::util::non_macro::seq;
+use traits::fp::FPVector;
+use util::non_macro::seq;
 pub use Integral::{GaussLegendre, NewtonCotes};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -31,7 +31,6 @@ where F: Fn(f64) -> f64
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
-        _ => unimplemented!()
     }
 }
 

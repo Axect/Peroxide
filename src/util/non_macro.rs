@@ -22,7 +22,7 @@ use std::convert::Into;
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
 /// ```
-pub fn seq<S, T, U>(start: S, end: T, step: U) -> Vector
+pub fn seq<S, T, U>(start: S, end: T, step: U) -> Vec<f64>
 where
     S: Into<f64> + Copy,
     T: Into<f64> + Copy,

@@ -46,7 +46,7 @@
 //! * Representative value
 //!     * Mean: $\mu$
 //!     * Var : $\mu(1 - \mu)$
-//! * In peroxide, to generate $\text{Bern}(x | \mu)$, use simple algorithm
+//! * In peroxide, to generate $\text{Bern}(x | \mu)$, use simple traits
 //!     1. Generate $U \sim \text{Unif}(0, 1)$
 //!     2. If $U \leq \mu$, then $X = 1$ else $X = 0$
 //! * Usage is very simple
@@ -98,9 +98,9 @@
 //!     * Var: $\sigma^2$
 //! * To generate normal random number, there are two famous algorithms
 //!     * Marsaglia-Polar method
-//!     * Ziggurat algorithm
+//!     * Ziggurat traits
 //! * In peroxide (after ver 0.19.1), use `rand_distr` to generate random normal samples.
-//! * <del>In peroxide, main algorithm is Ziggurat - most efficient algorithm to generate random normal samples.</del>
+//! * <del>In peroxide, main traits is Ziggurat - most efficient traits to generate random normal samples.</del>
 //!     * <del>Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.</del>
 //!     ```rust
 //!     extern crate peroxide;

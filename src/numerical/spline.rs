@@ -18,10 +18,10 @@ use util::non_macro::*;
 ///
 /// # Description
 ///
-/// Implement algorithm of Natural cubic splines, Arne Morten Kvarving.
+/// Implement traits of Natural cubic splines, Arne Morten Kvarving.
 ///
 /// # Type
-/// (Vector, Vector) -> Vec<Polynomial>
+/// (Vec<f64>, Vec<f64>) -> Vec<Polynomial>
 ///
 /// # Examples
 /// ```
@@ -41,7 +41,7 @@ use util::non_macro::*;
 /// // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
 /// // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
 /// ```
-pub fn cubic_spline(node_x: Vector, node_y: Vector) -> Vec<Polynomial> {
+pub fn cubic_spline(node_x: Vec<f64>, node_y: Vec<f64>) -> Vec<Polynomial> {
     let spline = CubicSpline::from_nodes(node_x, node_y);
     spline.into()
 }
@@ -68,14 +68,14 @@ impl CubicSpline {
     ///     println!("{}", s.eval(i as f64 / 2.0));
     /// }
     /// ```
-    pub fn from_nodes(node_x: Vector, node_y: Vector) -> Self {
+    pub fn from_nodes(node_x: Vec<f64>, node_y: Vec<f64>) -> Self {
         let polynomials = CubicSpline::cubic_spline(&node_x, &node_y);
         CubicSpline {
             polynomials: CubicSpline::ranged(&node_x, polynomials),
         }
     }
 
-    fn ranged(node_x: &Vector, polynomials: Vec<Polynomial>) -> Vec<(Range<f64>, Polynomial)> {
+    fn ranged(node_x: &Vec<f64>, polynomials: Vec<Polynomial>) -> Vec<(Range<f64>, Polynomial)> {
         let len = node_x.len();
         polynomials
             .into_iter()
@@ -93,7 +93,7 @@ impl CubicSpline {
             .collect()
     }
 
-    fn cubic_spline(node_x: &Vector, node_y: &Vector) -> Vec<Polynomial> {
+    fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> Vec<Polynomial> {
         //! Pre calculated variables
         //! node_x: n+1
         //! node_y: n+1
@@ -229,7 +229,7 @@ impl CubicSpline {
         &self.polynomials[index].1
     }
 
-    pub fn extend_with_nodes(&mut self, node_x: Vector, node_y: Vector) {
+    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) {
         let mut ext_node_x = Vec::with_capacity(node_x.len() + 1);
         let mut ext_node_y = Vec::with_capacity(node_x.len() + 1);
 

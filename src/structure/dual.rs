@@ -56,7 +56,11 @@ use std::convert::Into;
 /// Structure for Automatic Differentiation
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use structure::vector::*;
+use traits::{
+    fp::FPVector,
+    math::{Vector, Normed, Norm, InnerProduct},
+    pointer::{Redox, Oxide},
+};
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
 
@@ -613,25 +617,37 @@ impl FPVector for Vec<Dual> {
 }
 
 #[allow(unused_variables)]
-impl VecOps for Vec<Dual> {
-    type Scalar = Dual;
-
-    fn add(&self, other: &Self) -> Self {
+impl Vector for Vec<Dual> {
+    fn add_vec(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x + y, other)
     }
 
-    fn sub(&self, other: &Self) -> Self {
+    fn sub_vec(&self, other: &Self) -> Self {
         self.zip_with(|x, y| x - y, other)
     }
 
-    fn mul(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x * y, other)
+    fn mul_scalar<T: Into<f64>>(&self, other: T) -> Self {
+        let scalar = other.into();
+        self.fmap(|x| x * scalar)
     }
 
-    fn div(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x / y, other)
-    }
+    // fn sum(&self) -> Self::Scalar {
+    //     let mut s = dual(0f64, 0f64);
+    //     for x in self {
+    //         s = s + *x;
+    //     }
+    //     s
+    // }
+}
 
+impl Normed for Vec<Dual> {
+    type Scalar = Dual;
+    fn norm(&self, _kind: Norm) -> Self::Scalar {
+        unimplemented!()
+    }
+}
+
+impl InnerProduct for Vec<Dual> {
     fn dot(&self, _other: &Self) -> Self::Scalar {
         // dot product of Dual is similar to Complex with \epsilon^2 = 0
         self.clone()
@@ -640,60 +656,11 @@ impl VecOps for Vec<Dual> {
             .map(|(x, y)| x.mul(y))
             .fold(Self::Scalar::new(0., 0.), |sum: Self::Scalar, x| sum.add(x))
     }
+}
 
-    fn norm(&self) -> Self::Scalar {
-        unimplemented!()
-    }
-
-    /// Norm L1, also known as Manhattan Norm
-    /// Sum of the absolute value of each element
-    fn norm_l1(&self) -> Self::Scalar  {
-        unimplemented!()
-    }
-
-    /// Norm L2, also known as Euclidean Norm
-    /// Square root of the sum of the square of each element
-    fn norm_l2(&self) -> Self::Scalar  {
-        unimplemented!()
-    }
-
-    /// Norm L-Infinity, also known as Maximum Norm
-    /// Maximum of the absolute value of the elements
-    fn norm_linf(&self) -> Self::Scalar  {
-        unimplemented!()
-    }
-
-    /// Norm L-p, also known as p-Norm
-    fn norm_lp(&self, p: f64) -> Self::Scalar  {
-        unimplemented!()
-    }
-
-    fn normalize(&self) -> Self {
-        unimplemented!()
-    }
-
-    fn s_add(&self, scala: f64) -> Self {
-        self.fmap(|x| x + scala)
-    }
-
-    fn s_sub(&self, scala: f64) -> Self {
-        self.fmap(|x| x - scala)
-    }
-
-    fn s_mul(&self, scala: f64) -> Self {
-        self.fmap(|x| x * scala)
-    }
-
-    fn s_div(&self, scala: f64) -> Self {
-        self.fmap(|x| x / scala)
-    }
-
-    fn sum(&self) -> Self::Scalar {
-        let mut s = dual(0f64, 0f64);
-        for x in self {
-            s = s + *x;
-        }
-        s
+impl Oxide for Vec<Dual> {
+    fn ox(self) -> Redox<Vec<Dual>> {
+        Redox::<Vec<Dual>>::from_vec(self)
     }
 }
 

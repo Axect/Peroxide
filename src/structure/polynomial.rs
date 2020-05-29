@@ -11,6 +11,7 @@ use std::cmp::{max, min};
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
+use traits::fp::FPVector;
 
 // =============================================================================
 // Polynomial Structure
@@ -20,7 +21,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polynomial {
-    pub coef: Vector,
+    pub coef: Vec<f64>,
 }
 
 /// Polynomial Print
@@ -151,7 +152,7 @@ impl fmt::Display for Polynomial {
 
 impl Polynomial {
     /// Create Polynomial
-    pub fn new(coef: Vector) -> Self {
+    pub fn new(coef: Vec<f64>) -> Self {
         Self { coef }
     }
 
@@ -184,13 +185,13 @@ impl Polynomial {
         s
     }
 
-    pub fn eval_vec(&self, v: Vector) -> Vector {
+    pub fn eval_vec(&self, v: Vec<f64>) -> Vec<f64> {
         v.fmap(|t| self.eval(t))
     }
 }
 
 /// Convenient to declare polynomial
-pub fn poly(coef: Vector) -> Polynomial {
+pub fn poly(coef: Vec<f64>) -> Polynomial {
     Polynomial::new(coef)
 }
 
@@ -207,7 +208,7 @@ impl Neg for Polynomial {
                 .clone()
                 .into_iter()
                 .map(|x| -x)
-                .collect::<Vector>(),
+                .collect::<Vec<f64>>(),
         )
     }
 }
@@ -271,7 +272,7 @@ where
             self.coef
                 .into_iter()
                 .map(|x| x * other.into())
-                .collect::<Vector>(),
+                .collect::<Vec<f64>>(),
         )
     }
 }
@@ -324,7 +325,7 @@ impl Div<Polynomial> for Polynomial {
         assert!(l1 >= l2);
 
         let mut temp = self.clone();
-        let mut quot_vec: Vector = Vec::new();
+        let mut quot_vec: Vec<f64> = Vec::new();
         let denom = other.coef[0];
 
         while temp.coef.len() >= l2 {
@@ -449,7 +450,7 @@ impl Calculus for Polynomial {
 // =============================================================================
 // Useful Polynomial
 // =============================================================================
-pub fn lagrange_polynomial(node_x: Vector, node_y: Vector) -> Polynomial {
+pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
     let mut result = Polynomial::new(vec![0f64; l]);

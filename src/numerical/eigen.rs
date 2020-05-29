@@ -81,7 +81,7 @@ impl JacobiTemp {
         }
     }
 
-    /// Main Jacobi algorithm
+    /// Main Jacobi traits
     ///
     /// * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
     pub fn iter(&mut self) {
