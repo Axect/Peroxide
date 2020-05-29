@@ -1,8 +1,10 @@
 use numerical::utils::jacobian;
 use operation::number::{Number, NumberVector};
 use structure::matrix::*;
-use structure::vector::*;
-use MutFP;
+use traits::{
+    mutable::MutFP,
+    math::{Vector, Normed, Norm},
+};
 
 /// Newton-Raphson Method
 pub fn newton<F>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
@@ -12,12 +14,12 @@ where
     let mut x_next = init_cond;
     let mut x = x_next.clone();
     update(&mut x_next, f);
-    let mut err = (x_next.sub(&x)).norm();
+    let mut err = (x_next.sub_vec(&x)).norm(Norm::L2);
 
     while err >= rtol {
         x = x_next.clone();
         update(&mut x_next, f);
-        err = (x_next.sub(&x)).norm();
+        err = (x_next.sub_vec(&x)).norm(Norm::L2);
     }
 
     x_next
@@ -31,5 +33,5 @@ where
     let pinv_j = j.pseudo_inv().unwrap();
     let fx = f(NumberVector::from_f64_vec(xs.clone())).to_f64_vec();
 
-    xs.mut_zip_with(|x,y| x - y, &(pinv_j * fx).col(0))
+    xs.mut_zip_with(|x,y| x - y, &(pinv_j * fx))
 }

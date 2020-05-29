@@ -1,6 +1,7 @@
-use std::ops::{Add, Deref, Index, IndexMut, Sub, Neg, Mul, Div};
-use structure::vector::{VecOps, FPVector};
+use std::ops::{Add, Deref, Div, Index, IndexMut, Mul, Neg, Sub};
+
 use PowOps;
+use traits::fp::FPVector;
 
 /// Smart pointer of Vector
 pub struct RedoxVector {

@@ -11,7 +11,7 @@ use structure::vector::*;
 ///
 /// # Type
 ///
-/// (Vector, Vector) -> Polynomial
+/// (Vec<f64>, Vec<f64>) -> Polynomial
 ///
 /// # Examples
 /// ```
@@ -23,7 +23,7 @@ use structure::vector::*;
 /// let ls = least_square(a, b);
 /// ls.print(); // 0.96x + 0.1200
 /// ```
-pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
+pub fn least_square(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     let l = node_x.len();
     assert_eq!(l, node_y.len());
 
@@ -55,7 +55,7 @@ pub fn least_square(node_x: Vector, node_y: Vector) -> Polynomial {
 }
 
 // Polynomial Regression
-//pub fn poly_reg(node_x: Vector, node_y: Vector) -> Polynomial {
+//pub fn poly_reg(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
 //    let n = node_x.len();
 //    assert_eq!(n, node_y.len());
 //    let a = matrix(vec![1f64; n], n, 1, Col);

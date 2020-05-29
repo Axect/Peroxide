@@ -38,7 +38,7 @@
 //!     }
 //!     ```
 //!
-//! ## From ranges to Vector
+//! ## From ranges to Vec<f64>
 //!
 //! * For `R`, there is `seq` to declare sequence.
 //!
@@ -62,7 +62,7 @@
 //!     }
 //!     ```
 //!
-//! ## Vector Operation
+//! ## Vec<f64> Operation
 //!
 //! * There are some vector-wise operations
 //!     * `add(&self, other: Vec<f64>) -> Vec<f64>`
@@ -145,10 +145,10 @@
 //!
 //! ## Conversion to Matrix
 //!
-//! There are two ways to convert vector to matrix.
+//! There are two ways to convert Vec<f64> to matrix.
 //!
-//! * `to_matrix(&self) -> Matrix` : Vector to column matrix
-//! * `transpose(&self) -> Matrix` : Vector to row matrix
+//! * `to_matrix(&self) -> Matrix` : Vec<f64> to column matrix
+//! * `transpose(&self) -> Matrix` : Vec<f64> to row matrix
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -166,7 +166,7 @@
 //!
 //! # Functional Programming {#functional}
 //!
-//! ## FP for Vector
+//! ## FP for Vec<f64>
 //!
 //! * There are some functional programming tools for `Vec<f64>`
 //!
@@ -301,15 +301,18 @@ use std::cmp::min;
 use std::convert;
 use std::f64::MIN;
 use operation::extra_ops::Real;
-use algorithm::fp::FPVector;
-use algorithm::general::Algorithm;
+use traits::{
+    fp::FPVector,
+    mutable::MutFP,
+    general::Algorithm,
+    math::{Vector, Normed, Norm, InnerProduct},
+    pointer::{Redox, Oxide}
+};
 
-pub type Vector = Vec<f64>;
-
-impl FPVector for Vector {
+impl FPVector for Vec<f64> {
     type Scalar = f64;
 
-    /// fmap for Vector
+    /// fmap for Vec<f64>
     ///
     /// # Examples
     /// ```
@@ -319,14 +322,14 @@ impl FPVector for Vector {
     /// let a = c!(1,2,3,4,5);
     /// assert_eq!(a.fmap(|x| x*2f64), seq!(2,10,2));
     /// ```
-    fn fmap<F>(&self, f: F) -> Vector
+    fn fmap<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(f64) -> f64,
     {
-        self.clone().into_iter().map(|x| f(x)).collect::<Vector>()
+        self.clone().into_iter().map(|x| f(x)).collect::<Vec<f64>>()
     }
 
-    /// reduce for Vector
+    /// reduce for Vec<f64>
     ///
     /// # Examples
     /// ```
@@ -344,17 +347,17 @@ impl FPVector for Vector {
         self.clone().into_iter().fold(init.into(), |x, y| f(x, y))
     }
 
-    fn zip_with<F>(&self, f: F, other: &Vector) -> Vector
+    fn zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
     where
         F: Fn(f64, f64) -> f64,
     {
         self.into_iter()
             .zip(other)
             .map(|(x, y)| f(*x, *y))
-            .collect::<Vector>()
+            .collect::<Vec<f64>>()
     }
 
-    /// Filter for Vector
+    /// Filter for Vec<f64>
     ///
     /// # Examples
     /// ```
@@ -365,17 +368,17 @@ impl FPVector for Vector {
     /// let b = a.filter(|x| x > 3.);
     /// assert_eq!(b, c!(4,5));
     /// ```
-    fn filter<F>(&self, f: F) -> Vector
+    fn filter<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(f64) -> bool,
     {
         self.clone()
             .into_iter()
             .filter(|x| f(*x))
-            .collect::<Vector>()
+            .collect::<Vec<f64>>()
     }
 
-    /// Take for Vector
+    /// Take for Vec<f64>
     ///
     /// # Examples
     /// ```
@@ -386,7 +389,7 @@ impl FPVector for Vector {
     /// let b = a.take(3);
     /// assert_eq!(b, c!(1,2,3));
     /// ```
-    fn take(&self, n: usize) -> Vector {
+    fn take(&self, n: usize) -> Vec<f64> {
         let mut v = vec![0f64; n];
         for i in 0..n {
             v[i] = self[i];
@@ -394,7 +397,7 @@ impl FPVector for Vector {
         return v;
     }
 
-    /// Skip for Vector
+    /// Skip for Vec<f64>
     ///
     /// # Examples
     /// ```
@@ -405,7 +408,7 @@ impl FPVector for Vector {
     /// let b = a.skip(3);
     /// assert_eq!(b, c!(4,5));
     /// ```
-    fn skip(&self, n: usize) -> Vector {
+    fn skip(&self, n: usize) -> Vec<f64> {
         let l = self.len();
         let mut v = vec![0f64; l - n];
         for (i, j) in (n..l).enumerate() {
@@ -456,7 +459,29 @@ where
     result
 }
 
-impl Algorithm for Vector {
+impl MutFP for Vec<f64> {
+    type Scalar = f64;
+
+    fn mut_map<F>(&mut self, f: F)
+        where
+            F: Fn(Self::Scalar) -> Self::Scalar,
+    {
+        for i in 0..self.len() {
+            self[i] = f(self[i]);
+        }
+    }
+
+    fn mut_zip_with<F>(&mut self, f: F, other: &Self)
+        where
+            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    {
+        for i in 0..self.len() {
+            self[i] = f(self[i], other[i]);
+        }
+    }
+}
+
+impl Algorithm for Vec<f64> {
     /// Assign rank
     ///
     /// # Examples
@@ -547,165 +572,61 @@ impl Algorithm for Vector {
     }
 }
 
-/// Convenient Vector Operation trait
-pub trait VecOps {
-    type Scalar;
-    fn add(&self, other: &Self) -> Self;
-    fn sub(&self, other: &Self) -> Self;
-    fn mul(&self, other: &Self) -> Self;
-    fn div(&self, other: &Self) -> Self;
-    fn s_add(&self, scala: f64) -> Self;
-    fn s_sub(&self, scala: f64) -> Self;
-    fn s_mul(&self, scala: f64) -> Self;
-    fn s_div(&self, scala: f64) -> Self;
-    fn dot(&self, other: &Self) -> Self::Scalar;
-    fn sum(&self) -> Self::Scalar;
-    fn norm(&self) -> Self::Scalar;
-    fn norm_l1(&self) -> Self::Scalar;
-    fn norm_l2(&self) -> Self::Scalar;
-    fn norm_linf(&self) -> Self::Scalar;
-    fn norm_lp(&self, p: f64) -> Self::Scalar;
-    fn normalize(&self) -> Self;
+impl Vector for Vec<f64> {
+    fn add_vec(&self, rhs: &Self) -> Self {
+        self.zip_with(|x, y| x + y, rhs)
+    }
+
+    fn sub_vec(&self, rhs: &Self) -> Self {
+        self.zip_with(|x, y| x - y, rhs)
+    }
+
+    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
+        let alpha: f64 = rhs.into();
+        self.fmap(|x| x * alpha)
+    }
 }
 
-/// Convenient Vector Operations (No Clone, No Copy)
-impl VecOps for Vector {
+impl Normed for Vec<f64> {
     type Scalar = f64;
-
-    /// Addition
-    fn add(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x + y, other)
-    }
-
-    /// Subtraction
-    fn sub(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x - y, other)
-    }
-
-    /// Multiplication
-    fn mul(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x * y, other)
-    }
-
-    /// Division
-    fn div(&self, other: &Self) -> Self {
-        self.zip_with(|x, y| x / y, other)
-    }
-
-    fn s_add(&self, scala: f64) -> Self {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                match self.len() {
-                    n if n % 8 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(8)
-                            .map(f64x8::from_slice_unaligned)
-                            .map(|x| x + scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
+    fn norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::L1 => {
+                self.iter().map(|x| x.abs()).sum()
+            }
+            Norm::L2 => {
+                match () {
+                    #[cfg(feature = "O3")]
+                    () => {
+                        let n_i32 = self.len() as i32;
+                        let res: f64;
+                        unsafe {
+                            res = dnrm2(n_i32, self, 1);
+                        }
+                        res
                     }
-                    n if n % 4 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(4)
-                            .map(f64x4::from_slice_unaligned)
-                            .map(|x| x + scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    _ => self.fmap(|x| x + scala)
+                    _ => self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
                 }
             }
-            _ => self.fmap(|x| x + scala),
-        }
-    }
-
-    fn s_sub(&self, scala: f64) -> Self {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                match self.len() {
-                    n if n % 8 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(8)
-                            .map(f64x8::from_slice_unaligned)
-                            .map(|x| x - scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    n if n % 4 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(4)
-                            .map(f64x4::from_slice_unaligned)
-                            .map(|x| x - scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    _ => self.fmap(|x| x - scala)
-                }
+            Norm::Lp(p) => {
+                assert!(p >= 1f64, format!("lp norm is only defined for p>=1, the given value was p={}", p));
+                self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64/p)
             }
-            _ => self.fmap(|x| x - scala),
-        }
-    }
-
-    fn s_mul(&self, scala: f64) -> Self {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                match self.len() {
-                    n if n % 8 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(8)
-                            .map(f64x8::from_slice_unaligned)
-                            .map(|x| x * scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    n if n % 4 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(4)
-                            .map(f64x4::from_slice_unaligned)
-                            .map(|x| x * scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    _ => self.fmap(|x| x * scala)
-                }
+            Norm::LInf => {
+                self.iter().fold(0f64, |x, y| x.max(y.abs()))
             }
-            _ => self.fmap(|x| scala * x),
-        }
-    }
-
-    fn s_div(&self, scala: f64) -> Self {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                match self.len() {
-                    n if n % 8 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(8)
-                            .map(f64x8::from_slice_unaligned)
-                            .map(|x| x / scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    n if n % 4 == 0 => {
-                        let mut z = vec![0f64; n];
-                        self.chunks_exact(4)
-                            .map(f64x4::from_slice_unaligned)
-                            .map(|x| x / scala)
-                            .for_each(|x| x.write_to_slice_unaligned(&mut z));
-                        z
-                    }
-                    _ => self.fmap(|x| x / scala)
-                }
+            Norm::F => {
+                unimplemented!()
             }
-            _ => self.fmap(|x| x / scala),
+            Norm::Lpq(_, _) => {
+                unimplemented!()
+            }
         }
     }
+}
 
-    /// Dot product
-    fn dot(&self, other: &Self) -> f64 {
+impl InnerProduct for Vec<f64> {
+    fn dot(&self, rhs: &Self) -> f64 {
         match () {
             #[cfg(feature = "O3")]
             () => {
@@ -716,83 +637,161 @@ impl VecOps for Vector {
                 }
                 res
             }
-            _ => zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y),
+            _ => zip_with(|x, y| x * y, &self, rhs).reduce(0, |x, y| x + y),
         }
-    }
-
-    fn sum(&self) -> Self::Scalar {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let res: f64;
-                unsafe {
-                    res = dasum(n_i32, self, 1);
-                }
-                res
-            }
-            _ => reduce(|x, y| x + y, 0f64, self)
-        }
-    }
-
-    /// Norm
-    fn norm(&self) -> f64 {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let res: f64;
-                unsafe {
-                    res = dnrm2(n_i32, self, 1);
-                }
-                res
-            }
-            _ => self.dot(&self).sqrt(),
-        }
-    }
-
-    /// Norm L1, also known as Manhattan Norm
-    /// Sum of the absolute value of each element
-    fn norm_l1(&self) -> f64 {
-        self.iter().map(|x| x.abs()).sum()
-    }
-
-    /// Norm L2, also known as Euclidean Norm
-    /// Square root of the sum of the square of each element
-    fn norm_l2(&self) -> f64 {
-        let sum_squared: f64 = self.iter().map(|x| x.powi(2)).sum();
-        sum_squared.sqrt()
-    }
-
-    /// Norm L-Infinity, also known as Maximum Norm
-    /// Maximum of the absolute value of the elements
-    fn norm_linf(&self) -> f64 {
-        let mut max = self[0].abs();
-
-        for i in 1..self.len() {
-            max = max.max(self[i].abs());
-        }
-
-        max
-    }
-
-    /// Norm L-p, also known as p-Norm
-    /// p=1 is the L1-norm (Manhattan Norm)
-    /// p=2 is the L2-norm (Euclidean Norm)
-    fn norm_lp(&self, p: f64) -> f64 {
-        if p < 1.0 {
-            panic!("L-p norm is only defined for p>=1, the given value was p={}", p)
-        }
-        let sum_p : f64 = self.iter().map(|x| x.abs().powf(p)).sum();
-        sum_p.powf(1.0/p)
-    }
-
-    /// Normalize
-    fn normalize(&self) -> Self {
-        let alpha = self.norm();
-        self.s_mul(1f64 / alpha)
     }
 }
+
+impl Oxide for Vec<f64> {
+    fn ox(self) -> Redox<Vec<f64>> {
+        Redox::<Vec<f64>>::from_vec(self)
+    }
+}
+
+// /// Convenient Vec<f64> Operations (No Clone, No Copy)
+// impl VecOps for Vec<f64> {
+//     fn s_add(&self, scala: f64) -> Self {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 match self.len() {
+//                     n if n % 8 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(8)
+//                             .map(f64x8::from_slice_unaligned)
+//                             .map(|x| x + scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     n if n % 4 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(4)
+//                             .map(f64x4::from_slice_unaligned)
+//                             .map(|x| x + scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     _ => self.fmap(|x| x + scala)
+//                 }
+//             }
+//             _ => self.fmap(|x| x + scala),
+//         }
+//     }
+//
+//     fn s_sub(&self, scala: f64) -> Self {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 match self.len() {
+//                     n if n % 8 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(8)
+//                             .map(f64x8::from_slice_unaligned)
+//                             .map(|x| x - scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     n if n % 4 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(4)
+//                             .map(f64x4::from_slice_unaligned)
+//                             .map(|x| x - scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     _ => self.fmap(|x| x - scala)
+//                 }
+//             }
+//             _ => self.fmap(|x| x - scala),
+//         }
+//     }
+//
+//     fn s_mul(&self, scala: f64) -> Self {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 match self.len() {
+//                     n if n % 8 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(8)
+//                             .map(f64x8::from_slice_unaligned)
+//                             .map(|x| x * scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     n if n % 4 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(4)
+//                             .map(f64x4::from_slice_unaligned)
+//                             .map(|x| x * scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     _ => self.fmap(|x| x * scala)
+//                 }
+//             }
+//             _ => self.fmap(|x| scala * x),
+//         }
+//     }
+//
+//     fn s_div(&self, scala: f64) -> Self {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 match self.len() {
+//                     n if n % 8 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(8)
+//                             .map(f64x8::from_slice_unaligned)
+//                             .map(|x| x / scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     n if n % 4 == 0 => {
+//                         let mut z = vec![0f64; n];
+//                         self.chunks_exact(4)
+//                             .map(f64x4::from_slice_unaligned)
+//                             .map(|x| x / scala)
+//                             .for_each(|x| x.write_to_slice_unaligned(&mut z));
+//                         z
+//                     }
+//                     _ => self.fmap(|x| x / scala)
+//                 }
+//             }
+//             _ => self.fmap(|x| x / scala),
+//         }
+//     }
+//
+//     /// Dot product
+//     fn dot(&self, other: &Self) -> f64 {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 let n_i32 = self.len() as i32;
+//                 let res: f64;
+//                 unsafe {
+//                     res = ddot(n_i32, self, 1, other, 1);
+//                 }
+//                 res
+//             }
+//             _ => zip_with(|x, y| x * y, &self, other).reduce(0, |x, y| x + y),
+//         }
+//     }
+//
+//     fn sum(&self) -> Self::Scalar {
+//         match () {
+//             #[cfg(feature = "O3")]
+//             () => {
+//                 let n_i32 = self.len() as i32;
+//                 let res: f64;
+//                 unsafe {
+//                     res = dasum(n_i32, self, 1);
+//                 }
+//                 res
+//             }
+//             _ => reduce(|x, y| x + y, 0f64, self)
+//         }
+//     }
 
 #[cfg(feature = "O3")]
 pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {

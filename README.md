@@ -234,9 +234,6 @@ Corresponding to `0.21.7`
     - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
     - [mod.rs](src/operation/mod.rs)
     - [number.rs](src/operation/number.rs) : Number type (include `f64`, `Dual`)
-  - __redox__ : Smart pointer of `Vec<f64>`
-    - [mod.rs](src/redox/mod.rs)
-    - [redoxable.rs](src/redox/redoxable.rs)
   - __special__ : Special functions written in pure Rust
     - [mod.rs](src/special/mod.rs)
     - [function.rs](src/special/function.rs) : Special functions

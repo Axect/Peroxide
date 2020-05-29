@@ -159,10 +159,9 @@ pub mod macros;
 pub mod ml;
 pub mod numerical;
 pub mod operation;
-pub mod redox;
 pub mod special;
 pub mod util;
-pub mod algorithm;
+pub mod traits;
 pub mod fugue;
 
 #[allow(unused_imports)]
@@ -264,9 +263,6 @@ pub use util::plot::*;
 
 #[allow(unused_imports)]
 pub use numerical::optimize::*;
-
-#[allow(unused_imports)]
-pub use redox::redoxable::*;
 
 #[allow(unused_imports)]
 pub use util::low_level::*;

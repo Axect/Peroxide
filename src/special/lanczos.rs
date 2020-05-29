@@ -5,6 +5,7 @@ use structure::matrix::Matrix;
 use util::non_macro::zeros;
 use util::useful::sgn;
 use statistics::ops::{C, factorial, double_factorial};
+use traits::pointer::Oxide;
 
 const G: f64 = 5f64;
 const N: usize = 7;
@@ -47,11 +48,11 @@ pub fn gamma_approx(z: f64) -> f64 {
 }
 
 /// Lanczos Approximation Coefficient
-pub fn tlg1(g: f64, n: usize) -> Matrix {
-    lanczos_coeff(g, n-1) * g.exp() / (2f64 * std::f64::consts::PI).sqrt()
+pub fn tlg1(g: f64, n: usize) -> Vec<f64> {
+    (lanczos_coeff(g, n-1).ox() * g.exp() / (2f64 * std::f64::consts::PI).sqrt()).red()
 }
 
-fn lanczos_coeff(g: f64, n: usize) -> Matrix {
+fn lanczos_coeff(g: f64, n: usize) -> Vec<f64> {
     let m = dr_gen(n) * b_gen(n) * (c_gen(n) * dc_gen(n));
     let f = f_gen(g, n);
     m * f

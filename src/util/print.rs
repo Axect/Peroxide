@@ -119,7 +119,7 @@ impl Printable for Vec<String> {
     }
 }
 
-impl Printable for Vector {
+impl Printable for Vec<f64> {
     fn print(&self) {
         let mut result = String::new();
         result.push_str("[");

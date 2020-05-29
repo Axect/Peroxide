@@ -1,3 +1,5 @@
+use std::convert::Into;
+
 /// Functional Programming tools for Vector
 pub trait FPVector {
     type Scalar;
@@ -8,7 +10,7 @@ pub trait FPVector {
     fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
     where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-        T: convert::Into<Self::Scalar>;
+        T: Into<Self::Scalar>;
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
     where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;

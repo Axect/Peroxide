@@ -105,11 +105,11 @@
 //! ```
 
 use structure::matrix::*;
-use structure::vector::*;
 #[cfg(feature = "dataframe")]
 use structure::dataframe::*;
 use order_stat::{kth_by};
 use self::QType::*;
+use traits::fp::FPVector;
 
 /// Statistics Trait
 ///
@@ -125,8 +125,8 @@ pub trait Statistics {
     fn cor(&self) -> Self::Array;
 }
 
-impl Statistics for Vector {
-    type Array = Vector;
+impl Statistics for Vec<f64> {
+    type Array = Vec<f64>;
     type Value = f64;
 
     /// Mean
@@ -181,17 +181,17 @@ impl Statistics for Vector {
         self.var().sqrt()
     }
 
-    fn cov(&self) -> Vector {
+    fn cov(&self) -> Vec<f64> {
         unimplemented!()
     }
-    fn cor(&self) -> Vector {
+    fn cor(&self) -> Vec<f64> {
         unimplemented!()
     }
 }
 
 impl Statistics for Matrix {
     type Array = Matrix;
-    type Value = Vector;
+    type Value = Vec<f64>;
 
     /// Column Mean
     ///
@@ -203,8 +203,8 @@ impl Statistics for Matrix {
     /// let m = matrix(c!(1,3,3,1), 2, 2, Col);
     /// assert_eq!(m.mean(), c!(2,2));
     /// ```
-    fn mean(&self) -> Vector {
-        let mut container: Vector = Vec::new();
+    fn mean(&self) -> Vec<f64> {
+        let mut container: Vec<f64> = Vec::new();
         let c = self.col;
 
         for i in 0..c {
@@ -223,8 +223,8 @@ impl Statistics for Matrix {
     /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
     /// assert!(nearly_eq(m.var()[0], 1));
     /// ```
-    fn var(&self) -> Vector {
-        let mut container: Vector = Vec::new();
+    fn var(&self) -> Vec<f64> {
+        let mut container: Vec<f64> = Vec::new();
         let c = self.col;
 
         for i in 0..c {
@@ -243,8 +243,8 @@ impl Statistics for Matrix {
     /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
     /// assert!(nearly_eq(m.sd()[0], 1));
     /// ```
-    fn sd(&self) -> Vector {
-        let mut container: Vector = Vec::new();
+    fn sd(&self) -> Vec<f64> {
+        let mut container: Vec<f64> = Vec::new();
         let c = self.col;
 
         for i in 0..c {
@@ -347,7 +347,7 @@ impl Statistics for DataFrame {
 /// let v2 = c!(3,2,1);
 /// assert!(nearly_eq(cov(&v1, &v2), -1f64));
 /// ```
-pub fn cov(v1: &Vector, v2: &Vector) -> f64 {
+pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
     let mut ss = 0f64;
     let mut sx = 0f64;
     let mut sy = 0f64;
@@ -374,7 +374,7 @@ pub fn cov(v1: &Vector, v2: &Vector) -> f64 {
 /// let b = c!(3,2,1);
 /// assert!(nearly_eq(cor(&a, &b),-1));
 /// ```
-pub fn cor(v1: &Vector, v2: &Vector) -> f64 {
+pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
     cov(v1, v2) / (v1.sd() * v2.sd())
 }
 
@@ -430,7 +430,7 @@ pub enum QType {
     Type9,
 }
 
-impl OrderedStat for Vector {
+impl OrderedStat for Vec<f64> {
     type Array = Self;
     type Value = f64;
 

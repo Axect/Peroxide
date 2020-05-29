@@ -4,7 +4,7 @@
 
 use std::ops::Mul;
 use ::{Matrix, zeros};
-use ::{LinearAlgebra, Norm};
+use ::{LinearAlgebra};
 use ::{PQLU, LinearOps};
 use QR;
 
@@ -134,10 +134,6 @@ impl LinearOps for SPMatrix {
 ///
 /// **Caution** : In every ops in this trait, there is converting process to dense matrix
 impl LinearAlgebra for SPMatrix {
-    fn norm(&self, norm: Norm) -> f64 {
-        self.to_dense().norm(norm)
-    }
-
     fn lu(&self) -> Option<PQLU> {
         self.to_dense().lu()
     }
