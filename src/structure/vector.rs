@@ -290,40 +290,21 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{daxpy, ddot, dnrm2, dscal, idamax, dasum};
+use blas::{daxpy, ddot, dnrm2, idamax, dasum};
 
 #[cfg(feature = "O3")]
 extern crate packed_simd;
 #[cfg(feature = "O3")]
 use self::packed_simd::{f64x8, f64x4};
 
-use operation::extra_ops::Real;
 use std::cmp::min;
 use std::convert;
 use std::f64::MIN;
+use operation::extra_ops::Real;
+use algorithm::fp::FPVector;
+use algorithm::general::Algorithm;
 
 pub type Vector = Vec<f64>;
-
-/// Functional Programming tools for Vector
-pub trait FPVector {
-    type Scalar;
-
-    fn fmap<F>(&self, f: F) -> Self
-    where
-        F: Fn(Self::Scalar) -> Self::Scalar;
-    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
-    where
-        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-        T: convert::Into<Self::Scalar>;
-    fn zip_with<F>(&self, f: F, other: &Self) -> Self
-    where
-        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;
-    fn filter<F>(&self, f: F) -> Self
-    where
-        F: Fn(Self::Scalar) -> bool;
-    fn take(&self, n: usize) -> Self;
-    fn skip(&self, n: usize) -> Self;
-}
 
 impl FPVector for Vector {
     type Scalar = f64;
@@ -434,6 +415,7 @@ impl FPVector for Vector {
     }
 }
 
+/// Explicit version of `map`
 pub fn map<F, T>(f: F, xs: &Vec<T>) -> Vec<T>
 where
     F: Fn(T) -> T,
@@ -447,6 +429,7 @@ where
     result
 }
 
+/// Explicit version of `reduce`
 pub fn reduce<F, T>(f: F, init: T, xs: &Vec<T>) -> T
 where
     F: Fn(T, T) -> T,
@@ -459,6 +442,7 @@ where
     s
 }
 
+/// Explicit version of `zip_with`
 pub fn zip_with<F, T>(f: F, xs: &Vec<T>, ys: &Vec<T>) -> Vec<T>
 where
     F: Fn(T, T) -> T,
@@ -470,13 +454,6 @@ where
         result[i] = f(xs[i], ys[i]);
     }
     result
-}
-
-/// Some algorithms for Vector
-pub trait Algorithm {
-    fn rank(&self) -> Vec<usize>;
-    fn sign(&self) -> f64;
-    fn arg_max(&self) -> usize;
 }
 
 impl Algorithm for Vector {

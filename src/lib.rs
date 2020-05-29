@@ -162,6 +162,7 @@ pub mod operation;
 pub mod redox;
 pub mod special;
 pub mod util;
+pub mod algorithm;
 
 #[allow(unused_imports)]
 pub use macros::{julia_macro::*, matlab_macro::*, r_macro::*};
