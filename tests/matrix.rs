@@ -1,5 +1,6 @@
+#[macro_use]
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 #[test]
 fn test_seq() {
@@ -62,7 +63,7 @@ fn test_print() {
 #[test]
 fn test_row_map() {
     let m = ml_matrix("1 2;3 4");
-    let n = m.row_map(|v| v.normalize());
+    let n = m.row_map(|v| v.normalize(Norm::L2));
     let o = matrix(
         vec![
             1f64 / 5f64.sqrt(),
@@ -80,7 +81,7 @@ fn test_row_map() {
 #[test]
 fn test_col_map() {
     let m = ml_matrix("1 3;2 4");
-    let n = m.col_map(|v| v.normalize());
+    let n = m.col_map(|v| v.normalize(Norm::L2));
     let o = matrix(
         vec![
             1f64 / 5f64.sqrt(),

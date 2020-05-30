@@ -43,7 +43,7 @@ For example,
 
 ```rust
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     // MATLAB like matrix constructor

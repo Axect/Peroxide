@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let normal = Normal(0f64, 0.1f64);

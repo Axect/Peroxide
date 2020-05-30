@@ -1,17 +1,19 @@
-use operation::extra_ops::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
-use structure::matrix::*;
+use crate::structure::matrix::*;
 #[allow(unused_imports)]
-use structure::vector::*;
-use util::useful::*;
+use crate::structure::vector::*;
+use crate::util::useful::*;
 
 use std::cmp::{max, min};
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use traits::fp::FPVector;
+use crate::traits::{
+    fp::FPVector,
+    num::PowOps,
+};
 
 // =============================================================================
 // Polynomial Structure
@@ -28,11 +30,14 @@ pub struct Polynomial {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = poly(c!(1,3,2));
-/// a.print(); //x^2 + 3x + 2
+/// fn main() {
+///     let a = poly(c!(1,3,2));
+///     a.print(); //x^2 + 3x + 2
+/// }
 /// ```
 impl fmt::Display for Polynomial {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -160,18 +165,21 @@ impl Polynomial {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = poly(c!(1,3,2));
-    /// assert_eq!(a.eval(1), 6_f64);
+    /// fn main() {
+    ///     let a = poly(c!(1,3,2));
+    ///     assert_eq!(a.eval(1), 6_f64);
     ///
-    /// let b = poly(c!(1, 1, -2, -2));
-    /// let x = 2_f64.sqrt();
-    /// let horner_evaluation = b.eval(x);
-    /// let naive_evaluation = x.powf(3.0) + x.powf(2.0) - 2.0*x - 2.0;
-    /// assert_eq!(horner_evaluation, 0_f64);
-    /// assert_ne!(naive_evaluation, horner_evaluation);
+    ///     let b = poly(c!(1, 1, -2, -2));
+    ///     let x = 2_f64.sqrt();
+    ///     let horner_evaluation = b.eval(x);
+    ///     let naive_evaluation = x.powf(3.0) + x.powf(2.0) - 2.0*x - 2.0;
+    ///     assert_eq!(horner_evaluation, 0_f64);
+    ///     assert_ne!(naive_evaluation, horner_evaluation);
+    /// }
     /// ```
     pub fn eval<T>(&self, x: T) -> f64
     where

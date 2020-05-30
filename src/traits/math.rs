@@ -36,6 +36,7 @@ pub enum Norm {
 pub trait Normed: Vector {
     type Scalar;
     fn norm(&self, kind: Norm) -> Self::Scalar;
+    fn normalize(&self, kind: Norm) -> Self where Self: Sized;
 }
 
 /// Inner product Vector
@@ -44,6 +45,36 @@ pub trait InnerProduct: Normed {
 }
 
 /// Linear operation for Vector
-pub trait LinearOp<T: Vector> {
-    fn apply(&self, rhs: &T) -> T;
+pub trait LinearOp<T: Vector, S: Vector> {
+    fn apply(&self, rhs: &T) -> S;
+}
+
+// =============================================================================
+// Implementation for primitive types
+// =============================================================================
+
+impl Vector for f64 {
+    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self + rhs
+    }
+
+    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self - rhs
+    }
+
+    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
+        self * rhs.into()
+    }
+}
+
+impl Normed for f64 {
+    type Scalar = f64;
+    fn norm(&self, _kind: Norm) -> Self::Scalar {
+        self.abs()
+    }
+    
+    fn normalize(&self, _kind: Norm) -> Self
+    where Self: Sized {
+        self / self.abs()
+    }
 }

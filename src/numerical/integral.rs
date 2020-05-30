@@ -1,10 +1,9 @@
-use structure::polynomial::{
+use crate::structure::polynomial::{
     lagrange_polynomial,
     Calculus,
 };
-use traits::fp::FPVector;
-use util::non_macro::seq;
-pub use Integral::{GaussLegendre, NewtonCotes};
+use crate::traits::fp::FPVector;
+use crate::util::non_macro::seq;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Integral {

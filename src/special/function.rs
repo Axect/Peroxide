@@ -1,5 +1,5 @@
 use std::f64::consts::PI;
-use special::lanczos::{gamma_approx, ln_gamma_approx};
+use crate::special::lanczos::{gamma_approx, ln_gamma_approx};
 
 /// Gaussian function
 ///

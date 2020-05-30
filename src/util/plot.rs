@@ -6,8 +6,9 @@
 //! Let's see next ordinary code file.
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
@@ -35,8 +36,9 @@
 //! Now, let's modify this code to below. Then it works surprisingly!
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));

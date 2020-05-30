@@ -12,7 +12,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let x = hyper_dual(1, 1, 0); // x at x = 1
@@ -26,7 +26,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let x = hyper_dual(1,1,0);
@@ -36,13 +36,15 @@
 //!     }
 //!     ```
 
-use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use structure::dual::dual;
+use crate::structure::dual::{dual, Dual};
 #[allow(unused_imports)]
-use structure::vector::*;
+use crate::structure::vector::*;
+use crate::traits::{
+    num::{ExpLogOps, PowOps, TrigOps, Real}
+};
 
 /// Hyper Dual number
 ///
@@ -424,5 +426,34 @@ impl PowOps for HyperDual {
 
     fn sqrt(&self) -> Self {
         self.pow(HyperDual::new(0.5f64, 0f64, 0f64))
+    }
+}
+
+// =============================================================================
+// Real trait for HyperDual
+// =============================================================================
+impl Real for HyperDual {
+    fn to_f64(&self) -> f64 {
+        self.value()
+    }
+
+    fn from_f64(f: f64) -> Self {
+        HyperDual::new(f, 0f64, 0f64)
+    }
+
+    fn to_dual(&self) -> Dual {
+        Dual::new(self.value(), self.slope())
+    }
+
+    fn from_dual(d: Dual) -> Self {
+        HyperDual::new(d.value(), d.slope(), 0f64)
+    }
+
+    fn to_hyper_dual(&self) -> HyperDual {
+        *self
+    }
+
+    fn from_hyper_dual(h: HyperDual) -> Self {
+        h
     }
 }

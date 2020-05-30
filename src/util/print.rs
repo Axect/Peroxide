@@ -1,25 +1,21 @@
 //! Easy to print any structures
 
-use operation::number::Number;
 use rand::distributions::uniform::SampleUniform;
-#[allow(unused_imports)]
-use statistics::dist::*;
+use crate::statistics::dist::*;
 use std::fmt::Debug;
+use crate::structure::{
+    matrix::Matrix,
+    polynomial::Polynomial,
+    multinomial::Multinomial,
+    dual::{Dual, Dualist},
+    hyper_dual::HyperDual,
+};
+use crate::traits::{
+    num::Number,
+};
 #[allow(unused_imports)]
 #[cfg(feature = "dataframe")]
-use structure::dataframe::*;
-#[allow(unused_imports)]
-use structure::dual::*;
-#[allow(unused_imports)]
-use structure::hyper_dual::*;
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::multinomial::*;
-#[allow(unused_imports)]
-use structure::polynomial::*;
-#[allow(unused_imports)]
-use structure::vector::*;
+use crate::structure::dataframe::*;
 
 pub trait Printable {
     fn print(&self);

@@ -26,8 +26,9 @@
 //! * Caution: For `Vec<f64>`, `cov` & `cor` are unimplemented (those for `Matrix`)
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4,5);
@@ -40,8 +41,9 @@
 //! * But there are other functions to calculate `cov` & `cor`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let v1 = c!(1,2,3);
@@ -58,8 +60,9 @@
 //! * `cov` means covariance matrix & `cor` means also correlation coefficient matrix
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
@@ -86,8 +89,9 @@
 //! * `cov` means covariance matrix.
 //! 
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //! 
 //! fn main() {
 //!     #[cfg(feature = "dataframe")]
@@ -104,12 +108,12 @@
 //! }
 //! ```
 
-use structure::matrix::*;
+use crate::structure::matrix::*;
 #[cfg(feature = "dataframe")]
-use structure::dataframe::*;
+use crate::structure::dataframe::*;
 use order_stat::{kth_by};
 use self::QType::*;
-use traits::fp::FPVector;
+use crate::traits::fp::FPVector;
 
 /// Statistics Trait
 ///
@@ -133,11 +137,14 @@ impl Statistics for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// assert_eq!(a.mean(), 3.0);
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.mean(), 3.0);
+    /// }
     /// ```
     fn mean(&self) -> f64 {
         self.reduce(0f64, |x, y| x + y) / (self.len() as f64)
@@ -147,11 +154,14 @@ impl Statistics for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// assert_eq!(a.var(), 2.5);
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.var(), 2.5);
+    /// }
     /// ```
     fn var(&self) -> f64 {
         let mut ss = 0f64;
@@ -171,11 +181,14 @@ impl Statistics for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3);
-    /// assert!(nearly_eq(a.sd(), 1f64)); // Floating Number Error
+    /// fn main() {
+    ///     let a = c!(1,2,3);
+    ///     assert!(nearly_eq(a.sd(), 1f64)); // Floating Number Error
+    /// }
     /// ```
     fn sd(&self) -> f64 {
         self.var().sqrt()
@@ -197,11 +210,14 @@ impl Statistics for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let m = matrix(c!(1,3,3,1), 2, 2, Col);
-    /// assert_eq!(m.mean(), c!(2,2));
+    /// fn main() {
+    ///     let m = matrix(c!(1,3,3,1), 2, 2, Col);
+    ///     assert_eq!(m.mean(), c!(2,2));
+    /// }
     /// ```
     fn mean(&self) -> Vec<f64> {
         let mut container: Vec<f64> = Vec::new();
@@ -217,11 +233,14 @@ impl Statistics for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// assert!(nearly_eq(m.var()[0], 1));
+    /// fn main() {
+    ///     let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     assert!(nearly_eq(m.var()[0], 1));
+    /// }
     /// ```
     fn var(&self) -> Vec<f64> {
         let mut container: Vec<f64> = Vec::new();
@@ -237,11 +256,14 @@ impl Statistics for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// assert!(nearly_eq(m.sd()[0], 1));
+    /// fn main() {
+    ///     let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     assert!(nearly_eq(m.sd()[0], 1));
+    /// }
     /// ```
     fn sd(&self) -> Vec<f64> {
         let mut container: Vec<f64> = Vec::new();
@@ -257,15 +279,18 @@ impl Statistics for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// println!("{}", m.cov());
+    /// fn main() {
+    ///     let m = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     println!("{}", m.cov());
     ///
-    /// //         c[0]    c[1]
-    /// // r[0]  1.0000 -1.0000
-    /// // r[1] -1.0000  1.0000
+    ///     //         c[0]    c[1]
+    ///     // r[0]  1.0000 -1.0000
+    ///     // r[1] -1.0000  1.0000
+    /// }
     /// ```
     fn cov(&self) -> Self {
         let c = self.col;
@@ -328,7 +353,8 @@ impl Statistics for DataFrame {
     }
 
     fn cov(&self) -> Self::Array {
-        self.to_matrix().cov()
+        let m: Matrix = self.into();
+        m.cov()
     }
 
     fn cor(&self) -> Self::Array {
@@ -340,12 +366,15 @@ impl Statistics for DataFrame {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let v1 = c!(1,2,3);
-/// let v2 = c!(3,2,1);
-/// assert!(nearly_eq(cov(&v1, &v2), -1f64));
+/// fn main() {
+///     let v1 = c!(1,2,3);
+///     let v2 = c!(3,2,1);
+///     assert!(nearly_eq(cov(&v1, &v2), -1f64));
+/// }
 /// ```
 pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
     let mut ss = 0f64;
@@ -367,12 +396,15 @@ pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = c!(1,2,3);
-/// let b = c!(3,2,1);
-/// assert!(nearly_eq(cor(&a, &b),-1));
+/// fn main() {
+///     let a = c!(1,2,3);
+///     let b = c!(3,2,1);
+///     assert!(nearly_eq(cor(&a, &b),-1));
+/// }
 /// ```
 pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
     cov(v1, v2) / (v1.sd() * v2.sd())
@@ -382,16 +414,19 @@ pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = c!(1,2,3,4,5).to_matrix();
-/// let b = &a + &Normal(0,1).sample(5).to_matrix();
-/// lm(&a, &b).print();
+/// fn main() {
+///     let a: Matrix = c!(1,2,3,4,5).into();
+///     let b: Matrix = &a + &Normal(0,1).sample(5).into();
+///     lm(&a, &b).print();
 ///
-/// //        c[0]
-/// // r[0] 0.7219
-/// // r[1] 0.8058
+///     //        c[0]
+///     // r[0] 0.7219
+///     // r[1] 0.8058
+/// }
 /// ```
 pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     let mut ones = vec![1f64; input.row * input.col];

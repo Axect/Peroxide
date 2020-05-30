@@ -8,7 +8,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = vec![2f64.sqrt()];
@@ -30,8 +30,9 @@
 //!
 //!     ```rust
 //!     // Rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -53,7 +54,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = seq(1, 4, 1);
@@ -63,63 +64,8 @@
 //!     ```
 //!
 //! ## Vec<f64> Operation
-//!
-//! * There are some vector-wise operations
-//!     * `add(&self, other: Vec<f64>) -> Vec<f64>`
-//!     * `sub(&self, other: Vec<f64>) -> Vec<f64>`
-//!     * `mul(&self, other: Vec<f64>) -> Vec<f64>`
-//!     * `div(&self, other: Vec<f64>) -> Vec<f64>`
-//!     * `dot(&self, other: Vec<f64>) -> f64`
-//!     * `norm(&self) -> f64`
-//!     * `norm_l1(&self) -> f64`
-//!     * `norm_l2(&self) -> f64`
-//!     * `norm_linf(&self) -> f64`
-//!     * `norm_lp(&self, p: f64) -> f64`
-//!     * `sum(&self) -> f64`
-//!     * `s_add(&self, scalar: f64) -> Self`
-//!     * `s_sub(&self, scalar: f64) -> Self`
-//!     * `s_mul(&self, scalar: f64) -> Self`
-//!     * `s_div(&self, scalar: f64) -> Self`
-//!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::*;
-//!
-//!     fn main() {
-//!         let a = c!(1,2,3,4);
-//!         let b = c!(4,3,2,1);
-//!
-//!         a.add(&b).print();
-//!         a.sub(&b).print();
-//!         a.mul(&b).print();
-//!         a.div(&b).print();
-//!         a.dot(&b).print();
-//!         a.norm().print();
-//!         a.sum().print();
-//!
-//!         // [5, 5, 5, 5]
-//!         // [-3, -1, 1, 3]
-//!         // [4, 6, 6, 4]
-//!         // [0.25, 0.6667, 1.5, 4]
-//!         // 20
-//!         // 5.477225575051661 // sqrt(30)
-//!         // 10
-//!
-//!         let scalar = 2.0;
-//!
-//!         a.s_add(scalar).print();
-//!         a.s_sub(scalar).print();
-//!         a.s_mul(scalar).print();
-//!         a.s_div(scalar).print();
-//!
-//!         // [3, 4, 5, 6]
-//!         // [-1, 0, 1, 2]
-//!         // [2, 4, 6, 8]
-//!         // [0.5, 1, 1.5, 3]
-//!     }
-//!     ```
-//!
-//! * If you want to find more flexible operations, see [Redox](../../redox/index.html)
+//! 
+//! TBD
 //!
 //! ## Concatenation
 //!
@@ -129,8 +75,9 @@
 //! * `concat(Vec<T>, Vec<T>) -> Vec<T>`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -147,20 +94,21 @@
 //!
 //! There are two ways to convert Vec<f64> to matrix.
 //!
-//! * `to_matrix(&self) -> Matrix` : Vec<f64> to column matrix
-//! * `transpose(&self) -> Matrix` : Vec<f64> to row matrix
+//! * `into(self) -> Matrix` : Vec<f64> to column matrix
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
+//!         let a_col: Matrix = a.into();
 //!         let m_col = matrix(c!(1,2,3,4), 4, 1, Col); // (4,1) Matrix
-//!         assert_eq!(a.to_matrix(), m_col);
+//!         assert_eq!(a_col, m_col);
 //!
 //!         let m_row = matrix(c!(1,2,3,4), 1, 4, Row); // (1,4) Matrix
-//!         assert_eq!(a.transpose(), m_row);
+//!         assert_eq!(a_col.t(), m_row);
 //!     }
 //!     ```
 //!
@@ -176,8 +124,9 @@
 //! * But different to original `map` - Only `f64 -> f64` allowed.
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -201,8 +150,9 @@
 //! * `reduce` is syntactic sugar for `fold`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -223,8 +173,9 @@
 //! * `zip_with` is composed of `zip` & `map`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -249,8 +200,9 @@
 //! * `filter` is just syntactic sugar for `filter`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -264,8 +216,9 @@
 //! * `take` is syntactic sugar for `take`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -277,8 +230,9 @@
 //! * `skip` is syntactic sugar for `skip`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = c!(1,2,3,4);
@@ -300,13 +254,13 @@ use self::packed_simd::{f64x8, f64x4};
 use std::cmp::min;
 use std::convert;
 use std::f64::MIN;
-use operation::extra_ops::Real;
-use traits::{
+use crate::traits::{
     fp::FPVector,
     mutable::MutFP,
     general::Algorithm,
-    math::{Vector, Normed, Norm, InnerProduct},
-    pointer::{Redox, Oxide}
+    math::{Vector, Normed, Norm, InnerProduct, LinearOp},
+    pointer::{Redox, Oxide},
+    num::Real,
 };
 
 impl FPVector for Vec<f64> {
@@ -316,35 +270,43 @@ impl FPVector for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// assert_eq!(a.fmap(|x| x*2f64), seq!(2,10,2));
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.fmap(|x| x*2f64), seq!(2,10,2));
+    /// }
     /// ```
     fn fmap<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(f64) -> f64,
     {
-        self.clone().into_iter().map(|x| f(x)).collect::<Vec<f64>>()
+        let mut v = self.clone();
+        v.iter_mut().for_each(|x| *x = f(*x));
+        v
     }
 
     /// reduce for Vec<f64>
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = seq!(1,100,1);
-    /// assert_eq!(a.reduce(0, |x,y| x + y), 5050f64);
+    /// fn main() {
+    ///     let a = seq!(1,100,1);
+    ///     assert_eq!(a.reduce(0, |x,y| x + y), 5050f64);
+    /// }
     /// ```
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
         T: convert::Into<f64>,
     {
-        self.clone().into_iter().fold(init.into(), |x, y| f(x, y))
+        self.iter().fold(init.into(), |x, &y| f(x, y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
@@ -361,12 +323,15 @@ impl FPVector for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// let b = a.filter(|x| x > 3.);
-    /// assert_eq!(b, c!(4,5));
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.filter(|x| x > 3.);
+    ///     assert_eq!(b, c!(4,5));
+    /// }
     /// ```
     fn filter<F>(&self, f: F) -> Vec<f64>
     where
@@ -382,12 +347,15 @@ impl FPVector for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// let b = a.take(3);
-    /// assert_eq!(b, c!(1,2,3));
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.take(3);
+    ///     assert_eq!(b, c!(1,2,3));
+    /// }
     /// ```
     fn take(&self, n: usize) -> Vec<f64> {
         let mut v = vec![0f64; n];
@@ -401,12 +369,15 @@ impl FPVector for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,2,3,4,5);
-    /// let b = a.skip(3);
-    /// assert_eq!(b, c!(4,5));
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.skip(3);
+    ///     assert_eq!(b, c!(4,5));
+    /// }
     /// ```
     fn skip(&self, n: usize) -> Vec<f64> {
         let l = self.len();
@@ -415,6 +386,22 @@ impl FPVector for Vec<f64> {
             v[i] = self[j];
         }
         return v;
+    }
+
+    fn sum(&self) -> f64 {
+        let mut s = 0f64;
+        for elem in self.iter() {
+            s += elem;
+        }
+        s
+    }
+
+    fn prod(&self) -> f64 {
+        let mut p = 1f64;
+        for elem in self.iter() {
+            p *= elem;
+        }
+        p
     }
 }
 
@@ -486,11 +473,14 @@ impl Algorithm for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let v = c!(7, 5, 9, 2, 8);
-    /// assert_eq!(v.rank(), vec![2,3,0,4,1]);
+    /// fn main() {
+    ///     let v = c!(7, 5, 9, 2, 8);
+    ///     assert_eq!(v.rank(), vec![2,3,0,4,1]);
+    /// }
     /// ```
     fn rank(&self) -> Vec<usize> {
         let l = self.len();
@@ -512,14 +502,17 @@ impl Algorithm for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = c!(1,0,2);
-    /// let b = c!(1,2,0);
-    /// let c = c!(0,1,2);
+    /// fn main() {
+    ///     let a = c!(1,0,2);
+    ///     let b = c!(1,2,0);
+    ///     let c = c!(0,1,2);
     ///
-    /// assert_eq!((a.sign(), b.sign(), c.sign()), (-1f64, 1f64, 1f64));
+    ///     assert_eq!((a.sign(), b.sign(), c.sign()), (-1f64, 1f64, 1f64));
+    /// }
     /// ```
     fn sign(&self) -> f64 {
         let l = self.len();
@@ -543,14 +536,17 @@ impl Algorithm for Vec<f64> {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let v = c!(1,3,2,4,3,7);
-    /// assert_eq!(v.arg_max(),5);
+    /// fn main() {
+    ///     let v = c!(1,3,2,4,3,7);
+    ///     assert_eq!(v.arg_max(),5);
     ///
-    /// let v2 = c!(1,3,2,5,6,6);
-    /// assert_eq!(v2.arg_max(),4);
+    ///     let v2 = c!(1,3,2,5,6,6);
+    ///     assert_eq!(v2.arg_max(),4);
+    /// }
     /// ```
     fn arg_max(&self) -> usize {
         match () {
@@ -623,6 +619,10 @@ impl Normed for Vec<f64> {
             }
         }
     }
+    fn normalize(&self, kind: Norm) -> Self where Self: Sized { 
+        let denom = self.norm(kind);
+        self.fmap(|x| x / denom)
+    }
 }
 
 impl InnerProduct for Vec<f64> {
@@ -633,12 +633,18 @@ impl InnerProduct for Vec<f64> {
                 let n_i32 = self.len() as i32;
                 let res: f64;
                 unsafe {
-                    res = ddot(n_i32, self, 1, other, 1);
+                    res = ddot(n_i32, self, 1, rhs, 1);
                 }
                 res
             }
-            _ => zip_with(|x, y| x * y, &self, rhs).reduce(0, |x, y| x + y),
+            _ => self.iter().zip(rhs.iter()).fold(0f64, |x, (y1, y2)| x + y1 * y2)
         }
+    }
+}
+
+impl LinearOp<Vec<f64>, f64> for Vec<f64> {
+    fn apply(&self, rhs: &Vec<f64>) -> f64 {
+        self.dot(rhs)
     }
 }
 

@@ -12,7 +12,7 @@ use std::f64::MAX;
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert!(nearly_eq(1.0/3.0 * 3.0, 1));
 /// ```

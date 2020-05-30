@@ -1,8 +1,8 @@
+#[macro_use]
 extern crate peroxide;
 extern crate float_cmp;
-#[allow(unused_imports)]
-use peroxide::*;
-use peroxide::QType::{Type2, Type1};
+
+use peroxide::fuga::*;
 
 use float_cmp::approx_eq;
 

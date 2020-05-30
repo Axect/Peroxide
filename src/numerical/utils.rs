@@ -1,8 +1,7 @@
-use operation::number::{Number, NumberVector};
-use structure::dual::*;
-use structure::matrix::*;
-use util::non_macro::{cat, zeros};
-use Real;
+use crate::structure::dual::*;
+use crate::structure::matrix::*;
+use crate::util::non_macro::{cat, zeros};
+use crate::traits::num::{Real, Number, NumberVector};
 
 /// Jacobian Matrix
 ///
@@ -14,16 +13,19 @@ use Real;
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
+/// 
+/// fn main() {
+///     let x = c!(1, 1);
+///     let j = jacobian(f, &x);
+///     j.print();
 ///
-/// let x = c!(1, 1);
-/// let j = jacobian(f, &x);
-/// j.print();
-///
-/// //      c[0] c[1]
-/// // r[0]    1    1
-/// // r[1]   -1    2
+///     //      c[0] c[1]
+///     // r[0]    1    1
+///     // r[1]   -1    2
+/// }
 ///
 /// fn f(xs: Vec<Number>) -> Vec<Number> {
 ///     let x = xs[0];
@@ -54,16 +56,19 @@ where
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
+/// 
+/// fn main() {
+///     let x = c!(1, 1);
+///     let j = jacobian_real(Box::new(f), &x);
+///     j.print();
 ///
-/// let x = c!(1, 1);
-/// let j = jacobian_real(Box::new(f), &x);
-/// j.print();
-///
-/// //      c[0] c[1]
-/// // r[0]    1    1
-/// // r[1]   -1    2
+///     //      c[0] c[1]
+///     // r[0]    1    1
+///     // r[1]   -1    2
+/// }
 ///
 /// fn f(xs: &Vec<Dual>) -> Vec<Dual> {
 ///     let x = xs[0];
@@ -145,5 +150,5 @@ pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Ve
     for i in (0..n - 1).rev() {
         x[i] = (y[i] - c[i] * x[i + 1]) / b[i];
     }
-    x.to_matrix()
+    x.into()
 }

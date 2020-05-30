@@ -53,7 +53,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let b = Bernoulli(0.1); // Bern(x | 0.1)
@@ -76,7 +76,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         // Uniform(start, end)
@@ -104,7 +104,7 @@
 //!     * <del>Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.</del>
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         // Normal(mean, std)
@@ -128,9 +128,9 @@ use self::rand::prelude::*;
 use self::rand_distr::Distribution;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
-use special::function::*;
+use crate::special::function::*;
 //use statistics::rand::ziggurat;
-use statistics::stat::Statistics;
+use crate::statistics::stat::Statistics;
 use std::convert::Into;
 use std::f64::consts::E;
 

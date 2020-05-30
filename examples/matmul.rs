@@ -1,5 +1,5 @@
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let a = rand(1000, 1000);

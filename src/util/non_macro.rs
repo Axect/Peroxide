@@ -2,13 +2,10 @@
 
 extern crate rand;
 use self::rand::prelude::*;
-
-#[allow(unused_imports)]
-use statistics::stat::*;
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::vector::*;
+use crate::structure::{
+    matrix::{Matrix, matrix, Shape},
+    matrix::Shape::{Row, Col},
+};
 
 use std::convert::Into;
 
@@ -17,7 +14,7 @@ use std::convert::Into;
 /// # Example
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
@@ -49,7 +46,7 @@ where
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = zeros(2, 2);
 /// assert_eq!(a, matrix(vec![0f64;4], 2, 2, Row));
@@ -97,7 +94,7 @@ pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = eye(2);
 /// assert_eq!(a, MATLAB::new("1 0;0 1"));
@@ -123,13 +120,16 @@ pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
-///
-/// let a = matrix!(1;4;1, 2, 2, Col);
-/// let b = matrix!(5;8;1, 2, 2, Col);
-/// let c = matrix!(1;8;1, 2, 4, Col);
-/// assert_eq!(cbind(a,b), c);
+/// use peroxide::fuga::*;
+/// 
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Col);
+///     let b = matrix!(5;8;1, 2, 2, Col);
+///     let c = matrix!(1;8;1, 2, 4, Col);
+///     assert_eq!(cbind(a,b), c);
+/// }
 /// ```
 pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
     let mut temp = m1;
@@ -156,13 +156,16 @@ pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// let b = matrix!(5;8;1, 2, 2, Row);
-/// let c = matrix!(1;8;1, 4, 2, Row);
-/// assert_eq!(rbind(a,b), c);
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     let b = matrix!(5;8;1, 2, 2, Row);
+///     let c = matrix!(1;8;1, 4, 2, Row);
+///     assert_eq!(rbind(a,b), c);
+/// }
 /// ```
 pub fn rbind(m1: Matrix, m2: Matrix) -> Matrix {
     let mut temp = m1;

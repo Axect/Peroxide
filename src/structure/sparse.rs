@@ -3,10 +3,13 @@
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
 use std::ops::Mul;
-use ::{Matrix, zeros};
-use ::{LinearAlgebra};
-use ::{PQLU, LinearOps};
-use QR;
+use crate::structure::matrix::{
+    Matrix, LinearAlgebra, PQLU, QR
+};
+use crate::util::non_macro::zeros;
+use crate::traits::{
+    math::{LinearOp, Vector, Normed, InnerProduct, Norm}
+};
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -80,20 +83,8 @@ impl SPMatrix {
     pub fn data(&self) -> &Vec<f64> {
         &self.data
     }
-}
 
-impl LinearOps for SPMatrix {
-    type Operator = Self;
-
-    fn from_matrix(m: Matrix) -> Self {
-        Self::from_dense(&m)
-    }
-
-    fn to_matrix(&self) -> Matrix {
-        self.to_dense()
-    }
-
-    fn transpose(&self) -> Self {
+    pub fn transpose(&self) -> Self {
         let row = self.row;
         let col = self.col;
         let nnz = self.nnz;
@@ -125,8 +116,23 @@ impl LinearOps for SPMatrix {
         result
     }
 
-    fn t(&self) -> Self {
+    pub fn t(&self) -> Self {
         self.transpose()
+    }
+}
+
+impl LinearOp<Vec<f64>, Vec<f64>> for SPMatrix {
+    fn apply(&self, rhs: &Vec<f64>) -> Vec<f64> {
+        let mut y = vec![0f64; self.row];
+        let col_ptr = self.col_ptr();
+        let row_ics = self.row_ics();
+        let data = self.data();
+        for j in 0 .. self.col {
+            for i in col_ptr[j] .. col_ptr[j+1] {
+                y[row_ics[i]] += data[i] * rhs[j];
+            }
+        }
+        y
     }
 }
 
@@ -165,17 +171,8 @@ impl LinearAlgebra for SPMatrix {
 /// Matrix multiplication with vector
 impl Mul<Vec<f64>> for SPMatrix {
     type Output = Vec<f64>;
-    fn mul(self, other: Vec<f64>) -> Self::Output {
-        let mut y = vec![0f64; self.row];
-        let col_ptr = self.col_ptr();
-        let row_ics = self.row_ics();
-        let data = self.data();
-        for j in 0 .. self.col {
-            for i in col_ptr[j] .. col_ptr[j+1] {
-                y[row_ics[i]] += data[i] * other[j];
-            }
-        }
-        y
+    fn mul(self, rhs: Vec<f64>) -> Self::Output {
+        self.apply(&rhs)
     }
 }
 
@@ -183,15 +180,6 @@ impl Mul<Vec<f64>> for SPMatrix {
 impl<'a, 'b> Mul<&'b Vec<f64>> for &'a SPMatrix {
     type Output = Vec<f64>;
     fn mul(self, rhs: &'b Vec<f64>) -> Self::Output {
-        let mut y = vec![0f64; self.row];
-        let col_ptr = self.col_ptr();
-        let row_ics = self.row_ics();
-        let data = self.data();
-        for j in 0 .. self.col {
-            for i in col_ptr[j] .. col_ptr[j+1] {
-                y[row_ics[i]] += data[i] * rhs[j];
-            }
-        }
-        y
+        self.apply(rhs)
     }
 }

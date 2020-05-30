@@ -1,7 +1,9 @@
-use traits::math::Vector;
+use crate::traits::{
+    math::Vector,
+    fp::FPVector,
+};
 use std::ops::{Add, Deref, Sub, Mul, Div};
-use traits::fp::FPVector;
-use Dual;
+use crate::structure::dual::Dual;
 
 // =============================================================================
 // Redox Structure

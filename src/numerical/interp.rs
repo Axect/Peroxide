@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use structure::polynomial::*;
+use crate::structure::polynomial::*;
 
 use std::convert::Into;
 use std::f64::consts::PI;

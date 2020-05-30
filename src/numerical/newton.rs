@@ -1,9 +1,9 @@
-use numerical::utils::jacobian;
-use operation::number::{Number, NumberVector};
-use structure::matrix::*;
-use traits::{
+use crate::numerical::utils::jacobian;
+use crate::structure::matrix::*;
+use crate::traits::{
     mutable::MutFP,
     math::{Vector, Normed, Norm},
+    num::{Number, NumberVector},
 };
 
 /// Newton-Raphson Method

@@ -14,7 +14,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     // Empty DataFrame
@@ -38,7 +38,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     // With header
@@ -61,8 +61,9 @@
 //! ### Example
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     let mut a = DataFrame::with_header(vec!["x", "y", "z"]);
@@ -95,7 +96,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //! use std::error::Error;
 //! use std::fs;
 //!
@@ -124,7 +125,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //! use std::error::Error;
 //! use std::fs; // To remove data file
 //!
@@ -151,7 +152,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //! use std::fs::File;
 //! use std::error::Error;
 //! use std::io::BufWriter;
@@ -188,8 +189,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::ops::{Index, IndexMut};
 use std::{fmt, fmt::Debug};
-use structure::matrix::{matrix, Matrix, Shape::*};
-use util::useful::tab;
+use crate::structure::matrix::{matrix, Matrix, Shape::*};
+use crate::util::useful::tab;
 use json::JsonValue;
 
 #[derive(Debug, Clone)]
@@ -224,6 +225,18 @@ impl IndexMut<&str> for DataFrame {
             Some(v) => v,
             None => panic!("There are no corresponding value"),
         }
+    }
+}
+
+impl Into<Matrix> for DataFrame {
+    fn into(self) -> Matrix {
+        self.to_matrix()
+    }
+}
+
+impl Into<Matrix> for &DataFrame {
+    fn into(self) -> Matrix {
+        self.to_matrix()
     }
 }
 
