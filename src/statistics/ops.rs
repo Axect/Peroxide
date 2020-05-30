@@ -7,7 +7,7 @@
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert_eq!(factorial(5), 120);
 /// ```
@@ -28,7 +28,7 @@ pub fn factorial(n: usize) -> usize {
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert_eq!(double_factorial(7), 105);
 /// ```
@@ -48,7 +48,7 @@ pub fn double_factorial(n: usize) -> usize {
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert_eq!(P(5,3), 60);
 /// ```
@@ -67,7 +67,7 @@ pub fn P(n: usize, r: usize) -> usize {
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert_eq!(C(10, 9), 10);
 /// ```
@@ -86,7 +86,7 @@ pub fn C(n: usize, r: usize) -> usize {
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert_eq!(H(5,3), C(7,3));
 /// ```

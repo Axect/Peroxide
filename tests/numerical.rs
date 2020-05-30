@@ -1,5 +1,5 @@
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 macro_rules! rnd {
     ( $x:expr ) => {

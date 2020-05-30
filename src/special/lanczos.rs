@@ -1,11 +1,11 @@
 //! Lanczos approximation Coefficient generator
 
 use std::f64::consts::PI;
-use structure::matrix::Matrix;
-use util::non_macro::zeros;
-use util::useful::sgn;
-use statistics::ops::{C, factorial, double_factorial};
-use traits::pointer::Oxide;
+use crate::structure::matrix::Matrix;
+use crate::util::non_macro::zeros;
+use crate::util::useful::sgn;
+use crate::statistics::ops::{C, factorial, double_factorial};
+use crate::traits::pointer::Oxide;
 
 const G: f64 = 5f64;
 const N: usize = 7;

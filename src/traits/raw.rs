@@ -1,4 +1,4 @@
-use {Matrix, Shape};
+use crate::structure::matrix::{Matrix, Shape};
 
 /// Pointer for col or row
 pub trait RawMatrix {
@@ -12,7 +12,7 @@ impl RawMatrix for Matrix {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
     /// let a: Matrix = MATLAB::new("1 2;3 4");
     /// unsafe {

@@ -21,7 +21,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let x = dual(1, 1); // x at x = 1
@@ -41,7 +41,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let x = dual(1,1);
@@ -51,16 +51,17 @@
 //!     }
 //!     ```
 
-use operation::extra_ops::{ExpLogOps, PowOps, TrigOps};
 use std::convert::Into;
 /// Structure for Automatic Differentiation
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use traits::{
+use crate::traits::{
     fp::FPVector,
     math::{Vector, Normed, Norm, InnerProduct},
     pointer::{Redox, Oxide},
+    num::{ExpLogOps, PowOps, TrigOps, Real},
 };
+use crate::structure::hyper_dual::HyperDual;
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
 
@@ -100,7 +101,7 @@ impl Dual {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
     /// let a = Dual::new(2, 1); // y = x at x = 2
     /// a.print();
@@ -514,6 +515,34 @@ impl PowOps for Dual {
 }
 
 // =============================================================================
+// Real trait for Dual
+// =============================================================================
+impl Real for Dual {
+    fn to_f64(&self) -> f64 {
+        self.value()
+    }
+
+    fn from_f64(f: f64) -> Self {
+        Dual::new(f, 0f64)
+    }
+
+    fn to_dual(&self) -> Dual {
+        *self
+    }
+
+    fn from_dual(d: Dual) -> Self {
+        d
+    }
+
+    fn to_hyper_dual(&self) -> HyperDual {
+        HyperDual::new(self.value(), self.slope(), 0f64)
+    }
+
+    fn from_hyper_dual(h: HyperDual) -> Self {
+        Dual::new(h.value(), h.slope())
+    }
+}
+// =============================================================================
 // Dual List
 // =============================================================================
 /// Convert Vector <=> Dual
@@ -614,6 +643,22 @@ impl FPVector for Vec<Dual> {
     fn skip(&self, n: usize) -> Self {
         self.clone().into_iter().skip(n).collect::<Vec<Dual>>()
     }
+
+    fn sum(&self) -> Self::Scalar {
+        let mut s = dual(0f64, 0f64);
+        for x in self {
+            s = s + *x;
+        }
+        s
+    }
+
+    fn prod(&self) -> Self::Scalar {
+        let mut p = dual(1f64, 0f64);
+        for x in self {
+            p = p * *x;
+        }
+        p
+    }
 }
 
 #[allow(unused_variables)]
@@ -630,19 +675,16 @@ impl Vector for Vec<Dual> {
         let scalar = other.into();
         self.fmap(|x| x * scalar)
     }
-
-    // fn sum(&self) -> Self::Scalar {
-    //     let mut s = dual(0f64, 0f64);
-    //     for x in self {
-    //         s = s + *x;
-    //     }
-    //     s
-    // }
 }
 
 impl Normed for Vec<Dual> {
     type Scalar = Dual;
+
     fn norm(&self, _kind: Norm) -> Self::Scalar {
+        unimplemented!()
+    }
+
+    fn normalize(&self, _kind: Norm) -> Self where Self: Sized {
         unimplemented!()
     }
 }

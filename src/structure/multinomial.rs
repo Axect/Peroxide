@@ -1,8 +1,8 @@
 use std::fmt;
 #[allow(unused_imports)]
-use structure::matrix::*;
-use util::useful::*;
-use traits::math::InnerProduct;
+use crate::structure::matrix::*;
+use crate::util::useful::*;
+use crate::traits::math::InnerProduct;
 
 #[derive(Debug, Clone)]
 pub struct Multinomial {

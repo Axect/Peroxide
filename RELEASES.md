@@ -90,7 +90,7 @@
 ## Example
 ```rust
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let a = MATLAB::new("1 2; 2 3");
@@ -647,7 +647,7 @@ fn main() {
 * Now, we can use `std::ops` for `&Matrix`
     ```rust
     extern crate peroxide;
-    use peroxide::*;
+    use peroxide::fuga::*;
 
     fn main() {
         let a = ml_matrix("1 2;3 4");

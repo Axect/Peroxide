@@ -11,7 +11,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::{Real, State, BoundaryCondition};
+//!     use peroxide::fuga::{Real, State, BoundaryCondition};
 //!
 //!     pub trait ODE {
 //!         type Records;
@@ -55,7 +55,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::Real;
+//!     use peroxide::fuga::Real;
 //!
 //!     #[derive(Debug, Clone, Default)]
 //!     pub struct State<T: Real> {
@@ -91,7 +91,7 @@
 //! ```rust
 //! extern crate peroxide;
 //! use std::collections::HashMap;
-//! use peroxide::{State, ExMethod, BoundaryCondition, ODEOptions};
+//! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions};
 //!
 //! #[derive(Clone)]
 //! pub struct ExplicitODE {
@@ -123,7 +123,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     // =========================================
@@ -175,8 +175,9 @@
 //! $$\begin{gathered} \frac{dy}{dx} = \frac{5x^2 - y}{e^{x+y}} \\\ y(0) = 1 \end{gathered}$$
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
@@ -206,19 +207,22 @@ use self::BoundaryCondition::Dirichlet;
 use self::ExMethod::{Euler, RK4};
 use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use self::ImMethod::{BDF1, GL4};
-use operation::extra_ops::Real;
 use std::collections::HashMap;
-use structure::dual::Dual;
-use structure::matrix::{Matrix, FPMatrix, LinearAlgebra};
-use numerical::utils::jacobian_real;
-use util::non_macro::{cat, concat, zeros, eye};
-use util::print::Printable;
-use traits::{
-    mutable::MutFP,
-    fp::FPVector,
-    math::{Vector, Normed, Norm}
+use crate::structure::{
+    dual::{Dual, Dualist, VecWithDual},
+    matrix::{Matrix, LinearAlgebra},
 };
-use {VecWithDual, Dualist};
+use crate::numerical::utils::jacobian_real;
+use crate::util::{
+    non_macro::{cat, concat, zeros, eye},
+    print::Printable,
+};
+use crate::traits::{
+    mutable::MutFP,
+    fp::{FPVector, FPMatrix},
+    math::{Vector, Normed, Norm},
+    num::Real,
+};
 #[cfg(feature = "oxidize")]
 use {blas_daxpy, blas_daxpy_return};
 

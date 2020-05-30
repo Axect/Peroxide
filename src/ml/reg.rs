@@ -1,11 +1,4 @@
-#[allow(unused_imports)]
-use statistics::stat::*;
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::polynomial::*;
-#[allow(unused_imports)]
-use structure::vector::*;
+use crate::structure::polynomial::Polynomial;
 
 /// Simple Least Square 2D
 ///
@@ -15,13 +8,16 @@ use structure::vector::*;
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = c!(1,2,3,4,5);
-/// let b = c!(1.2, 1.8, 3.2, 3.8, 5.0);
-/// let ls = least_square(a, b);
-/// ls.print(); // 0.96x + 0.1200
+/// fn main() {
+///     let a = c!(1,2,3,4,5);
+///     let b = c!(1.2, 1.8, 3.2, 3.8, 5.0);
+///     let ls = least_square(a, b);
+///     ls.print(); // 0.96x + 0.1200
+/// }
 /// ```
 pub fn least_square(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     let l = node_x.len();

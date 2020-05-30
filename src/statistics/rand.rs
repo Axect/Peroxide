@@ -23,14 +23,14 @@ use self::rand::prelude::*;
 use std::u32;
 
 #[allow(unused_imports)]
-use structure::matrix::*;
+use crate::structure::matrix::*;
 
 /// Simple uniform random number generator with ThreadRng
 ///
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let mut rng = thread_rng();
 /// println!("{}", rand_num(&mut rng, 1, 7));       // Roll a dice

@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let noise = Normal(0., 0.5);

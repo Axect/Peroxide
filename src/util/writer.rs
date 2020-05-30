@@ -5,7 +5,7 @@ use std::collections::HashMap;
 //use std::fs::File;
 //use std::io::Write;
 //use std::process::exit;
-use structure::matrix::Matrix;
+use crate::structure::matrix::Matrix;
 
 #[derive(Debug, Clone, Copy, Hash, PartialOrd, PartialEq, Eq)]
 pub enum ToWriter {

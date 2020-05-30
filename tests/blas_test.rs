@@ -1,6 +1,6 @@
 extern crate peroxide;
 #[allow(unused_imports)]
-use peroxide::*;
+use peroxide::fuga::*;
 
 #[test]
 #[cfg(feature = "native")]

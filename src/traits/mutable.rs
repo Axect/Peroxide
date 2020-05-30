@@ -1,4 +1,4 @@
-use structure::matrix::Shape;
+use crate::structure::matrix::Shape;
 
 pub trait MutFP {
     type Scalar;
