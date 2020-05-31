@@ -389,19 +389,11 @@ impl FPVector for Vec<f64> {
     }
 
     fn sum(&self) -> f64 {
-        let mut s = 0f64;
-        for elem in self.iter() {
-            s += elem;
-        }
-        s
+        self.iter().sum()
     }
 
     fn prod(&self) -> f64 {
-        let mut p = 1f64;
-        for elem in self.iter() {
-            p *= elem;
-        }
-        p
+        self.iter().product()
     }
 }
 
