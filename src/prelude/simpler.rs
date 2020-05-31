@@ -12,7 +12,7 @@ use crate::numerical::{
 /// Simple Norm
 pub trait SimpleNorm: Normed {
     fn norm(&self) -> Self::Scalar;
-    fn normalize(&self) -> Self::Scalar;
+    fn normalize(&self) -> Self;
 }
 
 /// Simple integrate
@@ -28,21 +28,21 @@ pub fn eigen(m: &Matrix) -> Eigen {
 /// Simple L2 norm
 impl SimpleNorm for Vec<f64> {
     fn norm(&self) -> Self::Scalar {
-        self.norm(Norm::L2)
+        Normed::norm(self, Norm::L2)
     }
 
-    fn normalize(&self) -> Self::Scalar {
-        self.normalize(Norm::L2)
+    fn normalize(&self) -> Self {
+        Normed::normalize(self, Norm::L2)
     }
 }
 
 /// Simple Frobenius norm
 impl SimpleNorm for Matrix {
     fn norm(&self) -> Self::Scalar {
-        self.norm(Norm::F)
+        Normed::norm(self, Norm::F)
     }
 
-    fn normalize(&self) -> Self::Scalar {
+    fn normalize(&self) -> Self {
         unimplemented!()
     }
 }

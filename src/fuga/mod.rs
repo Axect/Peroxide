@@ -1,3 +1,81 @@
+//! Choose what you want.
+//! 
+//! # Philosophy
+//! 
+//! Numerical algorithms are neglected in many codes. 
+//! However, it is very important which algorithm is used for precise research and important numerical computation.
+//! `fuga` is the best for you.
+//! 
+//! # Usage
+//! 
+//! ```ignore
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! // Then you can use everyting in peroxide.
+//! ```
+//! 
+//! # Compare with `prelude`
+//! 
+//! * Norm
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!    
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     let l1 = a.norm(Norm::L1);
+//!     let l2 = a.norm(Norm::L2);
+//!     let l_inf = a.norm(Norm::LInf);
+//!     
+//!     assert_eq!(l1, 6f64);
+//!     assert_eq!(l2, 14f64.sqrt());
+//!     assert_eq!(l_inf, 3f64);
+//! }
+//! ```
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! 
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     let l2 = a.norm();      // L2 is default vector norm
+//!     // prelude can't compute l1 norm, l_inf norm
+//!     assert_eq!(l2, 14f64.sqrt());
+//! }
+//! ```
+//! 
+//! * Numerical integration
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! use std::f64::consts::PI;
+//! 
+//! fn main() {
+//!     let sin = |x: f64| x.sin();
+//!     integrate(sin, (0f64, PI), GaussLegendre(15)).print();
+//! }
+//! ```
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! use std::f64::consts::PI;
+//! 
+//! fn main() {
+//!     let sin = |x: f64| x.sin();
+//!     integrate(sin, (0f64, PI)).print();
+//!     // Default integration = GaussLegendre(15)
+//! }
+//! ```
+
 #[allow(unused_imports)]
 pub use crate::macros::{
     julia_macro::*, 
@@ -41,9 +119,7 @@ pub use crate::statistics::{
 };
 
 #[allow(unused_imports)]
-pub use crate::special::{
-    function::*,
-};
+pub use crate::special::function::*;
 
 #[allow(unused_imports)]
 pub use crate::numerical::{
@@ -58,9 +134,7 @@ pub use crate::numerical::{
 };
 
 #[allow(unused_imports)]
-pub use crate::ml::{
-    reg::*,
-};
+pub use crate::ml::reg::*;
 
 #[allow(unused_imports)]
 #[cfg(feature = "dataframe")]

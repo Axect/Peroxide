@@ -1,5 +1,83 @@
+//! Do not disturbed. Just use.
+//! 
+//! # Philosophy
+//! 
+//! For complicated computations like as physics, statistics and etc, too many options of library disturbes theory.
+//! Many computations where numerical algorithms are not very critical do not require many options.
+//! L2 norm is enough, and what integration algorithms you use is not important.
+//! `prelude` makes you free.
+//! 
+//! # Usage
+//! 
+//! ```ignore
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! 
+//! // Then you can use almost everything in peroxide.
+//! ```
+//! 
+//! # Compare with `fuga`
+//! 
+//! * Norm
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! 
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     let l2 = a.norm();      // L2 is default vector norm
+//!     
+//!     assert_eq!(l2, 14f64.sqrt());
+//! }
+//! ```
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!    
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     let l2 = a.norm(Norm::L2);
+//!     assert_eq!(l2, 14f64.sqrt());
+//! }
+//! ```
+//! 
+//! * Numerical integration
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! use std::f64::consts::PI;
+//! 
+//! fn main() {
+//!     let sin = |x: f64| x.sin();
+//!     integrate(sin, (0f64, PI)).print();
+//!     // Default integration = GaussLegendre(15)
+//! }
+//! ```
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! use std::f64::consts::PI;
+//! 
+//! fn main() {
+//!     let sin = |x: f64| x.sin();
+//!     integrate(sin, (0f64, PI), GaussLegendre(15)).print();
+//! }
+//! ```
+
 #[allow(unused_imports)]
-pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
+pub use crate::macros::{
+    julia_macro::*, 
+    matlab_macro::*, 
+    r_macro::*
+};
 
 pub mod simpler;
 
@@ -42,9 +120,7 @@ pub use crate::statistics::{
 };
 
 #[allow(unused_imports)]
-pub use crate::special::{
-    function::*,
-};
+pub use crate::special::function::*;
 
 #[allow(unused_imports)]
 pub use crate::numerical::{
