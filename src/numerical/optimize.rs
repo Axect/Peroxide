@@ -6,7 +6,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::{Number, OptMethod, OptOption};
+//! use peroxide::fuga::*;
 //! use std::collections::HashMap;
 //!
 //! pub struct Optimizer<F>
@@ -43,8 +43,9 @@
 //! * Optimize $y = x^n$ model with $y = x^2$ with gaussian noise.
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     // To prepare noise
@@ -104,11 +105,13 @@
 
 pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
-use numerical::utils::jacobian;
-use operation::number::{Number, NumberVector};
+use crate::numerical::utils::jacobian;
 use std::collections::HashMap;
-use structure::matrix::{LinearAlgebra, LinearOps, Matrix};
-use util::useful::max;
+use crate::structure::matrix::{LinearAlgebra, Matrix};
+use crate::util::useful::max;
+use crate::traits::{
+    num::{Number, NumberVector},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum OptMethod {
@@ -201,12 +204,12 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
 
         // Take various form of initial data
         let p_init_vec = p_init.to_f64_vec();
-        let y = y_vec.to_matrix();
+        let y = y_vec.into();
 
         // Declare mutable values
-        let mut p = p_init_vec.to_matrix();
+        let mut p: Matrix = p_init_vec.clone().into();
         let mut j = jacobian(safe_f, &p_init_vec);
-        let mut y_hat = safe_f(p_init.clone()).to_f64_vec().to_matrix();
+        let mut y_hat: Matrix = safe_f(p_init.clone()).to_f64_vec().into();
         let mut jtj = &j.t() * &j;
         let mut valid_p = p.clone();
         let mut err_stack = 0usize;
@@ -222,7 +225,7 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
                             valid_p = p.clone();
                             err_stack = 0;
                             j = jacobian(safe_f, &p.data);
-                            y_hat = value.to_f64_vec().to_matrix();
+                            y_hat = value.to_f64_vec().into();
                         }
                         None => {
                             if i < max_iter - 1 && err_stack < 3 {
@@ -257,7 +260,7 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
                     match unsafe_f(NumberVector::from_f64_vec(p_temp.data.clone())) {
                         Some(value) => {
                             let j_temp = jacobian(safe_f, &p.data);
-                            let y_hat_temp = value.to_f64_vec().to_matrix();
+                            let y_hat_temp: Matrix = value.to_f64_vec().into();
                             let chi2_temp = ((&y - &y_hat_temp).t() * (&y - &y_hat_temp))[(0, 0)];
                             let rho = (chi2 - chi2_temp)
                                 / (h.t() * (lambda * jtj.to_diag() * h.clone() + j.t() * (&y - &y_hat)))

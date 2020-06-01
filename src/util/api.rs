@@ -1,7 +1,7 @@
 //! Choose api - MATLAB, R, Python
 
 use std::convert;
-use structure::matrix::*;
+use crate::structure::matrix::*;
 
 pub trait MATLAB {
     fn new(s: &str) -> Self;

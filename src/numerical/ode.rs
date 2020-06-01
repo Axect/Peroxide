@@ -11,7 +11,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::{Real, State, BoundaryCondition};
+//!     use peroxide::fuga::{Real, State, BoundaryCondition};
 //!
 //!     pub trait ODE {
 //!         type Records;
@@ -55,7 +55,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::Real;
+//!     use peroxide::fuga::Real;
 //!
 //!     #[derive(Debug, Clone, Default)]
 //!     pub struct State<T: Real> {
@@ -91,7 +91,7 @@
 //! ```rust
 //! extern crate peroxide;
 //! use std::collections::HashMap;
-//! use peroxide::{State, ExMethod, BoundaryCondition, ODEOptions};
+//! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions};
 //!
 //! #[derive(Clone)]
 //! pub struct ExplicitODE {
@@ -123,7 +123,7 @@
 //!
 //! ```rust
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     // =========================================
@@ -175,8 +175,9 @@
 //! $$\begin{gathered} \frac{dy}{dx} = \frac{5x^2 - y}{e^{x+y}} \\\ y(0) = 1 \end{gathered}$$
 //!
 //! ```rust
+//! #[macro_use]
 //! extern crate peroxide;
-//! use peroxide::*;
+//! use peroxide::fuga::*;
 //!
 //! fn main() {
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
@@ -206,16 +207,22 @@ use self::BoundaryCondition::Dirichlet;
 use self::ExMethod::{Euler, RK4};
 use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use self::ImMethod::{BDF1, GL4};
-use operation::extra_ops::Real;
-use operation::mut_ops::MutFP;
 use std::collections::HashMap;
-use structure::dual::Dual;
-use structure::matrix::{Matrix, FP, LinearAlgebra};
-use structure::vector::FPVector;
-use numerical::utils::jacobian_real;
-use util::non_macro::{cat, concat, zeros, eye};
-use util::print::Printable;
-use {VecOps, VecWithDual, Dualist};
+use crate::structure::{
+    dual::{Dual, Dualist, VecWithDual},
+    matrix::{Matrix, LinearAlgebra},
+};
+use crate::numerical::utils::jacobian_real;
+use crate::util::{
+    non_macro::{cat, concat, zeros, eye},
+    print::Printable,
+};
+use crate::traits::{
+    mutable::MutFP,
+    fp::{FPVector, FPMatrix},
+    math::{Vector, Normed, Norm},
+    num::Real,
+};
 #[cfg(feature = "oxidize")]
 use {blas_daxpy, blas_daxpy_return};
 
@@ -427,7 +434,7 @@ impl ODE for ExplicitODE {
                 (self.func)(&mut self.state);
 
                 let k1 = self.state.deriv.clone();
-                let k1_add = k1.s_mul(h2);
+                let k1_add = k1.mul_scalar(h2);
                 self.state.param += h2;
                 self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
                 (self.func)(&mut self.state);
@@ -693,16 +700,16 @@ impl ODE for ImplicitODE {
                     concat(
                         f(
                             t1,
-                            yn.add(
-                                &k1.s_mul(GL4_TAB[0][1] * h)
-                                    .add(&k2.s_mul(GL4_TAB[0][2]*h)),
+                            yn.add_vec(
+                                &k1.mul_scalar(GL4_TAB[0][1] * h)
+                                    .add_vec(&k2.mul_scalar(GL4_TAB[0][2]*h)),
                             ),
                         ),
                         f(
                             t2,
-                            yn.add(
-                                &k1.s_mul(GL4_TAB[1][1] * h)
-                                    .add(&k2.s_mul(GL4_TAB[1][2] * h)),
+                            yn.add_vec(
+                                &k1.mul_scalar(GL4_TAB[1][1] * h)
+                                    .add_vec(&k2.mul_scalar(GL4_TAB[1][2] * h)),
                             ),
                         ),
                     )
@@ -714,19 +721,19 @@ impl ODE for ImplicitODE {
                 let mut Dg = jacobian_real(Box::new(g), &k_curr);
                 let mut DG = &I - &Dg;
                 let mut DG_inv = DG.inv().unwrap();
-                let mut G = k_curr.sub(&g(&k_curr.conv_dual()).values());
+                let mut G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
                 let mut num_iter: usize = 0;
 
                 // 3. Iteration
                 while err >= self.rtol && num_iter <= 10 {
                     let DGG = &DG_inv * &G;
                     let k_prev = k_curr.clone();
-                    k_curr.mut_zip_with(|x, y| x - y, &DGG.col(0));
+                    k_curr.mut_zip_with(|x, y| x - y, &DGG);
                     Dg = jacobian_real(Box::new(g), &k_curr);
                     DG = &I - &Dg;
                     DG_inv = DG.inv().unwrap();
-                    G = k_curr.sub(&g(&k_curr.conv_dual()).values());
-                    err = k_curr.sub(&k_prev).norm();
+                    G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
+                    err = k_curr.sub_vec(&k_prev).norm(Norm::L2);
                     num_iter += 1;
                 }
 
@@ -738,7 +745,7 @@ impl ODE for ImplicitODE {
 
                 // 5. Merge k1, k2
                 let mut y_curr = self.state.value.values();
-                y_curr = y_curr.add(&k1.s_mul(0.5 * h).add(&k2.s_mul(0.5 * h)));
+                y_curr = y_curr.add_vec(&k1.mul_scalar(0.5 * h).add_vec(&k2.mul_scalar(0.5 * h)));
                 self.state.value = y_curr.conv_dual();
                 self.state.param = self.state.param + h;
             }

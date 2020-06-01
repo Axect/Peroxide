@@ -1,23 +1,21 @@
 extern crate rand;
 pub use self::rand::prelude::*;
 
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::vector::*;
-
 /// MATLAB like zeros - zero matrix
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = zeros!(4);
-/// assert_eq!(a, c!(0,0,0,0));
+/// fn main() {
+///     let a = zeros!(4);
+///     assert_eq!(a, c!(0,0,0,0));
 ///
-/// let b = zeros!(3, 2);
-/// assert_eq!(b, matrix(c!(0,0,0,0,0,0), 3, 2, Row));
+///     let b = zeros!(3, 2);
+///     assert_eq!(b, matrix(c!(0,0,0,0,0,0), 3, 2, Row));
+/// }
 /// ```
 #[macro_export]
 macro_rules! zeros {
@@ -35,11 +33,14 @@ macro_rules! zeros {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = rand!(2, 2);
-/// println!("{}", a); // 2 x 2 random matrix (0 ~ 1)
+/// fn main() {
+///     let a = rand!(2, 2);
+///     println!("{}", a);  // 2 x 2 random matrix (0 ~ 1)
+/// }
 /// ```
 #[macro_export]
 macro_rules! rand {
@@ -67,11 +68,14 @@ macro_rules! rand {
 /// # Examples
 ///
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let i = eye!(2);
-/// assert_eq!(i, matrix(c!(1,0,0,1), 2, 2, Row));
+/// fn main() {
+///     let i = eye!(2);
+///     assert_eq!(i, matrix(c!(1,0,0,1), 2, 2, Row));
+/// }
 /// ```
 #[macro_export]
 macro_rules! eye {
@@ -89,11 +93,14 @@ macro_rules! eye {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = linspace!(1, 10, 10);
-/// assert_eq!(a, seq!(1,10,1));
+/// fn main() {
+///     let a = linspace!(1, 10, 10);
+///     assert_eq!(a, seq!(1,10,1));
+/// }
 /// ```
 #[macro_export]
 macro_rules! linspace {

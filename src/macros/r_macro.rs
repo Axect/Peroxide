@@ -19,26 +19,22 @@
 extern crate rand;
 pub use self::rand::prelude::*;
 
-#[allow(unused_imports)]
-use statistics::stat::*;
-#[allow(unused_imports)]
-use structure::matrix::*;
-#[allow(unused_imports)]
-use structure::vector::*;
-
 /// R like concatenate (Type: Vec\<f64\>)
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = c![1,2,3,4];
-/// let b = c![5,6,7,8];
-/// let c = c![a; b];
-/// println!("{:?}", a); // [1,2,3,4]
-/// println!("{:?}", b); // [5,6,7,8]
-/// println!("{:?}", c); // [1,2,3,4,5,6,7,8]
+/// fn main() {
+///     let a = c![1,2,3,4];
+///     let b = c![5,6,7,8];
+///     let c = c![a; b];
+///     println!("{:?}", a); // [1,2,3,4]
+///     println!("{:?}", b); // [5,6,7,8]
+///     println!("{:?}", c); // [1,2,3,4,5,6,7,8]
+/// }
 /// ```
 #[macro_export]
 macro_rules! c {
@@ -68,11 +64,14 @@ macro_rules! c {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// assert_eq!(seq!(1,10,1), c!(1,2,3,4,5,6,7,8,9,10));
-/// assert_eq!(seq!(1,10,1), seq!(1;10;1));
+/// fn main() {
+///     assert_eq!(seq!(1,10,1), c!(1,2,3,4,5,6,7,8,9,10));
+///     assert_eq!(seq!(1,10,1), seq!(1;10;1));
+/// }
 /// ```
 #[macro_export]
 macro_rules! seq {
@@ -101,16 +100,19 @@ macro_rules! seq {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row); // start;end;step
-/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
-/// let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
-/// assert!(a == b && b == c);
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row); // start;end;step
+///     let b = matrix(c!(1,2,3,4), 2, 2, Row);
+///     let c = matrix(vec![1,2,3,4], 2, 2, Row); // Normal function
+///     assert!(a == b && b == c);
 ///
-/// let m = matrix!(0, 2, 2, Row);
-/// assert_eq!(m, zeros!(2, 2));
+///     let m = matrix!(0, 2, 2, Row);
+///     assert_eq!(m, zeros!(2, 2));
+/// }
 /// ```
 #[macro_export]
 macro_rules! matrix {
@@ -127,14 +129,17 @@ macro_rules! matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Col);
-/// let b = matrix(c!(5,6),2, 1, Col);
-/// let c = matrix(c!(7,8),2,1,Col);
-/// assert_eq!(cbind!(a.clone(),b.clone()), matrix!(1;6;1,2,3,Col));
-/// assert_eq!(cbind!(a,b,c), matrix!(1;8;1, 2, 4, Col));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Col);
+///     let b = matrix(c!(5,6),2, 1, Col);
+///     let c = matrix(c!(7,8),2,1,Col);
+///     assert_eq!(cbind!(a.clone(),b.clone()), matrix!(1;6;1,2,3,Col));
+///     assert_eq!(cbind!(a,b,c), matrix!(1;8;1, 2, 4, Col));
+/// }
 /// ```
 #[macro_export]
 macro_rules! cbind {
@@ -187,14 +192,17 @@ macro_rules! cbind {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// let b = matrix(c!(5,6),1, 2, Row);
-/// let c = matrix(c!(7,8),1, 2, Row);
-/// assert_eq!(rbind!(a.clone(),b.clone()), matrix!(1;6;1, 3, 2, Row));
-/// assert_eq!(rbind!(a,b,c), matrix!(1;8;1, 4, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     let b = matrix(c!(5,6),1, 2, Row);
+///     let c = matrix(c!(7,8),1, 2, Row);
+///     assert_eq!(rbind!(a.clone(),b.clone()), matrix!(1;6;1, 3, 2, Row));
+///     assert_eq!(rbind!(a,b,c), matrix!(1;8;1, 4, 2, Row));
+/// }
 /// ```
 #[macro_export]
 macro_rules! rbind {
@@ -252,14 +260,17 @@ macro_rules! rbind {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = runif!(5, -1, 1);
-/// println!("{:?}", a);
+/// fn main() {
+///     let a = runif!(5, -1, 1);
+///     println!("{:?}", a);
 ///
-/// let b = runif!(5); // same as runif!(5,0,1)
-/// println!("{:?}", b);
+///     let b = runif!(5); // same as runif!(5,0,1)
+///     println!("{:?}", b);
+/// }
 /// ```
 #[macro_export]
 macro_rules! runif {
@@ -284,14 +295,17 @@ macro_rules! runif {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = rnorm!(5, 2, 1);
-/// println!("{:?}", a);
+/// fn main() {
+///     let a = rnorm!(5, 2, 1);
+///     println!("{:?}", a);
 ///
-/// let b = rnorm!(5); // same as rnorm!(5,0,1)
-/// println!("{:?}", b);
+///     let b = rnorm!(5); // same as rnorm!(5,0,1)
+///     println!("{:?}", b);
+/// }
 /// ```
 #[macro_export]
 macro_rules! rnorm {
@@ -310,14 +324,17 @@ macro_rules! rnorm {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = dnorm!(2, 2, 1);
-/// println!("{:?}", a); // 0.3989422804014327
+/// fn main() {
+///     let a = dnorm!(2, 2, 1);
+///     println!("{:?}", a); // 0.3989422804014327
 ///
-/// let b = dnorm!(0); // same as dnorm!(0,0,1)
-/// println!("{:?}", b);
+///     let b = dnorm!(0); // same as dnorm!(0,0,1)
+///     println!("{:?}", b);
+/// }
 /// ```
 #[macro_export]
 macro_rules! dnorm {
@@ -338,14 +355,17 @@ macro_rules! dnorm {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = pnorm!(2, 2, 1);
-/// println!("{:?}", a); // 0.5
+/// fn main() {
+///     let a = pnorm!(2, 2, 1);
+///     println!("{:?}", a); // 0.5
 ///
-/// let b = pnorm!(0); // same as pnorm!(0,0,1)
-/// println!("{:?}", b);
+///     let b = pnorm!(0); // same as pnorm!(0,0,1)
+///     println!("{:?}", b);
+/// }
 /// ```
 #[macro_export]
 macro_rules! pnorm {
@@ -366,11 +386,14 @@ macro_rules! pnorm {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = rt!(5, 1);
-/// println!("{:?}", a);
+/// fn main() {
+///     let a = rt!(5, 1);
+///     println!("{:?}", a);
+/// }
 /// ```
 #[macro_export]
 macro_rules! rt {
@@ -385,11 +408,14 @@ macro_rules! rt {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = dt!(1, 1);
-/// println!("{:?}", a);
+/// fn main() {
+///     let a = dt!(1, 1);
+///     println!("{:?}", a);
+/// }
 /// ```
 #[macro_export]
 macro_rules! dt {
@@ -405,11 +431,14 @@ macro_rules! dt {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = pt!(1, 1);
-/// println!("{:?}", a); // 0.5
+/// fn main() {
+///     let a = pt!(1, 1);
+///     println!("{:?}", a); // 0.5
+/// }
 /// ```
 #[macro_export]
 macro_rules! pt {
@@ -430,13 +459,16 @@ macro_rules! pt {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;5;1, 5, 1, Col);
-/// let b = matrix(c!(3.7, 4.2, 4.9, 5.7, 6.0), 5, 1, Col);
+/// fn main() {
+///     let a = matrix!(1;5;1, 5, 1, Col);
+///     let b = matrix(c!(3.7, 4.2, 4.9, 5.7, 6.0), 5, 1, Col);
 ///
-/// assert_eq!(lm!(b ~ a), matrix(c!(3.0700, 0.6100), 2, 1, Col));
+///     assert_eq!(lm!(b ~ a), matrix(c!(3.0700, 0.6100), 2, 1, Col));
+/// }
 /// ```
 #[macro_export]
 macro_rules! lm {

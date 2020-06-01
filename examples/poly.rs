@@ -1,5 +1,6 @@
+#[macro_use]
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let a = c!(-1, 0, 1);

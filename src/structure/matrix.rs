@@ -10,13 +10,14 @@
 //!
 //! ### R's way
 //!
-//! * Description: Same as R - `matrix(Vector, Row, Col, Shape)`
+//! * Description: Same as R - `matrix(Vec<f64>, Row, Col, Shape)`
 //! * Type: `matrix(Vec<T>, usize, usize, Shape) where T: std::convert::Into<f64> + Copy`
 //!     * `Shape`: `Enum` for matrix shape - `Row` & `Col`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
@@ -40,7 +41,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = ml_matrix("1 2; 3 4");
@@ -58,7 +59,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = py_matrix(vec![vec![1, 2], vec![3, 4]]);
@@ -86,8 +87,9 @@
 //! * For `Peroxide`,
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -110,8 +112,9 @@
 //! * `subs_row(&mut self, usize, Vec<f64>)`: Substitute row with `Vec<f64>`
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let mut a = ml_matrix("1 2; 3 4");
@@ -148,7 +151,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
@@ -167,7 +170,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         //let a = Matrix::read("example_data/matrix.csv", false, ',')
@@ -188,7 +191,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
@@ -213,8 +216,9 @@
 //! * In peroxide, can use basic operations between matrices. I'll show you by examples.
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -240,7 +244,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
 //!         let b = ml_matrix("5 6;7 8");
@@ -258,13 +262,14 @@
 //! * But you can use two-dimensional index to extract or modify components.
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let mut a = matrix!(1;4;1, 2, 2, Row);
-//!         a[(0,0)].print(); // 1
-//!         a[(0,0)] = 2f64; // Modify component
+//!         a[(0,0)].print();   // 1
+//!         a[(0,0)] = 2f64;    // Modify component
 //!         a.print();
 //!         //       c[0] c[1]
 //!         //  r[0]    2    2
@@ -272,13 +277,14 @@
 //!     }
 //!     ```
 //!
-//! ## Conversion to vector
+//! ## Conversion to Vec<f64>
 //!
 //! * Just use `row` or `col` method (I already showed at Basic method section).
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -294,7 +300,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = zeros(2, 2);
@@ -314,8 +320,9 @@
 //! * Caution: Transpose does not consume the original value.
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -342,7 +349,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     #[derive(Debug, Clone)]
 //!     pub struct PQLU {
@@ -358,8 +365,9 @@
 //! * Example of LU decomposition:
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
@@ -383,8 +391,9 @@
 //! * Peroxide uses LU decomposition to obtain determinant ($ \mathcal{O}(n^3) $)
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -399,8 +408,9 @@
 //!     * For inverse of `L, U`, I use block partitioning. For example, for lower triangular matrix :
 //!     $$ \begin{aligned} L &= \begin{pmatrix} L_1 & \mathbf{0} \\\ L_2 & L_3 \end{pmatrix} \\\ L^{-1} &= \begin{pmatrix} L_1^{-1} & \mathbf{0} \\\ -L_3^{-1}L_2 L_1^{-1} & L_3^{-1} \end{pmatrix} \end{aligned} $$
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -416,8 +426,9 @@
 //! * $ X^\dagger = \left(X^T X\right)^{-1} X $
 //!
 //!     ```rust
+//!     #[macro_use]
 //!     extern crate peroxide;
-//!     use peroxide::*;
+//!     use peroxide::fuga::*;
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
@@ -444,18 +455,23 @@ use std::f64::NAN;
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 use ::matrixmultiply;
 
-pub use self::Norm::*;
 pub use self::Shape::{Col, Row};
 use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
-#[allow(unused_imports)]
-use structure::vector::*;
-use util::useful::*;
-use ::MutMatrix;
-use eye;
+use crate::traits::{
+    mutable::MutMatrix,
+    fp::{FPVector, FPMatrix},
+    math::{Vector, Normed, Norm, InnerProduct, LinearOp},
+};
+use crate::util::{
+    low_level::swap_vec_ptr,
+    non_macro::eye,
+    useful::{nearly_eq, tab}
+};
+use crate::numerical::eigen::{eigen, EigenMethod};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -467,7 +483,7 @@ pub type Perms = Vec<(usize, usize)>;
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
 /// let b = matrix(vec![1,2,3,4], 2, 2, Col);
@@ -497,7 +513,7 @@ impl fmt::Display for Shape {
 ///
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = Matrix {
 ///     data: vec![1f64,2f64,3f64,4f64],
@@ -522,10 +538,13 @@ pub struct Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix(c!(1,2,3,4), 2, 2, Row);
+/// fn main() {
+///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
+/// }
 /// ```
 pub fn matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
@@ -551,12 +570,15 @@ where
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = py_matrix(vec![c!(1,2), c!(3,4)]);
-/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
-/// assert_eq!(a, b);
+/// fn main() {
+///     let a = py_matrix(vec![c!(1,2), c!(3,4)]);
+///     let b = matrix(c!(1,2,3,4), 2, 2, Row);
+///     assert_eq!(a, b);
+/// }
 /// ```
 pub fn py_matrix<T>(v: Vec<Vec<T>>) -> Matrix
 where
@@ -578,12 +600,15 @@ where
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = ml_matrix("1 2; 3 4");
-/// let b = matrix(c!(1,2,3,4), 2, 2, Row);
-/// assert_eq!(a, b);
+/// fn main() {
+///     let a = ml_matrix("1 2; 3 4");
+///     let b = matrix(c!(1,2,3,4), 2, 2, Row);
+///     assert_eq!(a, b);
+/// }
 /// ```
 pub fn ml_matrix(s: &str) -> Matrix where {
     let str_rows: Vec<&str> = s.split(';').collect();
@@ -645,7 +670,7 @@ impl Matrix {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     /// 
     /// let a = matrix(vec![1,2,3,4], 2, 2, Col);
     /// let b = a.as_slice();
@@ -660,7 +685,7 @@ impl Matrix {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
     /// let mut a = matrix(vec![1,2,3,4], 2, 2, Col);
     /// let mut b = a.as_mut_slice();
@@ -679,7 +704,7 @@ impl Matrix {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
     /// assert_eq!(a.shape, Row);
@@ -719,7 +744,7 @@ impl Matrix {
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
     /// println!("{}", a.spread()); // same as println!("{}", a);
@@ -806,13 +831,16 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    /// assert_eq!(a.col(0), c!(1,3));
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    ///     assert_eq!(a.col(0), c!(1,3));
+    /// }
     /// ```
-    pub fn col(&self, index: usize) -> Vector {
+    pub fn col(&self, index: usize) -> Vec<f64> {
         assert!(index < self.col);
         let mut container: Vec<f64> = vec![0f64; self.row];
         for i in 0..self.row {
@@ -825,13 +853,16 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    /// assert_eq!(a.row(0), c!(1,2));
+    /// fn main() {
+    ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
+    ///     assert_eq!(a.row(0), c!(1,2));
+    /// }
     /// ```
-    pub fn row(&self, index: usize) -> Vector {
+    pub fn row(&self, index: usize) -> Vec<f64> {
         assert!(index < self.row);
         let mut container: Vec<f64> = vec![0f64; self.col];
         for i in 0..self.col {
@@ -844,13 +875,16 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.diag(), c!(1,4));
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.diag(), c!(1,4));
+    /// }
     /// ```
-    pub fn diag(&self) -> Vector {
+    pub fn diag(&self) -> Vec<f64> {
         let mut container = vec![0f64; self.row];
         let r = self.row;
         let c = self.col;
@@ -862,15 +896,52 @@ impl Matrix {
         container
     }
 
-    /// Write to CSV
+    /// Transpose
     ///
     /// # Examples
     /// ```
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write("example_data/test.csv");
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    /// println!("{}", a); // [[1,3],[2,4]]
+    /// ```
+    pub fn transpose(&self) -> Self {
+        match self.shape {
+            Row => matrix(self.data.clone(), self.col, self.row, Col),
+            Col => matrix(self.data.clone(), self.col, self.row, Row),
+        }
+    }
+
+    /// R-like transpose function
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.transpose(), a.t());
+    /// }
+    /// ```
+    pub fn t(&self) -> Self {
+        self.transpose()
+    }
+
+    /// Write to CSV
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     a.write("example_data/test.csv");
+    /// }
     /// ```
     pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
@@ -891,11 +962,14 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write_round("example_data/test.csv", 0);
+    /// fn main() {
+    ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     a.write_round("example_data/test.csv", 0);
+    /// }
     /// ```
     pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
@@ -959,19 +1033,22 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     /// use std::process;
     ///
-    /// let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    /// a.write_round("example_data/test.csv", 0);
+    /// fn main() {
+    ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
+    ///     a.write_round("example_data/test.csv", 0);
     ///
-    /// let b = Matrix::read("example_data/test.csv", false, ','); // header = false, delimiter = ','
-    /// match b {
-    ///     Ok(mat) => println!("{}", mat),
-    ///     Err(err) => {
-    ///         println!("{}", err);
-    ///         process::exit(1);
+    ///     let b = Matrix::read("example_data/test.csv", false, ','); // header = false, delimiter = ','
+    ///     match b {
+    ///         Ok(mat) => println!("{}", mat),
+    ///         Err(err) => {
+    ///             println!("{}", err);
+    ///             process::exit(1);
+    ///         }
     ///     }
     /// }
     /// ```
@@ -1077,85 +1154,224 @@ impl Matrix {
 }
 
 // =============================================================================
-// Common Properties of Matrix & Vector
+// Mathematics for Matrix
 // =============================================================================
+impl Vector for Matrix {
+    fn add_vec(&self, other: &Self) -> Self {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
 
-/// Common trait for Matrix & Vector
-pub trait LinearOps {
-    type Operator;
-    fn from_matrix(m: Matrix) -> Self;
-    fn to_matrix(&self) -> Matrix;
-    fn transpose(&self) -> Self::Operator;
-    fn t(&self) -> Self::Operator;
-}
-
-impl LinearOps for Matrix {
-    type Operator = Self;
-
-    /// Just Clone
-    fn from_matrix(m: Matrix) -> Self {
-        m
-    }
-
-    /// Just clone
-    fn to_matrix(&self) -> Self {
-        self.clone()
-    }
-
-    /// Transpose
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// println!("{}", a); // [[1,3],[2,4]]
-    /// ```
-    fn transpose(&self) -> Self {
-        match self.shape {
-            Row => matrix(self.data.clone(), self.col, self.row, Col),
-            Col => matrix(self.data.clone(), self.col, self.row, Row),
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                if self.shape != other.shape {
+                    return self.add(&other.change_shape());
+                }
+                let x = &self.data;
+                let mut y = other.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = 1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] += other[(i, j)];
+                    }
+                }
+                result
+            }
         }
     }
 
-    /// R-like transpose function
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::*;
-    ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.transpose(), a.t());
-    /// ```
-    fn t(&self) -> Self {
-        self.transpose()
+    fn sub_vec(&self, other: &Self) -> Self {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                if self.shape != other.shape {
+                    return self.sub(&other.change_shape());
+                }
+                let x = &other.data;
+                let mut y = self.data.clone();
+                let n_i32 = x.len() as i32;
+                let a_f64 = -1f64;
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] -= other[(i, j)];
+                    }
+                }
+                result
+            }
+        }
+    }
+
+    fn mul_scalar<T: Into<f64>>(&self, other: T) -> Self {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other.into();
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let scalar = other.into();
+                self.fmap(|x| x * scalar)
+            }
+        }
     }
 }
 
-impl LinearOps for Vec<f64> {
-    type Operator = Matrix;
-
-    fn from_matrix(m: Matrix) -> Self {
-        m.data
+impl Normed for Matrix {
+    type Scalar = f64;
+    fn norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::F => {
+                let mut s = 0f64;
+                for i in 0..self.data.len() {
+                    s += self.data[i].powi(2);
+                }
+                s.sqrt()
+            }
+            Norm::Lpq(p, q) => {
+                let mut s = 0f64;
+                for j in 0..self.col {
+                    let mut s_row = 0f64;
+                    for i in 0..self.row {
+                        s_row += self[(i, j)].powi(p as i32);
+                    }
+                    s += s_row.powf(q as f64 / (p as f64));
+                }
+                s.powf(1f64 / (q as f64))
+            }
+            Norm::L1 => {
+                let mut m = std::f64::MIN;
+                match self.shape {
+                    Row => self.change_shape().norm(Norm::L1),
+                    Col => {
+                        for c in 0..self.col {
+                            let s = self.col(c).iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::LInf => {
+                let mut m = std::f64::MIN;
+                match self.shape {
+                    Col => self.change_shape().norm(Norm::LInf),
+                    Row => {
+                        for r in 0..self.row {
+                            let s = self.row(r).iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::L2 => {
+                let a = &self.t() * self;
+                let eig = eigen(&a, EigenMethod::Jacobi);
+                eig.eigenvalue.norm(Norm::LInf)
+            }
+            Norm::Lp(_) => {
+                unimplemented!()
+            }
+        }
     }
+    fn normalize(&self, _kind: Norm) -> Self where Self: Sized {
+        unimplemented!()
+    }
+}
 
-    /// Vector to Column Matrix
-    fn to_matrix(&self) -> Matrix {
+/// Frobenius inner product
+impl InnerProduct for Matrix {
+    fn dot(&self, rhs: &Self) -> f64 {
+        if self.shape == rhs.shape {
+            self.data.dot(&rhs.data)
+        } else {
+            self.data.dot(&rhs.change_shape().data)
+        }
+    }
+}
+
+/// TODO: Transpose
+
+/// Matrix as Linear operator for Vector
+impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
+    fn apply(&self, other: &Vec<f64>) -> Vec<f64> {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let x = other;
+                let mut y = vec![0f64; self.row];
+                let A = &self.data;
+                let m_i32 = self.row as i32;
+                let n_i32 = self.col as i32;
+                match self.shape {
+                    Row => unsafe {
+                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
+                    },
+                    Col => unsafe {
+                        dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
+                    },
+                }
+                y
+            }
+            _ => {
+                let mut c = vec![0f64; self.row];
+                gemv(1f64, self, other, 0f64, &mut c);
+                c
+            }
+        }
+    }
+}
+
+// =============================================================================
+// Common Properties of Matrix & Vec<f64>
+// =============================================================================
+/// Matrix to Vec<f64>
+impl Into<Vec<f64>> for Matrix {
+    fn into(self) -> Vec<f64> {
+        self.data
+    }
+}
+
+/// &Matrix to &Vec<f64>
+impl<'a> Into<&'a Vec<f64>> for &'a Matrix {
+    fn into(self) -> &'a Vec<f64> {
+        &self.data
+    }
+}
+
+/// Vec<f64> to Matrix
+impl Into<Matrix> for Vec<f64> {
+    fn into(self) -> Matrix {
         let l = self.len();
-        matrix(self.clone(), l, 1, Col)
-    }
-
-    /// Vector to Row Matrix
-    fn transpose(&self) -> Matrix {
-        let l = self.len();
-        matrix(self.clone(), 1, l, Row)
-    }
-
-    /// R-like Syntax
-    fn t(&self) -> Matrix {
-        self.transpose()
+        matrix(self, l, 1, Col)
     }
 }
 
@@ -1203,39 +1419,11 @@ impl Add<Matrix> for Matrix {
     }
 }
 
-/// Element-wise addition of &Matrix
 impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
     type Output = Matrix;
 
-    fn add(self, other: &'b Matrix) -> Self::Output {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                if self.shape != other.shape {
-                    return self.add(&other.change_shape());
-                }
-                let x = &self.data;
-                let mut y = other.data.clone();
-                let n_i32 = x.len() as i32;
-                let a_f64 = 1f64;
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => {
-                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] += other[(i, j)];
-                    }
-                }
-                result
-            }
-        }
+    fn add(self, rhs: &'b Matrix) -> Self::Output {
+        self.add_vec(rhs)
     }
 }
 
@@ -1243,11 +1431,14 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// assert_eq!(a + 1, matrix!(2;5;1, 2, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     assert_eq!(a + 1, matrix!(2;5;1, 2, 2, Row));
+/// }
 /// ```
 impl<T> Add<T> for Matrix
 where
@@ -1298,11 +1489,14 @@ where
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// assert_eq!(1f64 + a, matrix!(2;5;1, 2, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     assert_eq!(1f64 + a, matrix!(2;5;1, 2, 2, Row));
+/// }
 /// ```
 impl Add<Matrix> for f64 {
     type Output = Matrix;
@@ -1325,11 +1519,14 @@ impl<'a> Add<&'a Matrix> for f64 {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// assert_eq!(1 + a, matrix!(2;5;1, 2, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     assert_eq!(1 + a, matrix!(2;5;1, 2, 2, Row));
+/// }
 /// ```
 impl Add<Matrix> for i32 {
     type Output = Matrix;
@@ -1352,11 +1549,14 @@ impl<'a> Add<&'a Matrix> for i32 {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// assert_eq!(1 as usize + a, matrix!(2;5;1, 2, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     assert_eq!(1 as usize + a, matrix!(2;5;1, 2, 2, Row));
+/// }
 /// ```
 impl Add<Matrix> for usize {
     type Output = Matrix;
@@ -1383,7 +1583,7 @@ impl<'a> Add<&'a Matrix> for usize {
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4],2,2,Row);
 /// println!("{}", -a); // [[-1,-2],[-3,-4]]
@@ -1451,7 +1651,7 @@ impl<'a> Neg for &'a Matrix {
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4],2,2,Row);
 /// let b = matrix(vec![1,2,3,4],2,2,Col);
@@ -1491,38 +1691,11 @@ impl Sub<Matrix> for Matrix {
     }
 }
 
-/// Subtraction between &'a Matrix
 impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
     type Output = Matrix;
 
-    fn sub(self, other: &'b Matrix) -> Self::Output {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                if self.shape != other.shape {
-                    return self.sub(&other.change_shape());
-                }
-                let x = &other.data;
-                let mut y = self.data.clone();
-                let n_i32 = x.len() as i32;
-                let a_f64 = -1f64;
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => {
-                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] -= other[(i, j)];
-                    }
-                }
-                result
-            }
-        }
+    fn sub(self, rhs: &'b Matrix) -> Matrix {
+        self.sub_vec(rhs)
     }
 }
 
@@ -1578,11 +1751,14 @@ where
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix(vec![1,2,3,4],2,2,Row);
-/// assert_eq!(a - 1f64, matrix!(0;3;1, 2, 2, Row));
+/// fn main() {
+///     let a = matrix(vec![1,2,3,4],2,2,Row);
+///     assert_eq!(a - 1f64, matrix!(0;3;1, 2, 2, Row));
+/// }
 /// ```
 impl Sub<Matrix> for f64 {
     type Output = Matrix;
@@ -1682,51 +1858,29 @@ impl Mul<usize> for Matrix {
     }
 }
 
-impl<'a> Mul<f64> for &'a Matrix {
-    type Output = Matrix;
-
-    fn mul(self, other: f64) -> Self::Output {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let x = &self.data;
-                let mut y = vec![0f64; x.len()];
-                let a_f64 = other;
-                let n_i32 = x.len() as i32;
-
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => self.fmap(|x| x * other),
-        }
-    }
-}
-
-impl<'a> Mul<i64> for &'a Matrix {
-    type Output = Matrix;
-
-    fn mul(self, other: i64) -> Self::Output {
-        self.mul(other as f64)
-    }
-}
-
-impl<'a> Mul<i32> for &'a Matrix {
-    type Output = Matrix;
-
-    fn mul(self, other: i32) -> Self::Output {
-        self.mul(other as f64)
-    }
-}
-
-impl<'a> Mul<usize> for &'a Matrix {
-    type Output = Matrix;
-
-    fn mul(self, other: usize) -> Self::Output {
-        self.mul(other as f64)
-    }
-}
+// impl<'a> Mul<i64> for &'a Matrix {
+//     type Output = Matrix;
+//
+//     fn mul(self, other: i64) -> Self::Output {
+//         self.mul(other as f64)
+//     }
+// }
+//
+// impl<'a> Mul<i32> for &'a Matrix {
+//     type Output = Matrix;
+//
+//     fn mul(self, other: i32) -> Self::Output {
+//         self.mul(other as f64)
+//     }
+// }
+//
+// impl<'a> Mul<usize> for &'a Matrix {
+//     type Output = Matrix;
+//
+//     fn mul(self, other: usize) -> Self::Output {
+//         self.mul(other as f64)
+//     }
+// }
 
 impl Mul<Matrix> for f64 {
     type Output = Matrix;
@@ -1764,7 +1918,7 @@ impl<'a> Mul<&'a Matrix> for f64 {
     type Output = Matrix;
 
     fn mul(self, other: &'a Matrix) -> Matrix {
-        other.mul(self)
+        other.mul_scalar(self)
     }
 }
 
@@ -1772,7 +1926,7 @@ impl<'a> Mul<&'a Matrix> for i64 {
     type Output = Matrix;
 
     fn mul(self, other: &'a Matrix) -> Matrix {
-        other.mul(self as f64)
+        other.mul_scalar(self as f64)
     }
 }
 
@@ -1780,7 +1934,7 @@ impl<'a> Mul<&'a Matrix> for i32 {
     type Output = Matrix;
 
     fn mul(self, other: &'a Matrix) -> Matrix {
-        other.mul(self as f64)
+        other.mul_scalar(self as f64)
     }
 }
 
@@ -1788,7 +1942,7 @@ impl<'a> Mul<&'a Matrix> for usize {
     type Output = Matrix;
 
     fn mul(self, other: &'a Matrix) -> Matrix {
-        other.mul(self as f64)
+        other.mul_scalar(self as f64)
     }
 }
 
@@ -1796,12 +1950,15 @@ impl<'a> Mul<&'a Matrix> for usize {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// let b = matrix!(1;4;1, 2, 2, Col);
-/// assert_eq!(a * b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     let b = matrix!(1;4;1, 2, 2, Col);
+///     assert_eq!(a * b, matrix(c!(5, 11, 11, 25), 2, 2, Row));
+/// }
 /// ```
 impl Mul<Matrix> for Matrix {
     type Output = Self;
@@ -1828,89 +1985,56 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
 }
 
 #[allow(non_snake_case)]
-impl Mul<Vector> for Matrix {
-    type Output = Self;
+impl Mul<Vec<f64>> for Matrix {
+    type Output = Vec<f64>;
 
-    fn mul(self, other: Vector) -> Self::Output {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let x = &other;
-                let mut y = vec![0f64; self.row];
-                let A = &self.data;
-                let m_i32 = self.row as i32;
-                let n_i32 = self.col as i32;
-                match self.shape {
-                    Row => unsafe {
-                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
-                    },
-                    Col => unsafe {
-                        dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
-                    },
-                }
-                matrix(y, self.row, 1, self.shape)
-            }
-            _ => self.mul(other.to_matrix()),
-        }
+    fn mul(self, other: Vec<f64>) -> Self::Output {
+        self.apply(&other)
     }
 }
 
 #[allow(non_snake_case)]
-impl<'a, 'b> Mul<&'b Vector> for &'a Matrix {
-    type Output = Matrix;
+impl<'a, 'b> Mul<&'b Vec<f64>> for &'a Matrix {
+    type Output = Vec<f64>;
 
-    fn mul(self, other: &'b Vector) -> Self::Output {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let x = other;
-                let mut y = vec![0f64; self.row];
-                let A = &self.data;
-                let m_i32 = self.row as i32;
-                let n_i32 = self.col as i32;
-                match self.shape {
-                    Row => unsafe {
-                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
-                    },
-                    Col => unsafe {
-                        dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
-                    },
-                }
-                matrix(y, self.row, 1, self.shape)
-            }
-            _ => self.mul(&other.to_matrix()),
-        }
+    fn mul(self, other: &'b Vec<f64>) -> Self::Output {
+        self.apply(other)
     }
 }
 
-/// Matrix multiplication for Vector vs Matrix
+/// Matrix multiplication for Vec<f64> vs Matrix
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;4;1, 2, 2, Row);
-/// let v = c!(1,2);
-/// assert_eq!(v * a, matrix(c!(7,10),1,2,Row));
+/// fn main() {
+///     let a = matrix!(1;4;1, 2, 2, Row);
+///     let v = c!(1,2);
+///     assert_eq!(v * a, c!(7, 10));
+/// }
 /// ```
-impl Mul<Matrix> for Vector {
-    type Output = Matrix;
+impl Mul<Matrix> for Vec<f64> {
+    type Output = Vec<f64>;
 
     fn mul(self, other: Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
-        let l = self.len();
-        matrix(self, 1, l, Col).mul(other)
+        let mut c = vec![0f64; other.col];
+        gevm(1f64, &self, &other, 0f64, &mut c);
+        c
     }
 }
 
-impl<'a, 'b> Mul<&'b Matrix> for &'a Vector {
-    type Output = Matrix;
+impl<'a, 'b> Mul<&'b Matrix> for &'a Vec<f64> {
+    type Output = Vec<f64>;
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
-        let l = self.len();
-        matrix(self.clone(), 1, l, Col).mul(other.clone())
+        let mut c = vec![0f64; other.col];
+        gevm(1f64, self, other, 0f64, &mut c);
+        c
     }
 }
 
@@ -2018,7 +2142,7 @@ impl<'a> Div<usize> for &'a Matrix {
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4],2,2,Row);
 /// assert_eq!(a[(0,1)], 2f64);
@@ -2052,12 +2176,15 @@ impl Index<(usize, usize)> for Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let mut a = matrix!(1;4;1, 2, 2, Row);
-/// a[(1,1)] = 10.0;
-/// assert_eq!(a, matrix(c!(1,2,3,10), 2, 2, Row));
+/// fn main() {
+///     let mut a = matrix!(1;4;1, 2, 2, Row);
+///     a[(1,1)] = 10.0;
+///     assert_eq!(a, matrix(c!(1,2,3,10), 2, 2, Row));
+/// }
 /// ```
 impl IndexMut<(usize, usize)> for Matrix {
     fn index_mut(&mut self, pair: (usize, usize)) -> &mut f64 {
@@ -2087,36 +2214,8 @@ impl IndexMut<(usize, usize)> for Matrix {
 // =============================================================================
 // Functional Programming Tools (Hand-written)
 // =============================================================================
-pub trait FP {
-    fn take_row(&self, n: usize) -> Matrix;
-    fn take_col(&self, n: usize) -> Matrix;
-    fn skip_row(&self, n: usize) -> Matrix;
-    fn skip_col(&self, n: usize) -> Matrix;
-    fn fmap<F>(&self, f: F) -> Matrix
-    where
-        F: Fn(f64) -> f64;
-    fn col_map<F>(&self, f: F) -> Matrix
-    where
-        F: Fn(Vec<f64>) -> Vec<f64>;
-    fn row_map<F>(&self, f: F) -> Matrix
-    where
-        F: Fn(Vec<f64>) -> Vec<f64>;
-    fn col_mut_map<F>(&mut self, f: F)
-    where
-        F: Fn(Vec<f64>) -> Vec<f64>;
-    fn row_mut_map<F>(&mut self, f: F)
-    where
-        F: Fn(Vec<f64>) -> Vec<f64>;
-    fn reduce<F, T>(&self, init: T, f: F) -> f64
-    where
-        F: Fn(f64, f64) -> f64,
-        T: convert::Into<f64>;
-    fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
-    where
-        F: Fn(f64, f64) -> f64;
-}
 
-impl FP for Matrix {
+impl FPMatrix for Matrix {
     fn take_row(&self, n: usize) -> Self {
         if n >= self.row {
             return self.clone();
@@ -2289,18 +2388,8 @@ impl FP for Matrix {
 // Linear Algebra
 // =============================================================================
 
-/// Norm Enum
-#[derive(Debug, Copy, Clone)]
-pub enum Norm {
-    Frobenius,
-    PQ(usize, usize),
-    One,
-    Infinity,
-}
-
 /// Linear algebra trait
 pub trait LinearAlgebra {
-    fn norm(&self, norm: Norm) -> f64;
     fn lu(&self) -> Option<PQLU>;
     fn qr(&self) -> QR;
     fn rref(&self) -> Matrix;
@@ -2324,7 +2413,7 @@ pub fn diag(n: usize) -> Matrix {
 /// # Usage
 /// ```rust
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// let a = ml_matrix("1 2;3 4");
 /// let pqlu = a.lu().unwrap();
@@ -2394,65 +2483,6 @@ impl QR {
 }
 
 impl LinearAlgebra for Matrix {
-    /// Matrix norm
-    ///
-    /// # Kinds
-    /// * `Frobenius` : Frobenius norm
-    /// * `PQ(usize, usize)` : L_pq norm
-    /// * `One` : 1-norm
-    /// * `Infinity` : Infinity norm
-    fn norm(&self, norm: Norm) -> f64 {
-        match norm {
-            Frobenius => {
-                let mut s = 0f64;
-                for i in 0..self.data.len() {
-                    s += self.data[i].powi(2);
-                }
-                s.sqrt()
-            }
-            PQ(p, q) => {
-                let mut s = 0f64;
-                for j in 0..self.col {
-                    let mut s_row = 0f64;
-                    for i in 0..self.row {
-                        s_row += self[(i, j)].powi(p as i32);
-                    }
-                    s += s_row.powf(q as f64 / (p as f64));
-                }
-                s.powf(1f64 / (q as f64))
-            }
-            One => {
-                let mut m = std::f64::MIN;
-                match self.shape {
-                    Row => self.change_shape().norm(One),
-                    Col => {
-                        for c in 0..self.col {
-                            let s = self.col(c).reduce(0f64, |x, y| x + y);
-                            if s > m {
-                                m = s;
-                            }
-                        }
-                        m
-                    }
-                }
-            }
-            Infinity => {
-                let mut m = std::f64::MIN;
-                let a = match self.shape {
-                    Row => self.clone(),
-                    Col => self.change_shape(),
-                };
-                for r in 0..a.row {
-                    let s = a.row(r).reduce(0f64, |x, y| x + y);
-                    if s > m {
-                        m = s;
-                    }
-                }
-                m
-            }
-        }
-    }
-
     /// LU Decomposition Implements (Complete Pivot)
     ///
     /// # Description
@@ -2467,16 +2497,19 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// let pqlu = a.lu().unwrap();
-    /// let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-    /// assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
-    /// assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
-    /// assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
-    /// assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+    /// fn main() {
+    ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    ///     let pqlu = a.lu().unwrap();
+    ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+    ///     assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
+    ///     assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+    ///     assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
+    ///     assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+    /// }
     /// ```
     fn lu(&self) -> Option<PQLU> {
         assert_eq!(self.col, self.row);
@@ -2626,8 +2659,8 @@ impl LinearAlgebra for Matrix {
             }
             for j in 0 .. result.row {
                 if j != r {
-                    let tmp1 = result.row(r).s_mul(result[(j, lead)]);
-                    let tmp2 = result.row(j).sub(&tmp1);
+                    let tmp1 = result.row(r).mul_scalar(result[(j, lead)]);
+                    let tmp2 = result.row(j).sub_vec(&tmp1);
                     result.subs_row(j, &tmp2);
                 }
             }
@@ -2640,11 +2673,14 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.det(), -2f64);
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.det(), -2f64);
+    /// }
     /// ```
     fn det(&self) -> f64 {
         assert_eq!(self.row, self.col);
@@ -2688,22 +2724,25 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix!(1;16;1, 4, 4, Row);
-    /// let (m1, m2, m3, m4) = a.block();
-    /// assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Row));
-    /// assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Row));
-    /// assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Row));
-    /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Row));
+    /// fn main() {
+    ///     let a = matrix!(1;16;1, 4, 4, Row);
+    ///     let (m1, m2, m3, m4) = a.block();
+    ///     assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Row));
+    ///     assert_eq!(m2, matrix(c!(3,4,7,8), 2, 2, Row));
+    ///     assert_eq!(m3, matrix(c!(9,10,13,14), 2, 2, Row));
+    ///     assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Row));
     ///
-    /// let b = matrix!(1;16;1, 4, 4, Col);
-    /// let (m1, m2, m3, m4) = b.block();
-    /// assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Col));
-    /// assert_eq!(m3, matrix(c!(3,4,7,8), 2, 2, Col));
-    /// assert_eq!(m2, matrix(c!(9,10,13,14), 2, 2, Col));
-    /// assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Col));
+    ///     let b = matrix!(1;16;1, 4, 4, Col);
+    ///     let (m1, m2, m3, m4) = b.block();
+    ///     assert_eq!(m1, matrix(c!(1,2,5,6), 2, 2, Col));
+    ///     assert_eq!(m3, matrix(c!(3,4,7,8), 2, 2, Col));
+    ///     assert_eq!(m2, matrix(c!(9,10,13,14), 2, 2, Col));
+    ///     assert_eq!(m4, matrix(c!(11,12,15,16), 2, 2, Col));
+    /// }
     /// ```
     fn block(&self) -> (Self, Self, Self, Self) {
         let r = self.row;
@@ -2749,16 +2788,19 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// // Non-singular
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+    /// fn main() {
+    ///     // Non-singular
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
     ///
-    /// // Singular
-    /// let b = matrix!(1;9;1, 3, 3, Row);
-    /// assert_eq!(b.inv(), None);
+    ///     // Singular
+    ///     let b = matrix!(1;9;1, 3, 3, Row);
+    ///     assert_eq!(b.inv(), None);
+    /// }
     /// ```
     fn inv(&self) -> Option<Self> {
         match () {
@@ -2792,14 +2834,17 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = matrix!(1;4;1, 2, 2, Row);
-    /// let inv_a = a.inv().unwrap();
-    /// let pse_a = a.pseudo_inv().unwrap();
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     let inv_a = a.inv().unwrap();
+    ///     let pse_a = a.pseudo_inv().unwrap();
     ///
-    /// assert_eq!(inv_a, pse_a); // Nearly equal
+    ///     assert_eq!(inv_a, pse_a); // Nearly equal
+    /// }
     /// ```
     fn pseudo_inv(&self) -> Option<Self> {
         let xt = self.t();
@@ -2834,6 +2879,75 @@ pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
     }
 }
 
+impl MutMatrix for Matrix {
+    unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64> {
+        assert!(idx < self.col, "Index out of range");
+        match self.shape {
+            Shape::Col => {
+                let mut v: Vec<*mut f64> = Vec::with_capacity(self.row);
+                v.set_len(self.row);
+                let start_idx = idx * self.row;
+                let p = self.mut_ptr();
+                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Row => {
+                let mut v: Vec<*mut f64> = Vec::with_capacity(self.row);
+                v.set_len(self.row);
+                let p = self.mut_ptr();
+                for i in 0 .. v.len() {
+                    v[i] = p.add(idx + i * self.col);
+                }
+                v
+            }
+        }
+    }
+
+    unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut f64> {
+        assert!(idx < self.row, "Index out of range");
+        match self.shape {
+            Shape::Row => {
+                let mut v: Vec<*mut f64> = Vec::with_capacity(self.col);
+                v.set_len(self.col);
+                let start_idx = idx * self.col;
+                let p = self.mut_ptr();
+                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Col => {
+                let mut v: Vec<*mut f64> = Vec::with_capacity(self.col);
+                v.set_len(self.col);
+                let p = self.mut_ptr();
+                for i in 0 .. v.len() {
+                    v[i] = p.add(idx + i * self.row);
+                }
+                v
+            }
+        }
+    }
+
+    unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
+        match shape {
+            Shape::Col => {
+                swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2))
+            }
+            Shape::Row => {
+                swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2))
+            }
+        }
+    }
+
+    unsafe fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>, shape: Shape) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j, shape)
+        }
+    }
+}
+
 // =============================================================================
 // Back-end Utils
 // =============================================================================
@@ -2842,18 +2956,21 @@ pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix!(1;16;1, 4, 4, Row);
-/// let (m1, m2, m3, m4) = a.block();
-/// let m = combine(m1,m2,m3,m4);
-/// assert_eq!(m, a);
+/// fn main() {
+///     let a = matrix!(1;16;1, 4, 4, Row);
+///     let (m1, m2, m3, m4) = a.block();
+///     let m = combine(m1,m2,m3,m4);
+///     assert_eq!(m, a);
 ///
-/// let b = matrix!(1;16;1, 4, 4, Col);
-/// let (n1, n2, n3, n4) = b.block();
-/// let n = combine(n1,n2,n3,n4);
-/// assert_eq!(n, b);
+///     let b = matrix!(1;16;1, 4, 4, Col);
+///     let (n1, n2, n3, n4) = b.block();
+///     let n = combine(n1,n2,n3,n4);
+///     assert_eq!(n, b);
+/// }
 /// ```
 pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
     let l_r = m1.row;
@@ -2892,14 +3009,17 @@ pub fn combine(m1: Matrix, m2: Matrix, m3: Matrix, m4: Matrix) -> Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = matrix(c!(1,0,2,1), 2, 2, Row);
-/// assert_eq!(inv_l(a), matrix(c!(1,0,-2,1), 2, 2, Row));
+/// fn main() {
+///     let a = matrix(c!(1,0,2,1), 2, 2, Row);
+///     assert_eq!(inv_l(a), matrix(c!(1,0,-2,1), 2, 2, Row));
 ///
-/// let b = matrix(c!(1,0,0,2,1,0,4,3,1), 3, 3, Row);
-/// assert_eq!(inv_l(b), matrix(c!(1,0,0,-2,1,0,2,-3,1), 3, 3, Row));
+///     let b = matrix(c!(1,0,0,2,1,0,4,3,1), 3, 3, Row);
+///     assert_eq!(inv_l(b), matrix(c!(1,0,0,-2,1,0,2,-3,1), 3, 3, Row));
+/// }
 /// ```
 pub fn inv_l(l: Matrix) -> Matrix {
     let mut m = l.clone();
@@ -2927,11 +3047,14 @@ pub fn inv_l(l: Matrix) -> Matrix {
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let u = matrix(c!(2,2,0,1), 2, 2, Row);
-/// assert_eq!(inv_u(u), matrix(c!(0.5,-1,0,1), 2, 2, Row));
+/// fn main() {
+///     let u = matrix(c!(2,2,0,1), 2, 2, Row);
+///     assert_eq!(inv_u(u), matrix(c!(0.5,-1,0,1), 2, 2, Row));
+/// }
 /// ```
 pub fn inv_u(u: Matrix) -> Matrix {
     let mut w = u.clone();
@@ -2964,6 +3087,7 @@ pub fn inv_u(u: Matrix) -> Matrix {
     }
 }
 
+/// Matrix multiply back-ends
 fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
     let mut c = matrix(vec![0f64; a.row * b.col], a.row, b.col, a.shape);
     gemm(1f64, a, b, 0f64, &mut c);
@@ -2971,6 +3095,26 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
 }
 
 /// GEMM wrapper for Matrixmultiply
+///
+/// # Examples
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::prelude::*;
+///
+/// fn main() {
+///     let a = ml_matrix("1 2 3;4 5 6");
+///     let b = ml_matrix("1 2;3 4;5 6");
+///     let mut c1 = zeros(2, 2);
+///     let mut c2 = matrix(vec![1f64; 9], 3, 3, Col);
+///
+///     gemm(1f64, &a, &b, 0f64, &mut c1);
+///     gemm(1f64, &b, &a, 2f64, &mut c2);
+///
+///     assert_eq!(c1, ml_matrix("22 28; 49 64"));
+///     assert_eq!(c2, ml_matrix("11 14 17;21 28 35;31 42 53"));
+/// }
+/// ```
 pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     let m = a.row;
     let k = a.col;
@@ -3014,6 +3158,100 @@ pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
             csb,
             beta,
             c.mut_ptr(),
+            rsc,
+            csc,
+        )
+    }
+}
+
+/// General Matrix-Vector multiplication
+///
+/// # Example
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let a = ml_matrix("1 2 3; 4 5 6");
+///     let b = c!(1, 2, 3);
+///     let mut c = vec![0f64; 2];
+///     gemv(1f64, &a, &b, 0f64, &mut c);
+///     assert_eq!(c, c!(14, 32));
+/// }
+/// ```
+pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
+    let m = a.row;
+    let k = a.col;
+    let n = 1usize;
+    let (rsa, csa) = match a.shape {
+        Row => (a.col as isize, 1isize),
+        Col => (1isize, a.row as isize)
+    };
+    let (rsb, csb) = (1isize, 1isize);
+    let (rsc, csc) = (1isize, 1isize);
+
+    unsafe {
+        matrixmultiply::dgemm(
+            m,
+            k,
+            n,
+            alpha,
+            a.ptr(),
+            rsa,
+            csa,
+            b.as_ptr(),
+            rsb,
+            csb,
+            beta,
+            c.as_mut_ptr(),
+            rsc,
+            csc,
+        )
+    }
+}
+
+/// General Vector-Matrix multiplication
+///
+/// # Example
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let a = c!(1, 2);
+///     let b = ml_matrix("1 2 3; 4 5 6");
+///     let mut c = vec![0f64; 3];
+///     gevm(1f64, &a, &b, 0f64, &mut c);
+///     assert_eq!(c, c!(9, 12, 15));
+/// }
+/// ```
+pub fn gevm(alpha: f64, a: &Vec<f64>, b: &Matrix, beta: f64, c: &mut Vec<f64>) {
+    let m = 1usize;
+    let k = a.len();
+    let n = b.col;
+    let (rsa, csa) = (1isize, 1isize);
+    let (rsb, csb) = match b.shape {
+        Row => (b.col as isize, 1isize),
+        Col => (1isize, b.row as isize)
+    };
+    let (rsc, csc) = (1isize, 1isize);
+
+    unsafe {
+        matrixmultiply::dgemm(
+            m,
+            k,
+            n,
+            alpha,
+            a.as_ptr(),
+            rsa,
+            csa,
+            b.ptr(),
+            rsb,
+            csb,
+            beta,
+            c.as_mut_ptr(),
             rsc,
             csc,
         )
@@ -3345,7 +3583,7 @@ impl DGETRF {
         let A = &self.fact_mat;
         let lda = A.row as i32;
         let n = A.col as i32;
-        let anorm = A.norm(One);
+        let anorm = A.norm(Norm::L1);
         let mut work = vec![0f64; 4 * A.col];
         let mut iwork = vec![0i32; A.col];
         let mut info = 0i32;
@@ -3411,10 +3649,10 @@ impl DGEQRF {
 
 #[allow(non_snake_case)]
 pub fn gen_householder(a: &Vec<f64>) -> Matrix {
-    let mut v = a.fmap(|t| t / (a[0] + a.norm() * a[0].signum()));
+    let mut v = a.fmap(|t| t / (a[0] + a.norm(Norm::L2) * a[0].signum()));
     v[0] = 1f64;
     let mut H = eye(a.len());
-    let vt = v.to_matrix();
+    let vt: Matrix = v.clone().into();
     H = H - 2f64 / v.dot(&v) * (&vt * &vt.t());
     H
 }

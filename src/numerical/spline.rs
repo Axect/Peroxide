@@ -1,47 +1,51 @@
 use std::cmp::{max, min};
 use std::ops::{Index, Range};
-// For pow
-use operation::extra_ops::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::convert::{From, Into};
 #[allow(unused_imports)]
-use structure::matrix::*;
+use crate::structure::matrix::*;
 #[allow(unused_imports)]
-use structure::polynomial::*;
+use crate::structure::polynomial::*;
 #[allow(unused_imports)]
-use structure::vector::*;
+use crate::structure::vector::*;
 #[allow(unused_imports)]
-use util::non_macro::*;
+use crate::util::non_macro::*;
+use crate::traits::{
+    num::PowOps,
+};
 
 /// Cubic Spline (Natural)
 ///
 /// # Description
 ///
-/// Implement algorithm of Natural cubic splines, Arne Morten Kvarving.
+/// Implement traits of Natural cubic splines, Arne Morten Kvarving.
 ///
 /// # Type
-/// (Vector, Vector) -> Vec<Polynomial>
+/// (Vec<f64>, Vec<f64>) -> Vec<Polynomial>
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let x = c!(0.9, 1.3, 1.9, 2.1);
-/// let y = c!(1.3, 1.5, 1.85, 2.1);
+/// fn main() {
+///     let x = c!(0.9, 1.3, 1.9, 2.1);
+///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
-/// let s = cubic_spline(x, y);
+///     let s = cubic_spline(x, y);
 ///
-/// for i in 0 .. s.len() {
-///     s[i].print();
+///     for i in 0 .. s.len() {
+///         s[i].print();
+///     }
+///
+///     // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
+///     // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
+///     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
 /// }
-///
-/// // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
-/// // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
-/// // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
 /// ```
-pub fn cubic_spline(node_x: Vector, node_y: Vector) -> Vec<Polynomial> {
+pub fn cubic_spline(node_x: Vec<f64>, node_y: Vec<f64>) -> Vec<Polynomial> {
     let spline = CubicSpline::from_nodes(node_x, node_y);
     spline.into()
 }
@@ -56,26 +60,29 @@ pub struct CubicSpline {
 impl CubicSpline {
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let x = c!(0.9, 1.3, 1.9, 2.1);
-    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///
-    /// let s = CubicSpline::from_nodes(x, y);
+    ///     let s = CubicSpline::from_nodes(x, y);
     ///
-    /// for i in 0 .. 4 {
-    ///     println!("{}", s.eval(i as f64 / 2.0));
+    ///     for i in 0 .. 4 {
+    ///         println!("{}", s.eval(i as f64 / 2.0));
+    ///     }
     /// }
     /// ```
-    pub fn from_nodes(node_x: Vector, node_y: Vector) -> Self {
+    pub fn from_nodes(node_x: Vec<f64>, node_y: Vec<f64>) -> Self {
         let polynomials = CubicSpline::cubic_spline(&node_x, &node_y);
         CubicSpline {
             polynomials: CubicSpline::ranged(&node_x, polynomials),
         }
     }
 
-    fn ranged(node_x: &Vector, polynomials: Vec<Polynomial>) -> Vec<(Range<f64>, Polynomial)> {
+    fn ranged(node_x: &Vec<f64>, polynomials: Vec<Polynomial>) -> Vec<(Range<f64>, Polynomial)> {
         let len = node_x.len();
         polynomials
             .into_iter()
@@ -93,7 +100,7 @@ impl CubicSpline {
             .collect()
     }
 
-    fn cubic_spline(node_x: &Vector, node_y: &Vector) -> Vec<Polynomial> {
+    fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> Vec<Polynomial> {
         //! Pre calculated variables
         //! node_x: n+1
         //! node_y: n+1
@@ -132,9 +139,9 @@ impl CubicSpline {
         m[(n - 2, n - 2)] = v[n - 1];
 
         // Calculate z
-        let z_inner = m.inv().unwrap() * Vec::from(&u[1..]).to_matrix();
+        let z_inner = m.inv().unwrap() * Vec::from(&u[1..]);
         let mut z = vec![0f64];
-        z.extend(&z_inner.data);
+        z.extend(&z_inner);
         z.push(0f64);
 
         // Declare empty spline
@@ -167,15 +174,18 @@ impl CubicSpline {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let x = c!(0.9, 1.3, 1.9, 2.1);
-    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///
-    /// let s = CubicSpline::from_nodes(x, y);
+    ///     let s = CubicSpline::from_nodes(x, y);
     ///
-    /// s.eval(2.0);
+    ///     s.eval(2.0);
+    /// }
     /// ```
     pub fn eval<T>(&self, x: T) -> f64
     where
@@ -190,18 +200,21 @@ impl CubicSpline {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let x = c!(0.9, 1.3, 1.9, 2.1);
-    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///
-    /// let s = CubicSpline::from_nodes(x, y);
+    ///     let s = CubicSpline::from_nodes(x, y);
     ///
-    /// let p = s.polynomial(2.0);
-    /// let v = p.eval(1.9);
+    ///     let p = s.polynomial(2.0);
+    ///     let v = p.eval(1.9);
     ///
-    /// assert_eq!((v * 100.0).round() / 100.0, 1.85)
+    ///     assert_eq!((v * 100.0).round() / 100.0, 1.85)
+    /// }
     /// ```
     ///
     /// If `x` is outside of the range of polynomials, the first or last polynomial will be
@@ -229,7 +242,7 @@ impl CubicSpline {
         &self.polynomials[index].1
     }
 
-    pub fn extend_with_nodes(&mut self, node_x: Vector, node_y: Vector) {
+    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) {
         let mut ext_node_x = Vec::with_capacity(node_x.len() + 1);
         let mut ext_node_y = Vec::with_capacity(node_x.len() + 1);
 
@@ -252,15 +265,18 @@ impl CubicSpline {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///
-    /// let x = c!(0.9, 1.3, 1.9, 2.1);
-    /// let y = c!(1.3, 1.5, 1.85, 2.1);
+    ///     let s = CubicSpline::from_nodes(x, y);
     ///
-    /// let s = CubicSpline::from_nodes(x, y);
-    ///
-    /// assert_eq!(s.number_of_polynomials(), 3);
+    ///     assert_eq!(s.number_of_polynomials(), 3);
+    /// }
     /// ```
     pub fn number_of_polynomials(&self) -> usize {
         self.polynomials.len()

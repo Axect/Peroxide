@@ -1,16 +1,19 @@
-use operation::extra_ops::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
-use structure::matrix::*;
+use crate::structure::matrix::*;
 #[allow(unused_imports)]
-use structure::vector::*;
-use util::useful::*;
+use crate::structure::vector::*;
+use crate::util::useful::*;
 
 use std::cmp::{max, min};
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
+use crate::traits::{
+    fp::FPVector,
+    num::PowOps,
+};
 
 // =============================================================================
 // Polynomial Structure
@@ -20,18 +23,21 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polynomial {
-    pub coef: Vector,
+    pub coef: Vec<f64>,
 }
 
 /// Polynomial Print
 ///
 /// # Examples
 /// ```
+/// #[macro_use]
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
-/// let a = poly(c!(1,3,2));
-/// a.print(); //x^2 + 3x + 2
+/// fn main() {
+///     let a = poly(c!(1,3,2));
+///     a.print(); //x^2 + 3x + 2
+/// }
 /// ```
 impl fmt::Display for Polynomial {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -151,7 +157,7 @@ impl fmt::Display for Polynomial {
 
 impl Polynomial {
     /// Create Polynomial
-    pub fn new(coef: Vector) -> Self {
+    pub fn new(coef: Vec<f64>) -> Self {
         Self { coef }
     }
 
@@ -159,18 +165,21 @@ impl Polynomial {
     ///
     /// # Examples
     /// ```
+    /// #[macro_use]
     /// extern crate peroxide;
-    /// use peroxide::*;
+    /// use peroxide::fuga::*;
     ///
-    /// let a = poly(c!(1,3,2));
-    /// assert_eq!(a.eval(1), 6_f64);
+    /// fn main() {
+    ///     let a = poly(c!(1,3,2));
+    ///     assert_eq!(a.eval(1), 6_f64);
     ///
-    /// let b = poly(c!(1, 1, -2, -2));
-    /// let x = 2_f64.sqrt();
-    /// let horner_evaluation = b.eval(x);
-    /// let naive_evaluation = x.powf(3.0) + x.powf(2.0) - 2.0*x - 2.0;
-    /// assert_eq!(horner_evaluation, 0_f64);
-    /// assert_ne!(naive_evaluation, horner_evaluation);
+    ///     let b = poly(c!(1, 1, -2, -2));
+    ///     let x = 2_f64.sqrt();
+    ///     let horner_evaluation = b.eval(x);
+    ///     let naive_evaluation = x.powf(3.0) + x.powf(2.0) - 2.0*x - 2.0;
+    ///     assert_eq!(horner_evaluation, 0_f64);
+    ///     assert_ne!(naive_evaluation, horner_evaluation);
+    /// }
     /// ```
     pub fn eval<T>(&self, x: T) -> f64
     where
@@ -184,13 +193,13 @@ impl Polynomial {
         s
     }
 
-    pub fn eval_vec(&self, v: Vector) -> Vector {
+    pub fn eval_vec(&self, v: Vec<f64>) -> Vec<f64> {
         v.fmap(|t| self.eval(t))
     }
 }
 
 /// Convenient to declare polynomial
-pub fn poly(coef: Vector) -> Polynomial {
+pub fn poly(coef: Vec<f64>) -> Polynomial {
     Polynomial::new(coef)
 }
 
@@ -207,7 +216,7 @@ impl Neg for Polynomial {
                 .clone()
                 .into_iter()
                 .map(|x| -x)
-                .collect::<Vector>(),
+                .collect::<Vec<f64>>(),
         )
     }
 }
@@ -271,7 +280,7 @@ where
             self.coef
                 .into_iter()
                 .map(|x| x * other.into())
-                .collect::<Vector>(),
+                .collect::<Vec<f64>>(),
         )
     }
 }
@@ -324,7 +333,7 @@ impl Div<Polynomial> for Polynomial {
         assert!(l1 >= l2);
 
         let mut temp = self.clone();
-        let mut quot_vec: Vector = Vec::new();
+        let mut quot_vec: Vec<f64> = Vec::new();
         let denom = other.coef[0];
 
         while temp.coef.len() >= l2 {
@@ -449,7 +458,7 @@ impl Calculus for Polynomial {
 // =============================================================================
 // Useful Polynomial
 // =============================================================================
-pub fn lagrange_polynomial(node_x: Vector, node_y: Vector) -> Polynomial {
+pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
     let mut result = Polynomial::new(vec![0f64; l]);

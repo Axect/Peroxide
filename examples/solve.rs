@@ -1,5 +1,5 @@
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let a = ml_matrix("1 -1; 1 1");

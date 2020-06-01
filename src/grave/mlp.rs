@@ -1,5 +1,5 @@
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 // x : n x L
 // xb: n x (L+1)

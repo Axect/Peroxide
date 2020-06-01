@@ -1,5 +1,5 @@
 extern crate peroxide;
-use peroxide::*;
+use peroxide::fuga::*;
 
 fn main() {
     let eps: f64 = 1f64;

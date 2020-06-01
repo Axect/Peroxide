@@ -5,7 +5,8 @@
 #[cfg(feature = "O3")]
 use lapack::{dsytrd, dorgtr, dsteqr};
 
-use ::{Matrix, eye_shape};
+use crate::structure::matrix::Matrix;
+use crate::util::non_macro::eye_shape;
 use std::f64::EPSILON;
 pub use self::EigenMethod::*;
 
@@ -81,7 +82,7 @@ impl JacobiTemp {
         }
     }
 
-    /// Main Jacobi algorithm
+    /// Main Jacobi traits
     ///
     /// * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
     pub fn iter(&mut self) {

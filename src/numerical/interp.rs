@@ -1,13 +1,10 @@
 #[allow(unused_imports)]
-use structure::polynomial::*;
-use structure::vector::*;
+use crate::structure::polynomial::*;
 
 use std::convert::Into;
 use std::f64::consts::PI;
 
-
-
-pub fn chebyshev_nodes<T>(num: usize, start: T, end: T) -> Vector
+pub fn chebyshev_nodes<T>(num: usize, start: T, end: T) -> Vec<f64>
 where
     T: Into<f64> + Copy,
 {

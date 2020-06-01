@@ -11,7 +11,6 @@
 //!         * QR Decomposition
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
-//!     * [Redox](redox/index.html) for convenient Vector operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms 
 //! * Statistics
 //!     * [Statistical operations](statistics/stat/index.html)
@@ -38,8 +37,8 @@
 //!     * [Interpolation](numerical/interp/index.html)
 //!     * [Spline](numerical/spline/index.html)
 //!     * [Polynomial](structure/polynomial/index.html)
-//!     * [Gauss-Legendre Quadrature](special/legendre/fn.gauss_legendre_quadrature.html)
 //!     * [Lanczos Approximation](special/lanczos/index.html)
+//!     * [Numerical Integrations](numerical/integral/index.html)
 //! * [Optimization](numerical/optimize/index.html)
 //!     * Gradient Descent
 //!     * Levenberg-Marquardt
@@ -59,62 +58,93 @@
 //!     * [Matlab macros](macros/matlab_macro/index.html)
 //!     * [Julia macros](macros/julia_macro/index.html)
 //!
+//! And all these things are built on mathematical traits.
+//! 
+//! * Traits
+//!     * [Functional Programming tools](traits/fp/index.html)
+//!     * [General algorithms](traits/general/index.html)
+//!     * [Mathematics](traits/math/index.html)
+//!     * [Mutable tools](traits/mutable/index.html)
+//!     * [Number & Real](traits/num/index.html)
+//!     * [Pointer](traits/pointer/index.html)
+//! 
 //! ## Quick Start
 //!
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.21.4`
+//! * Current document version is corresponding to `0.23.0`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.21"
+//!     peroxide = "0.23"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```
 //!
 //! ## Import all at once
 //!
-//! * You can import all functions & structures at once
+//! Peroxide has two options.
+//! 
+//! * [`prelude`](prelude/inde.html) : To simple use
+//! * [`fuga`](fuga/index.html) : To control numerical algorithms
+//! 
+//! To see differences, follow above two links.
+//! 
+//! You can import all functions & structures at once
 //!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::*;
-//!
-//!     fn main() {
-//!         //Some codes...
-//!     }
-//!     ```
+//! * `prelude`
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! 
+//! fn main() {
+//!     // Write what you want
+//! }
+//! ```
+//! 
+//! * `fuga`
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! fn main() {
+//!     // Write what you want
+//! }
+//! ```
 //!
 //! ## Useful tips for features
 //!
+//! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
 //! * After `0.21.4`, if size of matrix is smaller than `1000 x 1000`, default is more effective than `O3` feature.
 //! * To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
 //!     * `plot` feature has limited plot abilities.
@@ -152,131 +182,15 @@ extern crate puruspe;
 
 extern crate matrixmultiply;
 
-pub mod statistics;
-pub mod structure;
 #[macro_use]
 pub mod macros;
+
+pub mod statistics;
+pub mod structure;
 pub mod ml;
 pub mod numerical;
-pub mod operation;
-pub mod redox;
 pub mod special;
 pub mod util;
-
-#[allow(unused_imports)]
-pub use macros::{julia_macro::*, matlab_macro::*, r_macro::*};
-
-#[allow(unused_imports)]
-pub use structure::matrix::*;
-
-#[allow(unused_imports)]
-pub use structure::vector::*;
-
-#[allow(unused_imports)]
-pub use statistics::stat::*;
-
-#[allow(unused_imports)]
-pub use macros::r_macro::*;
-
-#[allow(unused_imports)]
-pub use macros::matlab_macro::*;
-
-#[allow(unused_imports)]
-pub use macros::julia_macro::*;
-
-#[allow(unused_imports)]
-pub use statistics::rand::*;
-
-#[allow(unused_imports)]
-pub use util::print::*;
-
-#[allow(unused_imports)]
-pub use util::non_macro::*;
-
-#[allow(unused_imports)]
-pub use structure::polynomial::*;
-
-#[allow(unused_imports)]
-pub use numerical::interp::*;
-
-#[allow(unused_imports)]
-pub use numerical::spline::*;
-
-#[allow(unused_imports)]
-pub use ml::reg::*;
-
-#[allow(unused_imports)]
-pub use structure::dual::*;
-
-#[allow(unused_imports)]
-pub use operation::extra_ops::*;
-
-#[allow(unused_imports)]
-pub use util::useful::*;
-
-#[allow(unused_imports)]
-pub use structure::multinomial::*;
-
-#[allow(unused_imports)]
-pub use numerical::utils::*;
-
-//#[allow(unused_imports)]
-//pub use numerical::newton::*;
-
-//#[allow(unused_imports)]
-//pub use numerical::bdf::*;
-
-#[allow(unused_imports)]
-pub use util::api::*;
-
-//#[allow(unused_imports)]
-//pub use numerical::gauss_legendre::*;
-
-#[allow(unused_imports)]
-pub use statistics::dist::*;
-
-#[allow(unused_imports)]
-pub use special::function::*;
-
-#[allow(unused_imports)]
-pub use statistics::ops::*;
-
-#[allow(unused_imports)]
-pub use structure::hyper_dual::*;
-
-#[allow(unused_imports)]
-pub use util::writer::*;
-
-#[allow(unused_imports)]
-pub use operation::mut_ops::*;
-
-#[allow(unused_imports)]
-pub use numerical::ode::*;
-
-#[allow(unused_imports)]
-pub use operation::number::*;
-
-#[allow(unused_imports)]
-#[cfg(feature = "plot")]
-pub use util::plot::*;
-
-#[allow(unused_imports)]
-pub use numerical::optimize::*;
-
-#[allow(unused_imports)]
-pub use redox::redoxable::*;
-
-#[allow(unused_imports)]
-pub use util::low_level::*;
-
-#[allow(unused_imports)]
-#[cfg(feature = "dataframe")]
-pub use structure::dataframe::*;
-
-pub use numerical::eigen::*;
-
-pub use operation::raw_ops::*;
-
-pub use util::wrapper::*;
-
-pub use numerical::integral::*;
+pub mod traits;
+pub mod fuga;
+pub mod prelude;

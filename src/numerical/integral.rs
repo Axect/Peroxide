@@ -2,9 +2,8 @@ use crate::structure::polynomial::{
     lagrange_polynomial,
     Calculus,
 };
-use crate::structure::vector::FPVector;
+use crate::traits::fp::FPVector;
 use crate::util::non_macro::seq;
-pub use Integral::{GaussLegendre, NewtonCotes};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Integral {
@@ -31,7 +30,6 @@ where F: Fn(f64) -> f64
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
-        _ => unimplemented!()
     }
 }
 

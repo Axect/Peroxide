@@ -3,8 +3,6 @@
 use std::convert;
 use std::f64::MAX;
 
-type Vector = Vec<f64>;
-
 // =============================================================================
 // Fundamental Utils
 // =============================================================================
@@ -14,7 +12,7 @@ type Vector = Vec<f64>;
 /// # Examples
 /// ```
 /// extern crate peroxide;
-/// use peroxide::*;
+/// use peroxide::fuga::*;
 ///
 /// assert!(nearly_eq(1.0/3.0 * 3.0, 1));
 /// ```
@@ -59,7 +57,7 @@ pub fn choose_shorter_string(x1: String, x2: String) -> String {
     }
 }
 
-pub fn choose_shorter_vec(x1: &Vector, x2: &Vector) -> Vector {
+pub fn choose_shorter_vec(x1: &Vec<f64>, x2: &Vec<f64>) -> Vec<f64> {
     if x1.len() > x2.len() {
         x2.clone()
     } else {
@@ -67,7 +65,7 @@ pub fn choose_shorter_vec(x1: &Vector, x2: &Vector) -> Vector {
     }
 }
 
-pub fn choose_longer_vec(x1: &Vector, x2: &Vector) -> Vector {
+pub fn choose_longer_vec(x1: &Vec<f64>, x2: &Vec<f64>) -> Vec<f64> {
     if x1.len() <= x2.len() {
         x2.clone()
     } else {

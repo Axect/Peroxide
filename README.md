@@ -42,8 +42,9 @@ With peroxide, you can do heavy computations with R, Numpy, MATLAB like syntax.
 For example,
 
 ```rust
+#[macro_use]
 extern crate peroxide;
-use peroxide::*;
+use peroxide::prelude::*;
 
 fn main() {
     // MATLAB like matrix constructor
@@ -76,7 +77,47 @@ fn main() {
 }
 ```
 
-### 4. Batteries included
+### 4. Can choose two different coding styles.
+
+In peroxide, there are two different options.
+
+* `prelude`: To simple use.
+* `fuga`: To choose numerical algorithms explicitly.
+
+For examples, let's see norm.
+
+In `prelude`, use `norm` is simple: `a.norm()`. But it only uses L2 norm for `Vec<f64>`. (For `Matrix`, Frobenius norm.)
+```
+#[macro_use]
+extern crate peroxide;
+use peroxide::prelude::*;
+
+fn main() {
+    let a = c!(1, 2, 3);
+    let l2 = a.norm();      // L2 is default vector norm
+    
+    assert_eq!(l2, 14f64.sqrt());
+}
+```
+
+In `fuga`, use various norms. But you should write longer than `prelude`.
+```
+#[macro_use]
+extern crate peroxide;
+use peroxide::fuga::*;
+   
+fn main() {
+    let a = c!(1, 2, 3);
+    let l1 = a.norm(Norm::L1);
+    let l2 = a.norm(Norm::L2);
+    let l_inf = a.norm(Norm::LInf);
+    assert_eq!(l1, 6f64);
+    assert_eq!(l2, 14f64.sqrt());
+    assert_eq!(l_inf, 3f64);
+}
+```
+
+### 5. Batteries included
 
 Peroxide can do many things. 
 
@@ -145,7 +186,14 @@ Peroxide can do many things.
     * Read & Write `csv` files
     * Read & Write `netcdf` files
 
-### 5. Written in Rust
+### 6. Compatible with Mathematics
+
+After `0.23.0`, peroxide is compatible with mathematical structures.
+`Matrix`, `Vec<f64>`, `f64` are considered as inner product vector spaces.
+And `Matrix`, `Vec<f64>` are linear operators - `Vec<f64>` to `Vec<f64>` and `Vec<f64>` to `f64`.
+For future, peroxide will include more & more mathematical concepts. (But still practical.)
+
+### 7. Written in Rust
 
 Rust & Cargo are awesome for scientific computations. 
 You can use any external packages easily with Cargo, not make.
@@ -154,7 +202,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.21.7`
+Corresponding to `0.23.0`
 
 ## Pre-requisite
 
@@ -169,33 +217,33 @@ Corresponding to `0.21.7`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.21"
+   peroxide = "0.23"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.21"
+   version = "0.23"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.21"
+   version = "0.23"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.21"
+   version = "0.23"
    default-features = false
    features = ["dataframe"]
    ```
 4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.21"
+   version = "0.23"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```
@@ -211,6 +259,8 @@ Corresponding to `0.21.7`
 
 - __src__
   - [lib.rs](src/lib.rs) : `mod` and `re-export`
+  - __fuga__ : Fuga for controlling numerical algorithms.
+    - [mod.rs](src/fuga/mod.rs)
   - __macros__ : Macro files
     - [julia_macro.rs](src/macros/julia_macro.rs) : Julia like macro
     - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
@@ -229,15 +279,10 @@ Corresponding to `0.21.7`
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
     - [spline.rs](src/numerical/spline.rs) : Natural Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
-  - __operation__ : To define general operations
-    - [extra_ops.rs](src/operation/extra_ops.rs) : Missing operations & Real Trait
-    - [mut_ops.rs](src/operation/mut_ops.rs) : Mutable operations
-    - [mod.rs](src/operation/mod.rs)
-    - [number.rs](src/operation/number.rs) : Number type (include `f64`, `Dual`)
-  - __redox__ : Smart pointer of `Vec<f64>`
-    - [mod.rs](src/redox/mod.rs)
-    - [redoxable.rs](src/redox/redoxable.rs)
-  - __special__ : Special functions written in pure Rust
+  - __prelude__ : Prelude for using simple
+    - [mod.rs](src/prelude/mod.rs)
+    - [simpler.rs](src/prelude/simpler.rs) : Provides more simple api
+  - __special__ : Special functions written in pure Rust (Wrapper of `puruspe`)
     - [mod.rs](src/special/mod.rs)
     - [function.rs](src/special/function.rs) : Special functions
   - __statistics__ : Statistical Tools
@@ -254,10 +299,21 @@ Corresponding to `0.21.7`
     - [multinomial.rs](src/structure/multinomial.rs) : For multinomial (*Beta*)
     - [mod.rs](src/structure/mod.rs)
     - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
+    - [sparse.rs](src/structure/sparse.rs) : For sparse structure (*Beta*)
     - [vector.rs](src/structure/vector.rs) : Extra tools for `Vec<f64>`
+  - __traits__
+    - [fp.rs](src/traits/fp.rs) : Functional programming toolbox
+    - [general.rs](src/traits/general.rs) : General algorithms
+    - [math.rs](src/traits/math.rs) : Mathematics
+    - [mod.rs](src/traits/mod.rs)
+    - [mutable.rs](src/traits/mutable.rs) : Mutable toolbox
+    - [num.rs](src/traits/num.rs) : Number, Real and more operations
+    - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience
   - __util__
     - [mod.rs](src/util/mod.rs)
-    - [api.rs](src/util/api.rs) : Matrix constructor for various language style 
+    - [api.rs](src/util/api.rs) : Matrix constructor for various language style
+    - [low_level.rs](src/util/low_level.rs) : Low-level tools
+    - [mod.rs](src/util/mod.rs)
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
     - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
     - [print.rs](src/util/print.rs) : To print conveniently

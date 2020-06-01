@@ -1,12 +1,12 @@
 use std::fmt;
 #[allow(unused_imports)]
-use structure::matrix::*;
-use structure::vector::*;
-use util::useful::*;
+use crate::structure::matrix::*;
+use crate::util::useful::*;
+use crate::traits::math::InnerProduct;
 
 #[derive(Debug, Clone)]
 pub struct Multinomial {
-    coef: Vector,
+    coef: Vec<f64>,
 }
 
 impl fmt::Display for Multinomial {
@@ -47,11 +47,11 @@ impl fmt::Display for Multinomial {
 }
 
 impl Multinomial {
-    pub fn new(coef: Vector) -> Self {
+    pub fn new(coef: Vec<f64>) -> Self {
         Self { coef }
     }
 
-    pub fn eval(&self, values: &Vector) -> f64 {
+    pub fn eval(&self, values: &Vec<f64>) -> f64 {
         self.coef.dot(values)
     }
 }
