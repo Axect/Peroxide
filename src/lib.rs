@@ -11,7 +11,6 @@
 //!         * QR Decomposition
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
-//!     * [Redox](redox/index.html) for convenient Vector operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms 
 //! * Statistics
 //!     * [Statistical operations](statistics/stat/index.html)
@@ -59,62 +58,93 @@
 //!     * [Matlab macros](macros/matlab_macro/index.html)
 //!     * [Julia macros](macros/julia_macro/index.html)
 //!
+//! And all these things are built on mathematical traits.
+//! 
+//! * Traits
+//!     * [Functional Programming tools](traits/fp/index.html)
+//!     * [General algorithms](traits/general/index.html)
+//!     * [Mathematics](traits/math/index.html)
+//!     * [Mutable tools](traits/mutable/index.html)
+//!     * [Number & Real](traits/num/index.html)
+//!     * [Pointer](traits/pointer/index.html)
+//! 
 //! ## Quick Start
 //!
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.21.4`
+//! * Current document version is corresponding to `0.23.0`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.21"
+//!     peroxide = "0.23"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.21"
+//!     version = "0.23"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```
 //!
 //! ## Import all at once
 //!
-//! * You can import all functions & structures at once
+//! Peroxide has two options.
+//! 
+//! * [`prelude`](prelude/inde.html) : To simple use
+//! * [`fuga`](fuga/index.html) : To control numerical algorithms
+//! 
+//! To see differences, follow above two links.
+//! 
+//! You can import all functions & structures at once
 //!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::fuga::*;
-//!
-//!     fn main() {
-//!         //Some codes...
-//!     }
-//!     ```
+//! * `prelude`
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//! 
+//! fn main() {
+//!     // Write what you want
+//! }
+//! ```
+//! 
+//! * `fuga`
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! fn main() {
+//!     // Write what you want
+//! }
+//! ```
 //!
 //! ## Useful tips for features
 //!
+//! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
 //! * After `0.21.4`, if size of matrix is smaller than `1000 x 1000`, default is more effective than `O3` feature.
 //! * To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
 //!     * `plot` feature has limited plot abilities.
