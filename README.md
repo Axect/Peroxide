@@ -87,7 +87,7 @@ In peroxide, there are two different options.
 For examples, let's see norm.
 
 In `prelude`, use `norm` is simple: `a.norm()`. But it only uses L2 norm for `Vec<f64>`. (For `Matrix`, Frobenius norm.)
-```
+```rust
 #[macro_use]
 extern crate peroxide;
 use peroxide::prelude::*;
@@ -101,7 +101,7 @@ fn main() {
 ```
 
 In `fuga`, use various norms. But you should write longer than `prelude`.
-```
+```rust
 #[macro_use]
 extern crate peroxide;
 use peroxide::fuga::*;
