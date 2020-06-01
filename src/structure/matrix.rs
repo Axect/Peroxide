@@ -2013,26 +2013,28 @@ impl<'a, 'b> Mul<&'b Vec<f64>> for &'a Matrix {
 /// fn main() {
 ///     let a = matrix!(1;4;1, 2, 2, Row);
 ///     let v = c!(1,2);
-///     assert_eq!(v * a, matrix(c!(7,10),1,2,Row));
+///     assert_eq!(v * a, c!(7, 10));
 /// }
 /// ```
 impl Mul<Matrix> for Vec<f64> {
-    type Output = Matrix;
+    type Output = Vec<f64>;
 
     fn mul(self, other: Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
-        let l = self.len();
-        matrix(self, 1, l, Col).mul(other)
+        let mut c = vec![0f64; other.col];
+        gevm(1f64, &self, &other, 0f64, &mut c);
+        c
     }
 }
 
 impl<'a, 'b> Mul<&'b Matrix> for &'a Vec<f64> {
-    type Output = Matrix;
+    type Output = Vec<f64>;
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
         assert_eq!(self.len(), other.row);
-        let l = self.len();
-        matrix(self.clone(), 1, l, Col).mul(other.clone())
+        let mut c = vec![0f64; other.col];
+        gevm(1f64, self, other, 0f64, &mut c);
+        c
     }
 }
 
@@ -3093,6 +3095,26 @@ fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
 }
 
 /// GEMM wrapper for Matrixmultiply
+///
+/// # Examples
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::prelude::*;
+///
+/// fn main() {
+///     let a = ml_matrix("1 2 3;4 5 6");
+///     let b = ml_matrix("1 2;3 4;5 6");
+///     let mut c1 = zeros(2, 2);
+///     let mut c2 = matrix(vec![1f64; 9], 3, 3, Col);
+///
+///     gemm(1f64, &a, &b, 0f64, &mut c1);
+///     gemm(1f64, &b, &a, 2f64, &mut c2);
+///
+///     assert_eq!(c1, ml_matrix("22 28; 49 64"));
+///     assert_eq!(c2, ml_matrix("11 14 17;21 28 35;31 42 53"));
+/// }
+/// ```
 pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     let m = a.row;
     let k = a.col;
@@ -3142,7 +3164,22 @@ pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     }
 }
 
-/// GEMV
+/// General Matrix-Vector multiplication
+///
+/// # Example
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let a = ml_matrix("1 2 3; 4 5 6");
+///     let b = c!(1, 2, 3);
+///     let mut c = vec![0f64; 2];
+///     gemv(1f64, &a, &b, 0f64, &mut c);
+///     assert_eq!(c, c!(14, 32));
+/// }
+/// ```
 pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
     let m = a.row;
     let k = a.col;
@@ -3164,6 +3201,53 @@ pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
             rsa,
             csa,
             b.as_ptr(),
+            rsb,
+            csb,
+            beta,
+            c.as_mut_ptr(),
+            rsc,
+            csc,
+        )
+    }
+}
+
+/// General Vector-Matrix multiplication
+///
+/// # Example
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let a = c!(1, 2);
+///     let b = ml_matrix("1 2 3; 4 5 6");
+///     let mut c = vec![0f64; 3];
+///     gevm(1f64, &a, &b, 0f64, &mut c);
+///     assert_eq!(c, c!(9, 12, 15));
+/// }
+/// ```
+pub fn gevm(alpha: f64, a: &Vec<f64>, b: &Matrix, beta: f64, c: &mut Vec<f64>) {
+    let m = 1usize;
+    let k = a.len();
+    let n = b.col;
+    let (rsa, csa) = (1isize, 1isize);
+    let (rsb, csb) = match b.shape {
+        Row => (b.col as isize, 1isize),
+        Col => (1isize, b.row as isize)
+    };
+    let (rsc, csc) = (1isize, 1isize);
+
+    unsafe {
+        matrixmultiply::dgemm(
+            m,
+            k,
+            n,
+            alpha,
+            a.as_ptr(),
+            rsa,
+            csa,
+            b.ptr(),
             rsb,
             csb,
             beta,

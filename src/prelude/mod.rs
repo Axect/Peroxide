@@ -87,7 +87,7 @@ pub use crate::traits::{
     mutable::{MutFP, MutMatrix},
     general::Algorithm,
     num::{PowOps, ExpLogOps, TrigOps, Real, Number, NumberVector},
-    raw::RawMatrix,
+    pointer::{Redox, Oxide, MatrixPtr},
 };
 
 pub use simpler::SimpleNorm;

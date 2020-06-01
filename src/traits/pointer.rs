@@ -1,9 +1,55 @@
+//! Pointer toolbox
+//!
+//! # Redox
+//!
+//! ## Type
+//! ```ignore
+//! pub struct Redox<T: Vector> {
+//!     data: Box<T>
+//! }
+//! ```
+//!
+//! ## Description
+//!
+//! Operation with `Vec<_>` is too bothered. For example, next code generates error.
+//! ```compile_fail
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//!
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     assert_eq!(a * 2f64 - 1f64, c!(1, 3, 5));
+//! }
+//! ```
+//!
+//! Because we can't implement `Mul<Vec<f64>> for f64` and vice versa.
+//! `Redox<T: Vector>` makes the situation easy.
+//!
+//! ## Usage
+//!
+//! * `ox()`: `Vector` to `Redox<T: Vector>`
+//! * `red()`: `Redox<T: Vector>` to `T` (Ofcourse, `T` should be sized)
+//!
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     assert_eq!((a.ox() * 2f64 - 1f64).red(), c!(1, 3, 5));
+//! }
+//! ```
+//!
+//! `ox()` and `red()` come from oxidation and reduction.
 use crate::traits::{
-    math::Vector,
+    math::{Vector, LinearOp},
     fp::FPVector,
 };
 use std::ops::{Add, Deref, Sub, Mul, Div};
 use crate::structure::dual::Dual;
+use crate::structure::matrix::{Matrix, Shape};
 
 // =============================================================================
 // Redox Structure
@@ -53,7 +99,7 @@ pub trait Oxide: Vector {
 }
 
 // =============================================================================
-// Reference Arithmetics
+// Reference Arithmetic
 // =============================================================================
 
 impl<T: Vector> Add<Redox<T>> for Redox<T> {
@@ -150,6 +196,94 @@ where
     fn div(self, rhs: f64) -> Self::Output {
         Redox {
             data: Box::new(self.fmap(|x| x / rhs))
+        }
+    }
+}
+
+impl Mul<Redox<Vec<f64>>> for Matrix {
+    type Output = Redox<Vec<f64>>;
+
+    fn mul(self, rhs: Redox<Vec<f64>>) -> Self::Output {
+        Redox {
+            data: Box::new(self.apply(&*rhs))
+        }
+    }
+}
+
+// =============================================================================
+// Pointer for Matrix
+// =============================================================================
+/// Pointer for col or row
+pub trait MatrixPtr {
+    unsafe fn row_ptr(&self, idx: usize) -> Vec<*const f64>;
+    unsafe fn col_ptr(&self, idx: usize) -> Vec<*const f64>;
+}
+
+impl MatrixPtr for Matrix {
+    /// Row pointer
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("1 2;3 4");
+    ///     unsafe {
+    ///         let b = a.row_ptr(1);
+    ///         let b_vec = ptr_to_vec(&b);
+    ///         assert_eq!(b_vec, vec![3f64, 4f64]);
+    ///     }
+    /// }
+    /// ```
+    unsafe fn row_ptr(&self, idx: usize) -> Vec<*const f64> {
+        assert!(idx < self.col, "Index out of range");
+        match self.shape {
+            Shape::Row => {
+                let mut v: Vec<*const f64> = Vec::with_capacity(self.col);
+                v.set_len(self.col);
+                let start_idx = idx * self.col;
+                let p = self.ptr();
+                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Col => {
+                let mut v: Vec<*const f64> = Vec::with_capacity(self.col);
+                v.set_len(self.col);
+                let p = self.ptr();
+                for (i, elem) in v.iter_mut().enumerate() {
+                    *elem = p.add(idx + i * self.row);
+                }
+                v
+            }
+        }
+    }
+
+    unsafe fn col_ptr(&self, idx: usize) -> Vec<*const f64> {
+        assert!(idx < self.col, "Index out of range");
+        match self.shape {
+            Shape::Col => {
+                let mut v: Vec<*const f64> = Vec::with_capacity(self.row);
+                v.set_len(self.row);
+                let start_idx = idx * self.row;
+                let p = self.ptr();
+                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Row => {
+                let mut v: Vec<*const f64> = Vec::with_capacity(self.row);
+                v.set_len(self.row);
+                let p = self.ptr();
+                for (i, elem) in v.iter_mut().enumerate() {
+                    *elem = p.add(idx + i * self.col);
+                }
+                v
+            }
         }
     }
 }

@@ -65,7 +65,28 @@
 //!
 //! ## Vec<f64> Operation
 //! 
-//! TBD
+//! There are two ways to do vector operations.
+//! 
+//! * Use functional programming tools
+//! * Use redox
+//! 
+//! Here, I explain second method - for functional programming, see below.
+//! 
+//! To use redox, you only need to understand two things - `ox()`, `red()`.
+//! 
+//! * `ox()` : Makes vector to `Redox<T: Vector>`
+//! * `red()` : Makes `Redox<T: Vector>` to vector.
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! fn main() {
+//!     let a = c!(1, 2, 3);
+//!     assert_eq!((a.ox() * 2f64 - 1f64).red(), c!(1f64, 3f64, 5f64));
+//! }
+//! ```
 //!
 //! ## Concatenation
 //!
