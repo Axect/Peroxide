@@ -50,6 +50,7 @@ use crate::traits::{
 use std::ops::{Add, Deref, Sub, Mul, Div};
 use crate::structure::dual::Dual;
 use crate::structure::matrix::{Matrix, Shape};
+use crate::structure::sparse::SPMatrix;
 
 // =============================================================================
 // Redox Structure
@@ -101,7 +102,6 @@ pub trait Oxide: Vector {
 // =============================================================================
 // Reference Arithmetic
 // =============================================================================
-
 impl<T: Vector> Add<Redox<T>> for Redox<T> {
     type Output = Self;
 
@@ -206,6 +206,36 @@ impl Mul<Redox<Vec<f64>>> for Matrix {
     fn mul(self, rhs: Redox<Vec<f64>>) -> Self::Output {
         Redox {
             data: Box::new(self.apply(&*rhs))
+        }
+    }
+}
+
+impl Mul<Redox<Vec<f64>>> for &Matrix {
+    type Output = Redox<Vec<f64>>;
+
+    fn mul(self, rhs: Redox<Vec<f64>>) -> Self::Output {
+        Redox {
+            data: Box::new(self.apply(&*rhs))
+        }
+    }
+}
+
+/// Matrix multiplication with Redox
+impl Mul<Redox<Vec<f64>>> for SPMatrix {
+    type Output = Redox<Vec<f64>>;
+    fn mul(self, rhs: Redox<Vec<f64>>) -> Self::Output {
+        Redox {
+            data: Box::new(self.apply(&rhs.data))
+        }
+    }
+}
+
+impl Mul<Redox<Vec<f64>>> for &SPMatrix {
+    type Output = Redox<Vec<f64>>;
+
+    fn mul(self, rhs: Redox<Vec<f64>>) -> Self::Output {
+        Redox {
+            data: Box::new(self.apply(&rhs.data))
         }
     }
 }
