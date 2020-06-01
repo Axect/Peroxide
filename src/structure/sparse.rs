@@ -183,3 +183,15 @@ impl<'a, 'b> Mul<&'b Vec<f64>> for &'a SPMatrix {
         self.apply(rhs)
     }
 }
+
+impl Into<Matrix> for SPMatrix {
+    fn into(self) -> Matrix {
+        self.to_dense()
+    }
+}
+
+impl Into<SPMatrix> for Matrix {
+    fn into(self) -> SPMatrix {
+        SPMatrix::from_dense(&self)
+    }
+}

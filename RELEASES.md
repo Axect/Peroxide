@@ -1,3 +1,83 @@
+# Release 0.23.0 (2020-06-01)
+
+**[Caution!] Huge Update!**
+
+## Change module re-exporting
+
+No more direct re-exporting. Below code is not allowed.
+```rust
+extern crate peroxide;
+use peroxide::*;
+```  
+
+Now, peroxide has two re-export options - `prelude` and `fuga`.
+
+* `prelude`: To use simple
+* `fuga`: To control numerical algorithms
+
+For example,
+```rust
+// Prelude
+#[macro_use]
+extern crate peroxide;
+use peroxide::prelude::*;
+
+fn main() {
+    let a = c!(1, 2, 3);
+    assert_eq!(a.norm(), 14f64.sqrt());
+}
+```
+
+```rust
+// Fuga
+#[macro_use]
+extern crate peroxide;
+use peroxide::fuga::*;
+
+fn main() {
+    let a = c!(1, 2, 3);
+    assert_eq!(a.norm(Norm::L2), 14f64.sqrt());
+}
+```
+
+## New module: `traits`
+
+* Remove `operation`
+* Create `traits`
+
+`traits` contains below submodules.
+
+* `fp.rs` : Functional Programming toolbox
+* `general.rs` : General algorithms
+* `math.rs` : Mathematical traits
+* `mutable.rs` : Mutable toolbox
+* `num.rs` : `Real` & `Number` & Various `Ops`
+* `pointer.rs` : `Redox<T: Vector>` & `MatrixPtr`
+
+## Specify Rust edition
+
+* From Ver `0.23.0`, peroxide uses 2018 edition.
+
+## Change `Matrix` - `Vec<f64>` multiplication
+
+* From ver 0.23.0, `Matrix * Vec<f64> = Vec<f64>` and vice versa.
+
+## Minor changes
+
+* Replace `norm_l*()` as `norm(Norm::L*)`
+* Move `interp::lagrange_polynomial`, `special::legendre::legendre_polynomial` to `structure/polynomial.rs`
+* Remove `LinearOps` in `structure/matrix.rs`
+    * Replace `to_matrix(&self)` with `Into<Matrix>`
+    * Replace `from_matrix(&self)` with `Into<Vec<f64>>`
+    * Move `transpose(), t()` to `Matrix::transpose(), Matrix::t()`
+* Remove `VecOps` in `structure/vec.rs`
+    * Replace `add, sub, s_mul` with `traits::math::Vector`
+    * Replace `norm()` with `traits::math::Normed`
+    * Replace `dot()` with `traits::math::InnerProduct`
+    * Use `Redox<T: Vector>` rather than `VecOps` (Refer to `traits/pointer.rs`)
+* Remove `special/legendre.rs`
+* Add `gemv`, `gevm` in `structure/matrix.rs`
+
 # Release 0.22.0 (2020-05-25)
 
 ## Add Numerical integration
