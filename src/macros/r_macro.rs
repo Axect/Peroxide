@@ -28,7 +28,7 @@ pub use self::rand::prelude::*;
 /// use peroxide::fuga::*;
 ///
 /// fn main() {
-///     let a = c![1,2,3,4];
+///     let a = c!(1,2,3,4]);
 ///     let b = c![5,6,7,8];
 ///     let c = c![a; b];
 ///     println!("{:?}", a); // [1,2,3,4]
