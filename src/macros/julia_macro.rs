@@ -23,7 +23,7 @@ macro_rules! hstack {
                 assert_eq!(r, temp.len());
                 // Add column
                 c += 1;
-                temp0.extend(&temp.clone());
+                temp0.extend_from_slice(&temp[..]);
             )*
             matrix(temp0, r, c, Col)
         }
@@ -55,7 +55,7 @@ macro_rules! vstack {
                 assert_eq!(c, temp.len());
                 // Add column
                 r += 1;
-                temp0.extend(&temp.clone());
+                temp0.extend_from_slice(&temp[..]);
             )*
             matrix(temp0, r, c, Row)
         }
