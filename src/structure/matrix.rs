@@ -2331,9 +2331,8 @@ impl FPMatrix for Matrix {
     {
         let result = self
             .data
-            .clone()
-            .into_iter()
-            .map(|x| f(x))
+            .iter()
+            .map(|x| f(*x))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
     }
@@ -2400,9 +2399,8 @@ impl FPMatrix for Matrix {
         T: convert::Into<f64>,
     {
         self.data
-            .clone()
-            .into_iter()
-            .fold(init.into(), |x, y| f(x, y))
+            .iter()
+            .fold(init.into(), |x, y| f(x, *y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Self
@@ -2416,12 +2414,29 @@ impl FPMatrix for Matrix {
         }
         let result = self
             .data
-            .clone()
-            .into_iter()
-            .zip(a.data)
-            .map(|(x, y)| f(x, y))
+            .iter()
+            .zip(a.data.iter())
+            .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
+    }
+
+    fn col_reduce<F>(&self, f: F) -> Vec<f64>
+    where F: Fn(Vec<f64>) -> f64 {
+        let mut v = vec![0f64; self.col];
+        for i in 0 .. self.col {
+            v[i] = f(self.col(i));
+        }
+        v
+    }
+
+    fn row_reduce<F>(&self, f: F) -> Vec<f64>
+    where F: Fn(Vec<f64>) -> f64 {
+        let mut v = vec![0f64; self.row];
+        for i in 0 .. self.row {
+            v[i] = f(self.row(i));
+        }
+        v
     }
 }
 
