@@ -60,32 +60,17 @@ pub fn zeros_shape(r: usize, c: usize, shape: Shape) -> Matrix {
     matrix(vec![0f64; r * c], r, c, shape)
 }
 
-pub fn concat<T: Clone + Copy + Default>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
-    let l1 = v1.len();
-    let l2 = v2.len();
+pub fn concat<T: Clone + Copy + Default>(v1: &Vec<T>, v2: &Vec<T>) -> Vec<T> {
+    let mut v = v1.clone();
+    v.extend_from_slice(&v2[..]);
 
-    let mut v = vec![Default::default(); l1 + l2];
-
-    for i in 0..l1 {
-        v[i] = v1[i];
-    }
-
-    for i in 0..l2 {
-        v[i + l1] = v2[i];
-    }
     v
 }
 
-pub fn cat<T: Clone + Copy + Default>(val: T, vec: Vec<T>) -> Vec<T> {
-    let l = vec.len();
+pub fn cat<T: Clone + Copy + Default>(val: T, vec: &Vec<T>) -> Vec<T> {
+    let mut v = vec![val];
+    v.extend_from_slice(&vec[..]);
 
-    let mut v = vec![Default::default(); l + 1];
-
-    v[0] = val;
-
-    for i in 0..l {
-        v[i + 1] = vec[i];
-    }
     v
 }
 
@@ -147,7 +132,7 @@ pub fn cbind(m1: Matrix, m2: Matrix) -> Matrix {
     let r = temp.row;
 
     assert_eq!(r, temp2.row);
-    v.extend(&temp2.data.clone());
+    v.extend_from_slice(&temp2.data[..]);
     c += temp2.col;
     matrix(v, r, c, Col)
 }
@@ -183,7 +168,7 @@ pub fn rbind(m1: Matrix, m2: Matrix) -> Matrix {
     let mut r = temp.row;
 
     assert_eq!(c, temp2.col);
-    v.extend(&temp2.data.clone());
+    v.extend_from_slice(&temp2.data[..]);
     r += temp2.row;
     matrix(v, r, c, Row)
 }

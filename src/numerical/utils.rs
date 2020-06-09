@@ -127,7 +127,7 @@ pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Ve
     assert_eq!(c_input.len(), n - 1);
     assert_eq!(y_input.len(), n);
 
-    let a = cat(0f64, a_input.clone());
+    let a = cat(0f64, &a_input);
     let mut b = b_input.clone();
     let c = {
         let mut c_temp = c_input.clone();
