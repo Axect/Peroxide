@@ -739,6 +739,47 @@ impl Matrix {
         }
     }
 
+    /// Change Bindings Mutably
+    ///
+    /// `Row` -> `Col` or `Col` -> `Row`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = matrix(vec![1,2,3,4],2,2,Row);
+    /// assert_eq!(a.shape, Row);
+    /// let b = a.change_shape();
+    /// assert_eq!(b.shape, Col);
+    /// ```
+    pub fn change_shape_mut(&mut self) {
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r * c, self.data.len());
+        let l = r * c - 1;
+        let ref_data = self.data.clone();
+
+        match self.shape {
+            Row => {
+                for i in 0..l {
+                    let s = (i * c) % l;
+                    self.data[i] = ref_data[s];
+                }
+                self.data[l] = ref_data[l];
+                self.shape = Col;
+            }
+            Col => {
+                for i in 0..l {
+                    let s = (i * r) % l;
+                    self.data[i] = ref_data[s];
+                }
+                self.data[l] = ref_data[l];
+                self.shape = Row;
+            }
+        }
+    }
+
     /// Spread data(1D vector) to 2D formatted String
     ///
     /// # Examples
