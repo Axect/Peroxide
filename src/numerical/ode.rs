@@ -465,19 +465,19 @@ impl ODE for ExplicitODE {
 
         let mut result = zeros(self.times + 1, self.state.value.len() + 1);
 
-        result.subs_row(0, &cat(self.state.param, self.state.value.clone()));
+        result.subs_row(0, &cat(self.state.param, &self.state.value));
 
         match self.options.get(&StopCond) {
             Some(stop) if *stop => {
                 let mut key = 1usize;
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param, self.state.value.clone()));
+                    result.subs_row(i, &cat(self.state.param, &self.state.value));
                     key += 1;
                     if (self.stop_cond)(&self) {
                         println!("Reach the stop condition!");
                         print!("Current values are: ");
-                        cat(self.state.param, self.state.value.clone()).print();
+                        cat(self.state.param, &self.state.value).print();
                         break;
                     }
                 }
@@ -486,7 +486,7 @@ impl ODE for ExplicitODE {
             _ => {
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param, self.state.value.clone()));
+                    result.subs_row(i, &cat(self.state.param, &self.state.value));
                 }
                 return result;
             }
@@ -690,7 +690,7 @@ impl ODE for ImplicitODE {
                 // 0. Initial Guess
                 let k1_init: Vec<f64> = f(t, yn.clone()).values();
                 let k2_init: Vec<f64> = f(t, yn.clone()).values();
-                let mut k_curr: Vec<f64> = concat(k1_init.clone(), k2_init.clone());
+                let mut k_curr: Vec<f64> = concat(&k1_init, &k2_init);
                 let mut err = 1f64;
 
                 // 1. Combine two functions to one function
@@ -698,14 +698,14 @@ impl ODE for ImplicitODE {
                     let k1 = k.take(n);
                     let k2 = k.skip(n);
                     concat(
-                        f(
+                        &f(
                             t1,
                             yn.add_vec(
                                 &k1.mul_scalar(GL4_TAB[0][1] * h)
                                     .add_vec(&k2.mul_scalar(GL4_TAB[0][2]*h)),
                             ),
                         ),
-                        f(
+                        &f(
                             t2,
                             yn.add_vec(
                                 &k1.mul_scalar(GL4_TAB[1][1] * h)
@@ -757,19 +757,19 @@ impl ODE for ImplicitODE {
 
         let mut result = zeros(self.times + 1, self.state.value.len() + 1);
 
-        result.subs_row(0, &cat(self.state.param.to_f64(), self.state.value.values()));
+        result.subs_row(0, &cat(self.state.param.to_f64(), &self.state.value.values()));
 
         match self.options.get(&StopCond) {
             Some(stop) if *stop => {
                 let mut key = 1usize;
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param.to_f64(), self.state.value.values()));
+                    result.subs_row(i, &cat(self.state.param.to_f64(), &self.state.value.values()));
                     key += 1;
                     if (self.stop_cond)(&self) {
                         println!("Reach the stop condition!");
                         print!("Current values are: ");
-                        cat(self.state.param.to_f64(), self.state.value.values()).print();
+                        cat(self.state.param.to_f64(), &self.state.value.values()).print();
                         break;
                     }
                 }
@@ -778,7 +778,7 @@ impl ODE for ImplicitODE {
             _ => {
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param.to_f64(), self.state.value.values()));
+                    result.subs_row(i, &cat(self.state.param.to_f64(), &self.state.value.values()));
                 }
                 return result;
             }
