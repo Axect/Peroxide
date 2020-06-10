@@ -1,9 +1,64 @@
 extern crate peroxide;
+#[allow(unused_imports)]
 use peroxide::fuga::*;
 
+#[cfg(feature = "dataframe")]
 #[test]
-fn test_qr() {
-    let a = ml_matrix("12 -51 4;6 167 -68;-4 24 -41");
-    let qr = a.qr();
-    assert_eq!(a, qr.q() * qr.r());
+fn test_inverse() {
+    for i in 5 .. 21 {
+        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "inv"]).unwrap();
+        let a: Matrix = matrix(df["m"].clone(), i, i, Col);
+        let b: Matrix = matrix(df["inv"].clone(), i, i, Col);
+        let c = a.inv().unwrap();
+        assert_eq!(b, c);
+    }
+}
+
+#[cfg(feature = "dataframe")]
+#[test]
+fn test_matmul() {
+    for i in 5 .. 21 {
+        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "mm"]).unwrap();
+        let a: Matrix = matrix(df["m"].clone(), i, i, Col);
+        let b: Matrix = matrix(df["mm"].clone(), i, i, Col);
+        let c = &a * &a;
+        assert_eq!(b, c);
+    }
+}
+
+#[cfg(feature = "dataframe")]
+#[test]
+fn test_matvecmul() {
+    for i in 5 .. 21 {
+        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "v", "mv"]).unwrap();
+        let a: Matrix = matrix(df["m"].clone(), i, i, Col);
+        let b = df["v"].clone();
+        let c = df["mv"].clone();
+        let d = &a * &b;
+        assert!(eq_vec(&c, &d, 1e-8));
+    }
+}
+
+#[cfg(feature = "dataframe")]
+#[test]
+fn test_det() {
+    for i in 5 .. 21 {
+        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "det"]).unwrap();
+        let a: Matrix = matrix(df["m"].clone(), i, i, Col);
+        let b: f64 = df["det"][0];
+        let c = a.det();
+        assert!((b - c).abs() <= 1e-14);
+    }
+}
+
+#[cfg(feature = "dataframe")]
+#[test]
+fn test_pinv() {
+    for i in 5 .. 21 {
+        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["pm", "pinv"]).unwrap();
+        let a: Matrix = matrix(df["pm"].clone(), i+1, i-1, Col);
+        let b: Matrix = matrix(df["pinv"].clone(), i-1, i+1, Col);
+        let c = a.pseudo_inv().unwrap();
+        assert_eq!(b, c);
+    }
 }
