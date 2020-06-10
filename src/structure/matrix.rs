@@ -739,6 +739,47 @@ impl Matrix {
         }
     }
 
+    /// Change Bindings Mutably
+    ///
+    /// `Row` -> `Col` or `Col` -> `Row`
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = matrix(vec![1,2,3,4],2,2,Row);
+    /// assert_eq!(a.shape, Row);
+    /// let b = a.change_shape();
+    /// assert_eq!(b.shape, Col);
+    /// ```
+    pub fn change_shape_mut(&mut self) {
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r * c, self.data.len());
+        let l = r * c - 1;
+        let ref_data = self.data.clone();
+
+        match self.shape {
+            Row => {
+                for i in 0..l {
+                    let s = (i * c) % l;
+                    self.data[i] = ref_data[s];
+                }
+                self.data[l] = ref_data[l];
+                self.shape = Col;
+            }
+            Col => {
+                for i in 0..l {
+                    let s = (i * r) % l;
+                    self.data[i] = ref_data[s];
+                }
+                self.data[l] = ref_data[l];
+                self.shape = Row;
+            }
+        }
+    }
+
     /// Spread data(1D vector) to 2D formatted String
     ///
     /// # Examples
@@ -2290,9 +2331,8 @@ impl FPMatrix for Matrix {
     {
         let result = self
             .data
-            .clone()
-            .into_iter()
-            .map(|x| f(x))
+            .iter()
+            .map(|x| f(*x))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
     }
@@ -2359,9 +2399,8 @@ impl FPMatrix for Matrix {
         T: convert::Into<f64>,
     {
         self.data
-            .clone()
-            .into_iter()
-            .fold(init.into(), |x, y| f(x, y))
+            .iter()
+            .fold(init.into(), |x, y| f(x, *y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Self
@@ -2375,12 +2414,29 @@ impl FPMatrix for Matrix {
         }
         let result = self
             .data
-            .clone()
-            .into_iter()
-            .zip(a.data)
-            .map(|(x, y)| f(x, y))
+            .iter()
+            .zip(a.data.iter())
+            .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
+    }
+
+    fn col_reduce<F>(&self, f: F) -> Vec<f64>
+    where F: Fn(Vec<f64>) -> f64 {
+        let mut v = vec![0f64; self.col];
+        for i in 0 .. self.col {
+            v[i] = f(self.col(i));
+        }
+        v
+    }
+
+    fn row_reduce<F>(&self, f: F) -> Vec<f64>
+    where F: Fn(Vec<f64>) -> f64 {
+        let mut v = vec![0f64; self.row];
+        for i in 0 .. self.row {
+            v[i] = f(self.row(i));
+        }
+        v
     }
 }
 

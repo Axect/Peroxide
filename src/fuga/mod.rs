@@ -90,6 +90,7 @@ pub use crate::traits::{
     general::Algorithm,
     num::{PowOps, ExpLogOps, TrigOps, Real, Number, NumberVector},
     pointer::{Redox, Oxide, MatrixPtr},
+    sugar::{VecOps, Scalable, ScalableMut},
 };
 
 #[allow(unused_imports)]

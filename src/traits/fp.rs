@@ -52,4 +52,10 @@ pub trait FPMatrix {
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
     where
         F: Fn(f64, f64) -> f64;
+    fn col_reduce<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(Vec<f64>) -> f64;
+    fn row_reduce<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(Vec<f64>) -> f64;
 }
