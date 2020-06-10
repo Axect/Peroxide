@@ -117,3 +117,8 @@ pub fn sgn(x: usize) -> f64 {
         -1f64
     }
 }
+
+/// Vector compare
+pub fn eq_vec(x: &Vec<f64>, y: &Vec<f64>, tol: f64) -> bool {
+    x.iter().zip(y.iter()).all(|(x, y)| (x - y).abs() <= tol)
+}
