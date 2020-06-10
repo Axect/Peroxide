@@ -1,3 +1,7 @@
+# Release 0.23.2 (2020-06-10)
+
+* Fix errata in `Sub` of `Redox`
+
 # Release 0.23.1 (2020-06-10)
 
 ## More Tests
