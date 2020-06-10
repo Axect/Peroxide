@@ -1,3 +1,19 @@
+# Release 0.23.1 (2020-06-10)
+
+## More Tests
+
+* Add `tests/linalg.rs` : It compares `peroxide` and `julia` with `test_data/*.nc`
+
+## More sugar
+
+* Add `traits/sugar.rs`
+    * `VecOps` : Vector operation with vectors and scalars
+    * `Scalable` : Easy to resize vector or matrix and also concatenation
+
+## More functional
+
+* Add `col_reduce`, `row_reduce`
+
 # Release 0.23.0 (2020-06-01)
 
 **[Caution!] Huge Update!**
