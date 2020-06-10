@@ -112,12 +112,15 @@ impl<T: Vector> Add<Redox<T>> for Redox<T> {
     }
 }
 
-impl<T: Vector> Sub<Redox<T>> for Redox<T> {
+impl<T: Vector + FPVector> Sub<Redox<T>> for Redox<T> 
+where
+    <T as FPVector>::Scalar: Sub<Output=<T as FPVector>::Scalar>
+{
     type Output = Self;
 
     fn sub(self, rhs: Redox<T>) -> Self::Output {
         Redox {
-            data: Box::new(self.add_vec(&rhs.data))
+            data: Box::new(self.zip_with(|x, y| x - y, &rhs.data))
         }
     }
 }
