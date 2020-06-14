@@ -76,7 +76,7 @@ fn test_solve() {
         x.print();
         c.print();
         d.print();
-        //assert!(eq_vec(&x, &c, 1e-6));
+        assert!(eq_vec(&x, &c, 1e-6));
         assert!(eq_vec(&x, &d, 1e-6));
     }
 }
