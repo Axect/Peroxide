@@ -2634,82 +2634,18 @@ impl LinearAlgebra for Matrix {
         let n = self.row;
         let len: usize = n * n;
 
-        let mut l: Self = matrix(vec![0f64; len], n, n, self.shape);
-        let mut u: Self = matrix(vec![0f64; len], n, n, self.shape);
+        let mut l = eye(n);
+        let mut u = matrix(vec![0f64; len], n, n, self.shape);
 
-        // ---------------------------------------
-        // Pivoting - Complete
-        // ---------------------------------------
-        // Permutations
-        let mut p: Perms = Vec::new();
-        let mut q: Perms = Vec::new();
-
-        let mut container = self.clone();
-
-        for k in 0..(n - 1) {
-            // Initialize maximum & Position
-            let mut m = 0f64;
-            let mut row_idx: usize = k;
-            let mut col_idx: usize = k;
-            // Find Maximum value & Position
-            for i in k..n {
-                for j in k..n {
-                    let temp = container[(i, j)];
-                    if temp.abs() > m.abs() {
-                        m = temp;
-                        row_idx = i;
-                        col_idx = j;
-                    }
-                }
+        let mut temp = self.clone();
+        let (p, q) = gecp(&mut temp);
+    
+        for i in 0 .. n {
+            for j in 0 .. i {
+                l[(i, j)] = -temp[(i, j)];
             }
-            if k != row_idx {
-                unsafe {
-                    container.swap(k, row_idx, Row); // Row perm
-                }
-                p.push((k, row_idx));
-            }
-            if k != col_idx {
-                unsafe {
-                    container.swap(k, col_idx, Col); // Col perm
-                }
-                q.push((k, col_idx));
-            }
-        }
-
-        // ---------------------------------------
-        // Obtain L & U
-        // ---------------------------------------
-        let reference = container.clone();
-
-        // Initialize U
-        for i in 0..n {
-            u[(0, i)] = reference[(0, i)];
-        }
-
-        // Initialize L
-        for i in 0..n {
-            l[(i, i)] = 1f64;
-        }
-
-        for i in 0..n {
-            for k in i..n {
-                let mut s = 0f64;
-                for j in 0..i {
-                    s += l[(i, j)] * u[(j, k)];
-                }
-                u[(i, k)] = reference[(i, k)] - s;
-                // Check non-zero diagonal
-                if u[(i, i)].abs() <= 1e-40 {
-                    return None;
-                }
-            }
-
-            for k in (i + 1)..n {
-                let mut s = 0f64;
-                for j in 0..i {
-                    s += l[(k, j)] * u[(j, i)];
-                }
-                l[(k, i)] = (reference[(k, i)] - s) / u[(i, i)];
+            for j in i .. n {
+                u[(i, j)] = temp[(i, j)];
             }
         }
 
@@ -3084,7 +3020,7 @@ impl LinearAlgebra for Matrix {
                 v.swap_with_perm(&p);
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
-                y.swap_with_perm(&q);
+                y.swap_with_perm(&q.into_iter().rev().collect());
                 y
             }
             SolveKind::WAZ => {
@@ -3947,4 +3883,114 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
     let vt: Matrix = v.clone().into();
     H = H - 2f64 / v.dot(&v) * (&vt * &vt.t());
     H
+}
+
+/// LU via Gaussian Elimination with Partial Pivoting
+fn gepp(m: &mut Matrix) -> Perms {
+    let mut r: Perms = vec![];
+    for k in 0 .. (m.col - 1) {
+        // Find the pivot row
+        let r_k = m.col(k).into_iter().skip(k).enumerate().max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap().0 + k;
+        r.push((k, r_k));
+
+        // Interchange the rows r_k and k 
+        for j in k .. m.col {
+            unsafe {
+                std::ptr::swap(&mut m[(k,j)], &mut m[(r_k, j)]);
+                println!("Swap! k:{}, r_k:{}", k, r_k);
+            }
+        }
+        // Form the multipliers
+        for i in k+1 .. m.col {
+            m[(i,k)] = - m[(i,k)] / m[(k,k)];
+        }
+        // Update the entries
+        for i in k+1 .. m.col {
+            for j in k+1 .. m.col {
+                m[(i, j)] += m[(i, k)] * m[(k, j)];
+            }
+        }
+    }
+    r
+}
+
+/// LU via Gauss Elimination with Complete Pivoting 
+fn gecp(m: &mut Matrix) -> (Perms, Perms) {
+    let mut r: Perms = vec![];
+    let mut s: Perms = vec![];
+    let n = m.col;
+    for k in 0 .. n - 1 {
+        // Find pivot
+        let (r_k, s_k) = match m.shape {
+            Col => {
+                let mut row_ics = 0usize;
+                let mut col_ics = 0usize;
+                let mut max_val = 0f64;
+                for i in k .. n {
+                    let c = m.col(i)
+                        .into_iter()
+                        .skip(k)
+                        .enumerate()
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                    let c_ics = c.0 + k;
+                    let c_val = c.1.abs();
+                    if c_val > max_val {
+                        row_ics = c_ics;
+                        col_ics = i;
+                        max_val = c_val;
+                    }
+                }
+                (row_ics, col_ics)
+            }
+            Row => {
+                let mut row_ics = 0usize;
+                let mut col_ics = 0usize;
+                let mut max_val = 0f64;
+                for i in k .. n {
+                    let c = m.row(i)
+                        .into_iter()
+                        .skip(k)
+                        .enumerate()
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                    let c_ics = c.0 + k;
+                    let c_val = c.1.abs();
+                    if c_val > max_val {
+                        col_ics = c_ics;
+                        row_ics = i;
+                        max_val = c_val;
+                    }
+                }
+                (row_ics, col_ics)
+            }
+        };
+        r.push((k, r_k));
+        s.push((k, s_k));
+
+        // Interchange rows
+        for j in k .. n {
+            unsafe {
+                std::ptr::swap(&mut m[(k, j)], &mut m[(r_k, j)]);
+            }
+        }
+
+        // Interchange cols
+        for i in 0 .. n {
+            unsafe {
+                std::ptr::swap(&mut m[(i, k)], &mut m[(i, s_k)]);
+            }
+        }
+
+        // Form the multipliers
+        for i in k+1 .. n {
+            m[(i, k)] = - m[(i, k)] / m[(k, k)];
+        }
+
+        // Update
+        for i in k+1 .. n {
+            for j in k+1 .. n {
+                m[(i, j)] += m[(i, k)] * m[(k, j)];
+            }
+        }
+    }
+    (r, s)
 }
