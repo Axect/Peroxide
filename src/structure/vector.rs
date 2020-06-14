@@ -573,9 +573,7 @@ impl Algorithm for Vec<f64> {
                 idx
             }
             _ => {
-                let v = self.clone();
-                let m = self.clone().into_iter().fold(MIN, |x, y| x.max(y));
-                v.into_iter().position(|x| x == m).unwrap()
+                self.into_iter().enumerate().max_by(|x1, x2| x1.1.partial_cmp(&x2.1).unwrap()).unwrap().0
             }
         }
     }
