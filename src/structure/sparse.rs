@@ -4,7 +4,7 @@
 
 use std::ops::Mul;
 use crate::structure::matrix::{
-    Matrix, LinearAlgebra, PQLU, QR
+    Matrix, LinearAlgebra, PQLU, QR, WAZD, Form, SolveKind
 };
 use crate::util::non_macro::zeros;
 use crate::traits::{
@@ -140,8 +140,20 @@ impl LinearOp<Vec<f64>, Vec<f64>> for SPMatrix {
 ///
 /// **Caution** : In every ops in this trait, there is converting process to dense matrix
 impl LinearAlgebra for SPMatrix {
+    fn back_subs(&self, _b: &Vec<f64>) -> Vec<f64> {
+        unimplemented!()
+    }
+
+    fn forward_subs(&self, _b: &Vec<f64>) -> Vec<f64> {
+        unimplemented!()
+    }
+
     fn lu(&self) -> Option<PQLU> {
         self.to_dense().lu()
+    }
+
+    fn waz(&self, _d_form: Form) -> Option<WAZD> {
+        unimplemented!()
     }
 
     fn qr(&self) -> QR {
@@ -163,8 +175,17 @@ impl LinearAlgebra for SPMatrix {
     fn pseudo_inv(&self) -> Option<Matrix> {
         self.to_dense().pseudo_inv()
     }
+
     fn rref(&self) -> Matrix { 
         self.to_dense().rref()
+    }
+
+    fn solve(&self, _b: &Vec<f64>, _sk: SolveKind) -> Vec<f64> {
+        unimplemented!()
+    }
+    
+    fn solve_mat(&self, _m: &Matrix, _sk: SolveKind) -> Matrix {
+        unimplemented!()
     }
 }
 

@@ -579,6 +579,12 @@ impl Algorithm for Vec<f64> {
             }
         }
     }
+
+    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j);
+        }
+    }
 }
 
 impl Vector for Vec<f64> {
