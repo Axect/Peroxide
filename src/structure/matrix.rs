@@ -465,10 +465,11 @@ use crate::traits::{
     mutable::MutMatrix,
     fp::{FPVector, FPMatrix},
     math::{Vector, Normed, Norm, InnerProduct, LinearOp},
+    general::Algorithm,
 };
 use crate::util::{
-    low_level::swap_vec_ptr,
-    non_macro::eye,
+    low_level::{swap_vec_ptr, copy_vec_ptr},
+    non_macro::{eye, zeros},
     useful::{nearly_eq, tab}
 };
 use crate::numerical::eigen::{eigen, EigenMethod};
@@ -1413,6 +1414,13 @@ impl Into<Matrix> for Vec<f64> {
     fn into(self) -> Matrix {
         let l = self.len();
         matrix(self, l, 1, Col)
+    }
+}
+
+impl Into<Matrix> for &Vec<f64> {
+    fn into(self) -> Matrix {
+        let l = self.len();
+        matrix(self.clone(), l, 1, Col)
     }
 }
 
@@ -2446,13 +2454,18 @@ impl FPMatrix for Matrix {
 
 /// Linear algebra trait
 pub trait LinearAlgebra {
+    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64>;
+    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64>;
     fn lu(&self) -> Option<PQLU>;
+    fn waz(&self, d_form: Form) -> Option<WAZD>;
     fn qr(&self) -> QR;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
     fn inv(&self) -> Option<Matrix>;
     fn pseudo_inv(&self) -> Option<Matrix>;
+    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64>;
+    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix;
 }
 
 pub fn diag(n: usize) -> Matrix {
@@ -2523,6 +2536,19 @@ impl PQLU {
 }
 
 #[derive(Debug, Clone)]
+pub struct WAZD {
+    pub w: Matrix,
+    pub z: Matrix,
+    pub d: Matrix,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum Form {
+    Diagonal,
+    Identity,
+}
+
+#[derive(Debug, Clone)]
 pub struct QR {
     pub q: Matrix,
     pub r: Matrix,
@@ -2538,7 +2564,43 @@ impl QR {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum SolveKind {
+    LU,
+    WAZ,
+}
+
 impl LinearAlgebra for Matrix {
+    /// Backward Substitution for Upper Triangular
+    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+        let n = self.col;
+        let mut y = vec![0f64; n];
+        y[n-1] = b[n-1] / self[(n-1, n-1)];
+        for i in (0 .. n - 1).rev() {
+            let mut s = 0f64;
+            for j in i+1 .. n {
+                s += self[(i, j)] * y[j];
+            }
+            y[i] = 1f64 / self[(i, i)] * (b[i] - s);
+        }
+        y
+    }
+
+    /// Forward substitution for Lower Triangular
+    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+        let n = self.col;
+        let mut y = vec![0f64; n];
+        y[0] = b[0] / self[(0, 0)];
+        for i in 1 .. n {
+            let mut s = 0f64;
+            for j in 0 .. i {
+                s += self[(i, j)] * y[j];
+            }
+            y[i] = 1f64 / self[(i, i)] * (b[i] - s);
+        }
+        y
+    }
+
     /// LU Decomposition Implements (Complete Pivot)
     ///
     /// # Description
@@ -2652,6 +2714,80 @@ impl LinearAlgebra for Matrix {
         }
 
         Some(PQLU { p, q, l, u })
+    }
+
+    fn waz(&self, d_form: Form) -> Option<WAZD> {
+        match d_form {
+            Form::Diagonal => {
+                let n = self.row;
+                let mut w = eye(n);
+                let mut z = eye(n);
+                let mut d = eye(n);
+                let mut q = vec![0f64; n];
+                let mut p = vec![0f64; n];
+
+                for i in 0 .. n {
+                    let m_i = self.col(i);
+                    let pq = w.col(i).dot(&m_i);
+                    d[(i, i)] = pq;
+                    if pq == 0f64 {
+                        return None;
+                    }
+                    for j in i+1 .. n {
+                        q[j] = w.col(j).dot(&m_i) / pq;
+                        p[j] = z.col(j).dot(&self.row(i)) / pq;
+                    }
+                    for j in i+1 .. n {
+                        for k in 0 .. i+1 {
+                            w[(k, j)] -= q[j] * w[(k, i)];
+                            z[(k, j)] -= p[j] * z[(k, i)];
+                        }
+                    }
+                }
+                Some(
+                    WAZD {
+                        w,
+                        z,
+                        d
+                    }
+                )
+            }
+            Form::Identity => {
+                let n = self.row;
+                let mut w = eye(n);
+                let mut z = eye(n);
+                let mut p = zeros(n, n);
+                let mut q = zeros(n, n);
+
+                for i in 0 .. n {
+                    let m_i = self.col(i);
+                    let p_ii = w.col(i).dot(&m_i);
+                    p[(i,i)] = p_ii;
+                    if p_ii == 0f64 {
+                        return None;
+                    }
+                    for j in i+1 .. n {
+                        q[(i, j)] = w.col(j).dot(&m_i) / p_ii;
+                        p[(i, j)] = z.col(j).dot(&self.row(i)) / p_ii;
+                        for k in 0 .. j {
+                            w[(k, j)] -= q[(i, j)] * w[(k, i)];
+                            z[(k, j)] -= p[(i, j)] * z[(k, i)];
+                        }
+                    }
+                    unsafe {
+                        let col_ptr = z.col_mut(i);
+                        col_ptr.into_iter().for_each(|x| *x /= p_ii);
+                    }
+                }
+                Some(
+                    WAZD {
+                        w,
+                        z,
+                        d: eye(n),
+                    }
+                )
+            }
+        }
     }
 
     /// QR Decomposition
@@ -2908,6 +3044,106 @@ impl LinearAlgebra for Matrix {
         match xtx.inv() {
             None => None,
             Some(m) => Some(m * xt)
+        }
+    }
+
+    /// Solve with Vector
+    ///
+    /// # Solve options
+    ///
+    /// * LU: Gaussian elimination with Complete pivoting LU (GECP)
+    /// * WAZ: Solve with WAZ decomposition
+    ///
+    /// # Reference
+    ///
+    /// * Biswa Nath Datta, *Numerical Linear Algebra and Applications, Second Edition*
+    /// * Ke Chen, *Matrix Preconditioning Techniques and Applications*, Cambridge Monographs on Applied and Computational Mathematics
+    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64> {
+        match sk {
+            #[cfg(feature = "O3")]
+            SolveKind::LU => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => panic!("Try solve for Singluar matrix"),
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
+                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, &(b.into())).unwrap().into(),
+                    },
+                }
+            }
+            #[cfg(not(feature = "O3"))]
+            SolveKind::LU => {
+                let lu = match self.lu() {
+                    None => {
+                        panic!("Solve for Singular matrix is impossible");
+                    }
+                    Some(obj) => obj
+                };
+                let (p, q, l, u) = lu.extract();
+                let mut v = b.clone();
+                v.swap_with_perm(&p);
+                let z = l.forward_subs(&v);
+                let mut y = u.back_subs(&z);
+                y.swap_with_perm(&q);
+                y
+            }
+            SolveKind::WAZ => {
+                let wazd = match self.waz(Form::Identity) {
+                    None => panic!("Try solve for Singular matrix"),
+                    Some(obj) => obj,
+                };
+                let x = &wazd.w.t() * b;
+                let x = &wazd.z * &x;
+                x
+            }
+        }
+    }
+    
+    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix {
+        match sk {
+            #[cfg(feature = "O3")]
+            SolveKind::LU => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => panic!("Try solve for Singluar matrix"),
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
+                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, m).unwrap(),
+                    },
+                }
+            }
+            #[cfg(not(feature = "O3"))]
+            SolveKind::LU => {
+                let lu = match self.lu() {
+                    None => {
+                        panic!("Solve for Singular matrix is impossible");
+                    }
+                    Some(obj) => obj
+                };
+                let (p, q, l, u) = lu.extract();
+                let mut x = matrix(vec![0f64; self.col * m.col], self.col, m.col, Col);
+                for i in 0 .. m.col {
+                    let mut v = m.col(i).clone();
+                    v.swap_with_perm(&p);
+                    let z = l.forward_subs(&v);
+                    let mut y = u.back_subs(&z);
+                    y.swap_with_perm(&q);
+                    unsafe {
+                        let mut c = x.col_mut(i);
+                        copy_vec_ptr(&mut c, &y); 
+                    }
+                }
+                x
+            }
+            SolveKind::WAZ => {
+                let wazd = match self.waz(Form::Identity) {
+                    None => panic!("Try solve for Singular matrix"),
+                    Some(obj) => obj,
+                };
+                let x = &wazd.w.t() * m;
+                let x = &wazd.z * &x;
+                x
+            }
         }
     }
 }
