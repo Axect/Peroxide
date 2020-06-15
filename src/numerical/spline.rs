@@ -139,7 +139,7 @@ impl CubicSpline {
         m[(n - 2, n - 2)] = v[n - 1];
 
         // Calculate z
-        let z_inner = m.inv().unwrap() * Vec::from(&u[1..]);
+        let z_inner = m.inv() * Vec::from(&u[1..]);
         let mut z = vec![0f64];
         z.extend(&z_inner);
         z.push(0f64);
