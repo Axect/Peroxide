@@ -339,7 +339,7 @@
 //!
 //! * Peroxide uses **complete pivoting** for LU decomposition - Very stable
 //! * Since there are lots of causes to generate error, you should use `Option`
-//! * `lu` returns `Option<PQLU>`
+//! * `lu` returns `PQLU`
 //!     * `PQLU` has four field - `p`, `q`, `l` , `u`
 //!     * `p` means row permutations
 //!     * `q` means column permutations
@@ -353,13 +353,11 @@
 //!
 //!     #[derive(Debug, Clone)]
 //!     pub struct PQLU {
-//!         pub p: Perms,
-//!         pub q: Perms,
+//!         pub p: Vec<usize>,
+//!         pub q: Vec<usize>,
 //!         pub l: Matrix,
 //!         pub u: Matrix,
 //!     }
-//!
-//!     pub type Perms = Vec<(usize, usize)>;
 //!     ```
 //!
 //! * Example of LU decomposition:
@@ -371,7 +369,7 @@
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
-//!         let pqlu = a.lu();      // unwrap because of Option
+//!         let pqlu = a.lu();
 //!         let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
 //!         assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
 //!         assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
@@ -403,7 +401,7 @@
 //!
 //! ## Inverse matrix
 //!
-//! * Peroxide uses LU decomposition to obtain inverse matrix.
+//! * Peroxide uses LU decomposition (via GECP) to obtain inverse matrix.
 //! * It needs two sub functions - `inv_l`, `inv_u`
 //!     * For inverse of `L, U`, I use block partitioning. For example, for lower triangular matrix :
 //!     $$ \begin{aligned} L &= \begin{pmatrix} L_1 & \mathbf{0} \\\ L_2 & L_3 \end{pmatrix} \\\ L^{-1} &= \begin{pmatrix} L_1^{-1} & \mathbf{0} \\\ -L_3^{-1}L_2 L_1^{-1} & L_3^{-1} \end{pmatrix} \end{aligned} $$
