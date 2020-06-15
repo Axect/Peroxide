@@ -148,7 +148,7 @@ impl LinearAlgebra for SPMatrix {
         unimplemented!()
     }
 
-    fn lu(&self) -> Option<PQLU> {
+    fn lu(&self) -> PQLU {
         self.to_dense().lu()
     }
 
@@ -168,11 +168,11 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().block()
     }
 
-    fn inv(&self) -> Option<Matrix> {
+    fn inv(&self) -> Matrix {
         self.to_dense().inv()
     }
 
-    fn pseudo_inv(&self) -> Option<Matrix> {
+    fn pseudo_inv(&self) -> Matrix {
         self.to_dense().pseudo_inv()
     }
 

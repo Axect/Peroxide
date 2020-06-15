@@ -3872,6 +3872,7 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
 }
 
 /// LU via Gaussian Elimination with Partial Pivoting
+#[allow(dead_code)]
 fn gepp(m: &mut Matrix) -> Vec<usize> {
     let mut r = vec![0usize; m.col-1];
     for k in 0 .. (m.col - 1) {

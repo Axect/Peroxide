@@ -274,7 +274,6 @@ use self::packed_simd::{f64x8, f64x4};
 
 use std::cmp::min;
 use std::convert;
-use std::f64::MIN;
 use crate::traits::{
     fp::FPVector,
     mutable::MutFP,
