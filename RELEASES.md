@@ -1,3 +1,37 @@
+# Release 0.24.0 (2020-06-16)
+
+## Whole new LU
+
+* Fix error in `LinearAlgebra::lu`
+    * Add `gepp, gecp` for partial pivoting and complete pivoting
+    * Peroxide chooses `gecp` default
+* No more `unwrap`
+    * `lu` returns `PQLU` directly
+    * `inv` returns `Matrix` directly
+    * `pseudo_inv` returns `Matrix` directly
+
+## Now, we can solve!
+
+* Implement two solve algorithms
+    * LU decomposition via Gaussian elimination with Complete pivoting (Stable)
+    * WAZ decomposition (Unstable)
+
+### Example
+
+```rust
+#[macro_use]
+extern crate peroxide;
+use peroxide::fuga::*;
+
+fn main() {
+    let a = ml_matrix("1 2;3 4");
+    let b = c!(3, 7);
+    
+    a.solve(&b, LU).print();    // [1, 1]
+    a.solve(&b, WAZ).print();   // [1, 1]
+}
+```
+
 # Release 0.23.2 (2020-06-10)
 
 * Fix errata in `Sub` of `Redox`
