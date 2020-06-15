@@ -371,7 +371,7 @@
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
-//!         let pqlu = a.lu().unwrap(); // unwrap because of Option
+//!         let pqlu = a.lu();      // unwrap because of Option
 //!         let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
 //!         assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
 //!         assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
@@ -414,7 +414,7 @@
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
-//!         a.inv().unwrap().print();
+//!         a.inv().print();
 //!         //      c[0] c[1]
 //!         // r[0]   -2    1
 //!         // r[1]  1.5 -0.5
@@ -432,8 +432,8 @@
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
-//!         let pinv_a = a.pseudo_inv().unwrap();
-//!         let inv_a = a.inv().unwrap();
+//!         let pinv_a = a.pseudo_inv();
+//!         let inv_a = a.inv();
 //!
 //!         assert_eq!(inv_a, pinv_a); // Nearly equal (not actually equal)
 //!     }
@@ -2485,7 +2485,7 @@ pub fn diag(n: usize) -> Matrix {
 /// use peroxide::fuga::*;
 ///
 /// let a = ml_matrix("1 2;3 4");
-/// let pqlu = a.lu().unwrap();
+/// let pqlu = a.lu();
 /// let (p, q, l, u) = pqlu.extract();
 /// // p, q are permutations
 /// // l, u are matrices
@@ -2633,7 +2633,7 @@ impl LinearAlgebra for Matrix {
     ///
     /// fn main() {
     ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    ///     let pqlu = a.lu().unwrap();
+    ///     let pqlu = a.lu();
     ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
     ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
     ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
@@ -2941,11 +2941,13 @@ impl LinearAlgebra for Matrix {
     /// fn main() {
     ///     // Non-singular
     ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+    ///     assert_eq!(a.inv(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
     ///
     ///     // Singular
     ///     let b = matrix!(1;9;1, 3, 3, Row);
-    ///     assert_eq!(b.inv(), None);
+    ///     let c = b.inv(); // Can compile but..
+    ///     let d = b.det();
+    ///     assert_eq!(d, 0f64);
     /// }
     /// ```
     fn inv(&self) -> Self {
@@ -2981,8 +2983,8 @@ impl LinearAlgebra for Matrix {
     ///
     /// fn main() {
     ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     let inv_a = a.inv().unwrap();
-    ///     let pse_a = a.pseudo_inv().unwrap();
+    ///     let inv_a = a.inv();
+    ///     let pse_a = a.pseudo_inv();
     ///
     ///     assert_eq!(inv_a, pse_a); // Nearly equal
     /// }
