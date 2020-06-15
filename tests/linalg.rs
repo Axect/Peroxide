@@ -47,7 +47,7 @@ fn test_det() {
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b: f64 = df["det"][0];
         let c = a.det();
-        assert!((b - c).abs() <= 1e-14);
+        assert!((b - c).abs() <= 1e-10);
     }
 }
 
