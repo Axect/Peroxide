@@ -2531,11 +2531,13 @@ impl PQLU {
     pub fn inv(&self) -> Matrix {
         let (p, q, l, u) = self.extract();
         let mut m = inv_u(u) * inv_l(l);
+        // Q = Q1 Q2 Q3 ..
         for (idx1, idx2) in q.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Row);
             }
         }
+        // P = Pn-1 .. P3 P2 P1
         for (idx1, idx2) in p.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Col);
