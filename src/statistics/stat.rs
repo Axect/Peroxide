@@ -432,7 +432,7 @@ pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
     let mut ones = vec![1f64; input.row * input.col];
     ones.extend(&input.data);
     let x = matrix(ones, input.row, input.col + 1, input.shape);
-    &x.pseudo_inv().unwrap() * target
+    &x.pseudo_inv() * target
 }
 
 // =============================================================================

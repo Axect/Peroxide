@@ -30,7 +30,7 @@ where
     F: Fn(Vec<Number>) -> Vec<Number> + Copy,
 {
     let j = jacobian(f, &xs);
-    let pinv_j = j.pseudo_inv().unwrap();
+    let pinv_j = j.pseudo_inv();
     let fx = f(NumberVector::from_f64_vec(xs.clone())).to_f64_vec();
 
     xs.mut_zip_with(|x,y| x - y, &(pinv_j * fx))

@@ -274,7 +274,6 @@ use self::packed_simd::{f64x8, f64x4};
 
 use std::cmp::min;
 use std::convert;
-use std::f64::MIN;
 use crate::traits::{
     fp::FPVector,
     mutable::MutFP,
@@ -573,10 +572,24 @@ impl Algorithm for Vec<f64> {
                 idx
             }
             _ => {
-                let v = self.clone();
-                let m = self.clone().into_iter().fold(MIN, |x, y| x.max(y));
-                v.into_iter().position(|x| x == m).unwrap()
+                //self.into_iter().enumerate().max_by(|x1, x2| x1.1.partial_cmp(&x2.1).unwrap()).unwrap().0
+                self.into_iter().enumerate().fold(
+                    (0usize, std::f64::MIN),
+                    |acc, (ics, &val)| {
+                        if acc.1 < val {
+                            (ics, val)
+                        } else {
+                            acc
+                        }
+                    }
+                ).0
             }
+        }
+    }
+
+    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j);
         }
     }
 }

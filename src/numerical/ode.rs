@@ -720,7 +720,7 @@ impl ODE for ImplicitODE {
 
                 let mut Dg = jacobian_real(Box::new(g), &k_curr);
                 let mut DG = &I - &Dg;
-                let mut DG_inv = DG.inv().unwrap();
+                let mut DG_inv = DG.inv();
                 let mut G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
                 let mut num_iter: usize = 0;
 
@@ -731,7 +731,7 @@ impl ODE for ImplicitODE {
                     k_curr.mut_zip_with(|x, y| x - y, &DGG);
                     Dg = jacobian_real(Box::new(g), &k_curr);
                     DG = &I - &Dg;
-                    DG_inv = DG.inv().unwrap();
+                    DG_inv = DG.inv();
                     G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
                     err = k_curr.sub_vec(&k_prev).norm(Norm::L2);
                     num_iter += 1;

@@ -339,7 +339,7 @@
 //!
 //! * Peroxide uses **complete pivoting** for LU decomposition - Very stable
 //! * Since there are lots of causes to generate error, you should use `Option`
-//! * `lu` returns `Option<PQLU>`
+//! * `lu` returns `PQLU`
 //!     * `PQLU` has four field - `p`, `q`, `l` , `u`
 //!     * `p` means row permutations
 //!     * `q` means column permutations
@@ -353,13 +353,11 @@
 //!
 //!     #[derive(Debug, Clone)]
 //!     pub struct PQLU {
-//!         pub p: Perms,
-//!         pub q: Perms,
+//!         pub p: Vec<usize>,
+//!         pub q: Vec<usize>,
 //!         pub l: Matrix,
 //!         pub u: Matrix,
 //!     }
-//!
-//!     pub type Perms = Vec<(usize, usize)>;
 //!     ```
 //!
 //! * Example of LU decomposition:
@@ -371,10 +369,10 @@
 //!
 //!     fn main() {
 //!         let a = matrix(c!(1,2,3,4), 2, 2, Row);
-//!         let pqlu = a.lu().unwrap(); // unwrap because of Option
+//!         let pqlu = a.lu();
 //!         let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-//!         assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
-//!         assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+//!         assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
+//!         assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
 //!         assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
 //!         //      c[0] c[1]
 //!         // r[0]    1    0
@@ -403,7 +401,7 @@
 //!
 //! ## Inverse matrix
 //!
-//! * Peroxide uses LU decomposition to obtain inverse matrix.
+//! * Peroxide uses LU decomposition (via GECP) to obtain inverse matrix.
 //! * It needs two sub functions - `inv_l`, `inv_u`
 //!     * For inverse of `L, U`, I use block partitioning. For example, for lower triangular matrix :
 //!     $$ \begin{aligned} L &= \begin{pmatrix} L_1 & \mathbf{0} \\\ L_2 & L_3 \end{pmatrix} \\\ L^{-1} &= \begin{pmatrix} L_1^{-1} & \mathbf{0} \\\ -L_3^{-1}L_2 L_1^{-1} & L_3^{-1} \end{pmatrix} \end{aligned} $$
@@ -414,7 +412,7 @@
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
-//!         a.inv().unwrap().print();
+//!         a.inv().print();
 //!         //      c[0] c[1]
 //!         // r[0]   -2    1
 //!         // r[1]  1.5 -0.5
@@ -432,8 +430,8 @@
 //!
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
-//!         let pinv_a = a.pseudo_inv().unwrap();
-//!         let inv_a = a.inv().unwrap();
+//!         let pinv_a = a.pseudo_inv();
+//!         let inv_a = a.inv();
 //!
 //!         assert_eq!(inv_a, pinv_a); // Nearly equal (not actually equal)
 //!     }
@@ -465,10 +463,11 @@ use crate::traits::{
     mutable::MutMatrix,
     fp::{FPVector, FPMatrix},
     math::{Vector, Normed, Norm, InnerProduct, LinearOp},
+    general::Algorithm,
 };
 use crate::util::{
-    low_level::swap_vec_ptr,
-    non_macro::eye,
+    low_level::{swap_vec_ptr, copy_vec_ptr},
+    non_macro::{eye, zeros},
     useful::{nearly_eq, tab}
 };
 use crate::numerical::eigen::{eigen, EigenMethod};
@@ -1413,6 +1412,13 @@ impl Into<Matrix> for Vec<f64> {
     fn into(self) -> Matrix {
         let l = self.len();
         matrix(self, l, 1, Col)
+    }
+}
+
+impl Into<Matrix> for &Vec<f64> {
+    fn into(self) -> Matrix {
+        let l = self.len();
+        matrix(self.clone(), l, 1, Col)
     }
 }
 
@@ -2446,13 +2452,18 @@ impl FPMatrix for Matrix {
 
 /// Linear algebra trait
 pub trait LinearAlgebra {
-    fn lu(&self) -> Option<PQLU>;
+    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64>;
+    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64>;
+    fn lu(&self) -> PQLU;
+    fn waz(&self, d_form: Form) -> Option<WAZD>;
     fn qr(&self) -> QR;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
-    fn inv(&self) -> Option<Matrix>;
-    fn pseudo_inv(&self) -> Option<Matrix>;
+    fn inv(&self) -> Matrix;
+    fn pseudo_inv(&self) -> Matrix;
+    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64>;
+    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix;
 }
 
 pub fn diag(n: usize) -> Matrix {
@@ -2472,7 +2483,7 @@ pub fn diag(n: usize) -> Matrix {
 /// use peroxide::fuga::*;
 ///
 /// let a = ml_matrix("1 2;3 4");
-/// let pqlu = a.lu().unwrap();
+/// let pqlu = a.lu();
 /// let (p, q, l, u) = pqlu.extract();
 /// // p, q are permutations
 /// // l, u are matrices
@@ -2481,14 +2492,14 @@ pub fn diag(n: usize) -> Matrix {
 /// ```
 #[derive(Debug, Clone)]
 pub struct PQLU {
-    pub p: Perms,
-    pub q: Perms,
+    pub p: Vec<usize>,
+    pub q: Vec<usize>,
     pub l: Matrix,
     pub u: Matrix,
 }
 
 impl PQLU {
-    pub fn extract(&self) -> (Perms, Perms, Matrix, Matrix) {
+    pub fn extract(&self) -> (Vec<usize>, Vec<usize>, Matrix, Matrix) {
         (
             self.p.clone(),
             self.q.clone(),
@@ -2499,8 +2510,18 @@ impl PQLU {
 
     pub fn det(&self) -> f64 {
         // sgn of perms
-        let sgn_p = 2.0 * (self.p.len() % 2) as f64 - 1.0;
-        let sgn_q = 2.0 * (self.q.len() % 2) as f64 - 1.0;
+        let mut sgn_p = 1f64;
+        let mut sgn_q = 1f64;
+        for (i, &j) in self.p.iter().enumerate() {
+            if i != j {
+                sgn_p *= -1f64;
+            }
+        }
+        for (i, &j) in self.q.iter().enumerate() {
+            if i != j {
+                sgn_q *= -1f64;
+            }
+        }
 
         self.u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
     }
@@ -2508,18 +2529,33 @@ impl PQLU {
     pub fn inv(&self) -> Matrix {
         let (p, q, l, u) = self.extract();
         let mut m = inv_u(u) * inv_l(l);
-        for (idx1, idx2) in q.into_iter().rev() {
+        // Q = Q1 Q2 Q3 ..
+        for (idx1, idx2) in q.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Row);
             }
         }
-        for (idx1, idx2) in p.into_iter().rev() {
+        // P = Pn-1 .. P3 P2 P1
+        for (idx1, idx2) in p.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Col);
             }
         }
         m
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct WAZD {
+    pub w: Matrix,
+    pub z: Matrix,
+    pub d: Matrix,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum Form {
+    Diagonal,
+    Identity,
 }
 
 #[derive(Debug, Clone)]
@@ -2538,7 +2574,43 @@ impl QR {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum SolveKind {
+    LU,
+    WAZ,
+}
+
 impl LinearAlgebra for Matrix {
+    /// Backward Substitution for Upper Triangular
+    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+        let n = self.col;
+        let mut y = vec![0f64; n];
+        y[n-1] = b[n-1] / self[(n-1, n-1)];
+        for i in (0 .. n - 1).rev() {
+            let mut s = 0f64;
+            for j in i+1 .. n {
+                s += self[(i, j)] * y[j];
+            }
+            y[i] = 1f64 / self[(i, i)] * (b[i] - s);
+        }
+        y
+    }
+
+    /// Forward substitution for Lower Triangular
+    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+        let n = self.col;
+        let mut y = vec![0f64; n];
+        y[0] = b[0] / self[(0, 0)];
+        for i in 1 .. n {
+            let mut s = 0f64;
+            for j in 0 .. i {
+                s += self[(i, j)] * y[j];
+            }
+            y[i] = 1f64 / self[(i, i)] * (b[i] - s);
+        }
+        y
+    }
+
     /// LU Decomposition Implements (Complete Pivot)
     ///
     /// # Description
@@ -2559,99 +2631,118 @@ impl LinearAlgebra for Matrix {
     ///
     /// fn main() {
     ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    ///     let pqlu = a.lu().unwrap();
+    ///     let pqlu = a.lu();
     ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-    ///     assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
-    ///     assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+    ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
+    ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
     ///     assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
     ///     assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
     /// }
     /// ```
-    fn lu(&self) -> Option<PQLU> {
+    fn lu(&self) -> PQLU {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
 
-        let mut l: Self = matrix(vec![0f64; len], n, n, self.shape);
-        let mut u: Self = matrix(vec![0f64; len], n, n, self.shape);
+        let mut l = eye(n);
+        let mut u = matrix(vec![0f64; len], n, n, self.shape);
 
-        // ---------------------------------------
-        // Pivoting - Complete
-        // ---------------------------------------
-        // Permutations
-        let mut p: Perms = Vec::new();
-        let mut q: Perms = Vec::new();
+        let mut temp = self.clone();
+        let (p, q) = gecp(&mut temp);
+        for i in 0 .. n {
+            for j in 0 .. i {
+                // Inverse multiplier
+                l[(i, j)] = -temp[(i, j)];
+            }
+            for j in i .. n {
+                u[(i, j)] = temp[(i, j)];
+            }
+        }
+        // Pivoting L
+        for i in 0 .. n - 1 {
+            unsafe {
+                let l_i = l.col_mut(i);
+                for j in i+1 .. l.col-1 {
+                    let dst = p[j];
+                    std::ptr::swap(l_i[j], l_i[dst]);
+                }
+            }
+        }
+        PQLU { p, q, l, u }
+    }
 
-        let mut container = self.clone();
+    fn waz(&self, d_form: Form) -> Option<WAZD> {
+        match d_form {
+            Form::Diagonal => {
+                let n = self.row;
+                let mut w = eye(n);
+                let mut z = eye(n);
+                let mut d = eye(n);
+                let mut q = vec![0f64; n];
+                let mut p = vec![0f64; n];
 
-        for k in 0..(n - 1) {
-            // Initialize maximum & Position
-            let mut m = 0f64;
-            let mut row_idx: usize = k;
-            let mut col_idx: usize = k;
-            // Find Maximum value & Position
-            for i in k..n {
-                for j in k..n {
-                    let temp = container[(i, j)];
-                    if temp.abs() > m.abs() {
-                        m = temp;
-                        row_idx = i;
-                        col_idx = j;
+                for i in 0 .. n {
+                    let m_i = self.col(i);
+                    let pq = w.col(i).dot(&m_i);
+                    d[(i, i)] = pq;
+                    if pq == 0f64 {
+                        return None;
+                    }
+                    for j in i+1 .. n {
+                        q[j] = w.col(j).dot(&m_i) / pq;
+                        p[j] = z.col(j).dot(&self.row(i)) / pq;
+                    }
+                    for j in i+1 .. n {
+                        for k in 0 .. i+1 {
+                            w[(k, j)] -= q[j] * w[(k, i)];
+                            z[(k, j)] -= p[j] * z[(k, i)];
+                        }
                     }
                 }
+                Some(
+                    WAZD {
+                        w,
+                        z,
+                        d
+                    }
+                )
             }
-            if k != row_idx {
-                unsafe {
-                    container.swap(k, row_idx, Row); // Row perm
-                }
-                p.push((k, row_idx));
-            }
-            if k != col_idx {
-                unsafe {
-                    container.swap(k, col_idx, Col); // Col perm
-                }
-                q.push((k, col_idx));
-            }
-        }
+            Form::Identity => {
+                let n = self.row;
+                let mut w = eye(n);
+                let mut z = eye(n);
+                let mut p = zeros(n, n);
+                let mut q = zeros(n, n);
 
-        // ---------------------------------------
-        // Obtain L & U
-        // ---------------------------------------
-        let reference = container.clone();
-
-        // Initialize U
-        for i in 0..n {
-            u[(0, i)] = reference[(0, i)];
-        }
-
-        // Initialize L
-        for i in 0..n {
-            l[(i, i)] = 1f64;
-        }
-
-        for i in 0..n {
-            for k in i..n {
-                let mut s = 0f64;
-                for j in 0..i {
-                    s += l[(i, j)] * u[(j, k)];
+                for i in 0 .. n {
+                    let m_i = self.col(i);
+                    let p_ii = w.col(i).dot(&m_i);
+                    p[(i,i)] = p_ii;
+                    if p_ii == 0f64 {
+                        return None;
+                    }
+                    for j in i+1 .. n {
+                        q[(i, j)] = w.col(j).dot(&m_i) / p_ii;
+                        p[(i, j)] = z.col(j).dot(&self.row(i)) / p_ii;
+                        for k in 0 .. j {
+                            w[(k, j)] -= q[(i, j)] * w[(k, i)];
+                            z[(k, j)] -= p[(i, j)] * z[(k, i)];
+                        }
+                    }
+                    unsafe {
+                        let col_ptr = z.col_mut(i);
+                        col_ptr.into_iter().for_each(|x| *x /= p_ii);
+                    }
                 }
-                u[(i, k)] = reference[(i, k)] - s;
-                // Check non-zero diagonal
-                if u[(i, i)].abs() <= 1e-40 {
-                    return None;
-                }
-            }
-
-            for k in (i + 1)..n {
-                let mut s = 0f64;
-                for j in 0..i {
-                    s += l[(k, j)] * u[(j, i)];
-                }
-                l[(k, i)] = (reference[(k, i)] - s) / u[(i, i)];
+                Some(
+                    WAZD {
+                        w,
+                        z,
+                        d: eye(n),
+                    }
+                )
             }
         }
-
-        Some(PQLU { p, q, l, u })
     }
 
     /// QR Decomposition
@@ -2768,10 +2859,7 @@ impl LinearAlgebra for Matrix {
                 }
             }
             _ => {
-                match self.lu() {
-                    None => 0f64,
-                    Some(lu) => lu.det()
-                }
+                self.lu().det()
             }
         }
     }
@@ -2851,29 +2939,26 @@ impl LinearAlgebra for Matrix {
     /// fn main() {
     ///     // Non-singular
     ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.inv().unwrap(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
+    ///     assert_eq!(a.inv(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
     ///
     ///     // Singular
     ///     let b = matrix!(1;9;1, 3, 3, Row);
-    ///     assert_eq!(b.inv(), None);
+    ///     let c = b.inv(); // Can compile but..
+    ///     let d = b.det();
+    ///     assert_eq!(d, 0f64);
     /// }
     /// ```
-    fn inv(&self) -> Option<Self> {
+    fn inv(&self) -> Self {
         match () {
             #[cfg(feature = "O3")]
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
-                    None => None,
-                    Some(dgrf) => lapack_dgetri(&dgrf),
+                    None => panic!("Singular matrix (opt_dgrf)"),
+                    Some(dgrf) => lapack_dgetri(&dgrf).unwrap(),
                 }
             }
-            _ => match self.lu() {
-                None => None,
-                Some(pqlu) => {
-                    Some(pqlu.inv())
-                }
-            },
+            _ => self.lu().inv(),
             // _ => {
             //     match self.lu() {
             //         None => None,
@@ -2896,43 +2981,116 @@ impl LinearAlgebra for Matrix {
     ///
     /// fn main() {
     ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     let inv_a = a.inv().unwrap();
-    ///     let pse_a = a.pseudo_inv().unwrap();
+    ///     let inv_a = a.inv();
+    ///     let pse_a = a.pseudo_inv();
     ///
     ///     assert_eq!(inv_a, pse_a); // Nearly equal
     /// }
     /// ```
-    fn pseudo_inv(&self) -> Option<Self> {
+    fn pseudo_inv(&self) -> Self {
         let xt = self.t();
         let xtx = &xt * self;
-        match xtx.inv() {
-            None => None,
-            Some(m) => Some(m * xt)
+        xtx.inv() * xt
+    }
+
+    /// Solve with Vector
+    ///
+    /// # Solve options
+    ///
+    /// * LU: Gaussian elimination with Complete pivoting LU (GECP)
+    /// * WAZ: Solve with WAZ decomposition
+    ///
+    /// # Reference
+    ///
+    /// * Biswa Nath Datta, *Numerical Linear Algebra and Applications, Second Edition*
+    /// * Ke Chen, *Matrix Preconditioning Techniques and Applications*, Cambridge Monographs on Applied and Computational Mathematics
+    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64> {
+        match sk {
+            #[cfg(feature = "O3")]
+            SolveKind::LU => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => panic!("Try solve for Singluar matrix"),
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
+                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, &(b.into())).unwrap().into(),
+                    },
+                }
+            }
+            #[cfg(not(feature = "O3"))]
+            SolveKind::LU => {
+                let lu = self.lu();
+                let (p, q, l, u) = lu.extract();
+                let mut v = b.clone();
+                v.swap_with_perm(&p.into_iter().enumerate().collect());
+                let z = l.forward_subs(&v);
+                let mut y = u.back_subs(&z);
+                y.swap_with_perm(&q.into_iter().enumerate().rev().collect());
+                y
+            }
+            SolveKind::WAZ => {
+                let wazd = match self.waz(Form::Identity) {
+                    None => panic!("Can't solve by WAZ with Singular matrix!"),
+                    Some(obj) => obj,
+                };
+                let x = &wazd.w.t() * b;
+                let x = &wazd.z * &x;
+                x
+            }
+        }
+    }
+    
+    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix {
+        match sk {
+            #[cfg(feature = "O3")]
+            SolveKind::LU => {
+                let opt_dgrf = lapack_dgetrf(self);
+                match opt_dgrf {
+                    None => panic!("Try solve for Singluar matrix"),
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
+                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, m).unwrap(),
+                    },
+                }
+            }
+            #[cfg(not(feature = "O3"))]
+            SolveKind::LU => {
+                let lu = self.lu();
+                let (p, q, l, u) = lu.extract();
+                let mut x = matrix(vec![0f64; self.col * m.col], self.col, m.col, Col);
+                for i in 0 .. m.col {
+                    let mut v = m.col(i).clone();
+                    for (r, &s) in p.iter().enumerate() {
+                        v.swap(r, s);
+                    }
+                    let z = l.forward_subs(&v);
+                    let mut y = u.back_subs(&z);
+                    for (r, &s) in q.iter().enumerate() {
+                        y.swap(r, s);
+                    }
+                    unsafe {
+                        let mut c = x.col_mut(i);
+                        copy_vec_ptr(&mut c, &y); 
+                    }
+                }
+                x
+            }
+            SolveKind::WAZ => {
+                let wazd = match self.waz(Form::Identity) {
+                    None => panic!("Try solve for Singular matrix"),
+                    Some(obj) => obj,
+                };
+                let x = &wazd.w.t() * m;
+                let x = &wazd.z * &x;
+                x
+            }
         }
     }
 }
 
 #[allow(non_snake_case)]
-pub fn solve(A: &Matrix, b: &Matrix) -> Option<Matrix> {
-    match () {
-        #[cfg(feature = "O3")]
-        () => {
-            let opt_dgrf = lapack_dgetrf(A);
-            match opt_dgrf {
-                None => None,
-                Some(dgrf) => match dgrf.status {
-                    LAPACK_STATUS::Singular => None,
-                    LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, b),
-                },
-            }
-        }
-        _ => {
-            match A.pseudo_inv() {
-                None => None,
-                Some(m) => Some(&m * b)
-            }
-        }
-    }
+pub fn solve(A: &Matrix, b: &Matrix, sk: SolveKind) -> Matrix {
+    A.solve_mat(b, sk)
 }
 
 impl MutMatrix for Matrix {
@@ -3711,4 +3869,111 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
     let vt: Matrix = v.clone().into();
     H = H - 2f64 / v.dot(&v) * (&vt * &vt.t());
     H
+}
+
+/// LU via Gaussian Elimination with Partial Pivoting
+#[allow(dead_code)]
+fn gepp(m: &mut Matrix) -> Vec<usize> {
+    let mut r = vec![0usize; m.col-1];
+    for k in 0 .. (m.col - 1) {
+        // Find the pivot row
+        let r_k = m.col(k).into_iter().skip(k).enumerate().max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap().0 + k;
+        r[k] = r_k;
+
+        // Interchange the rows r_k and k 
+        for j in k .. m.col {
+            unsafe {
+                std::ptr::swap(&mut m[(k,j)], &mut m[(r_k, j)]);
+                println!("Swap! k:{}, r_k:{}", k, r_k);
+            }
+        }
+        // Form the multipliers
+        for i in k+1 .. m.col {
+            m[(i,k)] = - m[(i,k)] / m[(k,k)];
+        }
+        // Update the entries
+        for i in k+1 .. m.col {
+            for j in k+1 .. m.col {
+                m[(i, j)] += m[(i, k)] * m[(k, j)];
+            }
+        }
+    }
+    r
+}
+
+/// LU via Gauss Elimination with Complete Pivoting 
+fn gecp(m: &mut Matrix) -> (Vec<usize>, Vec<usize>) {
+    let n = m.col;
+    let mut r = vec![0usize; n-1];
+    let mut s = vec![0usize; n-1];
+    for k in 0 .. n - 1 {
+        // Find pivot
+        let (r_k, s_k) = match m.shape {
+            Col => {
+                let mut row_ics = 0usize;
+                let mut col_ics = 0usize;
+                let mut max_val = 0f64;
+                for i in k .. n {
+                    let c = m.col(i)
+                        .into_iter()
+                        .skip(k)
+                        .enumerate()
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                    let c_ics = c.0 + k;
+                    let c_val = c.1.abs();
+                    if c_val > max_val {
+                        row_ics = c_ics;
+                        col_ics = i;
+                        max_val = c_val;
+                    }
+                }
+                (row_ics, col_ics)
+            }
+            Row => {
+                let mut row_ics = 0usize;
+                let mut col_ics = 0usize;
+                let mut max_val = 0f64;
+                for i in k .. n {
+                    let c = m.row(i)
+                        .into_iter()
+                        .skip(k)
+                        .enumerate()
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                    let c_ics = c.0 + k;
+                    let c_val = c.1.abs();
+                    if c_val > max_val {
+                        col_ics = c_ics;
+                        row_ics = i;
+                        max_val = c_val;
+                    }
+                }
+                (row_ics, col_ics)
+            }
+        };
+        r[k] = r_k;
+        s[k] = s_k;
+
+        // Interchange rows
+        for j in k .. n {
+            unsafe {
+                std::ptr::swap(&mut m[(k, j)], &mut m[(r_k, j)]);
+            }
+        }
+
+        // Interchange cols
+        for i in 0 .. n {
+            unsafe {
+                std::ptr::swap(&mut m[(i, k)], &mut m[(i, s_k)]);
+            }
+        }
+
+        // Form the multipliers
+        for i in k+1 .. n {
+            m[(i, k)] = - m[(i, k)] / m[(k, k)];
+            for j in k+1 .. n {
+                m[(i, j)] += m[(i, k)] * m[(k, j)];
+            }
+        }
+    }
+    (r, s)
 }
