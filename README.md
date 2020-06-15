@@ -71,7 +71,7 @@ fn main() {
 
     // Easy to do linear algebra
     c.det().print();
-    c.inv().unwrap().print();
+    c.inv().print();
 
     // and etc.
 }
@@ -202,7 +202,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.23.0`
+Corresponding to `0.24.0`
 
 ## Pre-requisite
 
