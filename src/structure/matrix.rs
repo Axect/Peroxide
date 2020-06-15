@@ -2512,8 +2512,18 @@ impl PQLU {
 
     pub fn det(&self) -> f64 {
         // sgn of perms
-        let sgn_p = 2.0 * (self.p.len() % 2) as f64 - 1.0;
-        let sgn_q = 2.0 * (self.q.len() % 2) as f64 - 1.0;
+        let mut sgn_p = 1f64;
+        let mut sgn_q = 1f64;
+        for (i, &j) in self.p.iter().enumerate() {
+            if i != j {
+                sgn_p *= -1f64;
+            }
+        }
+        for (i, &j) in self.q.iter().enumerate() {
+            if i != j {
+                sgn_q *= -1f64;
+            }
+        }
 
         self.u.diag().reduce(1f64, |x, y| x * y) * sgn_p * sgn_q
     }
