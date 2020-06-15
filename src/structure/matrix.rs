@@ -2494,14 +2494,14 @@ pub fn diag(n: usize) -> Matrix {
 /// ```
 #[derive(Debug, Clone)]
 pub struct PQLU {
-    pub p: Perms,
-    pub q: Perms,
+    pub p: Vec<usize>,
+    pub q: Vec<usize>,
     pub l: Matrix,
     pub u: Matrix,
 }
 
 impl PQLU {
-    pub fn extract(&self) -> (Perms, Perms, Matrix, Matrix) {
+    pub fn extract(&self) -> (Vec<usize>, Vec<usize>, Matrix, Matrix) {
         (
             self.p.clone(),
             self.q.clone(),
@@ -2521,12 +2521,12 @@ impl PQLU {
     pub fn inv(&self) -> Matrix {
         let (p, q, l, u) = self.extract();
         let mut m = inv_u(u) * inv_l(l);
-        for (idx1, idx2) in q.into_iter().rev() {
+        for (idx1, idx2) in q.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Row);
             }
         }
-        for (idx1, idx2) in p.into_iter().rev() {
+        for (idx1, idx2) in p.into_iter().enumerate().rev() {
             unsafe {
                 m.swap(idx1, idx2, Col);
             }
@@ -2623,8 +2623,8 @@ impl LinearAlgebra for Matrix {
     ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
     ///     let pqlu = a.lu().unwrap();
     ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-    ///     assert_eq!(p, vec![(0,1)]); // swap 0 & 1 (Row)
-    ///     assert_eq!(q, vec![(0,1)]); // swap 0 & 1 (Col)
+    ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
+    ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
     ///     assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
     ///     assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
     /// }
@@ -2638,18 +2638,32 @@ impl LinearAlgebra for Matrix {
         let mut u = matrix(vec![0f64; len], n, n, self.shape);
 
         let mut temp = self.clone();
-        let (p, q) = gecp(&mut temp);
-    
-        for i in 0 .. n {
-            for j in 0 .. i {
-                l[(i, j)] = -temp[(i, j)];
-            }
-            for j in i .. n {
-                u[(i, j)] = temp[(i, j)];
+        match gecp(&mut temp) {
+            None => None,
+            Some((p, q)) => {
+                for i in 0 .. n {
+                    for j in 0 .. i {
+                        // Inverse multiplier
+                        l[(i, j)] = -temp[(i, j)];
+                    }
+                    for j in i .. n {
+                        u[(i, j)] = temp[(i, j)];
+                    }
+                }
+                
+                // Pivoting L
+                for i in 0 .. n - 1 {
+                    unsafe {
+                        let l_i = l.col_mut(i);
+                        for j in i+1 .. l.col-1 {
+                            let dst = p[j];
+                            std::ptr::swap(l_i[j], l_i[dst]);
+                        }
+                    }
+                }
+                Some(PQLU { p, q, l, u })
             }
         }
-
-        Some(PQLU { p, q, l, u })
     }
 
     fn waz(&self, d_form: Form) -> Option<WAZD> {
@@ -3017,15 +3031,15 @@ impl LinearAlgebra for Matrix {
                 };
                 let (p, q, l, u) = lu.extract();
                 let mut v = b.clone();
-                v.swap_with_perm(&p);
+                v.swap_with_perm(&p.into_iter().enumerate().collect());
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
-                y.swap_with_perm(&q.into_iter().rev().collect());
+                y.swap_with_perm(&q.into_iter().enumerate().rev().collect());
                 y
             }
             SolveKind::WAZ => {
                 let wazd = match self.waz(Form::Identity) {
-                    None => panic!("Try solve for Singular matrix"),
+                    None => panic!("Can't solve by WAZ with Singular matrix!"),
                     Some(obj) => obj,
                 };
                 let x = &wazd.w.t() * b;
@@ -3060,10 +3074,14 @@ impl LinearAlgebra for Matrix {
                 let mut x = matrix(vec![0f64; self.col * m.col], self.col, m.col, Col);
                 for i in 0 .. m.col {
                     let mut v = m.col(i).clone();
-                    v.swap_with_perm(&p);
+                    for (r, &s) in p.iter().enumerate() {
+                        v.swap(r, s);
+                    }
                     let z = l.forward_subs(&v);
                     let mut y = u.back_subs(&z);
-                    y.swap_with_perm(&q);
+                    for (r, &s) in q.iter().enumerate() {
+                        y.swap(r, s);
+                    }
                     unsafe {
                         let mut c = x.col_mut(i);
                         copy_vec_ptr(&mut c, &y); 
@@ -3915,10 +3933,10 @@ fn gepp(m: &mut Matrix) -> Perms {
 }
 
 /// LU via Gauss Elimination with Complete Pivoting 
-fn gecp(m: &mut Matrix) -> (Perms, Perms) {
-    let mut r: Perms = vec![];
-    let mut s: Perms = vec![];
+fn gecp(m: &mut Matrix) -> Option<(Vec<usize>, Vec<usize>)> {
     let n = m.col;
+    let mut r = vec![0usize; n-1];
+    let mut s = vec![0usize; n-1];
     for k in 0 .. n - 1 {
         // Find pivot
         let (r_k, s_k) = match m.shape {
@@ -3963,8 +3981,8 @@ fn gecp(m: &mut Matrix) -> (Perms, Perms) {
                 (row_ics, col_ics)
             }
         };
-        r.push((k, r_k));
-        s.push((k, s_k));
+        r[k] = r_k;
+        s[k] = s_k;
 
         // Interchange rows
         for j in k .. n {
@@ -3980,17 +3998,17 @@ fn gecp(m: &mut Matrix) -> (Perms, Perms) {
             }
         }
 
+        if m[(k, k)] == 0f64 {
+            return None;
+        }
+
         // Form the multipliers
         for i in k+1 .. n {
             m[(i, k)] = - m[(i, k)] / m[(k, k)];
-        }
-
-        // Update
-        for i in k+1 .. n {
             for j in k+1 .. n {
                 m[(i, j)] += m[(i, k)] * m[(k, j)];
             }
         }
     }
-    (r, s)
+    Some((r, s))
 }
