@@ -9,7 +9,7 @@ fn test_inverse() {
         let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "inv"]).unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b: Matrix = matrix(df["inv"].clone(), i, i, Col);
-        let c = a.inv().unwrap();
+        let c = a.inv();
         assert_eq!(b, c);
     }
 }
@@ -58,7 +58,7 @@ fn test_pinv() {
         let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["pm", "pinv"]).unwrap();
         let a: Matrix = matrix(df["pm"].clone(), i+1, i-1, Col);
         let b: Matrix = matrix(df["pinv"].clone(), i-1, i+1, Col);
-        let c = a.pseudo_inv().unwrap();
+        let c = a.pseudo_inv();
         assert_eq!(b, c);
     }
 }
