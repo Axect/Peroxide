@@ -135,6 +135,7 @@ pub use crate::structure::{
         inv_l,
         inv_u,
         Shape,
+        matrix,
         ml_matrix,
         py_matrix,
         r_matrix,

@@ -1,3 +1,8 @@
+# Release 0.24.1 (2020-06-16)
+
+* Fetch `prelude` with new Linear algebra
+    * Add `SimpleLinearAlgebra`
+
 # Release 0.24.0 (2020-06-16)
 
 ## Whole new LU
