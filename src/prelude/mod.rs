@@ -94,12 +94,32 @@ pub use simpler::SimpleNorm;
 
 #[allow(unused_imports)]
 pub use crate::structure::{
-    matrix::*,
+    matrix::{
+        Matrix,
+        PQLU,
+        WAZD,
+        QR,
+        Row,
+        Col,
+        gemv,
+        gemm,
+        diag,
+        inv_l,
+        inv_u,
+        Shape,
+        ml_matrix,
+        py_matrix,
+        r_matrix,
+        combine,
+        gen_householder
+    },
     vector::*,
     dual::*,
     polynomial::*,
     hyper_dual::*,
 };
+
+pub use simpler::{SimplerLinearAlgebra, solve};
 
 #[allow(unused_imports)]
 pub use crate::util::{
