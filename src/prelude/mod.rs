@@ -71,6 +71,34 @@
 //!     integrate(sin, (0f64, PI), GaussLegendre(15)).print();
 //! }
 //! ```
+//!
+//! * Solve
+//!
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = c!(3, 7);
+//!     a.solve(&b, LU).print();    // [1, 1]
+//!     a.solve(&b, WAZ).print();   // [1, 1]
+//! }
+//! ```
+//!
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//!
+//! fn main() {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = c!(3, 7);
+//!     // Prelude can only solve with LU
+//!     a.solve(&b).print();    // [1, 1]
+//! }
+//! ```
 
 #[allow(unused_imports)]
 pub use crate::macros::{
