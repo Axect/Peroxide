@@ -71,6 +71,34 @@
 //!     integrate(sin, (0f64, PI), GaussLegendre(15)).print();
 //! }
 //! ```
+//!
+//! * Solve
+//!
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = c!(3, 7);
+//!     a.solve(&b, LU).print();    // [1, 1]
+//!     a.solve(&b, WAZ).print();   // [1, 1]
+//! }
+//! ```
+//!
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//!
+//! fn main() {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = c!(3, 7);
+//!     // Prelude can only solve with LU
+//!     a.solve(&b).print();    // [1, 1]
+//! }
+//! ```
 
 #[allow(unused_imports)]
 pub use crate::macros::{
@@ -94,12 +122,33 @@ pub use simpler::SimpleNorm;
 
 #[allow(unused_imports)]
 pub use crate::structure::{
-    matrix::*,
+    matrix::{
+        Matrix,
+        PQLU,
+        WAZD,
+        QR,
+        Row,
+        Col,
+        gemv,
+        gemm,
+        diag,
+        inv_l,
+        inv_u,
+        Shape,
+        matrix,
+        ml_matrix,
+        py_matrix,
+        r_matrix,
+        combine,
+        gen_householder
+    },
     vector::*,
     dual::*,
     polynomial::*,
     hyper_dual::*,
 };
+
+pub use simpler::{SimplerLinearAlgebra, solve};
 
 #[allow(unused_imports)]
 pub use crate::util::{
