@@ -1,3 +1,8 @@
+# Release 0.24.5 (2020-06-18)
+
+* Add `get_env(&self)` in `ExplicitODE`
+* Add `get_env(&self)` in `ImplicitODE`
+
 # Release 0.24.4 (2020-06-18)
 
 * Fix `set_header` error of `DataFrame`
