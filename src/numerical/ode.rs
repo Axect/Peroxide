@@ -211,8 +211,12 @@ use std::collections::HashMap;
 use crate::structure::{
     dual::{Dual, Dualist, VecWithDual},
     matrix::{Matrix, LinearAlgebra},
+    polynomial::Polynomial,
 };
-use crate::numerical::utils::jacobian_real;
+use crate::numerical::{
+    utils::jacobian_real,
+    spline::CubicSpline,
+};
 use crate::util::{
     non_macro::{cat, concat, zeros, eye},
     print::Printable,
@@ -329,9 +333,6 @@ impl<T: Real> State<T> {
         }
     }
 }
-
-pub type ExUpdater = fn(&mut State<f64>);
-pub type ImUpdater = fn(&mut State<Dual>);
 
 /// ODE solver
 ///
@@ -901,3 +902,19 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
         true
     }    
 }
+
+// =============================================================================
+// Some Environments
+// =============================================================================
+#[derive(Debug, Copy, Clone, Default)]
+pub struct NoEnv {}
+
+impl Environment for NoEnv {}
+
+impl Environment for CubicSpline {}
+
+impl Environment for Matrix {}
+
+impl Environment for Vec<f64> {}
+
+impl Environment for Polynomial {}
