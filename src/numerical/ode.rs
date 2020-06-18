@@ -358,6 +358,7 @@ pub trait ODE<E: Environment> {
     fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
     fn set_times(&mut self, n: usize) -> &mut Self;
     fn check_enough(&self) -> bool;
+    fn set_env(&mut self, env: E) -> &mut Self;
 }
 
 #[derive(Clone)]
@@ -606,6 +607,11 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
             }
         }
         true
+    }
+
+    fn set_env(&mut self, env: E) -> &mut Self {
+        self.env = env;
+        self
     }
 }
 
@@ -900,6 +906,11 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
             }
         }
         true
+    }
+    
+    fn set_env(&mut self, env: E) -> &mut Self {
+        self.env = env;
+        self
     }    
 }
 
