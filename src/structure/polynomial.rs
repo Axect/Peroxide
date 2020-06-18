@@ -20,7 +20,7 @@ use crate::traits::{
 // =============================================================================
 
 /// Polynomial Structure
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polynomial {
     pub coef: Vec<f64>,
