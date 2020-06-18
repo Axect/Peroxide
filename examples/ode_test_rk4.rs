@@ -21,7 +21,7 @@ fn main() {
     //     .write_pickle();
 }
 
-fn test_fn(st: &mut State<f64>) {
+fn test_fn(st: &mut State<f64>, _: &NoEnv) {
     let x = st.param;
     let y = &st.value;
     let dy = &mut st.deriv;

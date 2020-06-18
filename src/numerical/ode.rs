@@ -13,7 +13,7 @@
 //!     extern crate peroxide;
 //!     use peroxide::fuga::{Real, State, BoundaryCondition};
 //!
-//!     pub trait ODE {
+//!     pub trait ODE<E: Environment> {
 //!         type Records;
 //!         type Vector;
 //!         type Param;
@@ -32,6 +32,7 @@
 //!         fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
 //!         fn set_times(&mut self, n: usize) -> &mut Self;
 //!         fn check_enough(&self) -> bool;
+//!         fn set_env(&mut self, env: E) -> &mut Self;
 //!     }
 //!     ```
 //!
@@ -47,6 +48,7 @@
 //!         * `ImMethod` : Implicit method **(to be implemented)**
 //!             * `BDF` : Backward Euler 1st order
 //!             * `GL4` : Gauss Legendre 4th order
+//!     * `Environment` : External environment (CubicSpline, Vec<f64>, Matrix or Another external table)
 //!
 //!
 //! ### `State<T>` structure
@@ -83,6 +85,52 @@
 //! * `to_f64(&self) -> State<f64>`
 //! * `to_dual(&self) -> State<Dual>`
 //! * `new(T, Vec<T>, Vec<T>) -> Self`
+//! 
+//! ### `Environment`
+//! 
+//! * `Environment` needs just `Default`
+//! * To use custom `Environment`, just type follows : `impl Environment for CustomType {}`
+//! * If you don't want to use `Environment`, then use `NoEnv`
+//! * Implemented Data Types
+//!     * `Vec<f64>`
+//!     * `Polynomial`
+//!     * `Matrix`
+//!     * `CubicSpline`
+//!     * `NoEnv`
+//! 
+//! ```
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! fn main() {
+//!     let x = seq(0, 10, 1);
+//!     x.print();
+//!     let y = x.iter().enumerate().map(|(i, &t)| t.powi(5-i as i32)).collect::<Vec<f64>>();
+//! 
+//!     let c = CubicSpline::from_nodes(x, y);
+//! 
+//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+//! 
+//!     let mut ode_solver = ExplicitODE::new(test_fn);
+//! 
+//!     ode_solver
+//!         .set_method(ExMethod::RK4)
+//!         .set_initial_condition(init_state)
+//!         .set_step_size(0.01)
+//!         .set_times(1000)
+//!         .set_env(c);
+//!     
+//!     let result = ode_solver.integrate();
+//!     result.print();
+//! }
+//! 
+//! fn test_fn(st: &mut State<f64>, env: &CubicSpline) {
+//!     let x = st.param;
+//!     let dy = &mut st.deriv;
+//!     dy[0] = env.eval(x);
+//! }
+//! ```
 //!
 //! ### `ExplicitODE` struct
 //!
@@ -94,9 +142,9 @@
 //! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions};
 //!
 //! #[derive(Clone)]
-//! pub struct ExplicitODE {
+//! pub struct ExplicitODE<E: Environment> {
 //!     state: State<f64>,
-//!     func: fn(&mut State<f64>),
+//!     func: fn(&mut State<f64>, &E),
 //!     step_size: f64,
 //!     method: ExMethod,
 //!     init_cond: State<f64>,
@@ -105,6 +153,7 @@
 //!     stop_cond: fn(&Self) -> bool,
 //!     times: usize,
 //!     to_use: HashMap<ODEOptions, bool>,
+//!     env: E,
 //! }
 //! ```
 //!
@@ -116,6 +165,7 @@
 //! * `stop_cond` : Stop condition (stop before `times`)
 //! * `times` : How many times do you want to update?
 //! * `to_use` : Just check whether information is enough
+//! * `env` : Environment
 //!
 //! ## Example
 //!
@@ -155,7 +205,7 @@
 //!     // Plot or extract
 //! }
 //!
-//! fn f(st: &mut State<f64>) {
+//! fn f(st: &mut State<f64>, _: &NoEnv) {
 //!     let x = &st.value;
 //!     let dx = &mut st.deriv;
 //!     dx[0] = 10f64 * (x[1] - x[0]);
@@ -195,7 +245,7 @@
 //!     // Plot or Extract..
 //! }
 //!
-//! fn test_fn(st: &mut State<f64>) {
+//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
 //!     let x = st.param;
 //!     let y = &st.value;
 //!     let dy = &mut st.deriv;
@@ -358,6 +408,7 @@ pub trait ODE<E: Environment> {
     fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
     fn set_times(&mut self, n: usize) -> &mut Self;
     fn check_enough(&self) -> bool;
+    fn set_env(&mut self, env: E) -> &mut Self;
 }
 
 #[derive(Clone)]
@@ -606,6 +657,11 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
             }
         }
         true
+    }
+
+    fn set_env(&mut self, env: E) -> &mut Self {
+        self.env = env;
+        self
     }
 }
 
@@ -900,6 +956,11 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
             }
         }
         true
+    }
+
+    fn set_env(&mut self, env: E) -> &mut Self {
+        self.env = env;
+        self
     }    
 }
 
