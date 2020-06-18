@@ -51,7 +51,7 @@ pub fn cubic_spline(node_x: Vec<f64>, node_y: Vec<f64>) -> Vec<Polynomial> {
 }
 
 /// Cubic Spline (Natural)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,

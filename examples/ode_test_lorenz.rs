@@ -26,7 +26,7 @@ fn main() {
     //     .write_pickle();
 }
 
-fn f(st: &mut State<f64>) {
+fn f(st: &mut State<f64>, _: &NoEnv) {
     let x = &st.value;
     let dx = &mut st.deriv;
     dx[0] = 10f64 * (x[1] - x[0]);

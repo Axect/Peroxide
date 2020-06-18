@@ -30,7 +30,7 @@ fn main() {
     // }
 }
 
-fn test_fn(st: &mut State<Dual>) {
+fn test_fn(st: &mut State<Dual>, _: &NoEnv) {
     let x = st.param;
     let y = &st.value;
     let dy = &mut st.deriv;
