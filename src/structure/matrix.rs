@@ -491,8 +491,8 @@ pub type Perms = Vec<(usize, usize)>;
 /// ```
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Shape {
-    Row,
     Col,
+    Row
 }
 
 /// Print for Shape
@@ -521,7 +521,7 @@ impl fmt::Display for Shape {
 ///     shape: Row,
 /// }; // [[1,2],[3,4]]
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Matrix {
     pub data: Vec<f64>,
     pub row: usize,
