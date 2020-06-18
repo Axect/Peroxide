@@ -1,3 +1,7 @@
+# Release 0.24.4 (2020-06-18)
+
+* Fix `set_header` error of `DataFrame`
+
 # Release 0.24.3 (2020-06-18)
 
 ## Solve ODE with Environment
