@@ -270,6 +270,8 @@ pub enum ODEOptions {
     Times,
 }
 
+pub trait Environment: Default {}
+
 /// State for ODE
 ///
 /// * `param` : Parameter of ODE (ex) time)
@@ -336,7 +338,7 @@ pub type ImUpdater = fn(&mut State<Dual>);
 /// * `Records` : Type of container to contain results
 /// * `Param` : Type of parameter
 /// * `ODEMethod` : Explicit or Implicit
-pub trait ODE {
+pub trait ODE<E: Environment> {
     type Records;
     type Param;
     type ODEMethod;
@@ -358,9 +360,9 @@ pub trait ODE {
 }
 
 #[derive(Clone)]
-pub struct ExplicitODE {
+pub struct ExplicitODE<E: Environment> {
     state: State<f64>,
-    func: fn(&mut State<f64>),
+    func: fn(&mut State<f64>, &E),
     step_size: f64,
     method: ExMethod,
     init_cond: State<f64>,
@@ -369,10 +371,11 @@ pub struct ExplicitODE {
     stop_cond: fn(&Self) -> bool,
     times: usize,
     options: HashMap<ODEOptions, bool>,
+    env: E,
 }
 
-impl ExplicitODE {
-    pub fn new(f: ExUpdater) -> Self {
+impl<E: Environment> ExplicitODE<E> {
+    pub fn new(f: fn(&mut State<f64>, &E)) -> Self {
         let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
         default_to_use.insert(InitCond, false);
         default_to_use.insert(StepSize, false);
@@ -392,6 +395,7 @@ impl ExplicitODE {
             stop_cond: |_x| false,
             times: 0,
             options: default_to_use,
+            env: E::default(),
         }
     }
 
@@ -400,7 +404,7 @@ impl ExplicitODE {
     }
 }
 
-impl ODE for ExplicitODE {
+impl<E: Environment> ODE<E> for ExplicitODE<E> {
     type Records = Matrix;
     type Param = f64;
     type ODEMethod = ExMethod;
@@ -409,7 +413,7 @@ impl ODE for ExplicitODE {
         match self.method {
             Euler => {
                 // Set Derivative from state
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
                 let dt = self.step_size;
 
                 match () {
@@ -431,24 +435,24 @@ impl ODE for ExplicitODE {
 
                 // Set Derivative from state
                 let yn = self.state.value.clone();
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
 
                 let k1 = self.state.deriv.clone();
                 let k1_add = k1.mul_scalar(h2);
                 self.state.param += h2;
                 self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
 
                 let k2 = self.state.deriv.clone();
                 let k2_add = k2.zip_with(|x, y| h2 * x - y, &k1_add);
                 self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
 
                 let k3 = self.state.deriv.clone();
                 let k3_add = k3.zip_with(|x, y| h * x - y, &k2_add);
                 self.state.param += h2;
                 self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
 
                 let k4 = self.state.deriv.clone();
 
@@ -605,9 +609,9 @@ impl ODE for ExplicitODE {
 }
 
 #[derive(Clone)]
-pub struct ImplicitODE {
+pub struct ImplicitODE<E: Environment> {
     state: State<Dual>,
-    func: fn(&mut State<Dual>),
+    func: fn(&mut State<Dual>, &E),
     step_size: f64,
     rtol: f64,
     method: ImMethod,
@@ -617,10 +621,11 @@ pub struct ImplicitODE {
     stop_cond: fn(&Self) -> bool,
     times: usize,
     options: HashMap<ODEOptions, bool>,
+    env: E,
 }
 
-impl ImplicitODE {
-    pub fn new(f: ImUpdater) -> Self {
+impl<E: Environment> ImplicitODE<E> {
+    pub fn new(f: fn(&mut State<Dual>, &E)) -> Self {
         let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
         default_to_use.insert(InitCond, false);
         default_to_use.insert(StepSize, false);
@@ -641,6 +646,7 @@ impl ImplicitODE {
             stop_cond: |_x| false,
             times: 0,
             options: default_to_use,
+            env: E::default()
         }
     }
 
@@ -664,7 +670,7 @@ const GL4_TAB: [[f64; 3]; 2] = [
 ];
 
 #[allow(non_snake_case)]
-impl ODE for ImplicitODE {
+impl<E: Environment> ODE<E> for ImplicitODE<E> {
     type Records = Matrix;
     type Param = Dual;
     type ODEMethod = ImMethod;
@@ -676,7 +682,7 @@ impl ODE for ImplicitODE {
             GL4 => {
                 let f = |t: Dual, y: Vec<Dual>| {
                     let mut st = State::new(t, y.clone(), y);
-                    (self.func)(&mut st);
+                    (self.func)(&mut st, &self.env);
                     st.deriv
                 };
 
@@ -741,7 +747,7 @@ impl ODE for ImplicitODE {
                 let (k1, k2) = (k_curr.take(n), k_curr.skip(n));
 
                 // Set Derivative from state
-                (self.func)(&mut self.state);
+                (self.func)(&mut self.state, &self.env);
 
                 // 5. Merge k1, k2
                 let mut y_curr = self.state.value.values();
