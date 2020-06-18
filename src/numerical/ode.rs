@@ -454,6 +454,10 @@ impl<E: Environment> ExplicitODE<E> {
     pub fn get_state(&self) -> &State<f64> {
         &self.state
     }
+
+    pub fn get_env(&self) -> &E {
+        &self.env
+    }
 }
 
 impl<E: Environment> ODE<E> for ExplicitODE<E> {
