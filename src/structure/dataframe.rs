@@ -192,6 +192,7 @@ use std::{fmt, fmt::Debug};
 use crate::structure::matrix::{matrix, Matrix, Shape::*};
 use crate::util::useful::tab;
 use json::JsonValue;
+use crate::traits::fp::FPMatrix;
 
 #[derive(Debug, Clone)]
 pub struct DataFrame {
@@ -286,15 +287,33 @@ impl DataFrame {
         self.data.keys()
     }
 
+    /// Change header
+    ///
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// let mut df = DataFrame::from_matrix(a);
+    /// df.print();
+    ///
+    /// df.set_header(vec!["x", "y"]);
+    /// df.print();
+    /// ```
     pub fn set_header(&mut self, header: Vec<&str>) {
-        for i in 0..header.len() {
-            match self.data.get_index_mut(i) {
-                Some((k, _)) => {
-                    *k = header[i].to_string();
-                }
-                None => panic!("New header is longer than original header"),
-            }
+        let mut im = IndexMap::with_capacity(header.len());
+        for ((_, v), &head) in self.data.drain(..).zip(header.iter()) {
+            im.insert(head.to_owned(), v);
         }
+        self.data = im;
+        //for i in 0..header.len() {
+        //    match self.data.get_index_mut(i) {
+        //        Some((k, _)) => {
+        //            *k = header[i].to_string();
+        //        }
+        //        None => panic!("New header is longer than original header"),
+        //    }
+        //}
     }
 
     /// Convert to matrix
