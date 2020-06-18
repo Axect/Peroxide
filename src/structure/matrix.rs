@@ -506,6 +506,12 @@ impl fmt::Display for Shape {
     }
 }
 
+impl Default for Shape {
+    fn default() -> Self {
+        Shape::Col
+    }
+}
+
 /// R-like matrix structure
 ///
 /// # Examples
