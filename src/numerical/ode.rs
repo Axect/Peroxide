@@ -719,6 +719,10 @@ impl<E: Environment> ImplicitODE<E> {
         self.rtol = rtol;
         self
     }
+
+    pub fn get_env(&self) -> &E {
+        &self.env
+    }
 }
 
 /// Value of 3f64.sqrt()
