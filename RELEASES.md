@@ -1,3 +1,18 @@
+# Release 0.24.3 (2020-06-18)
+
+## Solve ODE with Environment
+
+* Add `Environment` trait in `numerica/ode.rs`
+    * `ODE` -> `ODE<E: Environment>`
+    * `ExplicitODE` -> `ExplicitODE<E: Environment>`
+        * `f: Fn(&mut State<f64>)` -> `f: Fn(&mut State<f64>, &E)`
+        * Add `set_env(E)`
+    * `ImplicitODE` -> `ImplicitODE<E: Environment>`
+        * `f: Fn(&mut State<Dual>)` -> `f: Fn(&mut State<Dual>, &E)`
+        * Add `set_env(E)`
+
+# Release 0.24.2 (2020-06-18) (Yanked)
+
 # Release 0.24.1 (2020-06-16)
 
 * Fetch `prelude` with new Linear algebra
