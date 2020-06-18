@@ -11,7 +11,7 @@
 //!
 //!     ```rust
 //!     extern crate peroxide;
-//!     use peroxide::fuga::{Real, State, BoundaryCondition};
+//!     use peroxide::fuga::{Real, State, BoundaryCondition, Environment};
 //!
 //!     pub trait ODE<E: Environment> {
 //!         type Records;
@@ -139,7 +139,7 @@
 //! ```rust
 //! extern crate peroxide;
 //! use std::collections::HashMap;
-//! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions};
+//! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions, Environment};
 //!
 //! #[derive(Clone)]
 //! pub struct ExplicitODE<E: Environment> {
