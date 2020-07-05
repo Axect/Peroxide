@@ -73,6 +73,7 @@
 //!     * Mean: $\frac{a + b}{2}$
 //!     * Var : $\frac{1}{12}(b-a)^2$
 //! * To generate uniform random number, Peroxide uses `rand` crate
+//! * **Caution**: `Uniform(T, T)` generates `T` type samples (only for `Uniform`)
 //!
 //!     ```rust
 //!     extern crate peroxide;
@@ -80,7 +81,7 @@
 //!
 //!     fn main() {
 //!         // Uniform(start, end)
-//!         let a = Uniform(0, 1);
+//!         let a = Uniform(0f64, 1f64); // It will generate `f64` samples.
 //!         a.sample(100).print();
 //!         a.pdf(0.2).print();
 //!         a.mean().print();
