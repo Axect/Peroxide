@@ -595,15 +595,15 @@ pub trait NumberVector {
 
 impl NumberVector for Vec<Number> {
     fn to_dual_vec(&self) -> Vec<Dual> {
-        self.clone().into_iter().map(|x| x.to_dual()).collect()
+        self.into_iter().map(|x| x.to_dual()).collect()
     }
 
     fn to_f64_vec(&self) -> Vec<f64> {
-        self.clone().into_iter().map(|x| x.to_f64()).collect()
+        self.into_iter().map(|x| x.to_f64()).collect()
     }
 
     fn to_hyper_vec(&self) -> Vec<HyperDual> {
-        self.clone()
+        self
             .into_iter()
             .map(|x| x.to_hyper_dual())
             .collect()
