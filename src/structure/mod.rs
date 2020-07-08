@@ -17,3 +17,4 @@ pub mod vector;
 #[cfg(feature = "dataframe")]
 pub mod dataframe;
 pub mod sparse;
+pub mod ad;

@@ -173,6 +173,9 @@ pub use crate::structure::dataframe::*;
 #[cfg(feature = "plot")]
 pub use crate::util::plot::*;
 
+#[allow(unused_imports)]
+pub use crate::structure::ad::*;
+
 // =============================================================================
 // Enums
 // =============================================================================
