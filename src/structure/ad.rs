@@ -16,7 +16,7 @@ pub struct AD<A> where A: Array<Item=f64> {
 }
 
 // =============================================================================
-// Inherit tinyvec::ArrayVec
+// Inherit SmallVec
 // =============================================================================
 impl<A: Array<Item=f64> + Default> AD<A> {
     pub fn new() -> Self {
