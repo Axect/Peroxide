@@ -1,5 +1,6 @@
 use std::borrow;
-use smallvec::{Array, SmallVec, IntoIter};
+pub use smallvec::Array;
+use smallvec::{SmallVec, IntoIter};
 use std::iter::FromIterator;
 use std::slice::SliceIndex;
 use std::ops::{Index, IndexMut, Deref, DerefMut, Neg, Add, Sub, Mul, Div};
