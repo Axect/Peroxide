@@ -28,12 +28,14 @@ use std::ops::{Add, Div, Mul, Sub, Neg};
 use crate::structure::{
     dual::Dual,
     hyper_dual::HyperDual,
+    ad::{AD, Array},
 };
 use self::Number::{F, D};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
     fn powf(&self, f: f64) -> Self;
+    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> Self;
     fn pow(&self, f: Self) -> Self;
     fn sqrt(&self) -> Self;
 }
