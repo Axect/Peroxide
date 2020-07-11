@@ -464,7 +464,7 @@ fn log<A: Array<Item=f64> + Default + Clone>(x: &AD<A>, base: f64) -> AD<A> {
     ln(x).fmap(|t| t / base.ln())
 }
 
-fn powd<A: Array<Item=f64> + Default>(a: f64, x: &AD<A>) -> AD<A> {
+pub fn powd<A: Array<Item=f64> + Default>(a: f64, x: &AD<A>) -> AD<A> {
     let mut z = AD::empty(x.len());
     z[0] = a.powf(x[0]);
     for i in 1..z.len() {
