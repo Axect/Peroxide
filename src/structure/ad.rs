@@ -2,9 +2,12 @@ use std::borrow;
 use smallvec::{Array, SmallVec, IntoIter};
 use std::iter::FromIterator;
 use std::slice::SliceIndex;
-use std::ops::{Index, IndexMut, Add, Sub, Deref, DerefMut, Mul};
+use std::ops::{Index, IndexMut, Deref, DerefMut, Neg, Add, Sub, Mul, Div};
 use crate::statistics::ops::C;
-use crate::traits::fp::FPVector;
+use crate::traits::{
+    fp::FPVector,
+    num::{PowOps, ExpLogOps, TrigOps},
+};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct AD<A> where A: Array<Item=f64> {
@@ -21,9 +24,9 @@ impl<A: Array<Item=f64> + Default> AD<A> {
         }
     }
 
-    pub fn from_array(a: SmallVec<A>) -> Self {
+    pub fn from_array(a: A) -> Self {
         AD {
-            data: a
+            data: SmallVec::from(a)
         }
     }
 
@@ -164,6 +167,12 @@ impl<A: Array<Item=f64> + Default + Clone> FPVector for AD<A> {
 // =============================================================================
 // Ops for AD
 // =============================================================================
+impl<A: Array<Item=f64> + Default> Neg for AD<A> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        self.iter().map(|x| -x).collect()
+    }
+}
 
 impl<'a, 'b, A: Array<Item=f64> + Default> Add<&'b AD<A>> for &'a AD<A> {
     type Output = AD<A>;
@@ -186,6 +195,112 @@ impl<'a, 'b, A: Array<Item=f64> + Default> Mul<&'b AD<A>> for &'a AD<A> {
 
     fn mul(self, rhs: &'b AD<A>) -> Self::Output {
         mul(self, rhs)
+    }
+}
+
+impl<'a, 'b, A: Array<Item=f64> + Default> Div<&'b AD<A>> for &'a AD<A> {
+    type Output = AD<A>;
+
+    fn div(self, rhs: &'b AD<A>) -> Self::Output {
+        div(self, rhs)
+    }
+}
+
+impl<A: Array<Item=f64> + Default> PowOps for AD<A> {
+    fn powi(&self, n: i32) -> Self {
+        powi(self, n as usize)
+    }
+
+    fn powf(&self, f: f64) -> Self {
+        powf(self, f)
+    }
+
+    fn pow(&self, f: Self) -> Self {
+        unimplemented!()
+    }
+
+    fn sqrt(&self) -> Self {
+        self.powf(0.5)
+    }
+}
+
+impl<A: Array<Item=f64> + Default + Clone> ExpLogOps for AD<A> {
+    fn exp(&self) -> Self {
+        exp(self)
+    }
+
+    fn ln(&self) -> Self {
+        ln(self)
+    }
+
+    fn log(&self, base: f64) -> Self {
+        log(self, base)
+    }
+
+    fn log2(&self) -> Self {
+        log(self, 2f64)
+    }
+
+    fn log10(&self) -> Self {
+        log(self, 10f64)
+    }
+}
+
+impl<A: Array<Item=f64> + Default> TrigOps for AD<A> {
+    fn sin_cos(&self) -> (Self, Self) {
+        sin_cos(self)
+    }
+
+    fn sin(&self) -> Self {
+        let (s, _) = self.sin_cos();
+        s
+    }
+
+    fn cos(&self) -> Self {
+        let (_, c) = self.sin_cos();
+        c
+    }
+
+    fn tan(&self) -> Self {
+        tan(self)
+    }
+
+    fn sinh(&self) -> Self {
+        let (s, _) = sinh_cosh(self);
+        s
+    }
+
+    fn cosh(&self) -> Self {
+        let (_, c) = sinh_cosh(self);
+        c
+    }
+
+    fn tanh(&self) -> Self {
+        tanh(self)
+    }
+
+    fn asin(&self) -> Self {
+        unimplemented!()
+    }
+
+    fn acos(&self) -> Self {
+        unimplemented!()
+    }
+
+    fn atan(&self) -> Self {
+        unimplemented!()
+    }
+
+    fn asinh(&self) -> Self {
+        unimplemented!()
+    }
+
+    fn acosh(&self) -> Self {
+        unimplemented!()
+    }
+
+    fn atanh(&self) -> Self {
+        unimplemented!()
     }
 }
 
