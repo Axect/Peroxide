@@ -47,6 +47,18 @@ impl<A: Array<Item=f64> + Default> AD<A> {
         x.set_len(n);
         x
     }
+
+    pub fn copy(x: &AD<A>) -> Self {
+        let mut z = AD::empty(x.len());
+        x.iter().enumerate().for_each(|(i, &t)| z[i] = t);
+        z
+    }
+}
+
+impl<A: Array<Item=f64> + Default> Default for AD<A> {
+    fn default() -> Self {
+        AD::new()
+    }
 }
 
 unsafe impl<A: Array<Item=f64>> Array for AD<A> {
@@ -377,7 +389,7 @@ fn powf<A: Array<Item=f64> + Default>(x: &AD<A>, f: f64) -> AD<A> {
 }
 
 fn powi<A: Array<Item=f64> + Default>(x: &AD<A>, n: usize) -> AD<A> {
-    let mut z = AD::empty(x.len());
+    let mut z = AD::copy(x);
     for _i in 1..n {
         z = mul(&z, x);
     }
