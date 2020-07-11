@@ -210,8 +210,27 @@ impl Printable for DataFrame {
     }
 }
 
-impl<A: Array<Item=f64> + Debug> Printable for AD<A> {
+impl<A: Array<Item=f64>> Printable for AD<A> {
     fn print(&self) {
-        println!("{:?}", self)
+        let mut result = String::new();
+        result.push_str("AD [");
+        for i in 0..self.len() {
+            let st1 = format!("{:.4}", self[i]);
+            let st2 = self[i].to_string();
+            let mut st = st2.clone();
+
+            if st1.len() < st2.len() {
+                st = st1;
+            }
+
+            result.push_str(&st);
+            if i == self.len() - 1 {
+                break;
+            }
+            result.push_str(", ");
+        }
+        result.push_str("]");
+
+        println!("{}", result);
     }
 }
