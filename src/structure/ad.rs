@@ -228,7 +228,7 @@ impl<A: Array<Item=f64> + Default> PowOps for AD<A> {
         powf(self, f)
     }
 
-    fn pow(&self, f: Self) -> Self {
+    fn pow(&self, _f: Self) -> Self {
         unimplemented!()
     }
 
@@ -450,11 +450,13 @@ fn recip<A: Array<Item=f64> + Default>(x: &AD<A>) -> AD<A> {
     z
 }
 
+#[allow(dead_code)]
 fn csc_sec<A: Array<Item=f64> + Default>(x: &AD<A>) -> (AD<A>, AD<A>) {
     let (s, c) = sin_cos(x);
     (recip(&s), recip(&c))
 }
 
+#[allow(dead_code)]
 fn cot<A: Array<Item=f64> + Default>(x: &AD<A>) -> AD<A> {
     let (s, c) = sin_cos(x);
     div(&c, &s)
@@ -504,11 +506,13 @@ fn tanh<A: Array<Item=f64> + Default>(x: &AD<A>) -> AD<A> {
     div(&s, &c)
 }
 
+#[allow(dead_code)]
 fn coth<A: Array<Item=f64> + Default>(x: &AD<A>) -> AD<A> {
     let (s, c) = sinh_cosh(x);
     div(&c, &s)
 }
 
+#[allow(dead_code)]
 fn csch_sech<A: Array<Item=f64> + Default>(x: &AD<A>) -> (AD<A>, AD<A>) {
     let (s, c) = sinh_cosh(x);
     (recip(&s), recip(&c))
