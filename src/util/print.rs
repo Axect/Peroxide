@@ -9,13 +9,13 @@ use crate::structure::{
     multinomial::Multinomial,
     dual::{Dual, Dualist},
     hyper_dual::HyperDual,
+    ad::AD,
 };
-use crate::traits::{
-    num::Number,
-};
+use crate::traits::num::Number;
 #[allow(unused_imports)]
 #[cfg(feature = "dataframe")]
 use crate::structure::dataframe::*;
+use smallvec::Array;
 
 pub trait Printable {
     fn print(&self);
@@ -207,5 +207,11 @@ impl Printable for Vec<Number> {
 impl Printable for DataFrame {
     fn print(&self) {
         println!("{}", self)
+    }
+}
+
+impl<A: Array<Item=f64> + Debug> Printable for AD<A> {
+    fn print(&self) {
+        println!("{:?}", self)
     }
 }
