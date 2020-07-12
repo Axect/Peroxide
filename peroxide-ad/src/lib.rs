@@ -75,11 +75,16 @@ pub fn ad_impl(_item: TokenStream) -> TokenStream {
 pub fn ad_iter_def(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
     for i in 1 .. N+1 {
-        let one = format!("pub struct ADIter{} {{
+        let one = format!("pub struct ADIntoIter{} {{
             ad: AD{},
             index: usize,
         }}\n", i, i);
+        let two = format!("pub struct ADIter{}<'a> {{
+            ad: &'a AD{},
+            index: usize,
+        }}\n", i, i);
         total.push_str(&one);
+        total.push_str(&two);
     }
     total.parse().unwrap()
 }
@@ -90,7 +95,18 @@ pub fn ad_impl_into_iter(_item: TokenStream) -> TokenStream {
     for i in 1 .. N+1 {
         let one = format!("impl IntoIterator for AD{} {{
             type Item = f64;
-            type IntoIter = ADIter{};
+            type IntoIter = ADIntoIter{};
+
+            fn into_iter(self) -> Self::IntoIter {{
+                ADIntoIter{} {{
+                    ad: self,
+                    index: 0,
+                }}
+            }}
+        }}\n", i, i, i);
+        let two = format!("impl<'a> IntoIterator for &'a AD{} {{
+            type Item = f64;
+            type IntoIter = ADIter{}<'a>;
 
             fn into_iter(self) -> Self::IntoIter {{
                 ADIter{} {{
@@ -100,6 +116,7 @@ pub fn ad_impl_into_iter(_item: TokenStream) -> TokenStream {
             }}
         }}\n", i, i, i);
         total.push_str(&one);
+        total.push_str(&two);
     }
     total.parse().unwrap()
 }
@@ -113,7 +130,17 @@ pub fn ad_impl_iter(__item: TokenStream) -> TokenStream {
             body.push_str(&format!("{} => self.ad.d{},\n", j, j));
         }
         body.push_str("_ => return None,");
-        let one = format!("impl Iterator for ADIter{} {{
+        let one = format!("impl Iterator for ADIntoIter{} {{
+            type Item = f64;
+            fn next(&mut self) -> Option<Self::Item> {{
+                let result = match self.index {{
+                    {}
+                }};
+                self.index += 1;
+                Some(result)
+            }}
+        }}\n", i, body.clone());
+        let two = format!("impl<'a> Iterator for ADIter{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
                 let result = match self.index {{
@@ -124,6 +151,7 @@ pub fn ad_impl_iter(__item: TokenStream) -> TokenStream {
             }}
         }}\n", i, body);
         total.push_str(&one);
+        total.push_str(&two);
     }
     total.parse().unwrap()
 }
