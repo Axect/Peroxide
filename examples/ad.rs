@@ -11,4 +11,5 @@ fn main() {
 
     (a + b).print();
     (a - b).print();
+    a.into_iter().for_each(|x| x.print());
 }

@@ -7,12 +7,12 @@ const N: usize = 10;
 #[proc_macro]
 pub fn ad_struct_def(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         let mut body = "pub d0: f64,\n".to_string();
         for j in 1 .. i+1 {
             body.push_str(&format!("pub d{}: f64,\n", j));
         }
-        let one = format!("#[derive(Debug, Copy, Clone, PartialEq)]
+        let one = format!("#[derive(Debug, Copy, Clone, PartialEq, Default)]
         pub struct AD{} {{
             {}
         }}\n", i, body);
@@ -24,7 +24,7 @@ pub fn ad_struct_def(_item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn ad_display(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         let mut body = "".to_string();
         for j in 1 .. i+1 {
             body.push_str(&format!("s.push_str(&format!(\"  d{}: {{}}\n\", self.d{}));", j, j));
@@ -44,7 +44,7 @@ pub fn ad_display(_item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn ad_impl(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         let mut arg = "d0: f64, ".to_string();
         let mut body = "d0,\n".to_string();
         for j in 1 .. i {
@@ -72,9 +72,66 @@ pub fn ad_impl(_item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn ad_iter_def(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("pub struct ADIter{} {{
+            ad: AD{},
+            index: usize,
+        }}\n", i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_into_iter(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl IntoIterator for AD{} {{
+            type Item = f64;
+            type IntoIter = ADIter{};
+
+            fn into_iter(self) -> Self::IntoIter {{
+                ADIter{} {{
+                    ad: self,
+                    index: 0,
+                }}
+            }}
+        }}\n", i, i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_iter(__item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let mut body = "0 => self.ad.d0,\n".to_string();
+        for j in 1 .. i+1 {
+            body.push_str(&format!("{} => self.ad.d{},\n", j, j));
+        }
+        body.push_str("_ => return None,");
+        let one = format!("impl Iterator for ADIter{} {{
+            type Item = f64;
+            fn next(&mut self) -> Option<Self::Item> {{
+                let result = match self.index {{
+                    {}
+                }};
+                self.index += 1;
+                Some(result)
+            }}
+        }}\n", i, body);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
 pub fn ad_impl_neg(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         let mut body = "-self.d0, ".to_string();
         for j in 1 .. i {
             body.push_str(&format!("-self.d{}, ", j));
@@ -94,7 +151,7 @@ pub fn ad_impl_neg(_item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn ad_impl_add(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         for j in 1 .. i {
             let mut body = "".to_string();
             for k in 0 .. j+1 {
@@ -111,7 +168,7 @@ pub fn ad_impl_add(_item: TokenStream) -> TokenStream {
             }}\n", j, i, i, j, body);
             total.push_str(&one);
         }
-        for j in i .. N {
+        for j in i .. N+1 {
             let mut body = "".to_string();
             for k in 0 .. i+1 {
                 body.push_str(&format!("z.d{} += self.d{};\n", k, k));
@@ -134,7 +191,7 @@ pub fn ad_impl_add(_item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn ad_impl_sub(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N {
+    for i in 1 .. N+1 {
         for j in 1 .. i {
             let mut body = "".to_string();
             for k in 0 .. j+1 {
@@ -151,7 +208,7 @@ pub fn ad_impl_sub(_item: TokenStream) -> TokenStream {
             }}\n", j, i, i, j, body);
             total.push_str(&one);
         }
-        for j in i .. N {
+        for j in i .. N+1 {
             let mut body = "".to_string();
             for k in 0 .. i+1 {
                 body.push_str(&format!("z.d{} += self.d{};\n", k, k));
@@ -166,6 +223,26 @@ pub fn ad_impl_sub(_item: TokenStream) -> TokenStream {
                 }}
             }}\n", j, i, j, j, body);
             total.push_str(&one);
+        }
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_mul(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        for j in 1 .. i {
+            
+
+            let one = format!("impl Mul<AD{}> for AD{} {{
+                type Output = AD{};
+
+                fn mul(self, rhs: AD{}) -> Self::Output {{
+                    let mut z = self.clone();
+
+                }}
+            }}\n", j, i, i, j);
         }
     }
     total.parse().unwrap()
