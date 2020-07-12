@@ -182,8 +182,6 @@ extern crate puruspe;
 
 extern crate matrixmultiply;
 
-extern crate smallvec;
-
 #[macro_use]
 pub mod macros;
 

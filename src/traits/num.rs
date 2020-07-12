@@ -28,7 +28,7 @@ use std::ops::{Add, Div, Mul, Sub, Neg};
 use crate::structure::{
     dual::Dual,
     hyper_dual::HyperDual,
-    ad::{AD, Array, powd},
+    //ad::{AD, Array, powd},
 };
 use self::Number::{F, D};
 
@@ -39,9 +39,9 @@ pub trait PowOps: Sized {
     fn sqrt(&self) -> Self;
 }
 
-pub trait PowOpsExtra: PowOps {
-    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> AD<A>;
-}
+//pub trait PowOpsExtra: PowOps {
+//    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> AD<A>;
+//}
 
 pub trait TrigOps: Sized {
     fn sin(&self) -> Self;
@@ -113,11 +113,11 @@ impl PowOps for f64 {
     }
 }
 
-impl PowOpsExtra for f64 {
-    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> AD<A> {
-        powd(*self, d)
-    }
-}
+//impl PowOpsExtra for f64 {
+//    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> AD<A> {
+//        powd(*self, d)
+//    }
+//}
 
 impl TrigOps for f64 {
     fn sin(&self) -> Self {
