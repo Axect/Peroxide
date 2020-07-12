@@ -64,7 +64,15 @@ pub fn ad_impl(_item: TokenStream) -> TokenStream {
             pub fn print(&self) {{
                 println!(\"{{}}\", self);
             }}
-        }}", i, arg, body);
+
+            pub fn iter(&self) -> ADIter{} {{
+                self.into_iter()
+            }}
+
+            pub fn iter_mut(&mut self) -> ADIterMut{} {{
+                self.into_iter()
+            }}
+        }}", i, arg, body, i, i);
         total.push_str(&one);
     }
 
@@ -83,8 +91,13 @@ pub fn ad_iter_def(_item: TokenStream) -> TokenStream {
             ad: &'a AD{},
             index: usize,
         }}\n", i, i);
+        let three = format!("pub struct ADIterMut{}<'a> {{
+            ad: &'a mut AD{},
+            index: usize,
+        }}\n", i, i);
         total.push_str(&one);
         total.push_str(&two);
+        total.push_str(&three);
     }
     total.parse().unwrap()
 }
@@ -115,8 +128,20 @@ pub fn ad_impl_into_iter(_item: TokenStream) -> TokenStream {
                 }}
             }}
         }}\n", i, i, i);
+        let three = format!("impl<'a> IntoIterator for &'a mut AD{} {{
+            type Item = f64;
+            type IntoIter = ADIterMut{}<'a>;
+
+            fn into_iter(self) -> Self::IntoIter {{
+                ADIterMut{} {{
+                    ad: self,
+                    index: 0,
+                }}
+            }}
+        }}\n", i, i, i);
         total.push_str(&one);
         total.push_str(&two);
+        total.push_str(&three);
     }
     total.parse().unwrap()
 }
@@ -150,8 +175,19 @@ pub fn ad_impl_iter(__item: TokenStream) -> TokenStream {
                 Some(result)
             }}
         }}\n", i, body);
+        let three = format!("impl<'a> Iterator for ADIterMut{}<'a> {{
+            type Item = f64;
+            fn next(&mut self) -> Option<Self::Item> {{
+                let result = match self.index {{
+                    {}
+                }};
+                self.index += 1;
+                Some(result)
+            }}
+        }}\n", i, body);
         total.push_str(&one);
         total.push_str(&two);
+        total.push_str(&three);
     }
     total.parse().unwrap()
 }
@@ -268,7 +304,7 @@ pub fn ad_impl_mul(_item: TokenStream) -> TokenStream {
 
                 fn mul(self, rhs: AD{}) -> Self::Output {{
                     let mut z = self.clone();
-
+                    
                 }}
             }}\n", j, i, i, j);
         }
