@@ -3,19 +3,14 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() {
-    let a = AD::from_array([3f64, 1f64, 0f64]);
+    let a = AD1::new(2f64, 1f64);
     a.print();
-    a.powi(2).print();
-    (&a * &a).print();
-    a.sqrt().print();
-    a.sin().print();
-    a.cos().print();
-    a.tan().print();
-    a.exp().print();
-    a.ln().print();
-    a.log2().print();
-    a.log10().print();
-    a.sinh().print();
-    a.cosh().print();
-    a.tanh().print();
+    AD2::from(a).print();
+
+    let b = AD2::new(4f64, 4f64, 2f64);
+    b.print();
+
+    (a + b).print();
+    (a - b).print();
+    (a * b).print();
 }
