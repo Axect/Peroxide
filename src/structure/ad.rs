@@ -13,6 +13,7 @@ use peroxide_ad::{
     ad_impl_add,
     ad_impl_sub,
     ad_impl_mul,
+    ad_impl_div,
 };
 use crate::statistics::ops::C;
 use std::ops::{Neg, Add, Sub, Mul, Div, Index, IndexMut};
@@ -31,3 +32,4 @@ ad_impl_neg!();
 ad_impl_add!();
 ad_impl_sub!();
 ad_impl_mul!();
+ad_impl_div!();
