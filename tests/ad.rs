@@ -4,7 +4,7 @@ use peroxide::fuga::*;
 
 #[test]
 fn add_test() {
-    let a = AD::from([3f64, 1f64, 0f64]);
-    let b = AD::from([2f64, 1f64, 0f64]);
-    assert_eq!(&a + &b, AD::from([5f64, 2f64, 0f64]));
+    let a = AD1::new(2f64, 1f64);
+    let b = AD2::new(4f64, 4f64, 2f64);
+    assert_eq!(a + b, AD2::new(6f64, 5f64, 2f64));
 }
