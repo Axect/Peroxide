@@ -216,7 +216,7 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
                 self.index += 1;
                 Some(result)
             }}
-        }}\n", i, i, body);
+        }}\n", i, i+1, body);
         let two = format!("impl<'a> Iterator for ADIter{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
@@ -229,7 +229,7 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
                 self.index += 1;
                 Some(result)
             }}
-        }}\n", i, i, body);
+        }}\n", i, i+1, body);
         let three = format!("impl<'a> Iterator for ADIterMut{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
@@ -242,7 +242,7 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
                 self.index += 1;
                 Some(result)
             }}
-        }}\n", i, i, body);
+        }}\n", i, i+1, body);
         total.push_str(&one);
         total.push_str(&two);
         total.push_str(&three);
@@ -508,28 +508,54 @@ pub fn ad_impl_mul(_item: TokenStream) -> TokenStream {
     total.parse().unwrap()
 }
 
-//fn factorial(n: usize) -> usize {
-//    let mut p = 1usize;
-//    for i in 1..(n + 1) {
-//        p *= i;
-//    }
-//    p
-//}
-//
-//#[allow(non_snake_case)]
-//fn P(n: usize, r: usize) -> usize {
-//    let mut p = 1usize;
-//    for i in 0..r {
-//        p *= n - i;
-//    }
-//    p
-//}
-//
-//#[allow(non_snake_case)]
-//fn C(n: usize, r: usize) -> usize {
-//    if r > n / 2 {
-//        return C(n, n - r);
-//    }
-//
-//    P(n, r) / factorial(r)
-//}
+#[proc_macro]
+pub fn ad_impl_div(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        // i >= j (self >= rhs)
+        for j in 1 .. i+1 {
+            let one = format!("impl Div<AD{}> for AD{} {{
+                type Output = AD{};
+                
+                fn div(self, rhs: AD{}) -> Self::Output {{
+                    let mut z = Self::Output::default();
+                    let y = Self::Output::from(rhs);
+                    z[0] = self[0] / y[0];
+                    let y0 = 1f64 / y[0];
+                    for i in 1 .. z.len() {{
+                        let mut s = 0f64;
+                        for (j, (y1, z1)) in y.iter().skip(1).take(i).zip(z.iter().take(i).rev()).enumerate() {{
+                            s += (C(i, j+1) as f64) * y1 * z1;
+                        }}
+                        z[i] = y0 * (self[i] - s);
+                    }}
+                    z
+                }}
+            }}", j, i, i, j);
+            total.push_str(&one);
+        }
+        // i < j (self < rhs)
+        for j in i+1 .. N+1 {
+            let one = format!("impl Div<AD{}> for AD{} {{
+                type Output = AD{};
+
+                fn div(self, rhs: AD{}) -> Self::Output {{
+                    let mut z = Self::Output::default();
+                    let x = Self::Output::from(self);
+                    z[0] = x[0] / rhs[0];
+                    let y0 = 1f64 / rhs[0];
+                    for i in 1 .. z.len() {{
+                        let mut s = 0f64;
+                        for (j, (y1, z1)) in rhs.iter().skip(1).take(i).zip(z.iter().take(i).rev()).enumerate() {{
+                            s += (C(i, j+1) as f64) * y1 * z1;
+                        }}
+                        z[i] = y0 * (x[i] - s);
+                    }}
+                    z
+                }}
+            }}", j, i, j, j);
+            total.push_str(&one);
+        }
+    }
+    total.parse().unwrap()
+}
