@@ -696,13 +696,41 @@ pub fn ad_impl_explogops(_item: TokenStream) -> TokenStream {
             fn log(&self, base: f64) -> Self {{
                 self.ln().iter().map(|x| x / base.ln()).collect()
             }}
+        }}", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
 
-            fn log2(&self) -> Self {{
-                self.log(2f64)
+#[proc_macro]
+pub fn ad_impl_powops(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl PowOps for AD{} {{
+            fn powi(&self, n: i32) -> Self {{
+                let mut z = self.clone();
+                for _i in 1 .. n {{
+                    z = z * self;
+                }}
+                z
             }}
 
-            fn log10(&self) -> Self {{
-                self.log(10f64)
+            fn powf(&self, f: f64) -> Self {{
+                let ln_x = self.ln();
+                let mut z = Self::default();
+                z[0] = self.d0.powf(f);
+                for i in 1 .. z.len() {{
+                    let mut s = 0f64;
+                    for (j, (z1, ln_x1)) in z.iter().skip(1).take(i-1).zip(ln_x.iter().skip(1).take(i-1).rev()).enumerate() {{
+                        s += (C(i-1, j+1) as f64) * z1 * ln_x1;
+                    }}
+                    z[i] = f * (z[0] * ln_x[i] + s);
+                }}
+                z
+            }}
+
+            fn pow(&self, _f: Self) -> Self {{
+                unimplemented!()
             }}
         }}", i);
         total.push_str(&one);
@@ -710,24 +738,77 @@ pub fn ad_impl_explogops(_item: TokenStream) -> TokenStream {
     total.parse().unwrap()
 }
 
-//#[proc_macro]
-//pub fn ad_impl_powops(_item: TokenStream) -> TokenStream {
-//    let mut total = "".to_string();
-//    for i in 1 .. N+1 {
-//        let one = format!("impl PowOps for AD{} {{
-//            fn powi(&self, n: i32) -> Self {{
-//                let mut z = self.clone();
-//                for _i in 1 .. n {{
-//                    z = z * self;
-//                }}
-//                z
-//            }}
-//
-//            fn powf(&self, f: f64) -> Self {{
-//                
-//            }}
-//        }}", i);
-//        total.push_str(&one);
-//    }
-//    total.parse().unwrap()
-//}
+#[proc_macro]
+pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl TrigOps for AD{} {{
+            fn sin_cos(&self) -> (Self, Self) {{
+                let mut u = Self::Default();
+                let mut v = Self::Default();
+                u[0] = self[0].sin();
+                v[0] = self[0].cos();
+                for i in 1 .. u.len() {{
+                    u[i] = v.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (v1, x1))| x + (C(i-1, k) as f64) * x1 * v1);
+                    v[i] = -u.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (u1, x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                }}
+                (u, v)
+            }}
+
+            fn sinh_cosh(&self) -> (Self, Self) {{
+                let mut u = Self::Default();
+                let mut v = Self::Default();
+                u[0] = self[0].sinh();
+                v[0] = self[0].cosh();
+                for i in 1 .. u.len() {{
+                    u[i] = v.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (v1, x1))| x + (C(i-1, k) as f64) * x1 * v1);
+                    v[i] = u.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (u1, x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                }}
+                (u, v)
+                
+            }}
+
+            fn asin(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn acos(&self) -> Self {{
+                unimplemented!()
+            }}
+            
+            fn atan(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn asinh(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn acosh(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn atanh(&self) -> Self {{
+                unimplemented!()
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}

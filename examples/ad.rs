@@ -15,22 +15,10 @@ fn main() {
     (a / b).print();
     (a2 / b).print();
 
-    let b_iter = b.iter();
-    println!("{:?}", b_iter.size_hint());
-    let b_skip = b_iter.skip(1);
-    println!("{:?}", b_skip.size_hint());
-    let b_take = b_skip.take(2);
-    println!("{:?}", b_take.size_hint());
-    println!("{:?}", b_take.rev().size_hint());
-
-    let b_iter = b.iter();
-    println!("{:?}", b_iter.len());
-    let b_skip = b_iter.skip(1);
-    println!("{:?}", b_skip.len());
-    let b_take = b_skip.take(2);
-    println!("{:?}", b_take.len());
-    println!("{:?}", b_take.rev().len());
-
+    a.exp().print();
     a.ln().print();
+    b.exp().print();
     b.ln().print();
+    a.powi(2).print();
+    b.sqrt().print();
 }
