@@ -446,6 +446,12 @@ impl TrigOps for Dual {
         let d2 = Dual::new(vals.1, dvals.1);
         (d1, d2)
     }
+
+    fn sinh_cosh(&self) -> (Self, Self) {
+        let d1 = self.sinh();
+        let d2 = self.cosh();
+        (d1, d2)
+    }
 }
 
 // =============================================================================
