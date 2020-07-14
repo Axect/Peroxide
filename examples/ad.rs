@@ -21,4 +21,8 @@ fn main() {
     b.ln().print();
     a.powi(2).print();
     b.sqrt().print();
+    b.cos().print();
+    b.sin().print();
+    b.cosh().print();
+    b.sinh().print();
 }
