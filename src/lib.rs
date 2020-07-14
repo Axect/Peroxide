@@ -31,8 +31,9 @@
 //!     * Incomplete Gamma
 //!     * Incomplete Beta
 //! * Automatic Differentiation
-//!     * [Dual number system](structure/dual/index.html)
-//!     * [Hyper dual number system](structure/hyper_dual/index.html)
+//!     * <del>[Dual number system](structure/dual/index.html)</del>
+//!     * <del>[Hyper dual number system](structure/hyper_dual/index.html)</del>
+//!     * [Taylor mode forward AD](structure/ad/index.html)
 //! * Numerical Utils
 //!     * [Interpolation](numerical/interp/index.html)
 //!     * [Spline](numerical/spline/index.html)
@@ -73,38 +74,38 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.23.0`
+//! * Current document version is corresponding to `0.25.0`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.23"
+//!     peroxide = "0.25"
 //!     ```
 //! 2. OpenBLAS & SIMD
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.23"
+//!     version = "0.25"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.23"
+//!     version = "0.25"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.23"
+//!     version = "0.25"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.23"
+//!     version = "0.25"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```

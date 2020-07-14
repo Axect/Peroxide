@@ -136,11 +136,13 @@ Peroxide can do many things.
         * `col_map` : map for column vectors
         * `row_map` : map for row vectors
 * Automatic Differentiation
-    * Dual number system - for 1st order AD
-    * Hyper dual number system - for 2nd order AD
+    * <del>Dual number system - for 1st order AD</del>
+    * <del>Hyper dual number system - for 2nd order AD</del>
+    * Taylor mode Forward AD - for nth order AD 
     * Exact jacobian
-    * `Real` trait to constrain for `f64` and `Dual`
-    * `Number` structure to unify `f64` and `Dual`
+    * <del>`Real` trait to constrain for `f64` and `Dual`</del>
+    * <del>`Number` structure to unify `f64` and `Dual`</del>
+    * Above strokes will be updated soon
 * Numerical Analysis
     * Lagrange interpolation
     * Cubic spline
@@ -202,7 +204,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.24.0`
+Corresponding to `0.25.0`
 
 ## Pre-requisite
 
@@ -217,33 +219,33 @@ Corresponding to `0.24.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.23"
+   peroxide = "0.25"
     ```
 2. OpenBLAS + SIMD
     ```toml
    [dependencies.peroxide]
-   version = "0.23"
+   version = "0.25"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.23"
+   version = "0.25"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.23"
+   version = "0.25"
    default-features = false
    features = ["dataframe"]
    ```
 4. OpenBLAS + SIMD & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.23"
+   version = "0.25"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```
