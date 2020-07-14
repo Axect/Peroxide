@@ -696,14 +696,6 @@ pub fn ad_impl_explogops(_item: TokenStream) -> TokenStream {
             fn log(&self, base: f64) -> Self {{
                 self.ln().iter().map(|x| x / base.ln()).collect()
             }}
-
-            fn log2(&self) -> Self {{
-                self.log(2f64)
-            }}
-
-            fn log10(&self) -> Self {{
-                self.log(10f64)
-            }}
         }}", i);
         total.push_str(&one);
     }
@@ -740,10 +732,6 @@ pub fn ad_impl_powops(_item: TokenStream) -> TokenStream {
             fn pow(&self, _f: Self) -> Self {{
                 unimplemented!()
             }}
-
-            fn sqrt(&self) -> Self {{
-                self.powf(0.5)
-            }}
         }}", i);
         total.push_str(&one);
     }
@@ -773,6 +761,51 @@ pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
                         .fold(0f64, |x, (k, (u1, x1))| x + (C(i-1, k) as f64) * x1 * u1);
                 }}
                 (u, v)
+            }}
+
+            fn sinh_cosh(&self) -> (Self, Self) {{
+                let mut u = Self::Default();
+                let mut v = Self::Default();
+                u[0] = self[0].sinh();
+                v[0] = self[0].cosh();
+                for i in 1 .. u.len() {{
+                    u[i] = v.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (v1, x1))| x + (C(i-1, k) as f64) * x1 * v1);
+                    v[i] = u.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (u1, x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                }}
+                (u, v)
+                
+            }}
+
+            fn asin(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn acos(&self) -> Self {{
+                unimplemented!()
+            }}
+            
+            fn atan(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn asinh(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn acosh(&self) -> Self {{
+                unimplemented!()
+            }}
+
+            fn atanh(&self) -> Self {{
+                unimplemented!()
             }}
         }}\n", i);
         total.push_str(&one);
