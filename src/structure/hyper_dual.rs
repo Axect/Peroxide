@@ -362,6 +362,10 @@ impl TrigOps for HyperDual {
     fn sin_cos(&self) -> (Self, Self) {
         unimplemented!()
     }
+
+    fn sinh_cosh(&self) -> (Self, Self) {
+        unimplemented!()
+    }
 }
 
 impl ExpLogOps for HyperDual {

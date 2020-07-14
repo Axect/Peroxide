@@ -36,35 +36,60 @@ pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
     fn powf(&self, f: f64) -> Self;
     fn pow(&self, f: Self) -> Self;
-    fn sqrt(&self) -> Self;
+    fn sqrt(&self) -> Self {
+        self.powf(0.5)
+    }
 }
 
 //pub trait PowOpsExtra: PowOps {
 //    fn powd<A: Array<Item=f64> + Default>(&self, d: &AD<A>) -> AD<A>;
 //}
 
-pub trait TrigOps: Sized {
-    fn sin(&self) -> Self;
-    fn cos(&self) -> Self;
-    fn tan(&self) -> Self;
+pub trait TrigOps: Sized + Div<Output = Self> {
+    fn sin_cos(&self) -> (Self, Self);
+    fn sinh_cosh(&self) -> (Self, Self);
+    fn sin(&self) -> Self {
+        let (s, _) = self.sin_cos();
+        s
+    }
+    fn cos(&self) -> Self {
+        let (_, c) = self.sin_cos();
+        c
+    }
+    fn tan(&self) -> Self {
+        let (s, c) = self.sin_cos();
+        s / c
+    }
     fn asin(&self) -> Self;
     fn acos(&self) -> Self;
     fn atan(&self) -> Self;
-    fn sinh(&self) -> Self;
-    fn cosh(&self) -> Self;
-    fn tanh(&self) -> Self;
+    fn sinh(&self) -> Self {
+        let (s, _) = self.sinh_cosh();
+        s
+    }
+    fn cosh(&self) -> Self {
+        let (_, c) = self.sinh_cosh();
+        c
+    }
+    fn tanh(&self) -> Self {
+        let (s, c) = self.sinh_cosh();
+        s / c
+    }
     fn asinh(&self) -> Self;
     fn acosh(&self) -> Self;
     fn atanh(&self) -> Self;
-    fn sin_cos(&self) -> (Self, Self);
 }
 
 pub trait ExpLogOps: Sized {
     fn exp(&self) -> Self;
     fn ln(&self) -> Self;
     fn log(&self, base: f64) -> Self;
-    fn log2(&self) -> Self;
-    fn log10(&self) -> Self;
+    fn log2(&self) -> Self {
+        self.log(2f64)
+    }
+    fn log10(&self) -> Self {
+        self.log(10f64)
+    }
 }
 
 pub trait Real:
@@ -150,6 +175,10 @@ impl TrigOps for f64 {
 
     fn cosh(&self) -> Self {
         (*self).cosh()
+    }
+
+    fn sinh_cosh(&self) -> (Self, Self) {
+        ((*self).sinh(), (*self).cosh())
     }
 
     fn tanh(&self) -> Self {
@@ -490,6 +519,19 @@ impl TrigOps for Number {
         match self {
             F(x) => (F(x.sin()), F(x.cos())),
             D(x) => (D(x.sin()), D(x.cos())),
+        }
+    }
+
+    fn sinh_cosh(&self) -> (Self, Self) {
+        match self {
+            F(x) => {
+                let (s, c) = x.sinh_cosh();
+                (F(s), F(c))
+            }
+            D(x) => {
+                let (s, c) = x.sinh_cosh();
+                (D(s), D(c))
+            }
         }
     }
 }
