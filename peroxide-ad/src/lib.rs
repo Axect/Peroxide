@@ -744,8 +744,8 @@ pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
     for i in 1 .. N+1 {
         let one = format!("impl TrigOps for AD{} {{
             fn sin_cos(&self) -> (Self, Self) {{
-                let mut u = Self::Default();
-                let mut v = Self::Default();
+                let mut u = Self::default();
+                let mut v = Self::default();
                 u[0] = self[0].sin();
                 v[0] = self[0].cos();
                 for i in 1 .. u.len() {{
@@ -764,8 +764,8 @@ pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
             }}
 
             fn sinh_cosh(&self) -> (Self, Self) {{
-                let mut u = Self::Default();
-                let mut v = Self::Default();
+                let mut u = Self::default();
+                let mut v = Self::default();
                 u[0] = self[0].sinh();
                 v[0] = self[0].cosh();
                 for i in 1 .. u.len() {{
