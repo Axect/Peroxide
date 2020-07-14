@@ -16,6 +16,7 @@ use peroxide_ad::{
     ad_impl_mul,
     ad_impl_div,
     ad_impl_explogops,
+    ad_impl_powops,
 };
 use crate::statistics::ops::C;
 use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
@@ -39,3 +40,4 @@ ad_impl_sub!();
 ad_impl_mul!();
 ad_impl_div!();
 ad_impl_explogops!();
+ad_impl_powops!();
