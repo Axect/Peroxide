@@ -236,40 +236,59 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
         let one = format!("impl Iterator for ADIntoIter{} {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         let two = format!("impl<'a> Iterator for ADIter{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         let three = format!("impl<'a> Iterator for ADIterMut{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         total.push_str(&one);
@@ -355,17 +374,17 @@ pub fn ad_impl_exact_size_iter(_item: TokenStream) -> TokenStream {
     for i in 1 .. N+1 {
         let one = format!("impl ExactSizeIterator for ADIntoIter{} {{
             fn len(&self) -> usize {{
-                self.ad.len()
+                self.ad.len() - (self.index + self.r_index)
             }}
         }}\n", i);
         let two = format!("impl<'a> ExactSizeIterator for ADIter{}<'a> {{
             fn len(&self) -> usize {{
-                self.ad.len()
+                self.ad.len() - (self.index + self.r_index)
             }}
         }}\n", i);
         let three = format!("impl<'a> ExactSizeIterator for ADIterMut{}<'a> {{
             fn len(&self) -> usize {{
-                self.ad.len()
+                self.ad.len() - (self.index + self.r_index)
             }}
         }}\n", i);
         total.push_str(&one);
@@ -665,12 +684,11 @@ pub fn ad_impl_explogops(_item: TokenStream) -> TokenStream {
                 z[0] = self[0].ln();
                 let x0 = 1f64 / self[0];
                 for i in 1 .. z.len() {{
-                    z[i] = x0 * z.iter()
-                    .skip(1)
-                    .take(i-1)
-                    .zip(self.iter().skip(1).take(i-1).rev())
-                    .enumerate()
-                    .fold(0f64, |x, (k, (z1, x1))| x + (C(i-1, k+1) as f64) * z1 * x1);
+                    let mut s = 0f64;
+                    for (k, (z1, x1)) in z.iter().skip(1).take(i-1).zip(self.iter().skip(1).take(i-1).rev()).enumerate() {{
+                        s += (C(i-1, k+1) as f64) * z1 * x1;
+                    }}
+                    z[i] = x0 * (self[i] - s);
                 }}
                 z
             }}
