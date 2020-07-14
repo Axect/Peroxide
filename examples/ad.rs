@@ -15,5 +15,7 @@ fn main() {
     (a / b).print();
     (a2 / b).print();
 
-    b.iter().skip(1).take(2).for_each(|x| x.print());
+    b.ln().print();
+    let c = AD2::default();
+    c.iter().rev().collect::<AD2>().print();
 }
