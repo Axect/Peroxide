@@ -99,7 +99,27 @@ pub fn ad_impl_from(_item: TokenStream) -> TokenStream {
                     Self::new({})
                 }}
             }}\n", i, j, i, body);
+            let two = format!("impl<'a> From<&'a AD{}> for AD{} {{
+                fn from(high: &'a AD{}) -> Self {{
+                    Self::new({})
+                }}
+            }}\n", i, j, i, body);
             total.push_str(&one);
+            total.push_str(&two);
+        }
+        // i vs i (&AD -> AD)
+        {
+            let mut body = "high.d0, ".to_string();
+            for k in 1 .. i {
+                body.push_str(&format!("high.d{}, ", k));
+            }
+            body.push_str(&format!("high.d{}", i));
+            let two = format!("impl<'a> From<&'a AD{}> for AD{} {{
+                fn from(high: &'a AD{}) -> Self {{
+                    Self::new({})
+                }}
+            }}\n", i, i, i, body);
+            total.push_str(&two);
         }
         for j in i+1 .. N+1 {
             let mut body = "low.d0, ".to_string();
@@ -116,7 +136,13 @@ pub fn ad_impl_from(_item: TokenStream) -> TokenStream {
                     Self::new({})
                 }}
             }}\n", i, j, i, body);
+            let two = format!("impl<'a> From<&'a AD{}> for AD{} {{
+                fn from(low: &'a AD{}) -> Self {{
+                    Self::new({})
+                }}
+            }}\n", i, j, i, body);
             total.push_str(&one);
+            total.push_str(&two);
         }
     }
     total.parse().unwrap()
@@ -126,17 +152,20 @@ pub fn ad_impl_from(_item: TokenStream) -> TokenStream {
 pub fn ad_iter_def(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
     for i in 1 .. N+1 {
-        let one = format!("pub struct ADIntoIter{} {{
+        let one = format!("#[derive(Debug)]
+        pub struct ADIntoIter{} {{
             ad: AD{},
             index: usize,
             r_index: usize,
         }}\n", i, i);
-        let two = format!("pub struct ADIter{}<'a> {{
+        let two = format!("#[derive(Debug)]
+        pub struct ADIter{}<'a> {{
             ad: &'a AD{},
             index: usize,
             r_index: usize,
         }}\n", i, i);
-        let three = format!("pub struct ADIterMut{}<'a> {{
+        let three = format!("#[derive(Debug)]
+        pub struct ADIterMut{}<'a> {{
             ad: &'a mut AD{},
             index: usize,
             r_index: usize,
@@ -207,40 +236,59 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
         let one = format!("impl Iterator for ADIntoIter{} {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         let two = format!("impl<'a> Iterator for ADIter{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         let three = format!("impl<'a> Iterator for ADIterMut{}<'a> {{
             type Item = f64;
             fn next(&mut self) -> Option<Self::Item> {{
-                if self.index + self.r_index == {} {{
-                    return None;
+                if self.index + self.r_index < {} {{
+                    let result = match self.index {{
+                        {}
+                    }};
+                    self.index += 1;
+                    Some(result)
+                }} else {{
+                    None
                 }}
-                let result = match self.index {{
-                    {}
-                }};
-                self.index += 1;
-                Some(result)
+            }}
+            fn size_hint(&self) -> (usize, Option<usize>) {{
+                let lower = self.ad.len() - (self.index + self.r_index);
+                let upper = self.ad.len() - (self.index + self.r_index);
+                (lower, Some(upper))
             }}
         }}\n", i, i+1, body);
         total.push_str(&one);
@@ -251,7 +299,25 @@ pub fn ad_impl_iter(_item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn ad_impl_double_ended_iter(__item: TokenStream) -> TokenStream {
+pub fn ad_impl_from_iter(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl FromIterator<f64> for AD{} {{
+            fn from_iter<I: IntoIterator<Item=f64>>(iter: I) -> Self {{
+                let mut z = Self::default();
+                for (i, elem) in iter.into_iter().enumerate() {{
+                    z[i] = elem;
+                }}
+                z
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_double_ended_iter(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
     for i in 1 .. N+1 {
         let mut body = format!("0 => self.ad.d{},\n", i);
@@ -483,7 +549,24 @@ pub fn ad_impl_mul(_item: TokenStream) -> TokenStream {
                     z
                 }}
             }}\n", j, i, i, j);
+            let two = format!("impl<'a> Mul<&'a AD{}> for AD{} {{
+                type Output = AD{};
+
+                fn mul(self, rhs: &'a AD{}) -> Self::Output {{
+                    let mut z = self.clone();
+                    let y = Self::Output::from(rhs);
+                    for t in 0 .. z.len() {{
+                        z[t] = self.iter()
+                                .take(t + 1)
+                                .zip(y.iter().take(t+1).rev())
+                                .enumerate()
+                                .fold(0f64, |s, (k, (x1, y1))| s + (C(t, k) as f64) * x1 * y1)
+                    }}
+                    z
+                }}
+            }}\n", j, i, i, j);
             total.push_str(&one);
+            total.push_str(&two);
         }
         for j in i+1 .. N+1 {
             let one = format!("impl Mul<AD{}> for AD{} {{
@@ -502,7 +585,25 @@ pub fn ad_impl_mul(_item: TokenStream) -> TokenStream {
                     z
                 }}
             }}\n", j, i, j, j);
+            let two = format!("impl<'a> Mul<&'a AD{}> for AD{} {{
+                type Output = AD{};
+
+                fn mul(self, rhs: &'a AD{}) -> Self::Output {{
+                    let mut z = rhs.clone();
+                    let x = Self::Output::from(self);
+                    let y = Self::Output::from(rhs);
+                    for t in 0 .. z.len() {{
+                        z[t] = x.iter()
+                                .take(t + 1)
+                                .zip(y.iter().take(t+1).rev())
+                                .enumerate()
+                                .fold(0f64, |s, (k, (x1, y1))| s + (C(t, k) as f64) * x1 * y1)
+                    }}
+                    z
+                }}
+            }}\n", j, i, j, j);
             total.push_str(&one);
+            total.push_str(&two);
         }
     }
     total.parse().unwrap()
@@ -559,3 +660,74 @@ pub fn ad_impl_div(_item: TokenStream) -> TokenStream {
     }
     total.parse().unwrap()
 }
+
+#[proc_macro]
+pub fn ad_impl_explogops(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl ExpLogOps for AD{} {{
+            fn exp(&self) -> Self {{
+                let mut z = Self::default();
+                z[0] = self[0].exp();
+                for i in 1 .. z.len() {{
+                    z[i] = z.iter()
+                        .take(i)
+                        .zip(self.iter().skip(1).take(i).rev())
+                        .enumerate()
+                        .fold(0f64, |x, (k, (z1, x1))| x + (C(i-1, k) as f64) * x1 * z1);
+                }}
+                z
+            }}
+
+            fn ln(&self) -> Self {{
+                let mut z = Self::default();
+                z[0] = self[0].ln();
+                let x0 = 1f64 / self[0];
+                for i in 1 .. z.len() {{
+                    let mut s = 0f64;
+                    for (k, (z1, x1)) in z.iter().skip(1).take(i-1).zip(self.iter().skip(1).take(i-1).rev()).enumerate() {{
+                        s += (C(i-1, k+1) as f64) * z1 * x1;
+                    }}
+                    z[i] = x0 * (self[i] - s);
+                }}
+                z
+            }}
+
+            fn log(&self, base: f64) -> Self {{
+                self.ln().iter().map(|x| x / base.ln()).collect()
+            }}
+
+            fn log2(&self) -> Self {{
+                self.log(2f64)
+            }}
+
+            fn log10(&self) -> Self {{
+                self.log(10f64)
+            }}
+        }}", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+//#[proc_macro]
+//pub fn ad_impl_powops(_item: TokenStream) -> TokenStream {
+//    let mut total = "".to_string();
+//    for i in 1 .. N+1 {
+//        let one = format!("impl PowOps for AD{} {{
+//            fn powi(&self, n: i32) -> Self {{
+//                let mut z = self.clone();
+//                for _i in 1 .. n {{
+//                    z = z * self;
+//                }}
+//                z
+//            }}
+//
+//            fn powf(&self, f: f64) -> Self {{
+//                
+//            }}
+//        }}", i);
+//        total.push_str(&one);
+//    }
+//    total.parse().unwrap()
+//}
