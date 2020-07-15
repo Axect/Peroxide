@@ -183,7 +183,6 @@ extern crate puruspe;
 
 extern crate matrixmultiply;
 
-#[macro_use]
 extern crate peroxide_ad;
 
 #[macro_use]
