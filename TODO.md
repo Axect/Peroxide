@@ -1,13 +1,14 @@
 # TODO
 
-## 2020.04.22
+## 2020.07.15
 
 ### Primary
 
 - [ ] Add new feature - `rug`
-- [ ] Implement higher order automatic derivatives
+- [x] Implement higher order automatic derivatives
 - [ ] Make or Use pure Rust plot library
 - [ ] Implement more Eigenvalue algorithms
+- [ ] Remove `dual`, `hyperdual` and modify `Real`, `Number`
 
 ### Subs
 

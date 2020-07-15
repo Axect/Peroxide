@@ -25,7 +25,7 @@
 //!     result.write("example_data/test.csv");
 //! }
 //!
-//! fn test_fn(st: &mut State<f64>) {
+//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
 //!     let x = st.param;
 //!     let y = &st.value;
 //!     let dy = &mut st.deriv;
@@ -69,7 +69,7 @@
 //!     //plt.savefig();
 //! }
 //!
-//! fn test_fn(st: &mut State<f64>) {
+//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
 //!     let x = st.param;
 //!     let y = &st.value;
 //!     let dy = &mut st.deriv;

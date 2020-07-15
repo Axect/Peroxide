@@ -1,3 +1,13 @@
+# Release 0.25.0 (2020-07-15)
+
+## Higher order Automatic Differentiation
+
+* Add `structure/ad.rs`
+* Add `peroxide-ad` (`proc_macro` for AD)
+* Implement `AD1` ~ `AD10` (Upto 10th order)
+* Modify `traits/num.rs`
+    * Change some methods to provided methods
+
 # Release 0.24.5 (2020-06-18)
 
 * Add `get_env(&self)` in `ExplicitODE`
