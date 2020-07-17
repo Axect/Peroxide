@@ -1,7 +1,4 @@
-use crate::structure::polynomial::{
-    lagrange_polynomial,
-    Calculus,
-};
+use crate::structure::polynomial::{lagrange_polynomial, Calculus};
 use crate::traits::fp::FPVector;
 use crate::util::non_macro::seq;
 
@@ -24,8 +21,9 @@ pub enum Integral {
 ///
 /// * Gauss-Legendre Quadrature (up to order 16) : `GaussLegendre(usize)`
 /// * Newton-Cotes Quadrature: `NewtonCotes(usize)`
-pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64 
-where F: Fn(f64) -> f64
+pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
+where
+    F: Fn(f64) -> f64,
 {
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
@@ -34,8 +32,9 @@ where F: Fn(f64) -> f64
 }
 
 /// Newton Cotes Quadrature
-fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64 
-where F: Fn(f64) -> f64 
+fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
+where
+    F: Fn(f64) -> f64,
 {
     let h = (b - a) / (n as f64);
     let node_x = seq(a, b, h);
@@ -57,8 +56,8 @@ where F: Fn(f64) -> f64
 /// # Reference
 /// A. N. Lowan et al. (1942)
 fn gauss_legendre_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
-    where
-        F: Fn(f64) -> f64,
+where
+    F: Fn(f64) -> f64,
 {
     (b - a) / 2f64 * unit_gauss_legendre_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n)
 }
@@ -67,8 +66,8 @@ fn gauss_legendre_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 // Gauss Legendre Backends
 // =============================================================================
 fn unit_gauss_legendre_quadrature<F>(f: F, n: usize) -> f64
-    where
-        F: Fn(f64) -> f64,
+where
+    F: Fn(f64) -> f64,
 {
     let (a, x) = gauss_legendre_table(n);
     let mut s = 0f64;
@@ -142,7 +141,7 @@ fn gauss_legendre_table(n: usize) -> (Vec<f64>, Vec<f64>) {
                 result_weight[i] = ref_weight[n - i];
             }
         }
-        _ => unreachable!()
+        _ => unreachable!(),
     }
     (result_weight, result_root)
 }

@@ -1,7 +1,7 @@
 use crate::structure::dual::*;
 use crate::structure::matrix::*;
+use crate::traits::num::{Number, NumberVector, Real};
 use crate::util::non_macro::{cat, zeros};
-use crate::traits::num::{Real, Number, NumberVector};
 
 /// Jacobian Matrix
 ///
@@ -16,7 +16,7 @@ use crate::traits::num::{Real, Number, NumberVector};
 /// #[macro_use]
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
-/// 
+///
 /// fn main() {
 ///     let x = c!(1, 1);
 ///     let j = jacobian(f, &x);
@@ -59,7 +59,7 @@ where
 /// #[macro_use]
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
-/// 
+///
 /// fn main() {
 ///     let x = c!(1, 1);
 ///     let j = jacobian_real(Box::new(f), &x);

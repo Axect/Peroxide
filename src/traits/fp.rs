@@ -1,5 +1,5 @@
-use std::convert::Into;
 use crate::structure::matrix::Matrix;
+use std::convert::Into;
 
 /// Functional Programming tools for Vector
 pub trait FPVector {

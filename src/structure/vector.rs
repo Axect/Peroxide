@@ -64,24 +64,24 @@
 //!     ```
 //!
 //! ## Vec<f64> Operation
-//! 
+//!
 //! There are two ways to do vector operations.
-//! 
+//!
 //! * Use functional programming tools
 //! * Use redox
-//! 
+//!
 //! Here, I explain second method - for functional programming, see below.
-//! 
+//!
 //! To use redox, you only need to understand two things - `ox()`, `red()`.
-//! 
+//!
 //! * `ox()` : Makes vector to `Redox<T: Vector>`
 //! * `red()` : Makes `Redox<T: Vector>` to vector.
-//! 
+//!
 //! ```
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
-//! 
+//!
 //! fn main() {
 //!     let a = c!(1, 2, 3);
 //!     assert_eq!((a.ox() * 2f64 - 1f64).red(), c!(1f64, 3f64, 5f64));
@@ -265,23 +265,23 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{daxpy, ddot, dnrm2, idamax, dasum};
+use blas::{dasum, daxpy, ddot, dnrm2, idamax};
 
 #[cfg(feature = "O3")]
 extern crate packed_simd;
 #[cfg(feature = "O3")]
-use self::packed_simd::{f64x8, f64x4};
+use self::packed_simd::{f64x4, f64x8};
 
-use std::cmp::min;
-use std::convert;
 use crate::traits::{
     fp::FPVector,
-    mutable::MutFP,
     general::Algorithm,
-    math::{Vector, Normed, Norm, InnerProduct, LinearOp},
-    pointer::{Redox, Oxide},
+    math::{InnerProduct, LinearOp, Norm, Normed, Vector},
+    mutable::MutFP,
     num::Real,
+    pointer::{Oxide, Redox},
 };
+use std::cmp::min;
+use std::convert;
 
 impl FPVector for Vec<f64> {
     type Scalar = f64;
@@ -462,8 +462,8 @@ impl MutFP for Vec<f64> {
     type Scalar = f64;
 
     fn mut_map<F>(&mut self, f: F)
-        where
-            F: Fn(Self::Scalar) -> Self::Scalar,
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar,
     {
         for i in 0..self.len() {
             self[i] = f(self[i]);
@@ -471,8 +471,8 @@ impl MutFP for Vec<f64> {
     }
 
     fn mut_zip_with<F>(&mut self, f: F, other: &Self)
-        where
-            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
     {
         for i in 0..self.len() {
             self[i] = f(self[i], other[i]);
@@ -573,16 +573,16 @@ impl Algorithm for Vec<f64> {
             }
             _ => {
                 //self.into_iter().enumerate().max_by(|x1, x2| x1.1.partial_cmp(&x2.1).unwrap()).unwrap().0
-                self.into_iter().enumerate().fold(
-                    (0usize, std::f64::MIN),
-                    |acc, (ics, &val)| {
+                self.into_iter()
+                    .enumerate()
+                    .fold((0usize, std::f64::MIN), |acc, (ics, &val)| {
                         if acc.1 < val {
                             (ics, val)
                         } else {
                             acc
                         }
-                    }
-                ).0
+                    })
+                    .0
             }
         }
     }
@@ -613,39 +613,38 @@ impl Normed for Vec<f64> {
     type Scalar = f64;
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
-            Norm::L1 => {
-                self.iter().map(|x| x.abs()).sum()
-            }
-            Norm::L2 => {
-                match () {
-                    #[cfg(feature = "O3")]
-                    () => {
-                        let n_i32 = self.len() as i32;
-                        let res: f64;
-                        unsafe {
-                            res = dnrm2(n_i32, self, 1);
-                        }
-                        res
+            Norm::L1 => self.iter().map(|x| x.abs()).sum(),
+            Norm::L2 => match () {
+                #[cfg(feature = "O3")]
+                () => {
+                    let n_i32 = self.len() as i32;
+                    let res: f64;
+                    unsafe {
+                        res = dnrm2(n_i32, self, 1);
                     }
-                    _ => self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+                    res
                 }
-            }
+                _ => self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt(),
+            },
             Norm::Lp(p) => {
-                assert!(p >= 1f64, format!("lp norm is only defined for p>=1, the given value was p={}", p));
-                self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64/p)
+                assert!(
+                    p >= 1f64,
+                    format!(
+                        "lp norm is only defined for p>=1, the given value was p={}",
+                        p
+                    )
+                );
+                self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
             }
-            Norm::LInf => {
-                self.iter().fold(0f64, |x, y| x.max(y.abs()))
-            }
-            Norm::F => {
-                unimplemented!()
-            }
-            Norm::Lpq(_, _) => {
-                unimplemented!()
-            }
+            Norm::LInf => self.iter().fold(0f64, |x, y| x.max(y.abs())),
+            Norm::F => unimplemented!(),
+            Norm::Lpq(_, _) => unimplemented!(),
         }
     }
-    fn normalize(&self, kind: Norm) -> Self where Self: Sized { 
+    fn normalize(&self, kind: Norm) -> Self
+    where
+        Self: Sized,
+    {
         let denom = self.norm(kind);
         self.fmap(|x| x / denom)
     }
@@ -663,7 +662,10 @@ impl InnerProduct for Vec<f64> {
                 }
                 res
             }
-            _ => self.iter().zip(rhs.iter()).fold(0f64, |x, (y1, y2)| x + y1 * y2)
+            _ => self
+                .iter()
+                .zip(rhs.iter())
+                .fold(0f64, |x, (y1, y2)| x + y1 * y2),
         }
     }
 }

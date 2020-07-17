@@ -6,8 +6,8 @@ pub mod non_macro;
 #[cfg(feature = "plot")]
 pub mod plot;
 
+pub mod low_level;
 pub mod print;
 pub mod useful;
-pub mod writer;
-pub mod low_level;
 pub mod wrapper;
+pub mod writer;

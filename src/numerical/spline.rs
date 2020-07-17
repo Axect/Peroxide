@@ -1,19 +1,17 @@
-use std::cmp::{max, min};
-use std::ops::{Index, Range};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-use std::convert::{From, Into};
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
 #[allow(unused_imports)]
 use crate::structure::polynomial::*;
 #[allow(unused_imports)]
 use crate::structure::vector::*;
+use crate::traits::num::PowOps;
 #[allow(unused_imports)]
 use crate::util::non_macro::*;
-use crate::traits::{
-    num::PowOps,
-};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::cmp::{max, min};
+use std::convert::{From, Into};
+use std::ops::{Index, Range};
 
 /// Cubic Spline (Natural)
 ///
@@ -221,10 +219,10 @@ impl CubicSpline {
     /// returned, depending if `x` is lower of the first interpolation point or higher of the last
     /// interpolation point.
     pub fn polynomial<T>(&self, x: T) -> &Polynomial
-        where
+    where
         T: std::convert::Into<f64> + Copy,
     {
-        let x  = x.into();
+        let x = x.into();
 
         let index = match self.polynomials.binary_search_by(|(range, _)| {
             if range.contains(&x) {
@@ -268,7 +266,7 @@ impl CubicSpline {
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let x = c!(0.9, 1.3, 1.9, 2.1);
     ///     let y = c!(1.3, 1.5, 1.85, 2.1);

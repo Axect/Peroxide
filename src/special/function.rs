@@ -1,5 +1,5 @@
-use std::f64::consts::PI;
 use crate::special::lanczos::{gamma_approx, ln_gamma_approx};
+use std::f64::consts::PI;
 
 /// Gaussian function
 ///
@@ -35,7 +35,7 @@ pub fn ln_gamma(x: f64) -> f64 {
 /// Pochhammer symbol
 pub fn poch(x: f64, n: usize) -> f64 {
     let mut s = 1f64;
-    for i in 0 .. n {
+    for i in 0..n {
         s *= x + i as f64;
     }
     s
@@ -58,7 +58,7 @@ pub fn inc_gamma(a: f64, x: f64) -> f64 {
 /// Inverse of regularized incomplete gamma integral (Lower)
 ///
 /// Wrapper of `invgammp` function of `puruspe` crate
-pub fn inv_inc_gamma(p: f64, a:f64) -> f64 {
+pub fn inv_inc_gamma(p: f64, a: f64) -> f64 {
     puruspe::invgammp(p, a)
 }
 
@@ -80,7 +80,7 @@ pub fn erfc(x: f64) -> f64 {
 ///
 /// Wrapper of `inverf` function of `puruspe` crate
 pub fn inv_erf(x: f64) -> f64 {
-   puruspe::inverf(x)
+    puruspe::inverf(x)
 }
 
 /// Inverse complementary error function

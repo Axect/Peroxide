@@ -3,16 +3,16 @@
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
 #[cfg(feature = "O3")]
-use lapack::{dsytrd, dorgtr, dsteqr};
+use lapack::{dorgtr, dsteqr, dsytrd};
 
+pub use self::EigenMethod::*;
 use crate::structure::matrix::Matrix;
 use crate::util::non_macro::eye_shape;
 use std::f64::EPSILON;
-pub use self::EigenMethod::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum EigenMethod {
-    Jacobi
+    Jacobi,
 }
 
 #[derive(Debug, Clone)]
@@ -64,7 +64,7 @@ pub fn jacobi(m: Matrix) -> JacobiTemp {
         a,
         v,
         d,
-        n_rot: 0
+        n_rot: 0,
     }
 }
 
@@ -78,7 +78,7 @@ impl JacobiTemp {
         let d = self.d;
         Eigen {
             eigenvalue: d,
-            eigenvector: v
+            eigenvector: v,
         }
     }
 
@@ -95,10 +95,10 @@ impl JacobiTemp {
         let mut h: f64;
         let mut _n_rot = self.n_rot;
 
-        for i in 1 .. 51 {
+        for i in 1..51 {
             let mut sm = 0f64;
-            for ip in 0 .. n-1 {
-                for iq in ip+1 .. n {
+            for ip in 0..n - 1 {
+                for iq in ip + 1..n {
                     sm += a[(ip, iq)].abs();
                 }
             }
@@ -111,8 +111,8 @@ impl JacobiTemp {
             } else {
                 0f64
             };
-            for ip in 0 .. n-1 {
-                for iq in ip+1 .. n {
+            for ip in 0..n - 1 {
+                for iq in ip + 1..n {
                     let g = 100f64 * a[(ip, iq)].abs();
                     if i > 4 && g <= EPSILON * d[ip].abs() && g <= EPSILON * d[iq].abs() {
                         a[(ip, iq)] = 0f64;
@@ -137,23 +137,23 @@ impl JacobiTemp {
                         d[ip] -= h;
                         d[iq] += h;
                         a[(ip, iq)] = 0f64;
-                        for j in 0 .. ip {
+                        for j in 0..ip {
                             rot(a, s, tau, j, ip, j, iq);
                         }
-                        for j in ip+1 .. iq {
+                        for j in ip + 1..iq {
                             rot(a, s, tau, ip, j, j, iq);
                         }
-                        for j in iq+1 .. n {
+                        for j in iq + 1..n {
                             rot(a, s, tau, ip, j, iq, j);
                         }
-                        for j in 0 .. n {
+                        for j in 0..n {
                             rot(v, s, tau, j, ip, j, iq);
                         }
                         _n_rot += 1;
                     }
                 }
             }
-            for ip in 0 .. n {
+            for ip in 0..n {
                 b[ip] += z[ip];
                 d[ip] = b[ip];
                 z[ip] = 0f64;
@@ -176,10 +176,10 @@ fn rot(a: &mut Matrix, s: f64, tau: f64, i: usize, j: usize, k: usize, l: usize)
 fn eigsrt(d: &mut Vec<f64>, v: &mut Matrix) {
     let mut k: usize;
     let n = d.len();
-    for i in 0 .. n-1 {
+    for i in 0..n - 1 {
         k = i;
         let mut p = d[k];
-        for j in i .. n {
+        for j in i..n {
             if d[j] >= p {
                 k = j;
                 p = d[k];
@@ -188,7 +188,7 @@ fn eigsrt(d: &mut Vec<f64>, v: &mut Matrix) {
         if k != i {
             d[k] = d[i];
             d[i] = p;
-            for j in 0 .. n {
+            for j in 0..n {
                 p = v[(j, i)];
                 v[(j, i)] = v[(j, k)];
                 v[(j, k)] = p;

@@ -1,8 +1,5 @@
-use crate::traits::{
-    math::Vector,
-    fp::FPVector,
-};
 use crate::structure::matrix::{Matrix, Shape};
+use crate::traits::{fp::FPVector, math::Vector};
 use crate::util::non_macro::zeros_shape;
 
 /// Syntactic sugar for Vector operations
@@ -17,7 +14,6 @@ pub trait VecOps: Vector {
     fn mul_s(&self, s: Self::Scalar) -> Self;
     fn div_s(&self, s: Self::Scalar) -> Self;
 }
-
 
 pub trait Scalable {
     type Vec;
@@ -39,14 +35,14 @@ pub trait ScalableMut {
 
 impl VecOps for Vec<f64> {
     type Scalar = f64;
-    
+
     /// Vector + Vector
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = c!(5,4,3,2,1);
@@ -58,12 +54,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector - Vector
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = c!(5,4,3,2,1);
@@ -75,12 +71,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector * Vector
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = c!(5,4,3,2,1);
@@ -92,12 +88,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector / Vector
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(2, 4, 6, 8, 10);
     ///     let b = c!(2, 2, 2, 2, 2);
@@ -109,12 +105,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector + Scalar
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = 1f64;
@@ -126,12 +122,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector - Scalar
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = 1f64;
@@ -143,12 +139,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector * Scalar
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5);
     ///     let b = 2f64;
@@ -160,12 +156,12 @@ impl VecOps for Vec<f64> {
     }
 
     /// Vector / Scalar
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(2,4,6,8,10);
     ///     let b = 2f64;
@@ -181,12 +177,12 @@ impl Scalable for Vec<f64> {
     type Vec = Self;
 
     /// Vector to Matrix
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5,6);
     ///     let b1 = a.resize((3,2), Row);
@@ -203,12 +199,12 @@ impl Scalable for Vec<f64> {
     }
 
     /// Vector + Vector = Matrix
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3);
     ///     let b = c!(4,5,6);
@@ -220,18 +216,18 @@ impl Scalable for Vec<f64> {
     /// ```
     fn add_row(&self, v: &Self::Vec) -> Matrix {
         assert_eq!(self.len(), v.len());
-        let mut x = self[..].to_vec();       
+        let mut x = self[..].to_vec();
         x.extend_from_slice(&v[..]);
         x.resize((2, self.len()), Shape::Row)
     }
 
     /// Vector + Vector = Matrix
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = c!(1,2,3);
     ///     let b = c!(4,5,6);
@@ -254,12 +250,12 @@ impl Scalable for Matrix {
     type Vec = Vec<f64>;
 
     /// Resize matrix
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = ml_matrix("1 2 3;4 5 6"); // ml_matrix has shape `Col`
     ///     let b1 = a.resize((3, 2), Row);
@@ -276,12 +272,12 @@ impl Scalable for Matrix {
     }
 
     /// Add row
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = ml_matrix("1 2 3;4 5 6");
     ///     let b = c!(7,8,9);
@@ -308,12 +304,12 @@ impl Scalable for Matrix {
     }
 
     /// Add column
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = ml_matrix("1 2 3;4 5 6");
     ///     let b = c!(7,8);
@@ -344,12 +340,12 @@ impl ScalableMut for Matrix {
     type Vec = Vec<f64>;
 
     /// Resize matrix (Mutable)
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let mut a = ml_matrix("1 2 3;4 5 6"); // ml_matrix has shape `Row`
     ///     a.resize_mut((3, 2), Row);
@@ -366,12 +362,12 @@ impl ScalableMut for Matrix {
     }
 
     /// Add row (Mutable)
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let mut a = ml_matrix("1 2 3;4 5 6");
     ///     let b = c!(7,8,9);
@@ -395,12 +391,12 @@ impl ScalableMut for Matrix {
     }
 
     /// Add column (Mutable)
-    /// 
+    ///
     /// ```
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let mut a = ml_matrix("1 2 3;4 5 6");
     ///     let b = c!(7,8);
@@ -422,4 +418,4 @@ impl ScalableMut for Matrix {
             }
         }
     }
-} 
+}

@@ -36,15 +36,13 @@
 //!     }
 //!     ```
 
-use std::convert::Into;
-use std::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub};
 use crate::structure::dual::{dual, Dual};
 #[allow(unused_imports)]
 use crate::structure::vector::*;
-use crate::traits::{
-    num::{ExpLogOps, PowOps, TrigOps, Real}
-};
+use crate::traits::num::{ExpLogOps, PowOps, Real, TrigOps};
+use std::convert::Into;
+use std::fmt;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// Hyper Dual number
 ///
@@ -408,7 +406,8 @@ impl PowOps for HyperDual {
     fn powf(&self, f: f64) -> Self {
         let x = self.x.powf(f);
         let dx = self.dx * f * self.x.powf(f - 1f64);
-        let ddx = self.ddx * f * self.x.powf(f - 1f64) + self.dx.powi(2) * f * (f - 1f64) * self.x.powf(f - 2f64);
+        let ddx = self.ddx * f * self.x.powf(f - 1f64)
+            + self.dx.powi(2) * f * (f - 1f64) * self.x.powf(f - 2f64);
         Self::new(x, dx, ddx)
     }
 

@@ -2,14 +2,10 @@
 //!
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
-use std::ops::Mul;
-use crate::structure::matrix::{
-    Matrix, LinearAlgebra, PQLU, QR, WAZD, Form, SolveKind
-};
+use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, WAZD};
+use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
 use crate::util::non_macro::zeros;
-use crate::traits::{
-    math::{LinearOp, Vector, Normed, InnerProduct, Norm}
-};
+use std::ops::Mul;
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -38,16 +34,16 @@ impl SPMatrix {
         let mut row_ics: Vec<usize> = Vec::new();
         let mut col_ptr: Vec<usize> = vec![0usize; m.col + 1];
         let mut k = 0usize;
-        for j in 0 .. m.col {
-            for i in 0 .. m.row {
-                let val = m[(i,j)];
+        for j in 0..m.col {
+            for i in 0..m.row {
+                let val = m[(i, j)];
                 if val != 0f64 {
                     data.push(val);
                     row_ics.push(i);
                     k += 1;
                 }
             }
-            col_ptr[j+1] = k;
+            col_ptr[j + 1] = k;
         }
 
         SPMatrix {
@@ -56,15 +52,15 @@ impl SPMatrix {
             nnz: data.len(),
             col_ptr,
             row_ics,
-            data
+            data,
         }
     }
 
     pub fn to_dense(&self) -> Matrix {
         let mut m = zeros(self.row, self.col);
 
-        for j in 0 .. self.col {
-            for i in self.col_ptr[j] .. self.col_ptr[j+1] {
+        for j in 0..self.col {
+            for i in self.col_ptr[j]..self.col_ptr[j + 1] {
                 let k = self.row_ics[i];
                 m[(k, j)] = self.data[i];
             }
@@ -94,18 +90,18 @@ impl SPMatrix {
         let mut count = vec![0usize; row];
         let mut result = Self::new(col, row, nnz);
 
-        for i in 0 .. col {
-            for j in col_ptr[i] .. col_ptr[i+1] {
+        for i in 0..col {
+            for j in col_ptr[i]..col_ptr[i + 1] {
                 let k = row_ics[j];
                 count[k] += 1;
             }
         }
-        for j in 0 .. row {
-            result.col_ptr[j+1] = result.col_ptr[j] + count[j];
+        for j in 0..row {
+            result.col_ptr[j + 1] = result.col_ptr[j] + count[j];
             count[j] = 0;
         }
-        for i in 0 .. col {
-            for j in col_ptr[i] .. col_ptr[i+1] {
+        for i in 0..col {
+            for j in col_ptr[i]..col_ptr[i + 1] {
                 let k = row_ics[j];
                 let index = result.col_ptr[k] + count[k];
                 result.row_ics[index] = i;
@@ -127,8 +123,8 @@ impl LinearOp<Vec<f64>, Vec<f64>> for SPMatrix {
         let col_ptr = self.col_ptr();
         let row_ics = self.row_ics();
         let data = self.data();
-        for j in 0 .. self.col {
-            for i in col_ptr[j] .. col_ptr[j+1] {
+        for j in 0..self.col {
+            for i in col_ptr[j]..col_ptr[j + 1] {
                 y[row_ics[i]] += data[i] * rhs[j];
             }
         }
@@ -176,14 +172,14 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().pseudo_inv()
     }
 
-    fn rref(&self) -> Matrix { 
+    fn rref(&self) -> Matrix {
         self.to_dense().rref()
     }
 
     fn solve(&self, _b: &Vec<f64>, _sk: SolveKind) -> Vec<f64> {
         unimplemented!()
     }
-    
+
     fn solve_mat(&self, _m: &Matrix, _sk: SolveKind) -> Matrix {
         unimplemented!()
     }

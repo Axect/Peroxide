@@ -252,7 +252,8 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
             StudentT(nu) => {
                 let dof = (*nu).into();
                 let t = x.into();
-                1f64 / (dof.sqrt() * beta(0.5f64, dof / 2f64)) * (1f64 + t.powi(2) / dof).powf(-(dof + 1f64) / 2f64)
+                1f64 / (dof.sqrt() * beta(0.5f64, dof / 2f64))
+                    * (1f64 + t.powi(2) / dof).powf(-(dof + 1f64) / 2f64)
             }
         }
     }
@@ -307,76 +308,76 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let normal = rand_distr::Normal::<f64>::new((*m).into(), (*s).into()).unwrap();
                 normal.sample_iter(&mut rng).take(n).collect()
             }
-//            Normal(m, s) => {
-//                let mut rng = thread_rng();
-//                let mut v = vec![0f64; n];
-//
-//                for i in 0..n {
-//                    v[i] = ziggurat(&mut rng, (*s).into()) + (*m).into();
-//                }
-//                v
-//            }
+            //            Normal(m, s) => {
+            //                let mut rng = thread_rng();
+            //                let mut v = vec![0f64; n];
+            //
+            //                for i in 0..n {
+            //                    v[i] = ziggurat(&mut rng, (*s).into()) + (*m).into();
+            //                }
+            //                v
+            //            }
             Beta(a, b) => {
                 let mut rng = thread_rng();
                 let beta = rand_distr::Beta::<f64>::new((*a).into(), (*b).into()).unwrap();
                 beta.sample_iter(&mut rng).take(n).collect()
             }
-//            Beta(a, b) => {
-//                let mut rng1 = thread_rng();
-//                let mut rng2 = thread_rng();
-//                let mut v = vec![0f64; n];
-//
-//                let a_f64 = (*a).into();
-//                let b_f64 = (*b).into();
-//
-//                // For acceptance-rejection method
-//                let c_x = (a_f64 - 1f64) / (a_f64 + b_f64 - 2f64);
-//                let c = self.pdf(c_x); // Beta(mode(x) | a, b)
-//
-//                let mut iter_num = 0usize;
-//
-//                while iter_num < n {
-//                    let u1 = rng1.gen_range(0f64, 1f64);
-//                    let u2 = rng2.gen_range(0f64, 1f64);
-//
-//                    if u2 <= 1f64 / c * self.pdf(u1) {
-//                        v[iter_num] = u1;
-//                        iter_num += 1;
-//                    }
-//                }
-//                v
-//            }
+            //            Beta(a, b) => {
+            //                let mut rng1 = thread_rng();
+            //                let mut rng2 = thread_rng();
+            //                let mut v = vec![0f64; n];
+            //
+            //                let a_f64 = (*a).into();
+            //                let b_f64 = (*b).into();
+            //
+            //                // For acceptance-rejection method
+            //                let c_x = (a_f64 - 1f64) / (a_f64 + b_f64 - 2f64);
+            //                let c = self.pdf(c_x); // Beta(mode(x) | a, b)
+            //
+            //                let mut iter_num = 0usize;
+            //
+            //                while iter_num < n {
+            //                    let u1 = rng1.gen_range(0f64, 1f64);
+            //                    let u2 = rng2.gen_range(0f64, 1f64);
+            //
+            //                    if u2 <= 1f64 / c * self.pdf(u1) {
+            //                        v[iter_num] = u1;
+            //                        iter_num += 1;
+            //                    }
+            //                }
+            //                v
+            //            }
             Gamma(shape, scale) => {
                 let mut rng = thread_rng();
-                let gamma = rand_distr::Gamma::<f64>::new((*shape).into(), (*scale).into()).unwrap();
+                let gamma =
+                    rand_distr::Gamma::<f64>::new((*shape).into(), (*scale).into()).unwrap();
                 gamma.sample_iter(&mut rng).take(n).collect()
-            }
-//            Gamma(a, b) => {
-//                let a_f64 = (*a).into();
-//                let b_f64 = (*b).into();
-//
-//                // for Marsaglia & Tsang's Method
-//                let d = a_f64 - 1f64 / 3f64;
-//                let c = 1f64 / (9f64 * d).sqrt();
-//
-//                let mut rng1 = thread_rng();
-//                let mut rng2 = thread_rng();
-//
-//                let mut v = vec![0f64; n];
-//                let mut iter_num = 0usize;
-//
-//                while iter_num < n {
-//                    let u = rng1.gen_range(0f64, 1f64);
-//                    let z = ziggurat(&mut rng2, 1f64);
-//                    let w = (1f64 + c * z).powi(3);
-//
-//                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
-//                        v[iter_num] = d * w / b_f64;
-//                        iter_num += 1;
-//                    }
-//                }
-//                v
-//            }
+            } //            Gamma(a, b) => {
+              //                let a_f64 = (*a).into();
+              //                let b_f64 = (*b).into();
+              //
+              //                // for Marsaglia & Tsang's Method
+              //                let d = a_f64 - 1f64 / 3f64;
+              //                let c = 1f64 / (9f64 * d).sqrt();
+              //
+              //                let mut rng1 = thread_rng();
+              //                let mut rng2 = thread_rng();
+              //
+              //                let mut v = vec![0f64; n];
+              //                let mut iter_num = 0usize;
+              //
+              //                while iter_num < n {
+              //                    let u = rng1.gen_range(0f64, 1f64);
+              //                    let z = ziggurat(&mut rng2, 1f64);
+              //                    let w = (1f64 + c * z).powi(3);
+              //
+              //                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
+              //                        v[iter_num] = d * w / b_f64;
+              //                        iter_num += 1;
+              //                    }
+              //                }
+              //                v
+              //            }
         }
     }
 
@@ -431,9 +432,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     1f64
                 }
             }
-            Normal(m, s) => {
-                phi((x - (*m).into()) / (*s).into())
-            }
+            Normal(m, s) => phi((x - (*m).into()) / (*s).into()),
             Beta(a, b) => {
                 let a: f64 = (*a).into();
                 let b: f64 = (*b).into();
