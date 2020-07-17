@@ -39,7 +39,7 @@
 //! * `len(&self) -> usize`
 //!
 //! ## Implemented Operations
-//! 
+//!
 //! * `Add, Sub, Mul, Div`
 //! * `sin, cos, tan`
 //! * `sinh, cosh, tanh`
@@ -48,7 +48,7 @@
 //! * `powi, powf, sqrt`
 //!
 //! ## Not yet implemented
-//! 
+//!
 //! * `asin`, `acos`, `atan`
 //! * `asinh`, `acosh`, `atanh`
 //! * `pow`
@@ -70,7 +70,7 @@
 //!     let c = AD2::from(a);
 //!     // Zeros
 //!     let d = AD2::default();
-//!     
+//!
 //!     assert_eq!(c, AD2::new(2f64, 1f64, 0f64));
 //!     assert_eq!(d, AD2::new(0f64, 0f64, 0f64));
 //! }
@@ -97,32 +97,35 @@
 //! }
 //! ```
 //!
+//! ### Generic
+//!
+//! * All of `AD{i}` implements `AD` trait
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = AD1::new(2f64, 1f64);
+//!     let b = AD2::new(4f64, 4f64, 2f64);
+//!     assert_eq!(f(a, b), AD1::new(6f64, 5f64));
+//! }
+//!
+//! fn f<T: AD, S: AD>(x: T, y: S) -> T {
+//!     T::from(x.to_ad2() + y.to_ad2())
+//! }
+//! ```
 
-use peroxide_ad::{
-    ad_struct_def,
-    ad_display,
-    ad_impl,
-    ad_impl_from,
-    ad_iter_def,
-    ad_impl_into_iter,
-    ad_impl_from_iter,
-    ad_impl_double_ended_iter,
-    ad_impl_exact_size_iter,
-    ad_impl_iter,
-    ad_impl_index,
-    ad_impl_neg,
-    ad_impl_add,
-    ad_impl_sub,
-    ad_impl_mul,
-    ad_impl_div,
-    ad_impl_explogops,
-    ad_impl_powops,
-    ad_impl_trigops,
-};
 use crate::statistics::ops::C;
 use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
+use peroxide_ad::{
+    ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
+    ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
+    ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
+    ad_impl_trigops, ad_iter_def, ad_struct_def,
+};
 use std::iter::FromIterator;
-use std::ops::{Neg, Add, Sub, Mul, Div, Index, IndexMut};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 ad_struct_def!();
 ad_display!();
@@ -143,3 +146,82 @@ ad_impl_div!();
 ad_impl_explogops!();
 ad_impl_powops!();
 ad_impl_trigops!();
+ad_impl_ad!();
+
+pub trait AD:
+    std::fmt::Display
+    + Clone
+    + Copy
+    + PartialEq
+    + From<AD1>
+    + From<AD2>
+    + From<AD3>
+    + From<AD4>
+    + From<AD5>
+    + From<AD6>
+    + From<AD7>
+    + From<AD8>
+    + From<AD9>
+    + From<AD10>
+    + Into<AD1>
+    + Into<AD2>
+    + Into<AD3>
+    + Into<AD4>
+    + Into<AD5>
+    + Into<AD6>
+    + Into<AD7>
+    + Into<AD8>
+    + Into<AD9>
+    + Into<AD10>
+    + IntoIterator<Item = f64>
+    + FromIterator<f64>
+    + Index<usize>
+    + IndexMut<usize>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + PowOps
+    + ExpLogOps
+    + TrigOps
+{
+    fn to_ad1(self) -> AD1 {
+        self.into()
+    }
+
+    fn to_ad2(self) -> AD2 {
+        self.into()
+    }
+
+    fn to_ad3(self) -> AD3 {
+        self.into()
+    }
+
+    fn to_ad4(self) -> AD4 {
+        self.into()
+    }
+
+    fn to_ad5(self) -> AD5 {
+        self.into()
+    }
+
+    fn to_ad6(self) -> AD6 {
+        self.into()
+    }
+
+    fn to_ad7(self) -> AD7 {
+        self.into()
+    }
+
+    fn to_ad8(self) -> AD8 {
+        self.into()
+    }
+
+    fn to_ad9(self) -> AD9 {
+        self.into()
+    }
+
+    fn to_ad10(self) -> AD10 {
+        self.into()
+    }
+}

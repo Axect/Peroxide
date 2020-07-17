@@ -1,11 +1,11 @@
-use crate::traits::math::{Normed, Norm};
-use crate::structure::matrix::{self, Matrix};
 use crate::numerical::{
-    integral,
-    integral::Integral::GaussLegendre,
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
+    integral,
+    integral::Integral::GaussLegendre,
 };
+use crate::structure::matrix::{self, Matrix};
+use crate::traits::math::{Norm, Normed};
 
 /// Simple Norm
 pub trait SimpleNorm: Normed {

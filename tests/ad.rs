@@ -1,6 +1,6 @@
 extern crate peroxide;
 #[allow(unused_imports)]
-use peroxide::fuga::*;
+use peroxide::prelude::*;
 
 #[test]
 fn add_test() {

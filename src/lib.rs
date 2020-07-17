@@ -11,7 +11,7 @@
 //!         * QR Decomposition
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
-//!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms 
+//!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
 //! * Statistics
 //!     * [Statistical operations](statistics/stat/index.html)
 //!         * `mean, var, sd`
@@ -60,7 +60,7 @@
 //!     * [Julia macros](macros/julia_macro/index.html)
 //!
 //! And all these things are built on mathematical traits.
-//! 
+//!
 //! * Traits
 //!     * [Functional Programming tools](traits/fp/index.html)
 //!     * [General algorithms](traits/general/index.html)
@@ -68,7 +68,7 @@
 //!     * [Mutable tools](traits/mutable/index.html)
 //!     * [Number & Real](traits/num/index.html)
 //!     * [Pointer](traits/pointer/index.html)
-//! 
+//!
 //! ## Quick Start
 //!
 //! ### Cargo.toml
@@ -113,12 +113,12 @@
 //! ## Import all at once
 //!
 //! Peroxide has two options.
-//! 
+//!
 //! * [`prelude`](prelude/inde.html) : To simple use
 //! * [`fuga`](fuga/index.html) : To control numerical algorithms
-//! 
+//!
 //! To see differences, follow above two links.
-//! 
+//!
 //! You can import all functions & structures at once
 //!
 //! * `prelude`
@@ -126,18 +126,18 @@
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::prelude::*;
-//! 
+//!
 //! fn main() {
 //!     // Write what you want
 //! }
 //! ```
-//! 
+//!
 //! * `fuga`
 //! ```
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
-//! 
+//!
 //! fn main() {
 //!     // Write what you want
 //! }
@@ -188,12 +188,12 @@ extern crate peroxide_ad;
 #[macro_use]
 pub mod macros;
 
-pub mod statistics;
-pub mod structure;
+pub mod fuga;
 pub mod ml;
 pub mod numerical;
-pub mod special;
-pub mod util;
-pub mod traits;
-pub mod fuga;
 pub mod prelude;
+pub mod special;
+pub mod statistics;
+pub mod structure;
+pub mod traits;
+pub mod util;

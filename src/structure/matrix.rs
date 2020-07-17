@@ -444,33 +444,33 @@ extern crate blas;
 #[cfg(feature = "O3")]
 extern crate lapack;
 
+use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
+use ::matrixmultiply;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
-use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
-use ::matrixmultiply;
 
 pub use self::Shape::{Col, Row};
+use crate::numerical::eigen::{eigen, EigenMethod};
+use crate::traits::{
+    fp::{FPMatrix, FPVector},
+    general::Algorithm,
+    math::{InnerProduct, LinearOp, Norm, Normed, Vector},
+    mutable::MutMatrix,
+};
+use crate::util::{
+    low_level::{copy_vec_ptr, swap_vec_ptr},
+    non_macro::{eye, zeros},
+    useful::{nearly_eq, tab},
+};
 use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
 use std::fmt;
-use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub, Div};
-use crate::traits::{
-    mutable::MutMatrix,
-    fp::{FPVector, FPMatrix},
-    math::{Vector, Normed, Norm, InnerProduct, LinearOp},
-    general::Algorithm,
-};
-use crate::util::{
-    low_level::{swap_vec_ptr, copy_vec_ptr},
-    non_macro::{eye, zeros},
-    useful::{nearly_eq, tab}
-};
-use crate::numerical::eigen::{eigen, EigenMethod};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -492,7 +492,7 @@ pub type Perms = Vec<(usize, usize)>;
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Shape {
     Col,
-    Row
+    Row,
 }
 
 /// Print for Shape
@@ -676,7 +676,7 @@ impl Matrix {
     /// ```
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Col);
     /// let b = a.as_slice();
     /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
@@ -731,7 +731,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data,r,c,Col)
+                matrix(data, r, c, Col)
             }
             Col => {
                 for i in 0..l {
@@ -739,7 +739,7 @@ impl Matrix {
                     data[i] = ref_data[s];
                 }
                 data[l] = ref_data[l];
-                matrix(data,r,c,Row)
+                matrix(data, r, c, Row)
             }
         }
     }
@@ -880,7 +880,7 @@ impl Matrix {
     /// #[macro_use]
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
     ///     assert_eq!(a.col(0), c!(1,3));
@@ -1343,12 +1343,13 @@ impl Normed for Matrix {
                 let eig = eigen(&a, EigenMethod::Jacobi);
                 eig.eigenvalue.norm(Norm::LInf)
             }
-            Norm::Lp(_) => {
-                unimplemented!()
-            }
+            Norm::Lp(_) => unimplemented!(),
         }
     }
-    fn normalize(&self, _kind: Norm) -> Self where Self: Sized {
+    fn normalize(&self, _kind: Norm) -> Self
+    where
+        Self: Sized,
+    {
         unimplemented!()
     }
 }
@@ -2108,7 +2109,7 @@ impl Div<f64> for Matrix {
                 let n_i32 = x.len() as i32;
 
                 unsafe {
-                    daxpy(n_i32, 1f64/a_f64, x, 1, &mut y, 1);
+                    daxpy(n_i32, 1f64 / a_f64, x, 1, &mut y, 1);
                 }
                 matrix(y, self.row, self.col, self.shape)
             }
@@ -2187,7 +2188,6 @@ impl<'a> Div<usize> for &'a Matrix {
     }
 }
 
-
 /// Index for Matrix
 ///
 /// `(usize, usize) -> f64`
@@ -2209,16 +2209,8 @@ impl Index<(usize, usize)> for Matrix {
         let j = pair.1;
         assert!(i < self.row && j < self.col, "Index out of range");
         match self.shape {
-            Row => {
-                unsafe {
-                    &*p.add(i * self.col + j)
-                }
-            }   
-            Col => {
-                unsafe {
-                    &*p.add(i + j * self.row)
-                }  
-            },
+            Row => unsafe { &*p.add(i * self.col + j) },
+            Col => unsafe { &*p.add(i + j * self.row) },
         }
     }
 }
@@ -2250,15 +2242,11 @@ impl IndexMut<(usize, usize)> for Matrix {
         match self.shape {
             Row => {
                 let idx = i * c + j;
-                unsafe {
-                    &mut *p.add(idx)
-                }
+                unsafe { &mut *p.add(idx) }
             }
             Col => {
                 let idx = i + j * r;
-                unsafe {
-                    &mut *p.add(idx)
-                }
+                unsafe { &mut *p.add(idx) }
             }
         }
     }
@@ -2341,11 +2329,7 @@ impl FPMatrix for Matrix {
     where
         F: Fn(f64) -> f64,
     {
-        let result = self
-            .data
-            .iter()
-            .map(|x| f(*x))
-            .collect::<Vec<f64>>();
+        let result = self.data.iter().map(|x| f(*x)).collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
     }
 
@@ -2379,7 +2363,7 @@ impl FPMatrix for Matrix {
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
-        for i in 0 .. self.col {
+        for i in 0..self.col {
             unsafe {
                 let mut p = self.col_mut(i);
                 let fv = f(self.col(i));
@@ -2394,11 +2378,11 @@ impl FPMatrix for Matrix {
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
-        for i in 0 .. self.col {
+        for i in 0..self.col {
             unsafe {
                 let mut p = self.row_mut(i);
                 let fv = f(self.row(i));
-                for j in 0 .. p.len() {
+                for j in 0..p.len() {
                     *p[j] = fv[j];
                 }
             }
@@ -2410,9 +2394,7 @@ impl FPMatrix for Matrix {
         F: Fn(f64, f64) -> f64,
         T: convert::Into<f64>,
     {
-        self.data
-            .iter()
-            .fold(init.into(), |x, y| f(x, *y))
+        self.data.iter().fold(init.into(), |x, y| f(x, *y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Self
@@ -2434,18 +2416,22 @@ impl FPMatrix for Matrix {
     }
 
     fn col_reduce<F>(&self, f: F) -> Vec<f64>
-    where F: Fn(Vec<f64>) -> f64 {
+    where
+        F: Fn(Vec<f64>) -> f64,
+    {
         let mut v = vec![0f64; self.col];
-        for i in 0 .. self.col {
+        for i in 0..self.col {
             v[i] = f(self.col(i));
         }
         v
     }
 
     fn row_reduce<F>(&self, f: F) -> Vec<f64>
-    where F: Fn(Vec<f64>) -> f64 {
+    where
+        F: Fn(Vec<f64>) -> f64,
+    {
         let mut v = vec![0f64; self.row];
-        for i in 0 .. self.row {
+        for i in 0..self.row {
             v[i] = f(self.row(i));
         }
         v
@@ -2591,10 +2577,10 @@ impl LinearAlgebra for Matrix {
     fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
         let n = self.col;
         let mut y = vec![0f64; n];
-        y[n-1] = b[n-1] / self[(n-1, n-1)];
-        for i in (0 .. n - 1).rev() {
+        y[n - 1] = b[n - 1] / self[(n - 1, n - 1)];
+        for i in (0..n - 1).rev() {
             let mut s = 0f64;
-            for j in i+1 .. n {
+            for j in i + 1..n {
                 s += self[(i, j)] * y[j];
             }
             y[i] = 1f64 / self[(i, i)] * (b[i] - s);
@@ -2607,9 +2593,9 @@ impl LinearAlgebra for Matrix {
         let n = self.col;
         let mut y = vec![0f64; n];
         y[0] = b[0] / self[(0, 0)];
-        for i in 1 .. n {
+        for i in 1..n {
             let mut s = 0f64;
-            for j in 0 .. i {
+            for j in 0..i {
                 s += self[(i, j)] * y[j];
             }
             y[i] = 1f64 / self[(i, i)] * (b[i] - s);
@@ -2655,20 +2641,20 @@ impl LinearAlgebra for Matrix {
 
         let mut temp = self.clone();
         let (p, q) = gecp(&mut temp);
-        for i in 0 .. n {
-            for j in 0 .. i {
+        for i in 0..n {
+            for j in 0..i {
                 // Inverse multiplier
                 l[(i, j)] = -temp[(i, j)];
             }
-            for j in i .. n {
+            for j in i..n {
                 u[(i, j)] = temp[(i, j)];
             }
         }
         // Pivoting L
-        for i in 0 .. n - 1 {
+        for i in 0..n - 1 {
             unsafe {
                 let l_i = l.col_mut(i);
-                for j in i+1 .. l.col-1 {
+                for j in i + 1..l.col - 1 {
                     let dst = p[j];
                     std::ptr::swap(l_i[j], l_i[dst]);
                 }
@@ -2687,31 +2673,25 @@ impl LinearAlgebra for Matrix {
                 let mut q = vec![0f64; n];
                 let mut p = vec![0f64; n];
 
-                for i in 0 .. n {
+                for i in 0..n {
                     let m_i = self.col(i);
                     let pq = w.col(i).dot(&m_i);
                     d[(i, i)] = pq;
                     if pq == 0f64 {
                         return None;
                     }
-                    for j in i+1 .. n {
+                    for j in i + 1..n {
                         q[j] = w.col(j).dot(&m_i) / pq;
                         p[j] = z.col(j).dot(&self.row(i)) / pq;
                     }
-                    for j in i+1 .. n {
-                        for k in 0 .. i+1 {
+                    for j in i + 1..n {
+                        for k in 0..i + 1 {
                             w[(k, j)] -= q[j] * w[(k, i)];
                             z[(k, j)] -= p[j] * z[(k, i)];
                         }
                     }
                 }
-                Some(
-                    WAZD {
-                        w,
-                        z,
-                        d
-                    }
-                )
+                Some(WAZD { w, z, d })
             }
             Form::Identity => {
                 let n = self.row;
@@ -2720,17 +2700,17 @@ impl LinearAlgebra for Matrix {
                 let mut p = zeros(n, n);
                 let mut q = zeros(n, n);
 
-                for i in 0 .. n {
+                for i in 0..n {
                     let m_i = self.col(i);
                     let p_ii = w.col(i).dot(&m_i);
-                    p[(i,i)] = p_ii;
+                    p[(i, i)] = p_ii;
                     if p_ii == 0f64 {
                         return None;
                     }
-                    for j in i+1 .. n {
+                    for j in i + 1..n {
                         q[(i, j)] = w.col(j).dot(&m_i) / p_ii;
                         p[(i, j)] = z.col(j).dot(&self.row(i)) / p_ii;
-                        for k in 0 .. j {
+                        for k in 0..j {
                             w[(k, j)] -= q[(i, j)] * w[(k, i)];
                             z[(k, j)] -= p[(i, j)] * z[(k, i)];
                         }
@@ -2740,13 +2720,7 @@ impl LinearAlgebra for Matrix {
                         col_ptr.into_iter().for_each(|x| *x /= p_ii);
                     }
                 }
-                Some(
-                    WAZD {
-                        w,
-                        z,
-                        d: eye(n),
-                    }
-                )
+                Some(WAZD { w, z, d: eye(n) })
             }
         }
     }
@@ -2762,31 +2736,28 @@ impl LinearAlgebra for Matrix {
         let mut r = self.clone();
         let mut q = eye(m);
         let sub = if m == n { 1 } else { 0 };
-        for i in 0 .. n - sub {
+        for i in 0..n - sub {
             let mut H = eye(m);
             let hh = gen_householder(&self.col(i).skip(i));
-            for j in i .. m {
-                for k in i .. m {
-                    H[(j, k)] = hh[(j-i, k-i)];
+            for j in i..m {
+                for k in i..m {
+                    H[(j, k)] = hh[(j - i, k - i)];
                 }
             }
             q = &q * &H;
             r = &H * &r;
         }
 
-        QR {
-            q,
-            r,
-        }
+        QR { q, r }
     }
 
     /// Reduced Row Echelon Form
-    /// 
+    ///
     /// Implementation of [RosettaCode](https://rosettacode.org/wiki/Reduced_row_echelon_form)
     fn rref(&self) -> Matrix {
         let mut lead = 0usize;
         let mut result = self.clone();
-        for r in 0 .. self.row {
+        for r in 0..self.row {
             if self.col <= lead {
                 break;
             }
@@ -2810,7 +2781,7 @@ impl LinearAlgebra for Matrix {
                     result.row_mut(r).iter_mut().for_each(|t| *(*t) /= tmp);
                 }
             }
-            for j in 0 .. result.row {
+            for j in 0..result.row {
                 if j != r {
                     let tmp1 = result.row(r).mul_scalar(result[(j, lead)]);
                     let tmp2 = result.row(j).sub_vec(&tmp1);
@@ -2864,9 +2835,7 @@ impl LinearAlgebra for Matrix {
                     },
                 }
             }
-            _ => {
-                self.lu().det()
-            }
+            _ => self.lu().det(),
         }
     }
 
@@ -3019,7 +2988,9 @@ impl LinearAlgebra for Matrix {
                     None => panic!("Try solve for Singluar matrix"),
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
-                        LAPACK_STATUS::NonSingular => lapack_dgetrs(&dgrf, &(b.into())).unwrap().into(),
+                        LAPACK_STATUS::NonSingular => {
+                            lapack_dgetrs(&dgrf, &(b.into())).unwrap().into()
+                        }
                     },
                 }
             }
@@ -3045,7 +3016,7 @@ impl LinearAlgebra for Matrix {
             }
         }
     }
-    
+
     fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix {
         match sk {
             #[cfg(feature = "O3")]
@@ -3064,7 +3035,7 @@ impl LinearAlgebra for Matrix {
                 let lu = self.lu();
                 let (p, q, l, u) = lu.extract();
                 let mut x = matrix(vec![0f64; self.col * m.col], self.col, m.col, Col);
-                for i in 0 .. m.col {
+                for i in 0..m.col {
                     let mut v = m.col(i).clone();
                     for (r, &s) in p.iter().enumerate() {
                         v.swap(r, s);
@@ -3076,7 +3047,7 @@ impl LinearAlgebra for Matrix {
                     }
                     unsafe {
                         let mut c = x.col_mut(i);
-                        copy_vec_ptr(&mut c, &y); 
+                        copy_vec_ptr(&mut c, &y);
                     }
                 }
                 x
@@ -3108,7 +3079,7 @@ impl MutMatrix for Matrix {
                 v.set_len(self.row);
                 let start_idx = idx * self.row;
                 let p = self.mut_ptr();
-                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
                     v[i] = p.add(j);
                 }
                 v
@@ -3117,7 +3088,7 @@ impl MutMatrix for Matrix {
                 let mut v: Vec<*mut f64> = Vec::with_capacity(self.row);
                 v.set_len(self.row);
                 let p = self.mut_ptr();
-                for i in 0 .. v.len() {
+                for i in 0..v.len() {
                     v[i] = p.add(idx + i * self.col);
                 }
                 v
@@ -3133,7 +3104,7 @@ impl MutMatrix for Matrix {
                 v.set_len(self.col);
                 let start_idx = idx * self.col;
                 let p = self.mut_ptr();
-                for (i, j) in (start_idx .. start_idx + v.len()).enumerate() {
+                for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
                     v[i] = p.add(j);
                 }
                 v
@@ -3142,7 +3113,7 @@ impl MutMatrix for Matrix {
                 let mut v: Vec<*mut f64> = Vec::with_capacity(self.col);
                 v.set_len(self.col);
                 let p = self.mut_ptr();
-                for i in 0 .. v.len() {
+                for i in 0..v.len() {
                     v[i] = p.add(idx + i * self.row);
                 }
                 v
@@ -3152,12 +3123,8 @@ impl MutMatrix for Matrix {
 
     unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
         match shape {
-            Shape::Col => {
-                swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2))
-            }
-            Shape::Row => {
-                swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2))
-            }
+            Shape::Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
+            Shape::Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
         }
     }
 
@@ -3340,28 +3307,16 @@ pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
     let k = a.col;
     let n = b.col;
     let (rsa, csa) = match a.shape {
-        Row => {
-            (a.col as isize, 1isize)
-        }
-        Col => {
-            (1isize, a.row as isize)
-        }
+        Row => (a.col as isize, 1isize),
+        Col => (1isize, a.row as isize),
     };
     let (rsb, csb) = match b.shape {
-        Row => {
-            (b.col as isize, 1isize)
-        }
-        Col => {
-            (1isize, b.row as isize)
-        }
+        Row => (b.col as isize, 1isize),
+        Col => (1isize, b.row as isize),
     };
     let (rsc, csc) = match c.shape {
-        Row => {
-            (c.col as isize, 1isize)
-        }
-        Col => {
-            (1isize, c.row as isize)
-        }
+        Row => (c.col as isize, 1isize),
+        Col => (1isize, c.row as isize),
     };
 
     unsafe {
@@ -3406,7 +3361,7 @@ pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
     let n = 1usize;
     let (rsa, csa) = match a.shape {
         Row => (a.col as isize, 1isize),
-        Col => (1isize, a.row as isize)
+        Col => (1isize, a.row as isize),
     };
     let (rsb, csb) = (1isize, 1isize);
     let (rsc, csc) = (1isize, 1isize);
@@ -3454,7 +3409,7 @@ pub fn gevm(alpha: f64, a: &Vec<f64>, b: &Matrix, beta: f64, c: &mut Vec<f64>) {
     let (rsa, csa) = (1isize, 1isize);
     let (rsb, csb) = match b.shape {
         Row => (b.col as isize, 1isize),
-        Col => (1isize, b.row as isize)
+        Col => (1isize, b.row as isize),
     };
     let (rsc, csc) = (1isize, 1isize);
 
@@ -3880,26 +3835,34 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
 /// LU via Gaussian Elimination with Partial Pivoting
 #[allow(dead_code)]
 fn gepp(m: &mut Matrix) -> Vec<usize> {
-    let mut r = vec![0usize; m.col-1];
-    for k in 0 .. (m.col - 1) {
+    let mut r = vec![0usize; m.col - 1];
+    for k in 0..(m.col - 1) {
         // Find the pivot row
-        let r_k = m.col(k).into_iter().skip(k).enumerate().max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap().0 + k;
+        let r_k = m
+            .col(k)
+            .into_iter()
+            .skip(k)
+            .enumerate()
+            .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap())
+            .unwrap()
+            .0
+            + k;
         r[k] = r_k;
 
-        // Interchange the rows r_k and k 
-        for j in k .. m.col {
+        // Interchange the rows r_k and k
+        for j in k..m.col {
             unsafe {
-                std::ptr::swap(&mut m[(k,j)], &mut m[(r_k, j)]);
+                std::ptr::swap(&mut m[(k, j)], &mut m[(r_k, j)]);
                 println!("Swap! k:{}, r_k:{}", k, r_k);
             }
         }
         // Form the multipliers
-        for i in k+1 .. m.col {
-            m[(i,k)] = - m[(i,k)] / m[(k,k)];
+        for i in k + 1..m.col {
+            m[(i, k)] = -m[(i, k)] / m[(k, k)];
         }
         // Update the entries
-        for i in k+1 .. m.col {
-            for j in k+1 .. m.col {
+        for i in k + 1..m.col {
+            for j in k + 1..m.col {
                 m[(i, j)] += m[(i, k)] * m[(k, j)];
             }
         }
@@ -3907,24 +3870,26 @@ fn gepp(m: &mut Matrix) -> Vec<usize> {
     r
 }
 
-/// LU via Gauss Elimination with Complete Pivoting 
+/// LU via Gauss Elimination with Complete Pivoting
 fn gecp(m: &mut Matrix) -> (Vec<usize>, Vec<usize>) {
     let n = m.col;
-    let mut r = vec![0usize; n-1];
-    let mut s = vec![0usize; n-1];
-    for k in 0 .. n - 1 {
+    let mut r = vec![0usize; n - 1];
+    let mut s = vec![0usize; n - 1];
+    for k in 0..n - 1 {
         // Find pivot
         let (r_k, s_k) = match m.shape {
             Col => {
                 let mut row_ics = 0usize;
                 let mut col_ics = 0usize;
                 let mut max_val = 0f64;
-                for i in k .. n {
-                    let c = m.col(i)
+                for i in k..n {
+                    let c = m
+                        .col(i)
                         .into_iter()
                         .skip(k)
                         .enumerate()
-                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap())
+                        .unwrap();
                     let c_ics = c.0 + k;
                     let c_val = c.1.abs();
                     if c_val > max_val {
@@ -3939,12 +3904,14 @@ fn gecp(m: &mut Matrix) -> (Vec<usize>, Vec<usize>) {
                 let mut row_ics = 0usize;
                 let mut col_ics = 0usize;
                 let mut max_val = 0f64;
-                for i in k .. n {
-                    let c = m.row(i)
+                for i in k..n {
+                    let c = m
+                        .row(i)
                         .into_iter()
                         .skip(k)
                         .enumerate()
-                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap()).unwrap();
+                        .max_by(|x1, x2| x1.1.abs().partial_cmp(&x2.1.abs()).unwrap())
+                        .unwrap();
                     let c_ics = c.0 + k;
                     let c_val = c.1.abs();
                     if c_val > max_val {
@@ -3960,23 +3927,23 @@ fn gecp(m: &mut Matrix) -> (Vec<usize>, Vec<usize>) {
         s[k] = s_k;
 
         // Interchange rows
-        for j in k .. n {
+        for j in k..n {
             unsafe {
                 std::ptr::swap(&mut m[(k, j)], &mut m[(r_k, j)]);
             }
         }
 
         // Interchange cols
-        for i in 0 .. n {
+        for i in 0..n {
             unsafe {
                 std::ptr::swap(&mut m[(i, k)], &mut m[(i, s_k)]);
             }
         }
 
         // Form the multipliers
-        for i in k+1 .. n {
-            m[(i, k)] = - m[(i, k)] / m[(k, k)];
-            for j in k+1 .. n {
+        for i in k + 1..n {
+            m[(i, k)] = -m[(i, k)] / m[(k, k)];
+            for j in k + 1..n {
                 m[(i, j)] += m[(i, k)] * m[(k, j)];
             }
         }

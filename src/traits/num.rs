@@ -24,13 +24,13 @@
 //!     }
 //!     ```
 
-use std::ops::{Add, Div, Mul, Sub, Neg};
+use self::Number::{D, F};
 use crate::structure::{
     dual::Dual,
     hyper_dual::HyperDual,
     //ad::{AD, Array, powd},
 };
-use self::Number::{F, D};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 pub trait PowOps: Sized {
     fn powi(&self, n: i32) -> Self;
@@ -656,10 +656,7 @@ impl NumberVector for Vec<Number> {
     }
 
     fn to_hyper_vec(&self) -> Vec<HyperDual> {
-        self
-            .into_iter()
-            .map(|x| x.to_hyper_dual())
-            .collect()
+        self.into_iter().map(|x| x.to_hyper_dual()).collect()
     }
 
     fn from_dual_vec(v: Vec<Dual>) -> Self {

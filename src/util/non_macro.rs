@@ -3,8 +3,8 @@
 extern crate rand;
 use self::rand::prelude::*;
 use crate::structure::{
-    matrix::{Matrix, matrix, Shape},
-    matrix::Shape::{Row, Col},
+    matrix::Shape::{Col, Row},
+    matrix::{matrix, Matrix, Shape},
 };
 
 use std::convert::Into;
@@ -108,7 +108,7 @@ pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
 /// #[macro_use]
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
-/// 
+///
 /// fn main() {
 ///     let a = matrix!(1;4;1, 2, 2, Col);
 ///     let b = matrix!(5;8;1, 2, 2, Col);

@@ -85,9 +85,9 @@
 //! * `to_f64(&self) -> State<f64>`
 //! * `to_dual(&self) -> State<Dual>`
 //! * `new(T, Vec<T>, Vec<T>) -> Self`
-//! 
+//!
 //! ### `Environment`
-//! 
+//!
 //! * `Environment` needs just `Default`
 //! * To use custom `Environment`, just type follows : `impl Environment for CustomType {}`
 //! * If you don't want to use `Environment`, then use `NoEnv`
@@ -97,34 +97,34 @@
 //!     * `Matrix`
 //!     * `CubicSpline`
 //!     * `NoEnv`
-//! 
+//!
 //! ```
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
-//! 
+//!
 //! fn main() {
 //!     let x = seq(0, 10, 1);
 //!     x.print();
 //!     let y = x.iter().enumerate().map(|(i, &t)| t.powi(5-i as i32)).collect::<Vec<f64>>();
-//! 
+//!
 //!     let c = CubicSpline::from_nodes(x, y);
-//! 
+//!
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
-//! 
+//!
 //!     let mut ode_solver = ExplicitODE::new(test_fn);
-//! 
+//!
 //!     ode_solver
 //!         .set_method(ExMethod::RK4)
 //!         .set_initial_condition(init_state)
 //!         .set_step_size(0.01)
 //!         .set_times(1000)
 //!         .set_env(c);
-//!     
+//!
 //!     let result = ode_solver.integrate();
 //!     result.print();
 //! }
-//! 
+//!
 //! fn test_fn(st: &mut State<f64>, env: &CubicSpline) {
 //!     let x = st.param;
 //!     let dy = &mut st.deriv;
@@ -255,28 +255,25 @@
 
 use self::BoundaryCondition::Dirichlet;
 use self::ExMethod::{Euler, RK4};
-use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use self::ImMethod::{BDF1, GL4};
-use std::collections::HashMap;
+use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
+use crate::numerical::{spline::CubicSpline, utils::jacobian_real};
 use crate::structure::{
     dual::{Dual, Dualist, VecWithDual},
-    matrix::{Matrix, LinearAlgebra},
+    matrix::{LinearAlgebra, Matrix},
     polynomial::Polynomial,
 };
-use crate::numerical::{
-    utils::jacobian_real,
-    spline::CubicSpline,
-};
-use crate::util::{
-    non_macro::{cat, concat, zeros, eye},
-    print::Printable,
-};
 use crate::traits::{
+    fp::{FPMatrix, FPVector},
+    math::{Norm, Normed, Vector},
     mutable::MutFP,
-    fp::{FPVector, FPMatrix},
-    math::{Vector, Normed, Norm},
     num::Real,
 };
+use crate::util::{
+    non_macro::{cat, concat, eye, zeros},
+    print::Printable,
+};
+use std::collections::HashMap;
 #[cfg(feature = "oxidize")]
 use {blas_daxpy, blas_daxpy_return};
 
@@ -707,7 +704,7 @@ impl<E: Environment> ImplicitODE<E> {
             stop_cond: |_x| false,
             times: 0,
             options: default_to_use,
-            env: E::default()
+            env: E::default(),
         }
     }
 
@@ -739,11 +736,9 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
     type Records = Matrix;
     type Param = Dual;
     type ODEMethod = ImMethod;
-    fn mut_update(&mut self) { 
+    fn mut_update(&mut self) {
         match self.method {
-            BDF1 => {
-                unimplemented!()
-            }
+            BDF1 => unimplemented!(),
             GL4 => {
                 let f = |t: Dual, y: Vec<Dual>| {
                     let mut st = State::new(t, y.clone(), y);
@@ -773,7 +768,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                             t1,
                             yn.add_vec(
                                 &k1.mul_scalar(GL4_TAB[0][1] * h)
-                                    .add_vec(&k2.mul_scalar(GL4_TAB[0][2]*h)),
+                                    .add_vec(&k2.mul_scalar(GL4_TAB[0][2] * h)),
                             ),
                         ),
                         &f(
@@ -823,19 +818,25 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
         }
     }
 
-    fn integrate(&mut self) -> Self::Records { 
+    fn integrate(&mut self) -> Self::Records {
         assert!(self.check_enough(), "Not enough fields!");
 
         let mut result = zeros(self.times + 1, self.state.value.len() + 1);
 
-        result.subs_row(0, &cat(self.state.param.to_f64(), &self.state.value.values()));
+        result.subs_row(
+            0,
+            &cat(self.state.param.to_f64(), &self.state.value.values()),
+        );
 
         match self.options.get(&StopCond) {
             Some(stop) if *stop => {
                 let mut key = 1usize;
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param.to_f64(), &self.state.value.values()));
+                    result.subs_row(
+                        i,
+                        &cat(self.state.param.to_f64(), &self.state.value.values()),
+                    );
                     key += 1;
                     if (self.stop_cond)(&self) {
                         println!("Reach the stop condition!");
@@ -849,14 +850,17 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
             _ => {
                 for i in 1..self.times + 1 {
                     self.mut_update();
-                    result.subs_row(i, &cat(self.state.param.to_f64(), &self.state.value.values()));
+                    result.subs_row(
+                        i,
+                        &cat(self.state.param.to_f64(), &self.state.value.values()),
+                    );
                 }
                 return result;
             }
         }
     }
 
-    fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self { 
+    fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self {
         if let Some(x) = self.options.get_mut(&InitCond) {
             *x = true
         }
@@ -878,7 +882,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
         self
     }
 
-    fn set_step_size(&mut self, dt: f64) -> &mut Self { 
+    fn set_step_size(&mut self, dt: f64) -> &mut Self {
         if let Some(x) = self.options.get_mut(&StepSize) {
             *x = true
         }
@@ -886,7 +890,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
         self
     }
 
-    fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self { 
+    fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self {
         if let Some(x) = self.options.get_mut(&Method) {
             *x = true
         }
@@ -969,7 +973,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
     fn set_env(&mut self, env: E) -> &mut Self {
         self.env = env;
         self
-    }    
+    }
 }
 
 // =============================================================================

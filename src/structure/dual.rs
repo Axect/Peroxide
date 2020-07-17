@@ -51,17 +51,17 @@
 //!     }
 //!     ```
 
+use crate::structure::hyper_dual::HyperDual;
+use crate::traits::{
+    fp::FPVector,
+    math::{InnerProduct, Norm, Normed, Vector},
+    num::{ExpLogOps, PowOps, Real, TrigOps},
+    pointer::{Oxide, Redox},
+};
 use std::convert::Into;
 /// Structure for Automatic Differentiation
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use crate::traits::{
-    fp::FPVector,
-    math::{Vector, Normed, Norm, InnerProduct},
-    pointer::{Redox, Oxide},
-    num::{ExpLogOps, PowOps, TrigOps, Real},
-};
-use crate::structure::hyper_dual::HyperDual;
 //use self::num_traits::{Num, Zero, One, NumCast, ToPrimitive};
 //use std::num::ParseFloatError;
 
@@ -131,7 +131,7 @@ impl Dual {
     pub fn set_value(&mut self, v: f64) {
         self.x = v
     }
-    
+
     pub fn set_slope(&mut self, dv: f64) {
         self.dx = dv
     }
@@ -598,7 +598,7 @@ impl Dualist for Vec<Dual> {
 pub fn merge_dual(y: &Vec<f64>, dy: &Vec<f64>) -> Vec<Dual> {
     let mut result = vec![dual(0, 0); y.len()];
 
-    for i in 0 .. y.len() {
+    for i in 0..y.len() {
         result[i] = dual(y[i], dy[i]);
     }
     result
@@ -690,7 +690,10 @@ impl Normed for Vec<Dual> {
         unimplemented!()
     }
 
-    fn normalize(&self, _kind: Norm) -> Self where Self: Sized {
+    fn normalize(&self, _kind: Norm) -> Self
+    where
+        Self: Sized,
+    {
         unimplemented!()
     }
 }

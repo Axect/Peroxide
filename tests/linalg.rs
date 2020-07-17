@@ -5,8 +5,12 @@ use peroxide::fuga::*;
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_inverse() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "inv"]).unwrap();
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["m", "inv"],
+        )
+        .unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b: Matrix = matrix(df["inv"].clone(), i, i, Col);
         let c = a.inv();
@@ -17,8 +21,12 @@ fn test_inverse() {
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_matmul() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "mm"]).unwrap();
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["m", "mm"],
+        )
+        .unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b: Matrix = matrix(df["mm"].clone(), i, i, Col);
         let c = &a * &a;
@@ -29,8 +37,12 @@ fn test_matmul() {
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_matvecmul() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "v", "mv"]).unwrap();
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["m", "v", "mv"],
+        )
+        .unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b = df["v"].clone();
         let c = df["mv"].clone();
@@ -42,8 +54,12 @@ fn test_matvecmul() {
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_det() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "det"]).unwrap();
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["m", "det"],
+        )
+        .unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b: f64 = df["det"][0];
         let c = a.det();
@@ -54,10 +70,14 @@ fn test_det() {
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_pinv() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["pm", "pinv"]).unwrap();
-        let a: Matrix = matrix(df["pm"].clone(), i+1, i-1, Col);
-        let b: Matrix = matrix(df["pinv"].clone(), i-1, i+1, Col);
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["pm", "pinv"],
+        )
+        .unwrap();
+        let a: Matrix = matrix(df["pm"].clone(), i + 1, i - 1, Col);
+        let b: Matrix = matrix(df["pinv"].clone(), i - 1, i + 1, Col);
         let c = a.pseudo_inv();
         assert_eq!(b, c);
     }
@@ -66,8 +86,12 @@ fn test_pinv() {
 #[cfg(feature = "dataframe")]
 #[test]
 fn test_solve() {
-    for i in 5 .. 21 {
-        let df = DataFrame::read_nc_by_header(&format!("test_data/rand_mat/randmat_{}.nc", i), vec!["m", "v", "sol"]).unwrap();
+    for i in 5..21 {
+        let df = DataFrame::read_nc_by_header(
+            &format!("test_data/rand_mat/randmat_{}.nc", i),
+            vec!["m", "v", "sol"],
+        )
+        .unwrap();
         let a: Matrix = matrix(df["m"].clone(), i, i, Col);
         let b = df["v"].clone();
         let x = df["sol"].clone();

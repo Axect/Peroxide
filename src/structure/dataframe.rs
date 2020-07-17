@@ -29,8 +29,8 @@
 //!     a.print();
 //!     //         x    y    z
 //!     // r[0]    1    4    6
-//!     // r[1]    2    5     
-//!     // r[2]    3          
+//!     // r[1]    2    5
+//!     // r[2]    3
 //! }
 //! ```
 //!
@@ -183,16 +183,16 @@
 extern crate csv;
 
 use self::csv::{ReaderBuilder, WriterBuilder};
+use crate::structure::matrix::{matrix, Matrix, Shape::*};
+use crate::traits::fp::FPMatrix;
+use crate::util::useful::tab;
 use indexmap::{map::Keys, IndexMap};
+use json::JsonValue;
 use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::error::Error;
 use std::ops::{Index, IndexMut};
 use std::{fmt, fmt::Debug};
-use crate::structure::matrix::{matrix, Matrix, Shape::*};
-use crate::util::useful::tab;
-use json::JsonValue;
-use crate::traits::fp::FPMatrix;
 
 #[derive(Debug, Clone)]
 pub struct DataFrame {
@@ -344,7 +344,10 @@ impl DataFrame {
 
     /// For pretty print
     pub fn spread(&self) -> String {
-        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let r: usize = self
+            .data
+            .values()
+            .fold(0, |max_len, column| max(max_len, column.len()));
 
         let mut result = String::new();
 
@@ -357,14 +360,20 @@ impl DataFrame {
                 let v = &self[&k];
                 let mut space = 0usize;
                 for elem in v.clone().into_iter().take(5) {
-                    space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
+                    space = max(
+                        space,
+                        min(format!("{:.4}", elem).len(), elem.to_string().len()),
+                    );
                 }
-                if v.len() >= r-5 {
-                    for elem in v.into_iter().skip(r-5) {
-                        space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
+                if v.len() >= r - 5 {
+                    for elem in v.into_iter().skip(r - 5) {
+                        space = max(
+                            space,
+                            min(format!("{:.4}", elem).len(), elem.to_string().len()),
+                        );
                     }
                 }
-                space = max(space + 1,  5);
+                space = max(space + 1, 5);
                 if k.len() >= space {
                     space = k.len() + 1;
                 }
@@ -437,7 +446,10 @@ impl DataFrame {
             let value = &self[&k];
             let mut space = 0usize;
             for elem in value {
-                space = max(space, min(format!("{:.4}", elem).len(), elem.to_string().len()));
+                space = max(
+                    space,
+                    min(format!("{:.4}", elem).len(), elem.to_string().len()),
+                );
             }
             space = max(space + 1, 5);
             if k.len() >= space {
@@ -487,7 +499,10 @@ pub trait WithCSV: Sized {
 impl WithCSV for DataFrame {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
-        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let r: usize = self
+            .data
+            .values()
+            .fold(0, |max_len, column| max(max_len, column.len()));
         let c: usize = self.data.len();
         wtr.write_record(
             self.data
@@ -590,12 +605,17 @@ pub trait WithJSON {
 
 impl WithJSON for DataFrame {
     fn to_json_value(&self) -> JsonValue {
-        let r = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let r = self
+            .data
+            .values()
+            .fold(0, |max_len, column| max(max_len, column.len()));
         let mut values = Vec::<JsonValue>::new();
-        for i in 0 .. r {
+        for i in 0..r {
             let mut row_object = JsonValue::new_object();
             for head in self.headers() {
-                row_object.insert(head, self.data[head][i]).expect("Can't insert row object");
+                row_object
+                    .insert(head, self.data[head][i])
+                    .expect("Can't insert row object");
             }
             values.push(row_object);
         }
