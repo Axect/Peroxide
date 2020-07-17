@@ -143,3 +143,11 @@ ad_impl_div!();
 ad_impl_explogops!();
 ad_impl_powops!();
 ad_impl_trigops!();
+
+pub trait AD {
+    type Iter;
+    type IterMut;
+    fn to_array(&self) -> &[f64];
+    fn iter(&self) -> Self::Iter;
+    fn iter_mut(&mut self) -> Self::IterMut;
+}
