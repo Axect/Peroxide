@@ -146,6 +146,7 @@ pub use crate::structure::{
     dual::*,
     polynomial::*,
     hyper_dual::*,
+    ad::*,
 };
 
 pub use simpler::{SimplerLinearAlgebra, solve};
