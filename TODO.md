@@ -1,14 +1,17 @@
 # TODO
 
-## 2020.07.15
+## 2020.07.17
 
 ### Primary
 
-- [ ] Add new feature - `rug`
-- [x] Implement higher order automatic derivatives
-- [ ] Make or Use pure Rust plot library
+- [ ] Generic trait for Automatic differentiation (Create `AD` trait)
+- [ ] Remove `dual`, `hyperdual` and modify `Real`, `Number` (How to bind `f64` & `AD` effectively?)
 - [ ] Implement more Eigenvalue algorithms
-- [ ] Remove `dual`, `hyperdual` and modify `Real`, `Number`
+- [ ] Make or Use pure Rust plot library
+- [ ] Separate `DataFrame` from `dataframe` feature. (And rename `dataframe` feature to some awesome name)
+- [ ] Make `csv` optional
+- [ ] Implement more spline algorithms
+- [ ] Complex matrix
 
 ### Subs
 
@@ -26,7 +29,6 @@
     - [x] Legendre
     - [ ] Bessel
     - [ ] Hermite
-- [ ] Determine main API
 - [ ] Implement convenient structure of Neural Network
 - [ ] Documentized
     - [x] Vector
@@ -39,7 +41,7 @@
     - [ ] Macros
     - [ ] Machine Learning
     - [x] Optimize
-- [ ] Fill `ExtraOps` for `HyperDual`
+    - [ ] Automatic Differentiation
 - [ ] Add Statistical regression
     - [ ] Gaussian Kernel
     - [ ] Logistic Kernel
@@ -56,3 +58,4 @@
         - [x] Gradient Descent
         - [x] Levenberg-Marquardt
 - [x] Implement DataFrame
+- [x] Implement higher order automatic derivatives
