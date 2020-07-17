@@ -26,7 +26,7 @@ rand_distr = "0.2"
 order-stat = "0.1"
 puruspe = "0.1"
 matrixmultiply = "0.2"
-peroxide-ad = { version = "0.1", path = "peroxide-ad" }
+peroxide-ad = { version = "0.1" }
 indexmap = { version = "1.4", optional = true }
 netcdf = { version = "0.2", optional = true, default_features = false, features = ["indexmap"] }
 pyo3 = { version = "0.10", optional = true }
