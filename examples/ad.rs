@@ -25,4 +25,10 @@ fn main() {
     b.sin().print();
     b.cosh().print();
     b.sinh().print();
+
+    f(a, b).print();
+}
+
+fn f<T: AD, S: AD>(a: T, b: S) -> T {
+    T::from(a.to_ad2() + b.to_ad2())
 }

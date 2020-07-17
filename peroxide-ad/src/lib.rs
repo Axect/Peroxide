@@ -812,3 +812,13 @@ pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
     }
     total.parse().unwrap()
 }
+
+#[proc_macro]
+pub fn ad_impl_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl AD for AD{} {{}}", i);
+        total.push_str(&one);
+    } 
+    total.parse().unwrap()
+}
