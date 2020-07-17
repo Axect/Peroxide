@@ -97,6 +97,24 @@
 //! }
 //! ```
 //!
+//! ### Generic
+//!
+//! * All of `AD{i}` implements `AD` trait
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = AD1::new(2f64, 1f64);
+//!     let b = AD2::new(4f64, 4f64, 2f64);
+//!     assert_eq!(f(a, b), AD1::new(6f64, 5f64));
+//! }
+//!
+//! fn f<T: AD, S: AD>(x: T, y: S) -> T {
+//!     T::from(x.to_ad2() + y.to_ad2())
+//! }
+//! ```
 
 use crate::statistics::ops::C;
 use crate::traits::num::{ExpLogOps, PowOps, TrigOps};

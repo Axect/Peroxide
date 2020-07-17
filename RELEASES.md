@@ -1,3 +1,8 @@
+# Release 0.25.1 (2020-07-17)
+
+* Integrate `src/structure/ad.rs` into `prelude`
+* Add generic automatic differenitation trait - `AD`
+
 # Release 0.25.0 (2020-07-15)
 
 ## Higher order Automatic Differentiation
