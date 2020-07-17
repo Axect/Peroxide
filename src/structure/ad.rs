@@ -101,10 +101,10 @@
 use crate::statistics::ops::C;
 use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
 use peroxide_ad::{
-    ad_display, ad_impl, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
+    ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
     ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
-    ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_ad
+    ad_impl_trigops, ad_iter_def, ad_struct_def,
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -133,7 +133,7 @@ ad_impl_ad!();
 pub trait AD:
     std::fmt::Display
     + Clone
-    + Copy 
+    + Copy
     + PartialEq
     + From<AD1>
     + From<AD2>
@@ -155,14 +155,14 @@ pub trait AD:
     + Into<AD8>
     + Into<AD9>
     + Into<AD10>
-    + IntoIterator<Item=f64>
+    + IntoIterator<Item = f64>
     + FromIterator<f64>
     + Index<usize>
     + IndexMut<usize>
-    + Add<Output=Self>
-    + Sub<Output=Self>
-    + Mul<Output=Self>
-    + Div<Output=Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
     + PowOps
     + ExpLogOps
     + TrigOps
