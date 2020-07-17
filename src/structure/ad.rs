@@ -39,7 +39,7 @@
 //! * `len(&self) -> usize`
 //!
 //! ## Implemented Operations
-//! 
+//!
 //! * `Add, Sub, Mul, Div`
 //! * `sin, cos, tan`
 //! * `sinh, cosh, tanh`
@@ -48,7 +48,7 @@
 //! * `powi, powf, sqrt`
 //!
 //! ## Not yet implemented
-//! 
+//!
 //! * `asin`, `acos`, `atan`
 //! * `asinh`, `acosh`, `atanh`
 //! * `pow`
@@ -70,7 +70,7 @@
 //!     let c = AD2::from(a);
 //!     // Zeros
 //!     let d = AD2::default();
-//!     
+//!
 //!     assert_eq!(c, AD2::new(2f64, 1f64, 0f64));
 //!     assert_eq!(d, AD2::new(0f64, 0f64, 0f64));
 //! }
@@ -98,31 +98,16 @@
 //! ```
 //!
 
-use peroxide_ad::{
-    ad_struct_def,
-    ad_display,
-    ad_impl,
-    ad_impl_from,
-    ad_iter_def,
-    ad_impl_into_iter,
-    ad_impl_from_iter,
-    ad_impl_double_ended_iter,
-    ad_impl_exact_size_iter,
-    ad_impl_iter,
-    ad_impl_index,
-    ad_impl_neg,
-    ad_impl_add,
-    ad_impl_sub,
-    ad_impl_mul,
-    ad_impl_div,
-    ad_impl_explogops,
-    ad_impl_powops,
-    ad_impl_trigops,
-};
 use crate::statistics::ops::C;
 use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
+use peroxide_ad::{
+    ad_display, ad_impl, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
+    ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
+    ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
+    ad_impl_trigops, ad_iter_def, ad_struct_def,
+};
 use std::iter::FromIterator;
-use std::ops::{Neg, Add, Sub, Mul, Div, Index, IndexMut};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 ad_struct_def!();
 ad_display!();

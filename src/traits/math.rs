@@ -36,7 +36,9 @@ pub enum Norm {
 pub trait Normed: Vector {
     type Scalar;
     fn norm(&self, kind: Norm) -> Self::Scalar;
-    fn normalize(&self, kind: Norm) -> Self where Self: Sized;
+    fn normalize(&self, kind: Norm) -> Self
+    where
+        Self: Sized;
 }
 
 /// Inner product Vector
@@ -72,9 +74,11 @@ impl Normed for f64 {
     fn norm(&self, _kind: Norm) -> Self::Scalar {
         self.abs()
     }
-    
+
     fn normalize(&self, _kind: Norm) -> Self
-    where Self: Sized {
+    where
+        Self: Sized,
+    {
         self / self.abs()
     }
 }

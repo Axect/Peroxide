@@ -5,7 +5,11 @@ use peroxide::fuga::*;
 fn main() {
     let x = seq(0, 10, 1);
     x.print();
-    let y = x.iter().enumerate().map(|(i, &t)| t.powi(5-i as i32)).collect::<Vec<f64>>();
+    let y = x
+        .iter()
+        .enumerate()
+        .map(|(i, &t)| t.powi(5 - i as i32))
+        .collect::<Vec<f64>>();
 
     let c = CubicSpline::from_nodes(x, y);
 
@@ -19,7 +23,7 @@ fn main() {
         .set_step_size(0.01)
         .set_times(1000)
         .set_env(c);
-    
+
     let result = ode_solver.integrate();
     result.print();
 }

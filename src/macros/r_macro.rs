@@ -379,7 +379,7 @@ macro_rules! pnorm {
 
     ( $x:expr ) => {
         pnorm!($x, 0, 1)
-    }
+    };
 }
 
 /// R like random Student's t

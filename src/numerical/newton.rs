@@ -1,8 +1,8 @@
 use crate::numerical::utils::jacobian;
 use crate::structure::matrix::*;
 use crate::traits::{
+    math::{Norm, Normed, Vector},
     mutable::MutFP,
-    math::{Vector, Normed, Norm},
     num::{Number, NumberVector},
 };
 
@@ -33,5 +33,5 @@ where
     let pinv_j = j.pseudo_inv();
     let fx = f(NumberVector::from_f64_vec(xs.clone())).to_f64_vec();
 
-    xs.mut_zip_with(|x,y| x - y, &(pinv_j * fx))
+    xs.mut_zip_with(|x, y| x - y, &(pinv_j * fx))
 }

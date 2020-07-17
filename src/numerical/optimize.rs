@@ -106,12 +106,10 @@
 pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
 use crate::numerical::utils::jacobian;
-use std::collections::HashMap;
 use crate::structure::matrix::{LinearAlgebra, Matrix};
+use crate::traits::num::{Number, NumberVector};
 use crate::util::useful::max;
-use crate::traits::{
-    num::{Number, NumberVector},
-};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]
 pub enum OptMethod {
@@ -135,7 +133,10 @@ pub enum OptOption {
 ///
 /// # Caution
 /// * `func` should be boxed. (This allows more generic function)
-pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
+pub struct Optimizer<F>
+where
+    F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>>,
+{
     domain: Vec<f64>,
     observed: Vec<f64>,
     func: Box<F>,
@@ -146,7 +147,10 @@ pub struct Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number
     option: HashMap<OptOption, bool>,
 }
 
-impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
+impl<F> Optimizer<F>
+where
+    F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>>,
+{
     pub fn new(data: Matrix, func: F) -> Self {
         let mut default_option: HashMap<OptOption, bool> = HashMap::new();
         default_option.insert(InitParam, false);
@@ -265,7 +269,8 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
                             let y_hat_temp: Matrix = value.to_f64_vec().into();
                             let chi2_temp = ((&y - &y_hat_temp).t() * (&y - &y_hat_temp))[(0, 0)];
                             let rho = (chi2 - chi2_temp)
-                                / (h.t() * (lambda * jtj.to_diag() * h.clone() + j.t() * (&y - &y_hat)))
+                                / (h.t()
+                                    * (lambda * jtj.to_diag() * h.clone() + j.t() * (&y - &y_hat)))
                                     [(0, 0)];
                             if rho > 0f64 {
                                 p = p_temp;
@@ -275,7 +280,8 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
                                 jtj = &j.t() * &j;
                                 y_hat = y_hat_temp;
                                 chi2 = chi2_temp;
-                                lambda *= max(vec![1f64 / 3f64, 1f64 - (2f64 * rho - 1f64).powi(3)]);
+                                lambda *=
+                                    max(vec![1f64 / 3f64, 1f64 - (2f64 * rho - 1f64).powi(3)]);
                                 nu = 2f64;
                             } else {
                                 lambda *= nu;
@@ -283,7 +289,7 @@ impl<F> Optimizer<F> where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> 
                             }
                         }
                         None => {
-                            if i < max_iter - 1 && err_stack < 3 { 
+                            if i < max_iter - 1 && err_stack < 3 {
                                 p = p_temp;
                                 err_stack += 1;
                             } else {

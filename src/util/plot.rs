@@ -88,7 +88,7 @@ use self::pyo3::types::IntoPyDict;
 use self::pyo3::{PyResult, Python};
 pub use self::Grid::{Off, On};
 pub use self::Markers::{Circle, Line, Point};
-use self::PlotOptions::{Domain, Images, Pairs, Legends, Path};
+use self::PlotOptions::{Domain, Images, Legends, Pairs, Path};
 use std::collections::HashMap;
 
 type Vector = Vec<f64>;
@@ -262,17 +262,15 @@ impl Plot for Plot2D {
     fn savefig(&self) -> PyResult<()> {
         // Check domain
         match self.options.get(&Domain) {
-            Some(x) if !*x => {
-                match self.options.get(&Pairs) {
-                    Some(xy) if !*xy => {
-                        panic!("There are no data to plot");
-                    }
-                    None => {
-                        panic!("There are some serious problems in plot system");
-                    }
-                    _ => (),
+            Some(x) if !*x => match self.options.get(&Pairs) {
+                Some(xy) if !*xy => {
+                    panic!("There are no data to plot");
                 }
-            }
+                None => {
+                    panic!("There are some serious problems in plot system");
+                }
+                _ => (),
+            },
             None => {
                 panic!("There are some serious problems in plot system");
             }
@@ -281,17 +279,15 @@ impl Plot for Plot2D {
 
         // Check images
         match self.options.get(&Images) {
-            Some(x) if !*x => {
-                match self.options.get(&Pairs) {
-                    Some(xy) if !*xy => {
-                        panic!("there are no data to plot");
-                    }
-                    None => {
-                        panic!("There are some serious problems in plot system");
-                    }
-                    _ => (),
+            Some(x) if !*x => match self.options.get(&Pairs) {
+                Some(xy) if !*xy => {
+                    panic!("there are no data to plot");
                 }
-            }
+                None => {
+                    panic!("There are some serious problems in plot system");
+                }
+                _ => (),
+            },
             None => {
                 panic!("There are some serious problems in plot system");
             }
@@ -366,8 +362,14 @@ impl Plot for Plot2D {
                     .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
             }
             for i in 0..pair_length {
-                plot_string
-                    .push_str(&format!("plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n", i, i, legends[i+y_length])[..])
+                plot_string.push_str(
+                    &format!(
+                        "plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n",
+                        i,
+                        i,
+                        legends[i + y_length]
+                    )[..],
+                )
             }
         } else {
             for i in 0..y_length {
@@ -383,14 +385,30 @@ impl Plot for Plot2D {
                 }
             }
             for i in 0..pair_length {
-                match self.markers[i+y_length] {
-                    Line => plot_string
-                        .push_str(&format!("plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n", i, i, legends[i+y_length])[..]),
+                match self.markers[i + y_length] {
+                    Line => plot_string.push_str(
+                        &format!(
+                            "plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n",
+                            i,
+                            i,
+                            legends[i + y_length]
+                        )[..],
+                    ),
                     Point => plot_string.push_str(
-                        &format!("plt.plot(pair[{}][0],pair[{}][1],\".\",label=r\"{}\")\n", i, i, legends[i+y_length])[..],
+                        &format!(
+                            "plt.plot(pair[{}][0],pair[{}][1],\".\",label=r\"{}\")\n",
+                            i,
+                            i,
+                            legends[i + y_length]
+                        )[..],
                     ),
                     Circle => plot_string.push_str(
-                        &format!("plt.plot(pair[{}][0],pair[{}][1],\"o\",label=r\"{}\")\n", i, i, legends[i+y_length])[..],
+                        &format!(
+                            "plt.plot(pair[{}][0],pair[{}][1],\"o\",label=r\"{}\")\n",
+                            i,
+                            i,
+                            legends[i + y_length]
+                        )[..],
                     ),
                 }
             }

@@ -6,7 +6,7 @@ use peroxide::fuga::*;
 #[test]
 #[cfg(feature = "dataframe")]
 fn conversion_with_matrix() {
-    let mat1 = matrix(seq(1,6,1), 3, 2, Col);
+    let mat1 = matrix(seq(1, 6, 1), 3, 2, Col);
     let df = DataFrame::from_matrix(mat1.clone());
     let mat2 = df.to_matrix();
     assert_eq!(mat1, mat2);

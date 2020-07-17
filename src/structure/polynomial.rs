@@ -1,19 +1,16 @@
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
 #[allow(unused_imports)]
 use crate::structure::vector::*;
 use crate::util::useful::*;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
+use crate::traits::{fp::FPVector, num::PowOps};
 use std::cmp::{max, min};
 use std::convert;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use crate::traits::{
-    fp::FPVector,
-    num::PowOps,
-};
 
 // =============================================================================
 // Polynomial Structure
@@ -188,7 +185,7 @@ impl Polynomial {
         let l = self.coef.len() - 1;
         let mut s = self.coef[0];
         for i in 0..l {
-            s = self.coef[i+1] + x.into()*s;
+            s = self.coef[i + 1] + x.into() * s;
         }
         s
     }

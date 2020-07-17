@@ -82,24 +82,24 @@
 //!         // r[1] -1.0000       1
 //!     }
 //!     ```
-//! 
+//!
 //! ### For `DataFrame`
-//! 
+//!
 //! * Similar to Matrix but, `Value` is `DataFrame`
 //! * `cov` means covariance matrix.
-//! 
+//!
 //! ```rust
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
-//! 
+//!
 //! fn main() {
 //!     #[cfg(feature = "dataframe")]
 //!     {
 //!         let mut m = DataFrame::with_header(vec!["x", "y"]);
 //!         m["x"] = c!(1,2,3);
 //!         m["y"] = c!(3,2,1);
-//!         
+//!
 //!         m.cov().print();
 //!         //         c[0]    c[1]
 //!         // r[0]  1.0000 -1.0000
@@ -108,12 +108,12 @@
 //! }
 //! ```
 
-use crate::structure::matrix::*;
+use self::QType::*;
 #[cfg(feature = "dataframe")]
 use crate::structure::dataframe::*;
-use order_stat::{kth_by};
-use self::QType::*;
+use crate::structure::matrix::*;
 use crate::traits::fp::FPVector;
+use order_stat::kth_by;
 
 /// Statistics Trait
 ///
@@ -481,7 +481,7 @@ impl OrderedStat for Vec<f64> {
     fn quantiles(&self, q: Vec<f64>, qtype: QType) -> Self::Array {
         let mut v = vec![0f64; q.len()];
         let mut m = self.clone();
-        for i in 0 .. q.len() {
+        for i in 0..q.len() {
             v[i] = quantile_mut(&mut m, q[i], qtype);
         }
         v
@@ -501,24 +501,24 @@ fn quantile_mut(v: &mut [f64], q: f64, t: QType) -> f64 {
             } else {
                 k - 1
             };
-            *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+            *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
         }
         Type2 => {
             if q - (k as f64) * p > 0f64 {
-                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+                *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
             } else if q == 0f64 {
                 let k = 0;
-                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+                *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
             } else if q == 1f64 {
                 let k = l - 1;
-                *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap())
+                *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
             } else {
-                let prev = *kth_by(v, k-1, |x,y| x.partial_cmp(y).unwrap());
-                let next = *kth_by(v, k, |x,y| x.partial_cmp(y).unwrap());
+                let prev = *kth_by(v, k - 1, |x, y| x.partial_cmp(y).unwrap());
+                let next = *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap());
                 (prev + next) / 2f64
             }
         }
-        _ => unimplemented!()
+        _ => unimplemented!(),
     }
 }
 
