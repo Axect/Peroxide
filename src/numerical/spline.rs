@@ -240,15 +240,22 @@ impl CubicSpline {
         &self.polynomials[index].1
     }
 
+    /// Extends the spline with the given nodes.
+    ///
+    /// The method ensures that the transition between each polynomial is smooth and that the spline
+    /// interpolation of the new nodes is calculated around `x = 0` in order to avoid that
+    /// successive spline extensions with large x values become inaccurate.
     pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) {
         let mut ext_node_x = Vec::with_capacity(node_x.len() + 1);
         let mut ext_node_y = Vec::with_capacity(node_x.len() + 1);
 
         let (r, polynomial) = &self.polynomials[self.polynomials.len() - 1];
-        ext_node_x.push(r.end);
+        ext_node_x.push(0.0f64);
         ext_node_y.push(polynomial.eval(r.end));
 
-        ext_node_x.extend(node_x);
+        // translating the node towards x = 0 increases accuracy tremendously
+        let tx = r.end;
+        ext_node_x.extend(node_x.into_iter().map(|x| x - tx));
         ext_node_y.extend(node_y);
 
         let polynomials = CubicSpline::ranged(
@@ -256,7 +263,16 @@ impl CubicSpline {
             CubicSpline::cubic_spline(&ext_node_x, &ext_node_y),
         );
 
-        self.polynomials.extend(polynomials);
+        self.polynomials
+            .extend(polynomials.into_iter().map(|(r, p)| {
+                (
+                    Range {
+                        start: r.start + tx,
+                        end: r.end + tx,
+                    },
+                    p.translate_x(tx),
+                )
+            }));
     }
 
     /// Returns the number of polynimials that describe the `CubicSpline`
