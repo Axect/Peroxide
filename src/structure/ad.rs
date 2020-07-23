@@ -122,7 +122,8 @@ use peroxide_ad::{
     ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
     ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
-    ad_impl_trigops, ad_iter_def, ad_struct_def,
+    ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_from_type, ad_impl_add_f64, ad_impl_sub_f64,
+    ad_impl_mul_f64, ad_impl_div_f64, f64_impl_add_ad, f64_impl_sub_ad, f64_impl_mul_ad, f64_impl_div_ad,
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -147,6 +148,18 @@ ad_impl_explogops!();
 ad_impl_powops!();
 ad_impl_trigops!();
 ad_impl_ad!();
+ad_impl_from_type!(f64);
+ad_impl_from_type!(f32);
+ad_impl_from_type!(i64);
+ad_impl_from_type!(i32);
+ad_impl_add_f64!();
+ad_impl_sub_f64!();
+ad_impl_mul_f64!();
+ad_impl_div_f64!();
+f64_impl_add_ad!();
+f64_impl_sub_ad!();
+f64_impl_mul_ad!();
+f64_impl_div_ad!();
 
 pub trait AD:
     std::fmt::Display

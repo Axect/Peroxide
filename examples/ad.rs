@@ -27,6 +27,15 @@ fn main() {
     b.sinh().print();
 
     f(a, b).print();
+
+    (b + 1f64).print();
+    (b - 1f64).print();
+    (b * 2f64).print();
+    (b / 2f64).print();
+    assert_eq!(1f64 + b, b + 1f64);
+    assert_eq!(-(1f64 - b), b - 1f64);
+    assert_eq!(2f64 * b, b * 2f64);
+    assert_eq!(1f64 / (2f64 / b), b / 2f64);
 }
 
 fn f<T: AD, S: AD>(a: T, b: S) -> T {
