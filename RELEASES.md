@@ -1,3 +1,8 @@
+# Release 0.25.2 (2020-07-23)
+
+* Impl `std::ops` with `f64` for `AD{i}` and vice versa
+* Increase Accuracy of Spline Extension (Thanks to [schrieveslaach](https://github.com/schrieveslaach))
+
 # Release 0.25.1 (2020-07-17)
 
 * Integrate `src/structure/ad.rs` into `prelude`
