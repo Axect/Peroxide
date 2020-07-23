@@ -27,6 +27,11 @@ fn main() {
     b.sinh().print();
 
     f(a, b).print();
+
+    (b + 1f64).print();
+    (b - 1f64).print();
+    (b * 2f64).print();
+    (b / 2f64).print();
 }
 
 fn f<T: AD, S: AD>(a: T, b: S) -> T {

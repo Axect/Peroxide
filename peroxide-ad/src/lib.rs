@@ -822,3 +822,88 @@ pub fn ad_impl_ad(_item: TokenStream) -> TokenStream {
     } 
     total.parse().unwrap()
 }
+
+#[proc_macro]
+pub fn ad_impl_from_type(item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl From<{}> for AD{} {{
+            fn from(other: {}) -> Self {{
+                let f = other as f64;
+                let mut z = Self::default();
+                z.d0 = f;
+                z
+            }}
+        }}\n", item, i, item);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_add_f64(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Add<f64> for AD{} {{
+            type Output = Self;
+
+            fn add(self, rhs: f64) -> Self::Output {{
+                let mut z = self;
+                z.d0 += rhs;
+                z
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_sub_f64(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Sub<f64> for AD{} {{
+            type Output = Self;
+
+            fn sub(self, rhs: f64) -> Self::Output {{
+                let mut z = self;
+                z.d0 -= rhs;
+                z
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_mul_f64(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Mul<f64> for AD{} {{
+            type Output = Self;
+
+            fn mul(self, rhs: f64) -> Self::Output {{
+                self.iter().map(|x| x * rhs).collect()
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn ad_impl_div_f64(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Div<f64> for AD{} {{
+            type Output = Self;
+
+            fn div(self, rhs: f64) -> Self::Output {{
+                self.iter().map(|x| x / rhs).collect()
+            }}
+        }}\n", i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
