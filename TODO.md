@@ -4,7 +4,6 @@
 
 ### Primary
 
-- [ ] Generic trait for Automatic differentiation (Create `AD` trait)
 - [ ] Remove `dual`, `hyperdual` and modify `Real`, `Number` (How to bind `f64` & `AD` effectively?)
 - [ ] Implement more Eigenvalue algorithms
 - [ ] Make or Use pure Rust plot library
@@ -59,3 +58,4 @@
         - [x] Levenberg-Marquardt
 - [x] Implement DataFrame
 - [x] Implement higher order automatic derivatives
+- [x] Generic trait for Automatic differentiation (Create `AD` trait)
