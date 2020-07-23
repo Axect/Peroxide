@@ -907,3 +907,73 @@ pub fn ad_impl_div_f64(_item: TokenStream) -> TokenStream {
     }
     total.parse().unwrap()
 }
+
+#[proc_macro]
+pub fn f64_impl_add_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Add<AD{}> for f64 {{
+            type Output = AD{};
+
+            fn add(self, rhs: AD{}) -> Self::Output {{
+                let mut z = rhs;
+                z.d0 += self;
+                z
+            }}
+        }}\n", i, i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn f64_impl_sub_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Sub<AD{}> for f64 {{
+            type Output = AD{};
+
+            fn sub(self, rhs: AD{}) -> Self::Output {{
+                let mut z = -rhs;
+                z.d0 += self;
+                z
+            }}
+        }}\n", i, i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn f64_impl_mul_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Mul<AD{}> for f64 {{
+            type Output = AD{};
+
+            fn mul(self, rhs: AD{}) -> Self::Output {{
+                rhs.iter().map(|x| x * self).collect()
+            }}
+        }}\n", i, i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn f64_impl_div_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl Div<AD{}> for f64 {{
+            type Output = AD{};
+
+            fn div(self, rhs: AD{}) -> Self::Output {{
+                let ad1 = AD1::from(self);
+                ad1 / rhs
+            }}
+        }}\n", i, i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
+
