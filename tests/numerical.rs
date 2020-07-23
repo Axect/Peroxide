@@ -49,7 +49,7 @@ fn test_cubic_spline_extension() {
     for i in 11..21 {
         let x = (i - 10) as f64;
         vx.push(x);
-        vy.push(1.0 / (1.0 + x * x));
+        vy.push(f(x));
     }
 
     spline.extend_with_nodes(vx, vy);

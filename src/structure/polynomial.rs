@@ -182,16 +182,73 @@ impl Polynomial {
     where
         T: convert::Into<f64> + Copy,
     {
+        let x = x.into();
         let l = self.coef.len() - 1;
         let mut s = self.coef[0];
         for i in 0..l {
-            s = self.coef[i + 1] + x.into() * s;
+            s = self.coef[i + 1] + x * s;
         }
         s
     }
 
     pub fn eval_vec(&self, v: Vec<f64>) -> Vec<f64> {
         v.fmap(|t| self.eval(t))
+    }
+
+    /// Linear transformation of a polynomial by a given x according to Horner's method
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = poly(c!(1,3,2));
+    ///     let translated = a.translate_x(2);
+    ///
+    ///     assert_eq!(translated.eval(3), 6_f64);
+    /// }
+    /// ```
+    pub fn translate_x<X>(&self, x: X) -> Self
+    where
+        X: convert::Into<f64> + Copy,
+    {
+        let d = Self::new(vec![1f64, x.into()]);
+
+        let mut coef = vec![0f64; self.coef.len()];
+
+        let (mut p, ri) = self.honor_division(&d);
+        coef[self.coef.len() - 1] = ri;
+
+        for i in (0..(self.coef.len() - 1)).rev() {
+            if p.coef.len() == 1 {
+                coef[i] = p.coef[0];
+                break;
+            }
+
+            let t = p.honor_division(&d);
+            coef[i] = t.1;
+            p = t.0;
+        }
+
+        Self::new(coef)
+    }
+
+    fn honor_division(&self, other: &Self) -> (Self, f64) {
+        assert_eq!(other.coef.len(), 2usize);
+        assert_eq!(other.coef[0], 1.0f64);
+
+        let mut coef = vec![0f64; self.coef.len() - 1];
+        coef[0] = self.coef[0];
+
+        let d = other.coef[1];
+        for i in 1..coef.len() {
+            coef[i] = self.coef[i] - d * coef[i - 1];
+        }
+
+        let remainder = self.coef[self.coef.len() - 1] - d * coef[coef.len() - 1];
+        (Self::new(coef), remainder)
     }
 }
 
@@ -495,6 +552,31 @@ pub fn legendre_polynomial(n: usize) -> Polynomial {
             ((2f64 * k_f64 + 1f64) * poly(vec![1f64, 0f64]) * legendre_polynomial(k)
                 - k_f64 * legendre_polynomial(k - 1))
                 / (k_f64 + 1f64)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_honor_division() {
+        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
+        let b = Polynomial::new(vec![1f64, -2f64]);
+
+        let (c, remainder) = a.honor_division(&b);
+        assert_eq!(c.coef, vec![1f64, -2f64, 0f64, 3f64, -2f64]);
+        assert_eq!(remainder, 0f64);
+    }
+
+    #[test]
+    fn test_translate_x() {
+        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
+        let b = a.translate_x(-6);
+
+        for i in -10..10 {
+            assert_eq!(a.eval(i), b.eval(i - 6));
         }
     }
 }
