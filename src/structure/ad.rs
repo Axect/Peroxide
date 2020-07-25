@@ -124,6 +124,7 @@ use peroxide_ad::{
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
     ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_from_type, ad_impl_add_f64, ad_impl_sub_f64,
     ad_impl_mul_f64, ad_impl_div_f64, f64_impl_add_ad, f64_impl_sub_ad, f64_impl_mul_ad, f64_impl_div_ad,
+    f64_impl_from_ad
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -160,6 +161,7 @@ f64_impl_add_ad!();
 f64_impl_sub_ad!();
 f64_impl_mul_ad!();
 f64_impl_div_ad!();
+f64_impl_from_ad!();
 
 pub trait AD:
     std::fmt::Display
@@ -186,10 +188,6 @@ pub trait AD:
     + Into<AD8>
     + Into<AD9>
     + Into<AD10>
-    + IntoIterator<Item = f64>
-    + FromIterator<f64>
-    + Index<usize>
-    + IndexMut<usize>
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
@@ -238,3 +236,5 @@ pub trait AD:
         self.into()
     }
 }
+
+impl AD for f64 {}

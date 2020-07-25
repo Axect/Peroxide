@@ -977,3 +977,17 @@ pub fn f64_impl_div_ad(_item: TokenStream) -> TokenStream {
     total.parse().unwrap()
 }
 
+
+#[proc_macro]
+pub fn f64_impl_from_ad(_item: TokenStream) -> TokenStream {
+    let mut total = "".to_string();
+    for i in 1 .. N+1 {
+        let one = format!("impl From<AD{}> for f64 {{
+            fn from(ad: AD{}) -> Self {{
+                ad.d0
+            }}
+        }}\n", i, i);
+        total.push_str(&one);
+    }
+    total.parse().unwrap()
+}
