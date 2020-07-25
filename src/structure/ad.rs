@@ -237,4 +237,4 @@ pub trait AD:
     }
 }
 
-impl AD for f64 {}
+//impl AD for f64 {}
