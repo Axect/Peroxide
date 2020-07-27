@@ -192,6 +192,10 @@ pub trait AD:
     + Sub<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
+    + Add<f64, Output = Self>
+    + Sub<f64, Output = Self>
+    + Mul<f64, Output = Self>
+    + Div<f64, Output = Self>
     + PowOps
     + ExpLogOps
     + TrigOps
