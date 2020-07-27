@@ -28,5 +28,5 @@ fn f_ln<T: AD>(x: T) -> T {
 }
 
 fn f_sqrt<T: AD>(x: T) -> T {
-    x.sqrt()
+    x.sqrt() - 2f64
 }

@@ -51,7 +51,8 @@ where T: AD, F: Fn(T) -> T {
             }
             I(a, b) => {
                 let p = (a + b) / 2f64;
-                let z = AD1::from(p);
+                let mut z = AD1::from(p);
+                z.d1 = 1f64;
                 let fz = (self.f)(z.into()).to_ad1();
                 p * fz.d1 / fz.d0
             }
