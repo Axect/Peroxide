@@ -1,4 +1,4 @@
-use crate::structure::ad::{AD, AD1, AD2};
+use crate::structure::ad::{AD, AD1, AD2, ADLift, StableFn};
 use RootState::{P, I};
 use std::fmt::Display;
 //use std::collections::HashMap;
@@ -94,7 +94,7 @@ impl<T: AD> RootFinder<T> {
             },
             RootFind::FalsePosition => {
                 match init {
-                    P(_) => Ok(
+                    I(_, _) => Ok(
                         RootFinder {
                             init,
                             curr: init,
@@ -128,26 +128,55 @@ impl<T: AD> RootFinder<T> {
         }
     }
 
-    //#[inline]
-    //pub fn update(&mut self) {
-    //    match self.method {
-    //        RootFind::Bisection => {
-    //            match self.curr {
-    //                I(a, b) => {
-    //                    let x = 0.5 * (a + b);
-    //                    if (self.f)(a) * (self.f)(x) < 0f64 {
-    //                        self.curr = I(a, x);
-    //                    } else if (self.f)(x) * (self.f)(b) < 0f64 {
-    //                        self.curr = I(x, b);
-    //                    } else {
-    //                        self.find = true;
-    //                    }
-    //                }
-    //                _ => unreachable!()
-    //            }    
-    //        }
-    //    }
-    //}
+    #[inline]
+    pub fn update(&mut self) {
+        let lift = ADLift::new(self.f);
+        match self.method {
+            RootFind::Bisection => {
+                match self.curr {
+                    I(a, b) => {
+                        let x = 0.5 * (a + b);
+                        if lift.call_stable(a) * lift.call_stable(x) < 0f64 {
+                            self.curr = I(a, x);
+                        } else if lift.call_stable(x) * lift.call_stable(b) < 0f64 {
+                            self.curr = I(x, b);
+                        } else {
+                            self.find = true;
+                        }
+                    }
+                    _ => unreachable!()
+                }    
+            },
+            RootFind::FalsePosition => {
+                match self.curr {
+                    I(a, b) => {
+                        let fa = lift.call_stable(a);
+                        let fb = lift.call_stable(b);
+                        let x = a - (a - b) / (fa - fb) * fa;
+                        let fx = lift.call_stable(x);
+                        if fx * fa > 0f64 {
+                            self.curr = I(x, b);
+                        } else if fx * fb > 0f64  {
+                            self.curr = I(a, x);
+                        } else {
+                            self.find = true;
+                        }
+                    }
+                    _ => unreachable!()
+                }
+            },
+            RootFind::Newton => {
+                unimplemented!()
+            },
+            RootFind::Secant => {
+                unimplemented!()
+            }
+        }
+    }
+
+    pub fn find_root(&mut self) -> Option<f64> {
+        unimplemented!()
+    }
 }
 
 //pub trait RootFinder {
