@@ -128,26 +128,26 @@ impl<T: AD> RootFinder<T> {
         }
     }
 
-    #[inline]
-    pub fn update(&mut self) {
-        match self.method {
-            RootFind::Bisection => {
-                match self.curr {
-                    I(a, b) => {
-                        let x = 0.5 * (a + b);
-                        if (self.f)(a) * (self.f)(x) < 0f64 {
-                            self.curr = I(a, x);
-                        } else if (self.f)(x) * (self.f)(b) < 0f64 {
-                            self.curr = I(x, b);
-                        } else {
-                            self.find = true;
-                        }
-                    }
-                    _ => unreachable!()
-                }    
-            }
-        }
-    }
+    //#[inline]
+    //pub fn update(&mut self) {
+    //    match self.method {
+    //        RootFind::Bisection => {
+    //            match self.curr {
+    //                I(a, b) => {
+    //                    let x = 0.5 * (a + b);
+    //                    if (self.f)(a) * (self.f)(x) < 0f64 {
+    //                        self.curr = I(a, x);
+    //                    } else if (self.f)(x) * (self.f)(b) < 0f64 {
+    //                        self.curr = I(x, b);
+    //                    } else {
+    //                        self.find = true;
+    //                    }
+    //                }
+    //                _ => unreachable!()
+    //            }    
+    //        }
+    //    }
+    //}
 }
 
 //pub trait RootFinder {
