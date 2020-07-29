@@ -188,6 +188,8 @@ pub trait AD:
     + Into<AD8>
     + Into<AD9>
     + Into<AD10>
+    + From<f64>
+    + Into<f64>
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
