@@ -124,10 +124,11 @@ use peroxide_ad::{
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
     ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_from_type, ad_impl_add_f64, ad_impl_sub_f64,
     ad_impl_mul_f64, ad_impl_div_f64, f64_impl_add_ad, f64_impl_sub_ad, f64_impl_mul_ad, f64_impl_div_ad,
-    f64_impl_from_ad
+    f64_impl_from_ad, ad_impl_stable_fn,
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
+use std::marker::PhantomData;
 
 ad_struct_def!();
 ad_display!();
@@ -162,6 +163,7 @@ f64_impl_sub_ad!();
 f64_impl_mul_ad!();
 f64_impl_div_ad!();
 f64_impl_from_ad!();
+ad_impl_stable_fn!();
 
 pub trait AD:
     std::fmt::Display
@@ -244,3 +246,43 @@ pub trait AD:
 }
 
 //impl AD for f64 {}
+
+/// Lift AD functions
+pub struct ADLift<F, T> {
+    f: F,
+    _marker: PhantomData<T>,
+}
+
+impl<F: Fn(T) -> T, T> ADLift<F, T> {
+    pub fn new(f: F) -> Self {
+        Self {
+            f,
+            _marker: PhantomData
+        }
+    }
+
+    pub fn f(&self, t: T) -> T {
+        (self.f)(t)
+    }
+}
+
+/// Stable Fn trait
+pub trait StableFn<T> {
+    type Output;
+    fn call_stable(&self, target: T) -> Self::Output;
+}
+
+impl<F: Fn(T) -> T, T: AD> StableFn<f64> for ADLift<F, T> {
+    type Output = f64;
+    fn call_stable(&self, target: f64) -> Self::Output {
+        self.f(T::from(target)).into()
+    }
+}
+
+//pub struct ADLift<F>(F);
+//
+//impl<F: FnOnce<(T)>, T> FnOnce<f64> for ADLift<F> {
+//    type Output = f64;
+//    
+//}
+
