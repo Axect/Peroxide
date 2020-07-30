@@ -1,5 +1,85 @@
+//! Root Finding Algorithms
+//!
+//! # Implemented Algorithms
+//!
+//! * Bisection
+//! * False Position (Regula Falsi)
+//! * Secant
+//! * Newton
+//!
+//! # Low-level API
+//!
+//! ## Members
+//!
+//! * `RootState`
+//!     * `P(f64)` : For point-like initial guess
+//!     * `I(f64, f64)` : For interval-like initial guess
+//! * `RootFind` : Algorithms for root finding
+//!     * `Bisection`
+//!     * `FalsePosition`
+//!     * `Newton`
+//!     * `Secant`
+//! * `RootError` : Error for root finding
+//!     * `MismatchedState` : Mismatched state and method (ex: Point vs Bisection)
+//!     * `TimesUp` : No root until `self.times`
+//!     * `NaNRoot` : NaN
+//! * `RootFinder` : Main structure for root finding
+//!     * `new(RootState, RootFind, f)` : Creat RootFinder (times: 100, tol: 1e-10)
+//!     * `condition_number(&self) -> f64` : Compute condition number
+//!     * `set_tol(&mut self, f64) -> &mut Self` : Set tolerance
+//!     * `set_times(&mut self, usize) -> &mut Self` : Set max iteration times
+//!     * `update(&mut self)` : Update one step
+//!     * `find_root(&mut self) -> Result<f64, RootError>` : Find root
+//!
+//! ## Usage
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() -> Result<(), RootError> {
+//!     let init = RootState::I(1f64, 4f64);
+//!     let mut rf = RootFinder::<AD1>::(init, Bisection, f)?;
+//!     rf.set_tol(1e-15) // Default : 1e-10
+//!     rf.set_times(100) // Default : 100
+//!     let root = rf.find_root()?;
+//!     root.print();
+//! }
+//!
+//! fn f<T: AD>(x: T) -> T {
+//!     x.sin();
+//! }
+//! ```
+//!
+//! # High-level API
+//!
+//! ## Members
+//!
+//! All output type is `Result<f64, RootError>`
+//!
+//! * `bisection(f, interval: (f64, f64), times: usize, tol: f64)`
+//! * `false_position(f, interval: (f64, f64), times: usize, tol: f64)`
+//! * `secant(f, interval: (f64, f64), times: usize, tol: f64)`
+//! * `newton(f, interval: (f64, f64), times: usize, tol: f64)`
+//!
+//! ## Usage
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() -> Result<(), RootError> {
+//!     let root = bisection(f, (1f64, 4f64), 100, 1e-15)?;
+//!     root.print();
+//! }
+//!
+//! fn f<T: AD>(x: T) -> T {
+//!     x.sin();
+//! }
+//! ```
+
 use crate::traits::stable::StableFn;
-use crate::structure::ad::{AD, AD1, AD2, ADLift};
+use crate::structure::ad::{AD, AD1, ADLift};
 use RootState::{P, I};
 use std::fmt::Display;
 //use std::collections::HashMap;
@@ -304,6 +384,53 @@ impl<T: AD> RootFinder<T> {
         }
         Err(RootError::TimesUp)
     }
+}
+
+pub fn bisection<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+    let (a, b) = interval;
+    let mut root_finder = RootFinder::<T>::new(
+        RootState::I(a, b), 
+        RootFind::Bisection, 
+        f
+    )?;
+    root_finder.set_tol(tol);
+    root_finder.set_times(times);
+    root_finder.find_root()
+}
+
+pub fn false_position<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+    let (a, b) = interval;
+    let mut root_finder = RootFinder::new(
+        RootState::I(a, b), 
+        RootFind::FalsePosition, 
+        f
+    )?;
+    root_finder.set_tol(tol);
+    root_finder.set_times(times);
+    root_finder.find_root()
+}
+
+pub fn newton<T: AD>(f: fn(T) -> T, initial_guess: f64, times: usize, tol: f64) -> Result<f64, RootError> {
+    let mut root_finder = RootFinder::new(
+        RootState::P(initial_guess),
+        RootFind::Newton, 
+        f
+    )?;
+    root_finder.set_tol(tol);
+    root_finder.set_times(times);
+    root_finder.find_root()
+}
+
+pub fn secant<T: AD>(f: fn(T) -> T, initial_guess: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+    let (a, b) = initial_guess;
+    let mut root_finder = RootFinder::new(
+        RootState::I(a, b), 
+        RootFind::Secant, 
+        f
+    )?;
+    root_finder.set_tol(tol);
+    root_finder.set_times(times);
+    root_finder.find_root()
 }
 
 //pub trait RootFinder {

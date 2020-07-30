@@ -37,6 +37,9 @@ fn test_root_find() -> Result<(), RootError> {
     b4.set_tol(1e-15);
     c4.set_tol(1e-15);
 
+    // High-Level
+    let x = bisection::<AD1>(f_exp, (0f64, 5f64), 100, 1e-15)?;
+
     let x1 = a1.find_root()?;
     let x2 = b1.find_root()?;
     let x3 = c1.find_root()?;
@@ -61,6 +64,7 @@ fn test_root_find() -> Result<(), RootError> {
     w1.print();
     w2.print();
     w3.print();
+    x.print();
     Ok(())
 }
 
