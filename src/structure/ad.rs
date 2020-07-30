@@ -117,7 +117,10 @@
 //! ```
 
 use crate::statistics::ops::C;
-use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
+use crate::traits::{
+    num::{ExpLogOps, PowOps, TrigOps},
+    stable::StableFn,
+};
 use peroxide_ad::{
     ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
     ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
@@ -248,6 +251,46 @@ pub trait AD:
 //impl AD for f64 {}
 
 /// Lift AD functions
+///
+/// # Description
+/// To lift `AD` functions
+///
+/// # Implementation
+///
+/// * All `Fn(T) -> T where T:AD` functions can be lift to `Fn(f64) -> f64`
+/// * If `j > i`, then `Fn(AD{j}) -> AD{j}` can be lift to `Fn(AD{i}) -> AD{i}`
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let ad0 = 2f64;
+///     let ad1 = AD1::new(2f64, 1f64);
+///     
+///     let lift1 = ADLift::new(f_ad);
+///     let lift2 = ADLift::new(f_ad2);
+///
+///     let ans_ad0 = ad0.powi(2);
+///     let ans_ad1 = ad1.powi(2);
+///
+///     // All AD function can be lift to f64
+///     assert_eq!(ans_ad0, lift1.call_stable(ad0));
+///     assert_eq!(ans_ad0, lift2.call_stable(ad0));
+///
+///     // AD2 is higher than AD1 (AD2 -> AD1 lifting is allowed)
+///     assert_eq!(ans_ad1, lift2.call_stable(ad1));
+/// }
+///
+/// fn f_ad<T: AD>(x: T) -> T {
+///     x.powi(2)
+/// }
+///
+/// fn f_ad2(x: AD2) -> AD2 {
+///     x.powi(2)
+/// }
+/// ```
 pub struct ADLift<F, T> {
     f: F,
     _marker: PhantomData<T>,
@@ -266,12 +309,6 @@ impl<F: Fn(T) -> T, T> ADLift<F, T> {
     }
 }
 
-/// Stable Fn trait
-pub trait StableFn<T> {
-    type Output;
-    fn call_stable(&self, target: T) -> Self::Output;
-}
-
 impl<F: Fn(T) -> T, T: AD> StableFn<f64> for ADLift<F, T> {
     type Output = f64;
     fn call_stable(&self, target: f64) -> Self::Output {
@@ -279,6 +316,7 @@ impl<F: Fn(T) -> T, T: AD> StableFn<f64> for ADLift<F, T> {
     }
 }
 
+// Nightly only
 //pub struct ADLift<F>(F);
 //
 //impl<F: FnOnce<(T)>, T> FnOnce<f64> for ADLift<F> {
