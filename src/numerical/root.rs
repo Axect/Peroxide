@@ -196,11 +196,11 @@ impl<T: AD> RootFinder<T> {
     /// Update RootFinder
     #[inline]
     pub fn update(&mut self) {
-        let lift = ADLift::new(self.f);
         match self.method {
             RootFind::Bisection => {
                 match self.curr {
                     I(a, b) => {
+                        let lift = ADLift::new(self.f);
                         let x = 0.5 * (a + b);
                         let fa = lift.call_stable(a);
                         let fx = lift.call_stable(x);
@@ -227,6 +227,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::FalsePosition => {
                 match self.curr {
                     I(a, b) => {
+                        let lift = ADLift::new(self.f);
                         let fa = lift.call_stable(a);
                         let fb = lift.call_stable(b);
                         let x = (a * fb - b * fa) / (fb - fa);
@@ -253,9 +254,16 @@ impl<T: AD> RootFinder<T> {
             RootFind::Newton => {
                 match self.curr {
                     P(xn) => {
+                        let lift = ADLift::new(self.f);
                         let mut z = AD1::from(xn);
-                        z.d1 = 1;
-                        unimplemented!()
+                        z.d1 = 1f64;
+                        let fz = lift.call_stable(z);
+                        let x = xn - (fz.d0 / fz.d1);
+                        if (x - xn).abs() <= self.tol {
+                            self.find = RootBool::Find;
+                            self.root = x;
+                        }
+                        self.curr = P(x);
                     },
                     _ => unreachable!()
                 }
@@ -263,6 +271,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::Secant => {
                 match self.curr {
                     I(xn_1, xn) => {
+                        let lift = ADLift::new(self.f);
                         let fxn_1 = lift.call_stable(xn_1);
                         let fxn = lift.call_stable(xn);
                         let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;

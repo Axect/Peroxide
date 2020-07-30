@@ -995,8 +995,8 @@ pub fn f64_impl_from_ad(_item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn ad_impl_stable_fn(_item: TokenStream) -> TokenStream {
     let mut total = "".to_string();
-    for i in 1 .. N+1 {
-        for j in 1 .. (i+1) {
+    for i in 2 .. N+1 {
+        for j in 2 .. (i+1) {
             let one = format!("impl<F:Fn(AD{}) -> AD{}> StableFn<AD{}> for ADLift<F, AD{}> {{
                 type Output = AD{};
                 fn call_stable(&self, target: Self::Output) -> Self::Output {{
