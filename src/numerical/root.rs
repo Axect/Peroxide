@@ -48,6 +48,23 @@ impl Display for RootError {
 impl std::error::Error for RootError {}
 
 impl<T: AD> RootFinder<T> {
+    /// Create RootFinder
+    ///
+    /// # Usage
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let init = RootState::I(1f64, 3f64);
+    ///     let a = RootFinder::new(init, Bisection, f)?;
+    ///     println!("{:?}", a);
+    /// }
+    ///
+    /// fn f<T: AD>(x: T) -> T {
+    ///     x.powi(2) - 4f64
+    /// }
+    /// ```
     pub fn new(init: RootState, method: RootFind, f: fn(T) -> T) -> Result<Self, RootError> {
         match method {
             RootFind::Bisection => {
@@ -107,9 +124,9 @@ impl<T: AD> RootFinder<T> {
                 }
             }
         }
-
     }
 
+    /// Condition number
     pub fn condition_number(&self) -> f64 {
         match self.curr {
             P(p) => {
