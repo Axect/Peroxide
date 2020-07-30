@@ -4,8 +4,8 @@ use peroxide::fuga::*;
 use peroxide::numerical::root::*;
 
 #[test]
-fn test_condition_number() -> Result<(), RootError> {
-    let init = RootState::I(0f64, 5f64);
+fn test_root_find() -> Result<(), RootError> {
+    let init = RootState::I(0.1f64, 5f64);
     let mut a1 = RootFinder::<AD1>::new(init, RootFind::Bisection, f_exp)?;
     let mut b1 = RootFinder::<AD1>::new(init, RootFind::Bisection, f_ln)?;
     let mut c1 = RootFinder::<AD1>::new(init, RootFind::Bisection, f_sqrt)?;
@@ -13,11 +13,8 @@ fn test_condition_number() -> Result<(), RootError> {
     let mut b2 = RootFinder::<AD1>::new(init, RootFind::FalsePosition, f_ln)?;
     let mut c2 = RootFinder::<AD1>::new(init, RootFind::FalsePosition, f_sqrt)?;
     a2.set_times(10000);
-    a2.set_tol(1e-6);
     b2.set_times(10000);
-    b2.set_tol(1e-6);
     c2.set_times(10000);
-    c2.set_tol(1e-6);
     let x1 = a1.find_root()?;
     let x2 = b1.find_root()?;
     let x3 = c1.find_root()?;

@@ -97,7 +97,7 @@ impl<T: AD> RootFinder<T> {
                             f,
                             find: RootBool::NotYet,
                             times: 100,
-                            tol: 1e-15,
+                            tol: 1e-10,
                             root: 0f64,
                         }
                     )
@@ -113,7 +113,7 @@ impl<T: AD> RootFinder<T> {
                             f,
                             find: RootBool::NotYet,
                             times: 100,
-                            tol: 1e-15,
+                            tol: 1e-10,
                             root: 0f64,
                         }
                     ),
@@ -131,7 +131,7 @@ impl<T: AD> RootFinder<T> {
                             f,
                             find: RootBool::NotYet,
                             times: 100,
-                            tol: 1e-15,
+                            tol: 1e-10,
                             root: 0f64,
                         }
                     )
@@ -147,7 +147,7 @@ impl<T: AD> RootFinder<T> {
                             f,
                             find: RootBool::NotYet,
                             times: 100,
-                            tol: 1e-15,
+                            tol: 1e-10,
                             root: 0f64,
                         }
                     ),
@@ -209,7 +209,7 @@ impl<T: AD> RootFinder<T> {
                                 self.find = RootBool::Find;
                                 self.root = x;
                             } else {
-                                
+                                self.find = RootBool::Error;
                             }
                         }
                     }
@@ -227,13 +227,15 @@ impl<T: AD> RootFinder<T> {
                             self.find = RootBool::Find;
                             self.root = x;
                         } else {
-                            if fx * fa > 0f64 {
-                                self.curr = I(x, b);
-                            } else if fx * fb > 0f64  {
+                            if fx * fa < 0f64 {
                                 self.curr = I(a, x);
-                            } else {
+                            } else if fx * fb < 0f64  {
+                                self.curr = I(x, b);
+                            } else if fx == 0f64 {
                                 self.find = RootBool::Find;
                                 self.root = x;
+                            } else {
+                                self.find = RootBool::Error;
                             }
                         }
                     }
