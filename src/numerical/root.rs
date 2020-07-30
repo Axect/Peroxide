@@ -1,4 +1,5 @@
-use crate::structure::ad::{AD, AD1, AD2, ADLift, StableFn};
+use crate::traits::stable::StableFn;
+use crate::structure::ad::{AD, AD1, AD2, ADLift};
 use RootState::{P, I};
 use std::fmt::Display;
 //use std::collections::HashMap;
@@ -27,12 +28,24 @@ pub struct RootFinder<T: AD> {
     pub curr: RootState, 
     method: RootFind,
     f: fn(T) -> T,
-    find: bool,
+    find: RootBool,
+    times: usize,
+    tol: f64,
+    root: f64,
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum RootError {
     MismatchedState,
+    TimesUp,
+    NaNRoot,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum RootBool {
+    Find,
+    NotYet,
+    Error,
 }
 
 impl Display for RootError {
@@ -40,6 +53,12 @@ impl Display for RootError {
         match self {
             RootError::MismatchedState => {
                 writeln!(f, "Mismatched RootState with RootFind method")
+            },
+            RootError::TimesUp => {
+                writeln!(f, "No root until set times - More times required")
+            },
+            RootError::NaNRoot => {
+                writeln!(f, "Root is NaN - Should modify initial states")
             }
         }
     }
@@ -76,7 +95,10 @@ impl<T: AD> RootFinder<T> {
                             curr: init,
                             method,
                             f,
-                            find: false
+                            find: RootBool::NotYet,
+                            times: 100,
+                            tol: 1e-15,
+                            root: 0f64,
                         }
                     )
                 }
@@ -89,7 +111,10 @@ impl<T: AD> RootFinder<T> {
                             curr: init,
                             method,
                             f,
-                            find: false,
+                            find: RootBool::NotYet,
+                            times: 100,
+                            tol: 1e-15,
+                            root: 0f64,
                         }
                     ),
                     _ => Err(RootError::MismatchedState),
@@ -104,7 +129,10 @@ impl<T: AD> RootFinder<T> {
                             curr: init,
                             method,
                             f,
-                            find: false,
+                            find: RootBool::NotYet,
+                            times: 100,
+                            tol: 1e-15,
+                            root: 0f64,
                         }
                     )
                 }
@@ -117,7 +145,10 @@ impl<T: AD> RootFinder<T> {
                             curr: init,
                             method,
                             f,
-                            find: false,
+                            find: RootBool::NotYet,
+                            times: 100,
+                            tol: 1e-15,
+                            root: 0f64,
                         }
                     ),
                     _ => Err(RootError::MismatchedState),
@@ -145,6 +176,16 @@ impl<T: AD> RootFinder<T> {
         }
     }
 
+    pub fn set_times(&mut self, times: usize) -> &mut Self {
+        self.times = times;
+        self
+    }
+
+    pub fn set_tol(&mut self, tol: f64) -> &mut Self {
+        self.tol = tol;
+        self
+    }
+
     #[inline]
     pub fn update(&mut self) {
         let lift = ADLift::new(self.f);
@@ -153,12 +194,23 @@ impl<T: AD> RootFinder<T> {
                 match self.curr {
                     I(a, b) => {
                         let x = 0.5 * (a + b);
-                        if lift.call_stable(a) * lift.call_stable(x) < 0f64 {
-                            self.curr = I(a, x);
-                        } else if lift.call_stable(x) * lift.call_stable(b) < 0f64 {
-                            self.curr = I(x, b);
+                        let fa = lift.call_stable(a);
+                        let fx = lift.call_stable(x);
+                        let fb = lift.call_stable(b);
+                        if (a - b).abs() <= self.tol {
+                            self.find = RootBool::Find;
+                            self.root = x;
                         } else {
-                            self.find = true;
+                            if fa * fx < 0f64 {
+                                self.curr = I(a, x);
+                            } else if fx * fb < 0f64 {
+                                self.curr = I(x, b);
+                            } else if fx == 0f64 {
+                                self.find = RootBool::Find;
+                                self.root = x;
+                            } else {
+                                
+                            }
                         }
                     }
                     _ => unreachable!()
@@ -169,14 +221,20 @@ impl<T: AD> RootFinder<T> {
                     I(a, b) => {
                         let fa = lift.call_stable(a);
                         let fb = lift.call_stable(b);
-                        let x = a - (a - b) / (fa - fb) * fa;
+                        let x = (a * fb - b * fa) / (fb - fa);
                         let fx = lift.call_stable(x);
-                        if fx * fa > 0f64 {
-                            self.curr = I(x, b);
-                        } else if fx * fb > 0f64  {
-                            self.curr = I(a, x);
+                        if (a - b).abs() <= self.tol || fx.abs() <= self.tol {
+                            self.find = RootBool::Find;
+                            self.root = x;
                         } else {
-                            self.find = true;
+                            if fx * fa > 0f64 {
+                                self.curr = I(x, b);
+                            } else if fx * fb > 0f64  {
+                                self.curr = I(a, x);
+                            } else {
+                                self.find = RootBool::Find;
+                                self.root = x;
+                            }
                         }
                     }
                     _ => unreachable!()
@@ -191,8 +249,21 @@ impl<T: AD> RootFinder<T> {
         }
     }
 
-    pub fn find_root(&mut self) -> Option<f64> {
-        unimplemented!()
+    pub fn find_root(&mut self) -> Result<f64, RootError> {
+        for i in 0 .. self.times {
+            self.update();
+            match self.find {
+                RootBool::Find => {
+                    println!("{}", i+1);
+                    return Ok(self.root);
+                }
+                RootBool::Error => {
+                    return Err(RootError::NaNRoot);
+                }
+                _ => (),
+            }
+        }
+        Err(RootError::TimesUp)
     }
 }
 
