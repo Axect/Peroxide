@@ -69,6 +69,11 @@ impl std::error::Error for RootError {}
 impl<T: AD> RootFinder<T> {
     /// Create RootFinder
     ///
+    /// # Default Options
+    ///
+    /// * Times: 100
+    /// * Tolerance: 1e-10
+    ///
     /// # Usage
     /// ```
     /// extern crate peroxide;
@@ -176,16 +181,19 @@ impl<T: AD> RootFinder<T> {
         }
     }
 
+    /// Set max iteration times
     pub fn set_times(&mut self, times: usize) -> &mut Self {
         self.times = times;
         self
     }
-
+    
+    /// Set tolerance
     pub fn set_tol(&mut self, tol: f64) -> &mut Self {
         self.tol = tol;
         self
     }
 
+    /// Update RootFinder
     #[inline]
     pub fn update(&mut self) {
         let lift = ADLift::new(self.f);
@@ -243,14 +251,34 @@ impl<T: AD> RootFinder<T> {
                 }
             },
             RootFind::Newton => {
-                unimplemented!()
+                match self.curr {
+                    P(xn) => {
+                        let mut z = AD1::from(xn);
+                        z.d1 = 1;
+                        unimplemented!()
+                    },
+                    _ => unreachable!()
+                }
             },
             RootFind::Secant => {
-                unimplemented!()
+                match self.curr {
+                    I(xn_1, xn) => {
+                        let fxn_1 = lift.call_stable(xn_1);
+                        let fxn = lift.call_stable(xn);
+                        let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
+                        if (x - xn).abs() <= self.tol {
+                            self.find = RootBool::Find;
+                            self.root = x;
+                        }
+                        self.curr = I(xn, x);
+                    }
+                    _ => unreachable!()
+                }
             }
         }
     }
 
+    /// Find Root
     pub fn find_root(&mut self) -> Result<f64, RootError> {
         for i in 0 .. self.times {
             self.update();
