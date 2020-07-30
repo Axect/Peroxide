@@ -316,6 +316,13 @@ impl<F: Fn(T) -> T, T: AD> StableFn<f64> for ADLift<F, T> {
     }
 }
 
+impl<F: Fn(T) -> T, T: AD> StableFn<AD1> for ADLift<F, T> {
+    type Output = AD1;
+    fn call_stable(&self, target: AD1) -> Self::Output {
+        self.f(T::from(target)).into()
+    }
+}
+
 // Nightly only
 //pub struct ADLift<F>(F);
 //
