@@ -269,8 +269,8 @@ pub trait AD:
 ///     let ad0 = 2f64;
 ///     let ad1 = AD1::new(2f64, 1f64);
 ///     
-///     let lift1 = ADLift::new(f_ad);
-///     let lift2 = ADLift::new(f_ad2);
+///     let lift1 = ADLift::<_, AD1>::new(f_ad);
+///     let lift2 = ADLift::<_, AD2>::new(f_ad2);
 ///
 ///     let ans_ad0 = ad0.powi(2);
 ///     let ans_ad1 = ad1.powi(2);
@@ -292,14 +292,14 @@ pub trait AD:
 /// }
 /// ```
 pub struct ADLift<F, T> {
-    f: F,
+    f: Box<F>,
     _marker: PhantomData<T>,
 }
 
 impl<F: Fn(T) -> T, T> ADLift<F, T> {
     pub fn new(f: F) -> Self {
         Self {
-            f,
+            f: Box::new(f),
             _marker: PhantomData
         }
     }
