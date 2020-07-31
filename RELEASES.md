@@ -1,3 +1,12 @@
+# Release 0.25.3 (2020-07-31)
+
+## Root Finding is available
+
+* Add `numerical/root.rs` (See [docs](https://peroxide.surge.sh))
+    * Low-level API
+    * High-level API
+* Add `ADLift<F, T>` for lifting generic `AD` function
+
 # Release 0.25.2 (2020-07-23)
 
 * Impl `std::ops` with `f64` for `AD{i}` and vice versa
