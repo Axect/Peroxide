@@ -157,6 +157,11 @@ Peroxide can do many things.
         * Gauss Legendre 4th order
     * Numerical Integration
         * Gauss-Legendre Quadrature
+    * Root Finding
+        * Bisection
+        * False Position (Regula Falsi)
+        * Secant
+        * Newton
 * Statistics
     * More easy random with `rand` crate
     * Ordered Statistics
@@ -279,6 +284,7 @@ Corresponding to `0.25.0`
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
     - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
+    - [root.rs](src/numerical/root.rs) : Root finding
     - [spline.rs](src/numerical/spline.rs) : Natural Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
   - __prelude__ : Prelude for using simple
@@ -311,6 +317,7 @@ Corresponding to `0.25.0`
     - [mutable.rs](src/traits/mutable.rs) : Mutable toolbox
     - [num.rs](src/traits/num.rs) : Number, Real and more operations
     - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience
+    - [stable.rs](src/traits/stable.rs) : Implement nightly-only features in stable
   - __util__
     - [mod.rs](src/util/mod.rs)
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style
