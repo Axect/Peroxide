@@ -1,4 +1,4 @@
-//! Root Finding Algorithms
+//! Root Finding
 //!
 //! # Implemented Algorithms
 //!
@@ -24,12 +24,12 @@
 //!     * `TimesUp` : No root until `self.times`
 //!     * `NaNRoot` : NaN
 //! * `RootFinder` : Main structure for root finding
-//!     * `new(RootState, RootFind, f)` : Creat RootFinder (times: 100, tol: 1e-10)
-//!     * `condition_number(&self) -> f64` : Compute condition number
-//!     * `set_tol(&mut self, f64) -> &mut Self` : Set tolerance
-//!     * `set_times(&mut self, usize) -> &mut Self` : Set max iteration times
-//!     * `update(&mut self)` : Update one step
-//!     * `find_root(&mut self) -> Result<f64, RootError>` : Find root
+//!     * `fn new(RootState, RootFind, f)` : Creat RootFinder (times: 100, tol: 1e-10)
+//!     * `fn condition_number(&self) -> f64` : Compute condition number
+//!     * `fn set_tol(&mut self, f64) -> &mut Self` : Set tolerance
+//!     * `fn set_times(&mut self, usize) -> &mut Self` : Set max iteration times
+//!     * `fn update(&mut self)` : Update one step
+//!     * `fn find_root(&mut self) -> Result<f64, RootError>` : Find root
 //!
 //! ## Usage
 //!
@@ -39,15 +39,16 @@
 //!
 //! fn main() -> Result<(), RootError> {
 //!     let init = RootState::I(1f64, 4f64);
-//!     let mut rf = RootFinder::<AD1>::(init, Bisection, f)?;
-//!     rf.set_tol(1e-15) // Default : 1e-10
-//!     rf.set_times(100) // Default : 100
+//!     let mut rf = RootFinder::<_, AD1>::new(init, Bisection, f)?;
+//!     rf.set_tol(1e-15)       // Default: 1e-10
+//!         .set_times(200);    // Default: 100
 //!     let root = rf.find_root()?;
 //!     root.print();
+//!     Ok(())
 //! }
 //!
 //! fn f<T: AD>(x: T) -> T {
-//!     x.sin();
+//!     x.sin()
 //! }
 //! ```
 //!
@@ -59,8 +60,8 @@
 //!
 //! * `bisection(f, interval: (f64, f64), times: usize, tol: f64)`
 //! * `false_position(f, interval: (f64, f64), times: usize, tol: f64)`
-//! * `secant(f, interval: (f64, f64), times: usize, tol: f64)`
-//! * `newton(f, interval: (f64, f64), times: usize, tol: f64)`
+//! * `secant(f, initial_guess: (f64, f64), times: usize, tol: f64)`
+//! * `newton(f, initial_guess: f64, times: usize, tol: f64)`
 //!
 //! ## Usage
 //!
@@ -71,15 +72,21 @@
 //! fn main() -> Result<(), RootError> {
 //!     let root = bisection(f, (1f64, 4f64), 100, 1e-15)?;
 //!     root.print();
+//!     Ok(())
 //! }
 //!
 //! fn f<T: AD>(x: T) -> T {
-//!     x.sin();
+//!     x.sin()
 //! }
 //! ```
+//!
+//! # Reference
+//!
+//! * Walter Gautschi, *Numerical Analysis*, Springer (2012)
 
 use crate::traits::stable::StableFn;
 use crate::structure::ad::{AD, AD1, ADLift};
+use std::marker::PhantomData;
 use RootState::{P, I};
 use std::fmt::Display;
 //use std::collections::HashMap;
@@ -103,15 +110,16 @@ pub enum RootFind {
 ///
 /// * **Caution**: `T` $\geq$ `AD1`
 #[derive(Debug, Clone)]
-pub struct RootFinder<T: AD> {
+pub struct RootFinder<F: Fn(T) -> T, T: AD> {
     init: RootState,
     pub curr: RootState, 
     method: RootFind,
-    f: fn(T) -> T,
+    f: Box<F>,
     find: RootBool,
     times: usize,
     tol: f64,
     root: f64,
+    _marker: PhantomData<T>
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -146,7 +154,7 @@ impl Display for RootError {
 
 impl std::error::Error for RootError {}
 
-impl<T: AD> RootFinder<T> {
+impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
     /// Create RootFinder
     ///
     /// # Default Options
@@ -159,17 +167,19 @@ impl<T: AD> RootFinder<T> {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), RootError> {
     ///     let init = RootState::I(1f64, 3f64);
-    ///     let a = RootFinder::new(init, Bisection, f)?;
-    ///     println!("{:?}", a);
+    ///     let mut a = RootFinder::<_, AD1>::new(init, Bisection, f)?;
+    ///     let x = a.find_root()?;
+    ///     x.print();
+    ///     Ok(())
     /// }
     ///
     /// fn f<T: AD>(x: T) -> T {
     ///     x.powi(2) - 4f64
     /// }
     /// ```
-    pub fn new(init: RootState, method: RootFind, f: fn(T) -> T) -> Result<Self, RootError> {
+    pub fn new(init: RootState, method: RootFind, f: F) -> Result<Self, RootError> {
         match method {
             RootFind::Bisection => {
                 match init {
@@ -179,11 +189,12 @@ impl<T: AD> RootFinder<T> {
                             init,
                             curr: init,
                             method,
-                            f,
+                            f: Box::new(f),
                             find: RootBool::NotYet,
                             times: 100,
                             tol: 1e-10,
                             root: 0f64,
+                            _marker: PhantomData
                         }
                     )
                 }
@@ -195,11 +206,12 @@ impl<T: AD> RootFinder<T> {
                             init,
                             curr: init,
                             method,
-                            f,
+                            f: Box::new(f),
                             find: RootBool::NotYet,
                             times: 100,
                             tol: 1e-10,
                             root: 0f64,
+                            _marker: PhantomData
                         }
                     ),
                     _ => Err(RootError::MismatchedState),
@@ -213,11 +225,12 @@ impl<T: AD> RootFinder<T> {
                             init,
                             curr: init,
                             method,
-                            f,
+                            f: Box::new(f),
                             find: RootBool::NotYet,
                             times: 100,
                             tol: 1e-10,
                             root: 0f64,
+                            _marker: PhantomData
                         }
                     )
                 }
@@ -229,17 +242,22 @@ impl<T: AD> RootFinder<T> {
                             init,
                             curr: init,
                             method,
-                            f,
+                            f: Box::new(f),
                             find: RootBool::NotYet,
                             times: 100,
                             tol: 1e-10,
                             root: 0f64,
+                            _marker: PhantomData
                         }
                     ),
                     _ => Err(RootError::MismatchedState),
                 }
             }
         }
+    }
+
+    pub fn f(&self, x: T) -> T {
+        (self.f)(x)
     }
 
     /// Condition number
@@ -280,7 +298,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::Bisection => {
                 match self.curr {
                     I(a, b) => {
-                        let lift = ADLift::new(self.f);
+                        let lift = ADLift::new(|x| self.f(x));
                         let x = 0.5 * (a + b);
                         let fa = lift.call_stable(a);
                         let fx = lift.call_stable(x);
@@ -307,7 +325,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::FalsePosition => {
                 match self.curr {
                     I(a, b) => {
-                        let lift = ADLift::new(self.f);
+                        let lift = ADLift::new(|x| self.f(x));
                         let fa = lift.call_stable(a);
                         let fb = lift.call_stable(b);
                         let x = (a * fb - b * fa) / (fb - fa);
@@ -334,7 +352,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::Newton => {
                 match self.curr {
                     P(xn) => {
-                        let lift = ADLift::new(self.f);
+                        let lift = ADLift::new(|x| self.f(x));
                         let mut z = AD1::from(xn);
                         z.d1 = 1f64;
                         let fz = lift.call_stable(z);
@@ -351,7 +369,7 @@ impl<T: AD> RootFinder<T> {
             RootFind::Secant => {
                 match self.curr {
                     I(xn_1, xn) => {
-                        let lift = ADLift::new(self.f);
+                        let lift = ADLift::new(|x| self.f(x));
                         let fxn_1 = lift.call_stable(xn_1);
                         let fxn = lift.call_stable(xn);
                         let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
@@ -369,11 +387,11 @@ impl<T: AD> RootFinder<T> {
 
     /// Find Root
     pub fn find_root(&mut self) -> Result<f64, RootError> {
-        for i in 0 .. self.times {
+        for _i in 0 .. self.times {
             self.update();
             match self.find {
                 RootBool::Find => {
-                    println!("{}", i+1);
+                    //println!("{}", i+1);
                     return Ok(self.root);
                 }
                 RootBool::Error => {
@@ -386,9 +404,26 @@ impl<T: AD> RootFinder<T> {
     }
 }
 
-pub fn bisection<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+/// Bisection method to find root
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), RootError> {
+///     let x = bisection(f, (0f64, 4f64), 100, 1e-15)?;
+///     assert!((x - 3f64).abs() < 1e-15);
+///     Ok(())
+/// }
+///
+/// fn f<T: AD>(x: T) -> T {
+///     x.powi(2) - x * 2f64 - 3f64
+/// }
+/// ```
+pub fn bisection<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
     let (a, b) = interval;
-    let mut root_finder = RootFinder::<T>::new(
+    let mut root_finder = RootFinder::new(
         RootState::I(a, b), 
         RootFind::Bisection, 
         f
@@ -398,7 +433,24 @@ pub fn bisection<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, tol: 
     root_finder.find_root()
 }
 
-pub fn false_position<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+/// False position method to find root
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), RootError> {
+///     let x = false_position(f, (0f64, 4f64), 1000, 1e-15)?;
+///     assert!((x - 3f64).abs() < 1e-15);
+///     Ok(())
+/// }
+///
+/// fn f<T: AD>(x: T) -> T {
+///     x.powi(2) - x * 2f64 - 3f64
+/// }
+/// ```
+pub fn false_position<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
     let (a, b) = interval;
     let mut root_finder = RootFinder::new(
         RootState::I(a, b), 
@@ -410,7 +462,24 @@ pub fn false_position<T: AD>(f: fn(T) -> T, interval: (f64, f64), times: usize, 
     root_finder.find_root()
 }
 
-pub fn newton<T: AD>(f: fn(T) -> T, initial_guess: f64, times: usize, tol: f64) -> Result<f64, RootError> {
+/// Newton method to find root
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), RootError> {
+///     let x = newton(f, 2f64, 100, 1e-15)?;
+///     assert!((x - 3f64).abs() < 1e-15);
+///     Ok(())
+/// }
+///
+/// fn f<T: AD>(x: T) -> T {
+///     x.powi(2) - x * 2f64 - 3f64
+/// }
+/// ```
+pub fn newton<F: Fn(AD1) -> AD1>(f: F, initial_guess: f64, times: usize, tol: f64) -> Result<f64, RootError> {
     let mut root_finder = RootFinder::new(
         RootState::P(initial_guess),
         RootFind::Newton, 
@@ -421,7 +490,24 @@ pub fn newton<T: AD>(f: fn(T) -> T, initial_guess: f64, times: usize, tol: f64) 
     root_finder.find_root()
 }
 
-pub fn secant<T: AD>(f: fn(T) -> T, initial_guess: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+/// Secant method to find root
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), RootError> {
+///     let x = secant(f, (2f64, 2.1f64), 100, 1e-15)?;
+///     assert!((x - 3f64).abs() < 1e-15);
+///     Ok(())
+/// }
+///
+/// fn f<T: AD>(x: T) -> T {
+///     x.powi(2) - x * 2f64 - 3f64
+/// }
+/// ```
+pub fn secant<F: Fn(AD1) -> AD1>(f: F, initial_guess: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
     let (a, b) = initial_guess;
     let mut root_finder = RootFinder::new(
         RootState::I(a, b), 
