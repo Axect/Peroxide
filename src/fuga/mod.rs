@@ -115,22 +115,48 @@ pub use crate::traits::{
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
     sugar::{Scalable, ScalableMut, VecOps},
+    stable::StableFn,
 };
 
 #[allow(unused_imports)]
-pub use crate::structure::{dual::*, hyper_dual::*, matrix::*, polynomial::*, vector::*};
+pub use crate::structure::{
+    dual::*, 
+    hyper_dual::*, 
+    matrix::*, 
+    polynomial::*, 
+    vector::*
+};
 
-pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
+pub use crate::util::{
+    api::*, 
+    low_level::*, 
+    non_macro::*, 
+    print::*, 
+    useful::*, 
+    wrapper::*
+};
 
 #[allow(unused_imports)]
-pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
+pub use crate::statistics::{
+    dist::*, 
+    ops::*, 
+    rand::*, 
+    stat::*
+};
 
 #[allow(unused_imports)]
 pub use crate::special::function::*;
 
 #[allow(unused_imports)]
 pub use crate::numerical::{
-    eigen::*, integral::*, interp::*, newton::*, ode::*, optimize::*, spline::*, utils::*,
+    eigen::*, 
+    integral::*, 
+    interp::*, 
+    ode::*, 
+    optimize::*, 
+    spline::*, 
+    utils::*,
+    root::*,
 };
 
 #[allow(unused_imports)]
@@ -159,3 +185,4 @@ pub use crate::structure::matrix::{
     SolveKind::{LU, WAZ},
 };
 pub use crate::traits::num::Number::{D, F};
+pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};

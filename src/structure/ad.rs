@@ -117,16 +117,21 @@
 //! ```
 
 use crate::statistics::ops::C;
-use crate::traits::num::{ExpLogOps, PowOps, TrigOps};
+use crate::traits::{
+    num::{ExpLogOps, PowOps, TrigOps},
+    stable::StableFn,
+};
 use peroxide_ad::{
     ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_div, ad_impl_double_ended_iter,
     ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from, ad_impl_from_iter, ad_impl_index,
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
     ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_from_type, ad_impl_add_f64, ad_impl_sub_f64,
     ad_impl_mul_f64, ad_impl_div_f64, f64_impl_add_ad, f64_impl_sub_ad, f64_impl_mul_ad, f64_impl_div_ad,
+    f64_impl_from_ad, ad_impl_stable_fn,
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
+use std::marker::PhantomData;
 
 ad_struct_def!();
 ad_display!();
@@ -160,6 +165,8 @@ f64_impl_add_ad!();
 f64_impl_sub_ad!();
 f64_impl_mul_ad!();
 f64_impl_div_ad!();
+f64_impl_from_ad!();
+ad_impl_stable_fn!();
 
 pub trait AD:
     std::fmt::Display
@@ -186,14 +193,16 @@ pub trait AD:
     + Into<AD8>
     + Into<AD9>
     + Into<AD10>
-    + IntoIterator<Item = f64>
-    + FromIterator<f64>
-    + Index<usize>
-    + IndexMut<usize>
+    + From<f64>
+    + Into<f64>
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
+    + Add<f64, Output = Self>
+    + Sub<f64, Output = Self>
+    + Mul<f64, Output = Self>
+    + Div<f64, Output = Self>
     + PowOps
     + ExpLogOps
     + TrigOps
@@ -238,3 +247,87 @@ pub trait AD:
         self.into()
     }
 }
+
+//impl AD for f64 {}
+
+/// Lift AD functions
+///
+/// # Description
+/// To lift `AD` functions
+///
+/// # Implementation
+///
+/// * All `Fn(T) -> T where T:AD` functions can be lift to `Fn(f64) -> f64`
+/// * If `j > i`, then `Fn(AD{j}) -> AD{j}` can be lift to `Fn(AD{i}) -> AD{i}`
+///
+/// # Usage
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let ad0 = 2f64;
+///     let ad1 = AD1::new(2f64, 1f64);
+///     
+///     let lift1 = ADLift::<_, AD1>::new(f_ad);
+///     let lift2 = ADLift::<_, AD2>::new(f_ad2);
+///
+///     let ans_ad0 = ad0.powi(2);
+///     let ans_ad1 = ad1.powi(2);
+///
+///     // All AD function can be lift to f64
+///     assert_eq!(ans_ad0, lift1.call_stable(ad0));
+///     assert_eq!(ans_ad0, lift2.call_stable(ad0));
+///
+///     // AD2 is higher than AD1 (AD2 -> AD1 lifting is allowed)
+///     assert_eq!(ans_ad1, lift2.call_stable(ad1));
+/// }
+///
+/// fn f_ad<T: AD>(x: T) -> T {
+///     x.powi(2)
+/// }
+///
+/// fn f_ad2(x: AD2) -> AD2 {
+///     x.powi(2)
+/// }
+/// ```
+pub struct ADLift<F, T> {
+    f: Box<F>,
+    _marker: PhantomData<T>,
+}
+
+impl<F: Fn(T) -> T, T> ADLift<F, T> {
+    pub fn new(f: F) -> Self {
+        Self {
+            f: Box::new(f),
+            _marker: PhantomData
+        }
+    }
+
+    pub fn f(&self, t: T) -> T {
+        (self.f)(t)
+    }
+}
+
+impl<F: Fn(T) -> T, T: AD> StableFn<f64> for ADLift<F, T> {
+    type Output = f64;
+    fn call_stable(&self, target: f64) -> Self::Output {
+        self.f(T::from(target)).into()
+    }
+}
+
+impl<F: Fn(T) -> T, T: AD> StableFn<AD1> for ADLift<F, T> {
+    type Output = AD1;
+    fn call_stable(&self, target: AD1) -> Self::Output {
+        self.f(T::from(target)).into()
+    }
+}
+
+// Nightly only
+//pub struct ADLift<F>(F);
+//
+//impl<F: FnOnce<(T)>, T> FnOnce<f64> for ADLift<F> {
+//    type Output = f64;
+//    
+//}
+

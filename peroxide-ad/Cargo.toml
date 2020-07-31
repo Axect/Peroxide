@@ -1,6 +1,6 @@
 [package]
 name = "peroxide-ad"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Proc macro for automatic differenitation of Peroxide"
