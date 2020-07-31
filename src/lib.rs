@@ -43,6 +43,11 @@
 //! * [Optimization](numerical/optimize/index.html)
 //!     * Gradient Descent
 //!     * Levenberg-Marquardt
+//! * [Root Finding](numerical/root/index.html)
+//!     * Bisection
+//!     * False Position (Regula falsi)
+//!     * Secant
+//!     * Newton
 //! * [Differential Equations](numerical/ode/index.html)
 //!     * Explicit
 //!         * Runge-Kutta 4th order
@@ -68,6 +73,7 @@
 //!     * [Mutable tools](traits/mutable/index.html)
 //!     * [Number & Real](traits/num/index.html)
 //!     * [Pointer](traits/pointer/index.html)
+//!     * [Stable](traits/stable/index.html)
 //!
 //! ## Quick Start
 //!
