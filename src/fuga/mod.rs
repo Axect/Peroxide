@@ -115,6 +115,7 @@ pub use crate::traits::{
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
     sugar::{Scalable, ScalableMut, VecOps},
+    stable::StableFn,
 };
 
 #[allow(unused_imports)]
@@ -147,6 +148,9 @@ pub use crate::util::plot::*;
 #[allow(unused_imports)]
 pub use crate::structure::ad::*;
 
+#[allow(unused_imports)]
+pub use crate::numerical::root::*;
+
 // =============================================================================
 // Enums
 // =============================================================================
@@ -159,3 +163,4 @@ pub use crate::structure::matrix::{
     SolveKind::{LU, WAZ},
 };
 pub use crate::traits::num::Number::{D, F};
+pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};
