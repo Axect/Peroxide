@@ -1,3 +1,8 @@
+# Release 0.25.4 (2020-08-01)
+
+* Reduce compile time
+    * Reduce order of `AD{i}` : 10 -> 5
+
 # Release 0.25.3 (2020-07-31)
 
 ## Root Finding is available

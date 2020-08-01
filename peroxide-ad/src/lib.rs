@@ -2,7 +2,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 
 /// Maximum order for Taylor mode AD
-const N: usize = 10;
+const N: usize = 5;
 
 #[proc_macro]
 pub fn ad_struct_def(_item: TokenStream) -> TokenStream {
@@ -810,6 +810,40 @@ pub fn ad_impl_trigops(_item: TokenStream) -> TokenStream {
         }}\n", i);
         total.push_str(&one);
     }
+    total.parse().unwrap()
+}
+
+#[proc_macro]
+pub fn def_ad(_item: TokenStream) -> TokenStream {
+    let mut from_into = "".to_string();
+    let mut to_ad = "".to_string();
+    for i in 1 .. N+1 {
+        from_into.push_str(&format!("+ From<AD{}>\n", i));
+        from_into.push_str(&format!("+ Into<AD{}>\n", i));
+        to_ad.push_str(&format!("fn to_ad{}(self) -> AD{} {{ self.into() }}\n", i, i));
+    }
+    let total = format!("pub trait AD: 
+        std::fmt::Display
+        + Clone
+        + Copy
+        + PartialEq
+        + From<f64>
+        + Into<f64>
+        + Add<Output = Self>
+        + Sub<Output = Self>
+        + Mul<Output = Self>
+        + Div<Output = Self>
+        + Add<f64, Output = Self>
+        + Sub<f64, Output = Self>
+        + Mul<f64, Output = Self>
+        + Div<f64, Output = Self>
+        + PowOps
+        + ExpLogOps
+        + TrigOps
+        {}
+    {{
+         {}
+    }}", from_into, to_ad);
     total.parse().unwrap()
 }
 
