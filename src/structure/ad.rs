@@ -127,7 +127,7 @@ use peroxide_ad::{
     ad_impl_into_iter, ad_impl_iter, ad_impl_mul, ad_impl_neg, ad_impl_powops, ad_impl_sub,
     ad_impl_trigops, ad_iter_def, ad_struct_def, ad_impl_from_type, ad_impl_add_f64, ad_impl_sub_f64,
     ad_impl_mul_f64, ad_impl_div_f64, f64_impl_add_ad, f64_impl_sub_ad, f64_impl_mul_ad, f64_impl_div_ad,
-    f64_impl_from_ad, ad_impl_stable_fn,
+    f64_impl_from_ad, ad_impl_stable_fn, def_ad
 };
 use std::iter::FromIterator;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -153,10 +153,11 @@ ad_impl_explogops!();
 ad_impl_powops!();
 ad_impl_trigops!();
 ad_impl_ad!();
+def_ad!();
 ad_impl_from_type!(f64);
-ad_impl_from_type!(f32);
-ad_impl_from_type!(i64);
-ad_impl_from_type!(i32);
+// ad_impl_from_type!(f32);
+// ad_impl_from_type!(i64);
+// ad_impl_from_type!(i32);
 ad_impl_add_f64!();
 ad_impl_sub_f64!();
 ad_impl_mul_f64!();
@@ -168,85 +169,85 @@ f64_impl_div_ad!();
 f64_impl_from_ad!();
 ad_impl_stable_fn!();
 
-pub trait AD:
-    std::fmt::Display
-    + Clone
-    + Copy
-    + PartialEq
-    + From<AD1>
-    + From<AD2>
-    + From<AD3>
-    + From<AD4>
-    + From<AD5>
-    + From<AD6>
-    + From<AD7>
-    + From<AD8>
-    + From<AD9>
-    + From<AD10>
-    + Into<AD1>
-    + Into<AD2>
-    + Into<AD3>
-    + Into<AD4>
-    + Into<AD5>
-    + Into<AD6>
-    + Into<AD7>
-    + Into<AD8>
-    + Into<AD9>
-    + Into<AD10>
-    + From<f64>
-    + Into<f64>
-    + Add<Output = Self>
-    + Sub<Output = Self>
-    + Mul<Output = Self>
-    + Div<Output = Self>
-    + Add<f64, Output = Self>
-    + Sub<f64, Output = Self>
-    + Mul<f64, Output = Self>
-    + Div<f64, Output = Self>
-    + PowOps
-    + ExpLogOps
-    + TrigOps
-{
-    fn to_ad1(self) -> AD1 {
-        self.into()
-    }
-
-    fn to_ad2(self) -> AD2 {
-        self.into()
-    }
-
-    fn to_ad3(self) -> AD3 {
-        self.into()
-    }
-
-    fn to_ad4(self) -> AD4 {
-        self.into()
-    }
-
-    fn to_ad5(self) -> AD5 {
-        self.into()
-    }
-
-    fn to_ad6(self) -> AD6 {
-        self.into()
-    }
-
-    fn to_ad7(self) -> AD7 {
-        self.into()
-    }
-
-    fn to_ad8(self) -> AD8 {
-        self.into()
-    }
-
-    fn to_ad9(self) -> AD9 {
-        self.into()
-    }
-
-    fn to_ad10(self) -> AD10 {
-        self.into()
-    }
-}
+// pub trait AD:
+//     std::fmt::Display
+//     + Clone
+//     + Copy
+//     + PartialEq
+//     + From<AD1>
+//     + From<AD2>
+//     + From<AD3>
+//     + From<AD4>
+//     + From<AD5>
+//     + From<AD6>
+//     + From<AD7>
+//     + From<AD8>
+//     + From<AD9>
+//     + From<AD10>
+//     + Into<AD1>
+//     + Into<AD2>
+//     + Into<AD3>
+//     + Into<AD4>
+//     + Into<AD5>
+//     + Into<AD6>
+//     + Into<AD7>
+//     + Into<AD8>
+//     + Into<AD9>
+//     + Into<AD10>
+//     + From<f64>
+//     + Into<f64>
+//     + Add<Output = Self>
+//     + Sub<Output = Self>
+//     + Mul<Output = Self>
+//     + Div<Output = Self>
+//     + Add<f64, Output = Self>
+//     + Sub<f64, Output = Self>
+//     + Mul<f64, Output = Self>
+//     + Div<f64, Output = Self>
+//     + PowOps
+//     + ExpLogOps
+//     + TrigOps
+// {
+//     fn to_ad1(self) -> AD1 {
+//         self.into()
+//     }
+//
+//     fn to_ad2(self) -> AD2 {
+//         self.into()
+//     }
+//
+//     fn to_ad3(self) -> AD3 {
+//         self.into()
+//     }
+//
+//     fn to_ad4(self) -> AD4 {
+//         self.into()
+//     }
+//
+//     fn to_ad5(self) -> AD5 {
+//         self.into()
+//     }
+//
+//     fn to_ad6(self) -> AD6 {
+//         self.into()
+//     }
+//
+//     fn to_ad7(self) -> AD7 {
+//         self.into()
+//     }
+//
+//     fn to_ad8(self) -> AD8 {
+//         self.into()
+//     }
+//
+//     fn to_ad9(self) -> AD9 {
+//         self.into()
+//     }
+//
+//     fn to_ad10(self) -> AD10 {
+//         self.into()
+//     }
+// }
 
 //impl AD for f64 {}
 
