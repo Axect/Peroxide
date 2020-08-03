@@ -4,6 +4,7 @@
 //!
 //! * There are some famous pdf in Peroxide (not checked pdfs will be implemented soon)
 //!     * Bernoulli
+//!     * Binomial
 //!     * Beta
 //!     * Dirichlet
 //!     * Gamma
@@ -121,6 +122,9 @@
 //! ### Beta Distribution
 //!
 //! ### Gamma Distribution
+//!
+//! ### Binomial Distribution
+//!
 
 extern crate rand;
 extern crate rand_distr;
@@ -131,7 +135,10 @@ pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;
 //use statistics::rand::ziggurat;
-use crate::statistics::stat::Statistics;
+use crate::statistics::{
+    stat::Statistics,
+    ops::C,
+};
 use std::convert::Into;
 use std::f64::consts::E;
 
@@ -153,6 +160,7 @@ pub enum OPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
 #[derive(Debug, Clone)]
 pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Uniform(T, T),
+    Binomial(usize, T),
     Normal(T, T),
     Beta(T, T),
     Gamma(T, T),
@@ -181,6 +189,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist
     fn params(&self) -> Self::Parameter {
         match self {
             Uniform(a, b) => ((*a).into(), (*b).into()),
+            Binomial(a, b) => (*a as f64, (*b).into()),
             Normal(mu, sigma) => ((*mu).into(), (*sigma).into()),
             Beta(a, b) => ((*a).into(), (*b).into()),
             Gamma(a, b) => ((*a).into(), (*b).into()),
@@ -303,6 +312,13 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 }
                 v
             }
+
+            Binomial(num, mu) => {
+                let mut rng = thread_rng();
+                let binom = rand_distr::Binomial::new(*num as u64, (*mu).into()).unwrap();
+                binom.sample_iter(&mut rng).take(n).map(|t| t as f64).collect()
+            }
+
             Normal(m, s) => {
                 let mut rng = thread_rng();
                 let normal = rand_distr::Normal::<f64>::new((*m).into(), (*s).into()).unwrap();
@@ -394,6 +410,12 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     0f64
                 }
             }
+            Binomial(n, mu) => {
+                let n = *n;
+                let mu = (*mu).into();
+                let m = x.into() as usize;
+                (C(n, m) as f64) * mu.powi(m as i32) * (1f64 - mu).powi((n - m) as i32) 
+            }
             Normal(m, s) => {
                 let mean = (*m).into();
                 let std = (*s).into();
@@ -431,6 +453,13 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 } else {
                     1f64
                 }
+            }
+            Binomial(n, mu) => {
+                let n = *n;
+                let p = (*mu).into();
+                let q = 1f64 - p;
+                let k: f64 = x.into();
+                inc_beta(n as f64 - k, k + 1f64, q)
             }
             Normal(m, s) => phi((x - (*m).into()) / (*s).into()),
             Beta(a, b) => {
@@ -496,6 +525,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
     fn mean(&self) -> Self::Value {
         match self {
             Uniform(a, b) => ((*a).into() + (*b).into()) / 2f64,
+            Binomial(n, mu) => (*n as f64) * (*mu).into(),
             Normal(m, _s) => (*m).into(),
             Beta(a, b) => (*a).into() / ((*a).into() + (*b).into()),
             Gamma(a, b) => (*a).into() / (*b).into(),
@@ -505,6 +535,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
     fn var(&self) -> Self::Value {
         match self {
             Uniform(a, b) => ((*b).into() - (*a).into()).powi(2) / 12f64,
+            Binomial(n, mu) => (*n as f64) * (*mu).into() * (1f64 - (*mu).into()),
             Normal(_m, s) => (*s).into().powi(2),
             Beta(a, b) => {
                 let a_f64 = (*a).into();
@@ -518,6 +549,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
     fn sd(&self) -> Self::Value {
         match self {
             Uniform(_a, _b) => self.var().sqrt(),
+            Binomial(_n, _mu) => self.var().sqrt(),
             Normal(_m, s) => (*s).into(),
             Beta(_a, _b) => self.var().sqrt(),
             Gamma(_a, _b) => self.var().sqrt(),
