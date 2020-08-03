@@ -170,6 +170,7 @@ Peroxide can do many things.
     * Probability Distributions
         * Bernoulli
         * Uniform
+        * Binomial
         * Normal
         * Gamma
         * Beta

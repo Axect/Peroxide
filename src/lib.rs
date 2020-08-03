@@ -19,6 +19,7 @@
 //!     * [Distributions](statistics/dist/index.html)
 //!         * Bernoulli
 //!         * Uniform
+//!         * Binomial
 //!         * Normal
 //!         * Gamma
 //!         * Beta

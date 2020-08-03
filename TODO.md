@@ -1,6 +1,6 @@
 # TODO
 
-## 2020.07.17
+## 2020.08.04
 
 ### Primary
 
@@ -20,9 +20,11 @@
 - [ ] Implement various pdf
     - [x] Bernoulli
     - [x] Beta
+    - [x] Binomial
     - [ ] Dirichlet
     - [x] Gamma
     - [x] Student's t
+    - [x] Uniform
     - [ ] Wishart
 - [ ] Implement special polynomial
     - [x] Legendre
@@ -40,7 +42,7 @@
     - [ ] Macros
     - [ ] Machine Learning
     - [x] Optimize
-    - [ ] Automatic Differentiation
+    - [x] Automatic Differentiation
 - [ ] Add Statistical regression
     - [ ] Gaussian Kernel
     - [ ] Logistic Kernel
