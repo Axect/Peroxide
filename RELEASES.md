@@ -1,3 +1,7 @@
+# Release 0.25.5 (2020-08-04)
+
+* Implement Binomial distribution
+
 # Release 0.25.4 (2020-08-01)
 
 * Reduce compile time
