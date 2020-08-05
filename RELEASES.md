@@ -1,3 +1,7 @@
+# Release 0.25.6 (2020-08-06)
+
+* Add assertion for matrix multiplications
+
 # Release 0.25.5 (2020-08-04)
 
 * Implement Binomial distribution
