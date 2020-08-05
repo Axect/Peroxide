@@ -1389,6 +1389,7 @@ impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
                 y
             }
             _ => {
+                assert_eq!(self.col, other.len());
                 let mut c = vec![0f64; self.row];
                 gemv(1f64, self, other, 0f64, &mut c);
                 c
