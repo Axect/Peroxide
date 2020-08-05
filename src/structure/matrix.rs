@@ -1389,6 +1389,7 @@ impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
                 y
             }
             _ => {
+                assert_eq!(self.col, other.len());
                 let mut c = vec![0f64; self.row];
                 gemv(1f64, self, other, 0f64, &mut c);
                 c
@@ -3276,6 +3277,7 @@ pub fn inv_u(u: Matrix) -> Matrix {
 
 /// Matrix multiply back-ends
 fn matmul(a: &Matrix, b: &Matrix) -> Matrix {
+    assert_eq!(a.col, b.row);
     let mut c = matrix(vec![0f64; a.row * b.col], a.row, b.col, a.shape);
     gemm(1f64, a, b, 0f64, &mut c);
     c
