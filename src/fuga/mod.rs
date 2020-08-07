@@ -110,7 +110,7 @@ pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
-    math::{InnerProduct, LinearOp, Norm, Normed, Vector},
+    math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct, MatrixProduct},
     mutable::{MutFP, MutMatrix},
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
