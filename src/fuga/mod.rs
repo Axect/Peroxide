@@ -110,53 +110,28 @@ pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
-    math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct, MatrixProduct},
+    math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
-    sugar::{Scalable, ScalableMut, VecOps},
     stable::StableFn,
+    sugar::{Scalable, ScalableMut, VecOps},
 };
 
 #[allow(unused_imports)]
-pub use crate::structure::{
-    dual::*, 
-    hyper_dual::*, 
-    matrix::*, 
-    polynomial::*, 
-    vector::*
-};
+pub use crate::structure::{dual::*, hyper_dual::*, matrix::*, polynomial::*, vector::*};
 
-pub use crate::util::{
-    api::*, 
-    low_level::*, 
-    non_macro::*, 
-    print::*, 
-    useful::*, 
-    wrapper::*
-};
+pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
 
 #[allow(unused_imports)]
-pub use crate::statistics::{
-    dist::*, 
-    ops::*, 
-    rand::*, 
-    stat::*
-};
+pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
 
 #[allow(unused_imports)]
 pub use crate::special::function::*;
 
 #[allow(unused_imports)]
 pub use crate::numerical::{
-    eigen::*, 
-    integral::*, 
-    interp::*, 
-    ode::*, 
-    optimize::*, 
-    spline::*, 
-    utils::*,
-    root::*,
+    eigen::*, integral::*, interp::*, ode::*, optimize::*, root::*, spline::*, utils::*,
 };
 
 #[allow(unused_imports)]
@@ -177,6 +152,7 @@ pub use crate::structure::ad::*;
 // Enums
 // =============================================================================
 pub use crate::numerical::integral::Integral::{GaussLegendre, NewtonCotes};
+pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};
 pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,
 };
@@ -185,4 +161,3 @@ pub use crate::structure::matrix::{
     SolveKind::{LU, WAZ},
 };
 pub use crate::traits::num::Number::{D, F};
-pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};

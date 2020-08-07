@@ -98,8 +98,8 @@ fn test_col_map() {
 
 #[test]
 fn test_outer() {
-    let a = c!(1,2,3);
-    let b = c!(4,5,6);
+    let a = c!(1, 2, 3);
+    let b = c!(4, 5, 6);
     let c = a.outer(&b);
     assert_eq!(c, ml_matrix("4 5 6;8 10 12;12 15 18"));
 }

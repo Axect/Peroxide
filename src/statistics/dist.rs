@@ -135,10 +135,7 @@ pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;
 //use statistics::rand::ziggurat;
-use crate::statistics::{
-    stat::Statistics,
-    ops::C,
-};
+use crate::statistics::{ops::C, stat::Statistics};
 use std::convert::Into;
 use std::f64::consts::E;
 
@@ -316,7 +313,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             Binomial(num, mu) => {
                 let mut rng = thread_rng();
                 let binom = rand_distr::Binomial::new(*num as u64, (*mu).into()).unwrap();
-                binom.sample_iter(&mut rng).take(n).map(|t| t as f64).collect()
+                binom
+                    .sample_iter(&mut rng)
+                    .take(n)
+                    .map(|t| t as f64)
+                    .collect()
             }
 
             Normal(m, s) => {
@@ -414,7 +415,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let n = *n;
                 let mu = (*mu).into();
                 let m = x.into() as usize;
-                (C(n, m) as f64) * mu.powi(m as i32) * (1f64 - mu).powi((n - m) as i32) 
+                (C(n, m) as f64) * mu.powi(m as i32) * (1f64 - mu).powi((n - m) as i32)
             }
             Normal(m, s) => {
                 let mean = (*m).into();
