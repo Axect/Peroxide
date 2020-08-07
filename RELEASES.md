@@ -1,3 +1,12 @@
+# Release 0.25.7 (2020-08-08)
+
+* Implement more Vector Products
+    * `cross`
+    * `outer`
+* Implement more Matrix Products
+    * `kronecker`
+    * `hadamard`
+
 # Release 0.25.6 (2020-08-06)
 
 * Add assertion for matrix multiplications
