@@ -458,12 +458,12 @@ use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
-    math::{InnerProduct, LinearOp, Norm, Normed, Vector},
+    math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
 };
 use crate::util::{
     low_level::{copy_vec_ptr, swap_vec_ptr},
-    non_macro::{eye, zeros},
+    non_macro::{cbind, eye, rbind, zeros},
     useful::{nearly_eq, tab},
 };
 use std::cmp::{max, min};
@@ -1395,6 +1395,46 @@ impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
                 c
             }
         }
+    }
+}
+
+impl MatrixProduct for Matrix {
+    fn kronecker(&self, other: &Self) -> Self {
+        let r1 = self.row;
+        let c1 = self.col;
+
+        let mut result = self[(0, 0)] * other;
+
+        for j in 1..c1 {
+            let n = self[(0, j)] * other;
+            result = cbind(result, n);
+        }
+
+        for i in 1..r1 {
+            let mut m = self[(i, 0)] * other;
+            for j in 1..c1 {
+                let n = self[(i, j)] * other;
+                m = cbind(m, n);
+            }
+            result = rbind(result, m);
+        }
+        result
+    }
+
+    fn hadamard(&self, other: &Self) -> Matrix {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+
+        let r = self.row;
+        let c = self.col;
+
+        let mut m = matrix(vec![0f64; r * c], r, c, self.shape);
+        for i in 0..r {
+            for j in 0..c {
+                m[(i, j)] = self[(i, j)] * other[(i, j)]
+            }
+        }
+        m
     }
 }
 

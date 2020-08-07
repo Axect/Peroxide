@@ -108,7 +108,7 @@ pub mod simpler;
 pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
-    math::{InnerProduct, LinearOp, Vector},
+    math::{InnerProduct, LinearOp, MatrixProduct, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
@@ -122,24 +122,8 @@ pub use crate::structure::{
     dual::*,
     hyper_dual::*,
     matrix::{
-        combine,
-        diag,
-        gemm,
-        gemv,
-        gen_householder,
-        inv_l,
-        inv_u,
-        matrix,
-        ml_matrix,
-        py_matrix,
-        r_matrix,
-        Col,
-        Matrix,
-        Row,
-        Shape,
-        PQLU,
-        QR,
-        WAZD,
+        combine, diag, gemm, gemv, gen_householder, inv_l, inv_u, matrix, ml_matrix, py_matrix,
+        r_matrix, Col, Matrix, Row, Shape, PQLU, QR, WAZD,
     },
     polynomial::*,
     vector::*,
@@ -148,22 +132,10 @@ pub use crate::structure::{
 pub use simpler::{solve, SimplerLinearAlgebra};
 
 #[allow(unused_imports)]
-pub use crate::util::{
-    api::*, 
-    low_level::*,
-    non_macro::*,
-    print::*,
-    useful::*,
-    wrapper::*,
-};
+pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
 
 #[allow(unused_imports)]
-pub use crate::statistics::{
-    dist::*,
-    ops::*,
-    rand::*,
-    stat::*,
-};
+pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
 
 #[allow(unused_imports)]
 pub use crate::special::function::*;
@@ -174,9 +146,9 @@ pub use crate::numerical::{
     interp::*,
     ode::*,
     optimize::*,
+    root::{bisection, false_position, newton, secant},
     spline::*,
     utils::*,
-    root::{bisection, secant, newton, false_position},
 };
 
 pub use simpler::{eigen, integrate};

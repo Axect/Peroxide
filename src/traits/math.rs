@@ -1,3 +1,4 @@
+use crate::structure::matrix::Matrix;
 use std::convert::Into;
 
 /// Mathematical Vector
@@ -49,6 +50,18 @@ pub trait InnerProduct: Normed {
 /// Linear operation for Vector
 pub trait LinearOp<T: Vector, S: Vector> {
     fn apply(&self, rhs: &T) -> S;
+}
+
+/// Vector Products
+pub trait VectorProduct: Vector {
+    fn cross(&self, other: &Self) -> Self;
+    fn outer(&self, other: &Self) -> Matrix;
+}
+
+/// Matrix Products
+pub trait MatrixProduct {
+    fn kronecker(&self, other: &Self) -> Matrix;
+    fn hadamard(&self, other: &Self) -> Matrix;
 }
 
 // =============================================================================

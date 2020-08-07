@@ -95,3 +95,19 @@ fn test_col_map() {
     );
     assert_eq!(n, o);
 }
+
+#[test]
+fn test_outer() {
+    let a = c!(1, 2, 3);
+    let b = c!(4, 5, 6);
+    let c = a.outer(&b);
+    assert_eq!(c, ml_matrix("4 5 6;8 10 12;12 15 18"));
+}
+
+#[test]
+fn test_kronecker() {
+    let a1 = ml_matrix("1 2;3 4");
+    let b1 = ml_matrix("0 5;6 7");
+    let c1 = a1.kronecker(&b1);
+    assert_eq!(c1, ml_matrix("0 5 0 10;6 7 12 14;0 15 0 20;18 21 24 28"));
+}

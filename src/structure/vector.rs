@@ -272,10 +272,11 @@ extern crate packed_simd;
 #[cfg(feature = "O3")]
 use self::packed_simd::{f64x4, f64x8};
 
+use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
     fp::FPVector,
     general::Algorithm,
-    math::{InnerProduct, LinearOp, Norm, Normed, Vector},
+    math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct},
     mutable::MutFP,
     num::Real,
     pointer::{Oxide, Redox},
@@ -679,6 +680,32 @@ impl LinearOp<Vec<f64>, f64> for Vec<f64> {
 impl Oxide for Vec<f64> {
     fn ox(self) -> Redox<Vec<f64>> {
         Redox::<Vec<f64>>::from_vec(self)
+    }
+}
+
+impl VectorProduct for Vec<f64> {
+    fn cross(&self, other: &Self) -> Self {
+        assert_eq!(self.len(), other.len());
+        // 2D cross product is ill-defined
+        if self.len() == 2 {
+            let mut v = vec![0f64; 1];
+            v[0] = self[0] * other[1] - self[1] * other[0];
+            v
+        } else if self.len() == 3 {
+            let mut v = vec![0f64; 3];
+            v[0] = self[1] * other[2] - self[2] * other[1];
+            v[1] = self[2] * other[0] - self[0] * other[2];
+            v[2] = self[0] * other[1] - self[1] * other[0];
+            v
+        } else {
+            panic!("Cross product can be defined only in 2 or 3 dimension")
+        }
+    }
+
+    fn outer(&self, other: &Self) -> Matrix {
+        let m: Matrix = self.into();
+        let n = matrix(other.to_owned(), 1, other.len(), Row);
+        m * n
     }
 }
 

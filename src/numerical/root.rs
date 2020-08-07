@@ -84,11 +84,11 @@
 //!
 //! * Walter Gautschi, *Numerical Analysis*, Springer (2012)
 
+use crate::structure::ad::{ADLift, AD, AD1};
 use crate::traits::stable::StableFn;
-use crate::structure::ad::{AD, AD1, ADLift};
-use std::marker::PhantomData;
-use RootState::{P, I};
 use std::fmt::Display;
+use std::marker::PhantomData;
+use RootState::{I, P};
 //use std::collections::HashMap;
 //use std::marker::PhantomData;
 
@@ -112,14 +112,14 @@ pub enum RootFind {
 #[derive(Debug, Clone)]
 pub struct RootFinder<F: Fn(T) -> T, T: AD> {
     init: RootState,
-    pub curr: RootState, 
+    pub curr: RootState,
     method: RootFind,
     f: Box<F>,
     find: RootBool,
     times: usize,
     tol: f64,
     root: f64,
-    _marker: PhantomData<T>
+    _marker: PhantomData<T>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -139,15 +139,9 @@ pub enum RootBool {
 impl Display for RootError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            RootError::MismatchedState => {
-                writeln!(f, "Mismatched RootState with RootFind method")
-            },
-            RootError::TimesUp => {
-                writeln!(f, "No root until set times - More times required")
-            },
-            RootError::NaNRoot => {
-                writeln!(f, "Root is NaN - Should modify initial states")
-            }
+            RootError::MismatchedState => writeln!(f, "Mismatched RootState with RootFind method"),
+            RootError::TimesUp => writeln!(f, "No root until set times - More times required"),
+            RootError::NaNRoot => writeln!(f, "Root is NaN - Should modify initial states"),
         }
     }
 }
@@ -181,78 +175,62 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
     /// ```
     pub fn new(init: RootState, method: RootFind, f: F) -> Result<Self, RootError> {
         match method {
-            RootFind::Bisection => {
-                match init {
-                    P(_) => Err(RootError::MismatchedState),
-                    _ => Ok(
-                        RootFinder {
-                            init,
-                            curr: init,
-                            method,
-                            f: Box::new(f),
-                            find: RootBool::NotYet,
-                            times: 100,
-                            tol: 1e-10,
-                            root: 0f64,
-                            _marker: PhantomData
-                        }
-                    )
-                }
+            RootFind::Bisection => match init {
+                P(_) => Err(RootError::MismatchedState),
+                _ => Ok(RootFinder {
+                    init,
+                    curr: init,
+                    method,
+                    f: Box::new(f),
+                    find: RootBool::NotYet,
+                    times: 100,
+                    tol: 1e-10,
+                    root: 0f64,
+                    _marker: PhantomData,
+                }),
             },
-            RootFind::Newton => {
-                match init {
-                    P(_) => Ok(
-                        RootFinder {
-                            init,
-                            curr: init,
-                            method,
-                            f: Box::new(f),
-                            find: RootBool::NotYet,
-                            times: 100,
-                            tol: 1e-10,
-                            root: 0f64,
-                            _marker: PhantomData
-                        }
-                    ),
-                    _ => Err(RootError::MismatchedState),
-                }
+            RootFind::Newton => match init {
+                P(_) => Ok(RootFinder {
+                    init,
+                    curr: init,
+                    method,
+                    f: Box::new(f),
+                    find: RootBool::NotYet,
+                    times: 100,
+                    tol: 1e-10,
+                    root: 0f64,
+                    _marker: PhantomData,
+                }),
+                _ => Err(RootError::MismatchedState),
             },
-            RootFind::Secant => {
-                match init {
-                    P(_) => Err(RootError::MismatchedState),
-                    _ => Ok(
-                        RootFinder {
-                            init,
-                            curr: init,
-                            method,
-                            f: Box::new(f),
-                            find: RootBool::NotYet,
-                            times: 100,
-                            tol: 1e-10,
-                            root: 0f64,
-                            _marker: PhantomData
-                        }
-                    )
-                }
+            RootFind::Secant => match init {
+                P(_) => Err(RootError::MismatchedState),
+                _ => Ok(RootFinder {
+                    init,
+                    curr: init,
+                    method,
+                    f: Box::new(f),
+                    find: RootBool::NotYet,
+                    times: 100,
+                    tol: 1e-10,
+                    root: 0f64,
+                    _marker: PhantomData,
+                }),
             },
-            RootFind::FalsePosition => {
-                match init {
-                    I(_, _) => Ok(
-                        RootFinder {
-                            init,
-                            curr: init,
-                            method,
-                            f: Box::new(f),
-                            find: RootBool::NotYet,
-                            times: 100,
-                            tol: 1e-10,
-                            root: 0f64,
-                            _marker: PhantomData
-                        }
-                    ),
-                    _ => Err(RootError::MismatchedState),
-                }
-            }
+            RootFind::FalsePosition => match init {
+                I(_, _) => Ok(RootFinder {
+                    init,
+                    curr: init,
+                    method,
+                    f: Box::new(f),
+                    find: RootBool::NotYet,
+                    times: 100,
+                    tol: 1e-10,
+                    root: 0f64,
+                    _marker: PhantomData,
+                }),
+                _ => Err(RootError::MismatchedState),
+            },
         }
     }
 
@@ -284,7 +262,7 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
         self.times = times;
         self
     }
-    
+
     /// Set tolerance
     pub fn set_tol(&mut self, tol: f64) -> &mut Self {
         self.tol = tol;
@@ -295,99 +273,91 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
     #[inline]
     pub fn update(&mut self) {
         match self.method {
-            RootFind::Bisection => {
-                match self.curr {
-                    I(a, b) => {
-                        let lift = ADLift::new(|x| self.f(x));
-                        let x = 0.5 * (a + b);
-                        let fa = lift.call_stable(a);
-                        let fx = lift.call_stable(x);
-                        let fb = lift.call_stable(b);
-                        if (a - b).abs() <= self.tol {
+            RootFind::Bisection => match self.curr {
+                I(a, b) => {
+                    let lift = ADLift::new(|x| self.f(x));
+                    let x = 0.5 * (a + b);
+                    let fa = lift.call_stable(a);
+                    let fx = lift.call_stable(x);
+                    let fb = lift.call_stable(b);
+                    if (a - b).abs() <= self.tol {
+                        self.find = RootBool::Find;
+                        self.root = x;
+                    } else {
+                        if fa * fx < 0f64 {
+                            self.curr = I(a, x);
+                        } else if fx * fb < 0f64 {
+                            self.curr = I(x, b);
+                        } else if fx == 0f64 {
                             self.find = RootBool::Find;
                             self.root = x;
                         } else {
-                            if fa * fx < 0f64 {
-                                self.curr = I(a, x);
-                            } else if fx * fb < 0f64 {
-                                self.curr = I(x, b);
-                            } else if fx == 0f64 {
-                                self.find = RootBool::Find;
-                                self.root = x;
-                            } else {
-                                self.find = RootBool::Error;
-                            }
+                            self.find = RootBool::Error;
                         }
                     }
-                    _ => unreachable!()
-                }    
+                }
+                _ => unreachable!(),
             },
-            RootFind::FalsePosition => {
-                match self.curr {
-                    I(a, b) => {
-                        let lift = ADLift::new(|x| self.f(x));
-                        let fa = lift.call_stable(a);
-                        let fb = lift.call_stable(b);
-                        let x = (a * fb - b * fa) / (fb - fa);
-                        let fx = lift.call_stable(x);
-                        if (a - b).abs() <= self.tol || fx.abs() <= self.tol {
+            RootFind::FalsePosition => match self.curr {
+                I(a, b) => {
+                    let lift = ADLift::new(|x| self.f(x));
+                    let fa = lift.call_stable(a);
+                    let fb = lift.call_stable(b);
+                    let x = (a * fb - b * fa) / (fb - fa);
+                    let fx = lift.call_stable(x);
+                    if (a - b).abs() <= self.tol || fx.abs() <= self.tol {
+                        self.find = RootBool::Find;
+                        self.root = x;
+                    } else {
+                        if fx * fa < 0f64 {
+                            self.curr = I(a, x);
+                        } else if fx * fb < 0f64 {
+                            self.curr = I(x, b);
+                        } else if fx == 0f64 {
                             self.find = RootBool::Find;
                             self.root = x;
                         } else {
-                            if fx * fa < 0f64 {
-                                self.curr = I(a, x);
-                            } else if fx * fb < 0f64  {
-                                self.curr = I(x, b);
-                            } else if fx == 0f64 {
-                                self.find = RootBool::Find;
-                                self.root = x;
-                            } else {
-                                self.find = RootBool::Error;
-                            }
+                            self.find = RootBool::Error;
                         }
                     }
-                    _ => unreachable!()
                 }
+                _ => unreachable!(),
             },
-            RootFind::Newton => {
-                match self.curr {
-                    P(xn) => {
-                        let lift = ADLift::new(|x| self.f(x));
-                        let mut z = AD1::from(xn);
-                        z.d1 = 1f64;
-                        let fz = lift.call_stable(z);
-                        let x = xn - (fz.d0 / fz.d1);
-                        if (x - xn).abs() <= self.tol {
-                            self.find = RootBool::Find;
-                            self.root = x;
-                        }
-                        self.curr = P(x);
-                    },
-                    _ => unreachable!()
-                }
-            },
-            RootFind::Secant => {
-                match self.curr {
-                    I(xn_1, xn) => {
-                        let lift = ADLift::new(|x| self.f(x));
-                        let fxn_1 = lift.call_stable(xn_1);
-                        let fxn = lift.call_stable(xn);
-                        let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
-                        if (x - xn).abs() <= self.tol {
-                            self.find = RootBool::Find;
-                            self.root = x;
-                        }
-                        self.curr = I(xn, x);
+            RootFind::Newton => match self.curr {
+                P(xn) => {
+                    let lift = ADLift::new(|x| self.f(x));
+                    let mut z = AD1::from(xn);
+                    z.d1 = 1f64;
+                    let fz = lift.call_stable(z);
+                    let x = xn - (fz.d0 / fz.d1);
+                    if (x - xn).abs() <= self.tol {
+                        self.find = RootBool::Find;
+                        self.root = x;
                     }
-                    _ => unreachable!()
+                    self.curr = P(x);
                 }
-            }
+                _ => unreachable!(),
+            },
+            RootFind::Secant => match self.curr {
+                I(xn_1, xn) => {
+                    let lift = ADLift::new(|x| self.f(x));
+                    let fxn_1 = lift.call_stable(xn_1);
+                    let fxn = lift.call_stable(xn);
+                    let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
+                    if (x - xn).abs() <= self.tol {
+                        self.find = RootBool::Find;
+                        self.root = x;
+                    }
+                    self.curr = I(xn, x);
+                }
+                _ => unreachable!(),
+            },
         }
     }
 
     /// Find Root
     pub fn find_root(&mut self) -> Result<f64, RootError> {
-        for _i in 0 .. self.times {
+        for _i in 0..self.times {
             self.update();
             match self.find {
                 RootBool::Find => {
@@ -421,13 +391,14 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn bisection<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+pub fn bisection<F: Fn(AD1) -> AD1>(
+    f: F,
+    interval: (f64, f64),
+    times: usize,
+    tol: f64,
+) -> Result<f64, RootError> {
     let (a, b) = interval;
-    let mut root_finder = RootFinder::new(
-        RootState::I(a, b), 
-        RootFind::Bisection, 
-        f
-    )?;
+    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::Bisection, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -450,13 +421,14 @@ pub fn bisection<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usize, to
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn false_position<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+pub fn false_position<F: Fn(AD1) -> AD1>(
+    f: F,
+    interval: (f64, f64),
+    times: usize,
+    tol: f64,
+) -> Result<f64, RootError> {
     let (a, b) = interval;
-    let mut root_finder = RootFinder::new(
-        RootState::I(a, b), 
-        RootFind::FalsePosition, 
-        f
-    )?;
+    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::FalsePosition, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -479,12 +451,13 @@ pub fn false_position<F: Fn(AD1) -> AD1>(f: F, interval: (f64, f64), times: usiz
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn newton<F: Fn(AD1) -> AD1>(f: F, initial_guess: f64, times: usize, tol: f64) -> Result<f64, RootError> {
-    let mut root_finder = RootFinder::new(
-        RootState::P(initial_guess),
-        RootFind::Newton, 
-        f
-    )?;
+pub fn newton<F: Fn(AD1) -> AD1>(
+    f: F,
+    initial_guess: f64,
+    times: usize,
+    tol: f64,
+) -> Result<f64, RootError> {
+    let mut root_finder = RootFinder::new(RootState::P(initial_guess), RootFind::Newton, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -507,13 +480,14 @@ pub fn newton<F: Fn(AD1) -> AD1>(f: F, initial_guess: f64, times: usize, tol: f6
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn secant<F: Fn(AD1) -> AD1>(f: F, initial_guess: (f64, f64), times: usize, tol: f64) -> Result<f64, RootError> {
+pub fn secant<F: Fn(AD1) -> AD1>(
+    f: F,
+    initial_guess: (f64, f64),
+    times: usize,
+    tol: f64,
+) -> Result<f64, RootError> {
     let (a, b) = initial_guess;
-    let mut root_finder = RootFinder::new(
-        RootState::I(a, b), 
-        RootFind::Secant, 
-        f
-    )?;
+    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::Secant, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
