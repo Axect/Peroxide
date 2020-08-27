@@ -12,8 +12,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         df.write_nc("example_data/nc_test.nc")?;
 
         let dg = DataFrame::read_nc("example_data/nc_test.nc")?;
-        dg.head(4);
-        dg.tail(4);
+        dg.head_print(4);
+        dg.tail_print(4);
     }
     Ok(())
 }

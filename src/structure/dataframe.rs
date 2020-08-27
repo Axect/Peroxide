@@ -488,11 +488,11 @@ impl DataFrame {
         result
     }
 
-    /// Pandas-like head
+    /// Pandas-like head (Only print)
     ///
     /// # Description
-    /// Print n lines
-    pub fn head(&self, n: usize) {
+    /// Print first n rows
+    pub fn head_print(&self, n: usize) {
         let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
         let r = n.min(r);
         let mut result = String::new();
@@ -547,11 +547,11 @@ impl DataFrame {
         println!("{}", result);
     }
 
-    /// Pandas-like tail
+    /// Pandas-like tail (Only print)
     ///
     /// # Description
-    /// Print n lines of tail
-    pub fn tail(&self, n: usize) {
+    /// Print last n rows
+    pub fn tail_print(&self, n: usize) {
         let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
         let mut result = String::new();
 

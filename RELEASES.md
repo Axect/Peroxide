@@ -1,3 +1,11 @@
+# Release 0.26.0 (2020-08-28)
+
+* Update `netcdf` dependencies
+    * Now, use `netcdf = 0.5`
+* Add new methods for `DataFrame`
+    * `head_print(&self, n: usize)` : Return n lines from head
+    * `tail_print(&self, n: usize)` : Return n lines before tail
+
 # Release 0.25.8 (2020-08-28)
 
 * Change licenses : BSD-3-Clause -> MIT OR Apache-2.0
