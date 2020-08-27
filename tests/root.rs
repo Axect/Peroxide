@@ -1,7 +1,7 @@
-#[macro_use]
+// #[macro_use]
 extern crate peroxide;
 use peroxide::fuga::*;
-use peroxide::numerical::root::*;
+// use peroxide::numerical::root::*;
 
 #[test]
 fn test_root_finder() -> Result<(), RootError> {
