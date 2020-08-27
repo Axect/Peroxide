@@ -574,10 +574,11 @@ impl WithNetCDF for DataFrame {
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new();
-        for (k, v) in f.variables().iter() {
+        for v in f.variables() {
+            let k = v.name();
             let mut data: Vec<f64> = vec![0.0; v.len()];
             v.values_to(&mut data, None, None)?;
-            df.insert(k, data);
+            df.insert(&k, data);
         }
         Ok(df)
     }
@@ -586,7 +587,7 @@ impl WithNetCDF for DataFrame {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::with_header(header.clone());
         for k in header {
-            let val = match f.variables().get(k) {
+            let val = match f.variable(k) {
                 Some(v) => v,
                 None => panic!("There are no corresponding values"),
             };
