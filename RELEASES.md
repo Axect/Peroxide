@@ -1,3 +1,8 @@
+# Release 0.25.8 (2020-08-28)
+
+* Change licenses : BSD-3-Clause -> MIT OR Apache-2.0
+* Update version of dependencies
+
 # Release 0.25.7 (2020-08-08)
 
 * Implement more Vector Products
