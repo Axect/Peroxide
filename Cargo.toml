@@ -5,7 +5,7 @@ authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
 repository = "https://github.com/Axect/Peroxide"
-license = "BSD-3-Clause"
+license = "MIT OR Apache-2.0"
 categories = ["science"]
 readme = "README.md"
 documentation = "https://peroxide.surge.sh"
@@ -22,14 +22,14 @@ float-cmp = "0.8"
 [dependencies]
 csv = "1.1"
 rand = "0.7"
-rand_distr = "0.2"
+rand_distr = "0.3"
 order-stat = "0.1"
 puruspe = "0.1"
 matrixmultiply = "0.2"
 peroxide-ad = { version = "0.1" }
-indexmap = { version = "1.4", optional = true }
+indexmap = { version = "1.5", optional = true }
 netcdf = { version = "0.2", optional = true, default_features = false, features = ["indexmap"] }
-pyo3 = { version = "0.10", optional = true }
+pyo3 = { version = "0.11", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }
 packed_simd = { version = "0.3", optional = true }
