@@ -11,5 +11,7 @@ Cargo.lock
 *.vs
 *.cdf
 *.json
+example_data/*.csv
+example_data/*.nc
 
 src/bin/*

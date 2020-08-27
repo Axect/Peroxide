@@ -487,6 +487,124 @@ impl DataFrame {
         }
         result
     }
+
+    /// Pandas-like head
+    ///
+    /// # Description
+    /// Print n lines
+    pub fn head(&self, n: usize) {
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let r = n.min(r);
+        let mut result = String::new();
+        
+        result.push_str(&tab("", 5));
+
+        let mut space_map: IndexMap<String, usize> = IndexMap::new();
+
+        for k in self.data.keys() {
+            let value = &self[&k];
+            let mut space = 0usize;
+            for elem in value {
+                space = max(
+                    space,
+                    min(format!("{:.4}", elem).len(), elem.to_string().len()),
+                );
+            }
+            space = max(space + 1, 5);
+            if k.len() >= space {
+                space = k.len() + 1;
+            }
+            result.push_str(&tab(k, space));
+            space_map.insert(k.to_string(), space);
+        }
+        result.push('\n');
+
+        for i in 0..r {
+            result.push_str(&tab(&format!("r[{}]", i), 5));
+            for k in self.data.keys() {
+                let v = &self[&k];
+                let space = space_map[k];
+                if i < v.len() {
+                    let elem = v[i];
+                    let st1 = format!("{:.4}", elem);
+                    let st2 = elem.to_string();
+                    let mut st = st2.clone();
+
+                    if st1.len() < st2.len() {
+                        st = st1;
+                    }
+
+                    result.push_str(&tab(&st, space));
+                } else {
+                    result.push_str(&tab("", space));
+                }
+            }
+            if i == (r - 1) {
+                break;
+            }
+            result.push('\n');
+        }
+        println!("{}", result);
+    }
+
+    /// Pandas-like tail
+    ///
+    /// # Description
+    /// Print n lines of tail
+    pub fn tail(&self, n: usize) {
+        let r: usize = self.data.values().fold(0, |max_len, column| max(max_len, column.len()));
+        let mut result = String::new();
+
+        let lc1 = ((r as f64).log10() as usize) + 5;
+        result.push_str(&tab("", lc1));
+
+        let mut space_map: IndexMap<String, usize> = IndexMap::new();
+
+        for k in self.data.keys() {
+            let value = &self[&k];
+            let mut space = 0usize;
+            for elem in value {
+                space = max(
+                    space,
+                    min(format!("{:.4}", elem).len(), elem.to_string().len()),
+                );
+            }
+            space = max(space + 1, 5);
+            if k.len() >= space {
+                space = k.len() + 1;
+            }
+            result.push_str(&tab(k, space));
+            space_map.insert(k.to_string(), space);
+        }
+        result.push('\n');
+
+        for i in r-n..r {
+            result.push_str(&tab(&format!("r[{}]", i), lc1));
+            for k in self.data.keys() {
+                let v = &self[&k];
+                let space = space_map[k];
+                if i < v.len() {
+                    let elem = v[i];
+                    let st1 = format!("{:.4}", elem);
+                    let st2 = elem.to_string();
+                    let mut st = st2.clone();
+
+                    if st1.len() < st2.len() {
+                        st = st1;
+                    }
+
+                    result.push_str(&tab(&st, space));
+                } else {
+                    result.push_str(&tab("", space));
+                }
+            }
+            if i == (r - 1) {
+                break;
+            }
+            result.push('\n');
+        }
+        println!("{}", result);
+    }
 }
 
 /// To deal with CSV file format
@@ -574,10 +692,11 @@ impl WithNetCDF for DataFrame {
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new();
-        for (k, v) in f.variables().iter() {
+        for v in f.variables() {
+            let k = v.name();
             let mut data: Vec<f64> = vec![0.0; v.len()];
             v.values_to(&mut data, None, None)?;
-            df.insert(k, data);
+            df.insert(&k, data);
         }
         Ok(df)
     }
@@ -586,7 +705,7 @@ impl WithNetCDF for DataFrame {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::with_header(header.clone());
         for k in header {
-            let val = match f.variables().get(k) {
+            let val = match f.variable(k) {
                 Some(v) => v,
                 None => panic!("There are no corresponding values"),
             };
