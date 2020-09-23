@@ -1,3 +1,7 @@
+# Release 0.26.3 (2020-09-24)
+
+* Remove `packed_simd` dependency (Fix `packed_simd` error)
+
 # Release 0.26.2 (2020-09-23)
 
 * Add more sugar for `Vec<f64>`

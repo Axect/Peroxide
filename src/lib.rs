@@ -88,7 +88,7 @@
 //!     [dependencies]
 //!     peroxide = "0.25"
 //!     ```
-//! 2. OpenBLAS & SIMD
+//! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
 //!     version = "0.25"
@@ -166,9 +166,6 @@ extern crate lapack;
 
 #[cfg(feature = "plot")]
 extern crate pyo3;
-
-#[cfg(feature = "simd")]
-extern crate packed_simd;
 
 #[cfg(feature = "serde")]
 extern crate serde;
