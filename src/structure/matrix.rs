@@ -1223,6 +1223,25 @@ impl Matrix {
         }
         result
     }
+
+    /// Substitute matrix to specific position
+    ///
+    /// # Description
+    /// 
+    /// $$
+    /// \begin{pmatrix}
+    /// start & \cdots & end.
+    /// \end{pmatrix}
+    /// $$ 
+    pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        for i in 0 .. row {
+            for j in 0 .. col {
+                self[(start.0 + i, start.1 + j)] = m[(i, j)];
+            }
+        }
+    }
 }
 
 // =============================================================================
