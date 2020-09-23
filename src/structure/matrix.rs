@@ -1445,6 +1445,7 @@ impl InnerProduct for Matrix {
 /// TODO: Transpose
 
 /// Matrix as Linear operator for Vector
+#[allow(non_snake_case)]
 impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
     fn apply(&self, other: &Vec<f64>) -> Vec<f64> {
         match () {
