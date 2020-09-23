@@ -126,6 +126,7 @@ Peroxide can do many things.
     * Transpose, Determinant, Diagonal
     * LU Decomposition, Inverse matrix, Block partitioning
     * QR Decomposition
+    * Singular Value Decomposition (SVD)
     * Reduced Row Echelon form
     * Column, Row operations
     * Eigenvalue, Eigenvector
@@ -210,7 +211,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.25.0`
+Corresponding to `0.26.3`
 
 ## Pre-requisite
 
@@ -225,33 +226,33 @@ Corresponding to `0.25.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.25"
+   peroxide = "0.26"
     ```
 2. OpenBLAS
     ```toml
    [dependencies.peroxide]
-   version = "0.25"
+   version = "0.26"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.25"
+   version = "0.26"
    default-features = false
    features = ["plot"] 
    ```
 4. DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.25"
+   version = "0.26"
    default-features = false
    features = ["dataframe"]
    ```
 4. OpenBLAS & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.25"
+   version = "0.26"
    default-features = false
    features = ["O3", "plot", "dataframe"] 
    ```

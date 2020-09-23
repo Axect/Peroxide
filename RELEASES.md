@@ -1,6 +1,13 @@
 # Release 0.26.3 (2020-09-24)
 
+## SVD
+
+* Add `svd` to `Matrix` (Only available in `O3` feature)
+
+## Minor changes
+
 * Remove `packed_simd` dependency (Fix `packed_simd` error)
+* Add `O3` version of `qr` (using `lapack_dgeqrf`)
 
 # Release 0.26.2 (2020-09-23)
 
