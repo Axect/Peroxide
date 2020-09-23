@@ -88,7 +88,7 @@
 //!     [dependencies]
 //!     peroxide = "0.25"
 //!     ```
-//! 2. OpenBLAS & SIMD
+//! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
 //!     version = "0.25"
