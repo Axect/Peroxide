@@ -2,7 +2,7 @@
 //!
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
-use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, WAZD};
+use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, WAZD, SVD};
 use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
@@ -181,6 +181,10 @@ impl LinearAlgebra for SPMatrix {
     }
 
     fn solve_mat(&self, _m: &Matrix, _sk: SolveKind) -> Matrix {
+        unimplemented!()
+    }
+
+    fn svd(&self) -> SVD {
         unimplemented!()
     }
 }

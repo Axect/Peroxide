@@ -449,7 +449,7 @@ use ::matrixmultiply;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
-use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr};
+use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
 
@@ -2568,6 +2568,7 @@ pub trait LinearAlgebra {
     fn lu(&self) -> PQLU;
     fn waz(&self, d_form: Form) -> Option<WAZD>;
     fn qr(&self) -> QR;
+    fn svd(&self) -> SVD;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
@@ -2683,6 +2684,13 @@ impl QR {
     pub fn r(&self) -> &Matrix {
         &self.r
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct SVD {
+    pub s: Vec<f64>,
+    pub u: Matrix,
+    pub vt: Matrix,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -2902,6 +2910,50 @@ impl LinearAlgebra for Matrix {
                 }
 
                 QR { q, r }
+            }
+        }
+    }
+
+    /// Singular Value Decomposition
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("3 2 2;2 3 -2");
+    ///     #[cfg(feature="O3")]
+    ///     {
+    ///         let svd = a.svd();
+    ///         assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
+    ///     }
+    ///     a.print();
+    /// }
+    /// ```
+    fn svd(&self) -> SVD {
+        match () {
+            #[cfg(feature="O3")]
+            () => {
+                let opt_dgesvd = lapack_dgesvd(self);
+                match opt_dgesvd {
+                    None => panic!("Illegal value in LAPACK SVD"),
+                    Some(dgesvd) => match dgesvd.status {
+                        SVD_STATUS::Diverge(i) => {
+                            panic!("Divergent occurs in SVD - {} iterations", i)
+                        }
+                        SVD_STATUS::Success => {
+                            SVD {
+                                s: dgesvd.s,
+                                u: dgesvd.u,
+                                vt: dgesvd.vt,
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {
+                unimplemented!()
             }
         }
     }
@@ -3701,6 +3753,13 @@ pub enum LAPACK_STATUS {
     NonSingular,
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum SVD_STATUS {
+    Success,
+    Diverge(i32),
+}
+
 /// Temporary data structure from `dgetrf`
 #[derive(Debug, Clone)]
 pub struct DGETRF {
@@ -3715,6 +3774,14 @@ pub struct DGEQRF {
     pub fact_mat: Matrix,
     pub tau: Vec<f64>,
     pub status: LAPACK_STATUS,
+}
+
+#[derive(Debug, Clone)]
+pub struct DGESVD {
+    pub s: Vec<f64>,
+    pub u: Matrix,
+    pub vt: Matrix,
+    pub status: SVD_STATUS,
 }
 
 ///// Temporary data structure from `dgeev`
@@ -3880,6 +3947,76 @@ pub fn lapack_dgeqrf(mat: &Matrix) -> Option<DGEQRF> {
                 })
             } else {
                 None
+            }
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+#[cfg(feature = "O3")]
+pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
+    match mat.shape {
+        Row => lapack_dgesvd(&mat.change_shape()),
+        Col => {
+            let jobu = b'A';
+            let jobvt = b'A';
+            let m = mat.row as i32;
+            let n = mat.col as i32;
+            let mut A = mat.clone();
+            let lda = m;
+            let mut s = vec![0f64; m.min(n) as usize];
+            let ldu = m;
+            let mut u = vec![0f64; (ldu * n) as usize];
+            let ldvt = n;
+            let mut vt = vec![0f64; (ldvt * n) as usize];
+            let mut work = vec![0f64; mat.col];
+            let lwork = -1i32;
+            let mut info = 0i32;
+
+            // Workspace query
+            unsafe {
+                dgesvd(jobu, jobvt, m, n, &mut A.data, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut work, lwork, &mut info);
+            }
+
+            let optimal_lwork = work[0] as usize;
+            let mut optimal_work = vec![0f64; optimal_lwork];
+
+            // Real dgesvd
+            unsafe {
+                dgesvd(
+                    jobu,
+                    jobvt,
+                    m,
+                    n,
+                    &mut A.data,
+                    lda,
+                    &mut s,
+                    &mut u,
+                    ldu,
+                    &mut vt,
+                    ldvt,
+                    &mut optimal_work,
+                    optimal_lwork as i32,
+                    &mut info,
+                )
+            }
+
+            if info == 0 {
+                Some(DGESVD {
+                    s: s,
+                    u: matrix(u, m as usize, m as usize, Col),
+                    vt: matrix(vt, n as usize, n as usize, Col),
+                    status: SVD_STATUS::Success,
+                })
+            } else if info < 0 {
+                None
+            } else {
+                Some(DGESVD {
+                    s: s,
+                    u: matrix(u, m as usize, m as usize, Col),
+                    vt: matrix(vt, n as usize, n as usize, Col),
+                    status: SVD_STATUS::Diverge(info),
+                })
             }
         }
     }
