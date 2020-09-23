@@ -1197,6 +1197,32 @@ impl Matrix {
         }
         result
     }
+
+    /// Submatrix
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("5 6;8 9");
+    ///     let c = a.submat((1, 1), (2, 2));
+    ///     assert_eq!(b, c);   
+    /// }
+    /// ```
+    pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
+        for i in 0 .. row {
+            for j in 0 .. col {
+                result[(i, j)] = self[(start.0 + i, start.1 + j)];
+            }
+        }
+        result
+    }
 }
 
 // =============================================================================
