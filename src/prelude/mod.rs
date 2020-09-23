@@ -112,6 +112,7 @@ pub use crate::traits::{
     mutable::{MutFP, MutMatrix},
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
+    sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
 
 pub use simpler::SimpleNorm;
