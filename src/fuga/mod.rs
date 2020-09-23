@@ -115,7 +115,7 @@ pub use crate::traits::{
     num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
     stable::StableFn,
-    sugar::{Scalable, ScalableMut, VecOps},
+    sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
 
 #[allow(unused_imports)]

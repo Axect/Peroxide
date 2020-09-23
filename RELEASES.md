@@ -1,3 +1,16 @@
+# Release 0.26.2 (2020-09-23)
+
+* Add more sugar for `Vec<f64>`
+    * `ConvToMat` : Convert `Vec<f64>`
+    * `to_col` : To Column matrix
+    * `to_row` : To Row matrix
+
+# Release 0.26.1 (2020-09-23)
+
+* Add new methods for `Matrix`
+    * `submat(&self, start: (usize, usize), end: (usize, usize))` : Return submatrix
+    * `subs_mat(&mut self, start, end, &Matrix)` : Substitute submatrix
+
 # Release 0.26.0 (2020-08-28)
 
 * Update `netcdf` dependencies

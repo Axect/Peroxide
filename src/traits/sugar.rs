@@ -1,4 +1,4 @@
-use crate::structure::matrix::{Matrix, Shape};
+use crate::structure::matrix::{Matrix, Shape, matrix};
 use crate::traits::{fp::FPVector, math::Vector};
 use crate::util::non_macro::zeros_shape;
 
@@ -27,6 +27,11 @@ pub trait ScalableMut {
     fn resize_mut(&mut self, size: (usize, usize), shape: Shape);
     fn add_col_mut(&mut self, v: &Self::Vec);
     fn add_row_mut(&mut self, v: &Self::Vec);
+}
+
+pub trait ConvToMat {
+    fn to_col(&self) -> Matrix;
+    fn to_row(&self) -> Matrix;
 }
 
 // =============================================================================
@@ -417,5 +422,15 @@ impl ScalableMut for Matrix {
                 self.col += 1;
             }
         }
+    }
+}
+
+impl ConvToMat for Vec<f64> {
+    fn to_col(&self) -> Matrix {
+        matrix(self.clone(), self.len(), 1, Shape::Col)
+    }
+    
+    fn to_row(&self) -> Matrix {
+        matrix(self.clone(), 1, self.len(), Shape::Row)
     }
 }

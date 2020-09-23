@@ -1197,6 +1197,83 @@ impl Matrix {
         }
         result
     }
+
+    /// Submatrix
+    ///
+    /// # Description
+    /// Return below elements of matrix to new matrix
+    /// 
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("5 6;8 9");
+    ///     let c = a.submat((1, 1), (2, 2));
+    ///     assert_eq!(b, c);   
+    /// }
+    /// ```
+    pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
+        for i in 0 .. row {
+            for j in 0 .. col {
+                result[(i, j)] = self[(start.0 + i, start.1 + j)];
+            }
+        }
+        result
+    }
+
+    /// Substitute matrix to specific position
+    ///
+    /// # Description
+    /// Substitute below elements of matrix
+    /// 
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("1 2;3 4");
+    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
+    ///     a.subs_mat((1,1), (2,2), &b);
+    ///     assert_eq!(a, c);       
+    /// }
+    /// ```
+    pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        for i in 0 .. row {
+            for j in 0 .. col {
+                self[(start.0 + i, start.1 + j)] = m[(i, j)];
+            }
+        }
+    }
 }
 
 // =============================================================================
