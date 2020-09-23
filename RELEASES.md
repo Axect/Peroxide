@@ -1,3 +1,9 @@
+# Release 0.26.1 (2020-09-23)
+
+* Add new methods for `Matrix`
+    * `submat(&self, start: (usize, usize), end: (usize, usize))` : Return submatrix
+    * `subs_mat(&mut self, start, end, &Matrix)` : Substitute submatrix
+
 # Release 0.26.0 (2020-08-28)
 
 * Update `netcdf` dependencies
