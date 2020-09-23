@@ -1199,7 +1199,20 @@ impl Matrix {
     }
 
     /// Submatrix
+    ///
+    /// # Description
+    /// Return below elements of matrix to new matrix
     /// 
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
     /// # Examples
     /// ```
     /// extern crate peroxide;
@@ -1227,12 +1240,31 @@ impl Matrix {
     /// Substitute matrix to specific position
     ///
     /// # Description
+    /// Substitute below elements of matrix
     /// 
     /// $$
     /// \begin{pmatrix}
-    /// start & \cdots & end.
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
     /// \end{pmatrix}
-    /// $$ 
+    /// $$
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("1 2;3 4");
+    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
+    ///     a.subs_mat((1,1), (2,2), &b);
+    ///     assert_eq!(a, c);       
+    /// }
+    /// ```
     pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
         let row = end.0 - start.0 + 1;
         let col = end.1 - start.1 + 1;
