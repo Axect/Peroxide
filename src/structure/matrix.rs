@@ -3036,10 +3036,10 @@ impl LinearAlgebra for Matrix {
     ///     assert_eq!(a.inv(), matrix(c!(-2,1,1.5,-0.5),2,2,Row));
     ///
     ///     // Singular
-    ///     let b = matrix!(1;9;1, 3, 3, Row);
-    ///     let c = b.inv(); // Can compile but..
-    ///     let d = b.det();
-    ///     assert_eq!(d, 0f64);
+    ///     //let b = matrix!(1;9;1, 3, 3, Row);
+    ///     //let c = b.inv(); // Can compile but..
+    ///     //let d = b.det();
+    ///     //assert_eq!(d, 0f64);
     /// }
     /// ```
     fn inv(&self) -> Self {
@@ -3049,7 +3049,10 @@ impl LinearAlgebra for Matrix {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
                     None => panic!("Singular matrix (opt_dgrf)"),
-                    Some(dgrf) => lapack_dgetri(&dgrf).unwrap(),
+                    Some(dgrf) => match dgrf.status {
+                        LAPACK_STATUS::NonSingular => lapack_dgetri(&dgrf).unwrap(),
+                        LAPACK_STATUS::Singular => panic!("Singular matrix (LAPACK_STATUS Singular)"),
+                    },
                 }
             }
             _ => self.lu().inv(),
