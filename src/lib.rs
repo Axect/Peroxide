@@ -9,6 +9,7 @@
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
 //!         * QR Decomposition
+//!         * Singular Value Decomposition
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
@@ -81,38 +82,38 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.25.0`
+//! * Current document version is corresponding to `0.26.3`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.25"
+//!     peroxide = "0.26"
 //!     ```
 //! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.25"
+//!     version = "0.26"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.25"
+//!     version = "0.26"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.25"
+//!     version = "0.26"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.25"
+//!     version = "0.26"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```
