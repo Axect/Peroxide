@@ -267,11 +267,6 @@ extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{dasum, daxpy, ddot, dnrm2, idamax};
 
-#[cfg(feature = "O3")]
-extern crate packed_simd;
-#[cfg(feature = "O3")]
-use self::packed_simd::{f64x4, f64x8};
-
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
     fp::FPVector,

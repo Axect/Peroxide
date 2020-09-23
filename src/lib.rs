@@ -167,9 +167,6 @@ extern crate lapack;
 #[cfg(feature = "plot")]
 extern crate pyo3;
 
-#[cfg(feature = "simd")]
-extern crate packed_simd;
-
 #[cfg(feature = "serde")]
 extern crate serde;
 
