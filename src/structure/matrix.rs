@@ -2847,27 +2847,63 @@ impl LinearAlgebra for Matrix {
     /// QR Decomposition
     ///
     /// Translation of [RosettaCode#Python](https://rosettacode.org/wiki/QR_decomposition#Python)
+    ///
+    /// # Example
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("12 -51 4;6 167 -68; -4 24 -41");
+    ///     let qr = a.qr();
+    ///     let r = ml_matrix("-14 -21 14; 0 -175 70; 0 0 -35");
+    ///     #[cfg(feature="O3")]
+    ///     {
+    ///         assert_eq!(r, qr.r);
+    ///     }
+    ///     qr.r.print();
+    /// }
+    /// ```
     #[allow(non_snake_case)]
     fn qr(&self) -> QR {
-        let m = self.row;
-        let n = self.col;
-
-        let mut r = self.clone();
-        let mut q = eye(m);
-        let sub = if m == n { 1 } else { 0 };
-        for i in 0..n - sub {
-            let mut H = eye(m);
-            let hh = gen_householder(&self.col(i).skip(i));
-            for j in i..m {
-                for k in i..m {
-                    H[(j, k)] = hh[(j - i, k - i)];
+        match () {
+            #[cfg(feature="O3")]
+            () => {
+                let opt_dgeqrf = lapack_dgeqrf(self);
+                match opt_dgeqrf {
+                    None => panic!("Serious problem in QR decomposition"),
+                    Some(dgeqrf) => {
+                        let q = dgeqrf.get_Q();
+                        let r = dgeqrf.get_R();
+                        QR {
+                            q,
+                            r
+                        }
+                    }
                 }
             }
-            q = &q * &H;
-            r = &H * &r;
-        }
+            _ => {
+                let m = self.row;
+                let n = self.col;
 
-        QR { q, r }
+                let mut r = self.clone();
+                let mut q = eye(m);
+                let sub = if m == n { 1 } else { 0 };
+                for i in 0..n - sub {
+                    let mut H = eye(m);
+                    let hh = gen_householder(&self.col(i).skip(i));
+                    for j in i..m {
+                        for k in i..m {
+                            H[(j, k)] = hh[(j - i, k - i)];
+                        }
+                    }
+                    q = &q * &H;
+                    r = &H * &r;
+                }
+
+                QR { q, r }
+            }
+        }
     }
 
     /// Reduced Row Echelon Form
