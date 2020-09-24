@@ -3966,7 +3966,7 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
             let lda = m;
             let mut s = vec![0f64; m.min(n) as usize];
             let ldu = m;
-            let mut u = vec![0f64; (ldu * n) as usize];
+            let mut u = vec![0f64; (ldu * m) as usize];
             let ldvt = n;
             let mut vt = vec![0f64; (ldvt * n) as usize];
             let mut work = vec![0f64; mat.col];
