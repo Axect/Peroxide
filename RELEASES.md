@@ -1,3 +1,7 @@
+# Release 0.26.4 (2020-09-24)
+
+* Fix dimension error of `SVD.u`
+
 # Release 0.26.3 (2020-09-24)
 
 ## SVD
