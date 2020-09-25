@@ -1,6 +1,8 @@
 extern crate peroxide;
+#[cfg(feature = "dataframe")]
 use peroxide::fuga::*;
 use std::error::Error;
+#[cfg(feature = "dataframe")]
 use std::fs;
 
 fn main() -> Result<(), Box<dyn Error>> {
