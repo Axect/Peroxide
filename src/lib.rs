@@ -82,38 +82,38 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.26.3`
+//! * Current document version is corresponding to `0.27.0`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.26"
+//!     peroxide = "0.27"
 //!     ```
 //! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.26"
+//!     version = "0.27"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.26"
+//!     version = "0.27"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.26"
+//!     version = "0.27"
 //!     default-features = false
 //!     features = ["dataframe"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.26"
+//!     version = "0.27"
 //!     default-features = false
 //!     features = ["O3", "plot", "dataframe"]
 //!     ```
@@ -153,8 +153,9 @@
 //!
 //! ## Useful tips for features
 //!
+//! * If you want to use `QR` or `SVD` then should use `O3` feature (there are no implementations for these decompositions in `default`)
+//! * If you want to write your numerical results, then use `dataframe` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
 //! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
-//! * After `0.21.4`, if size of matrix is smaller than `1000 x 1000`, default is more effective than `O3` feature.
 //! * To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
 //!     * `plot` feature has limited plot abilities.
 //!     * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
