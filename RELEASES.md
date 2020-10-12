@@ -1,8 +1,9 @@
-# Release 0.27.0 (2020-10-02) (Candidates)
+# Release 0.27.0 (2020-10-12)
 
 * Update dependencies
     * `indexmap` : 1.5 -> 1.6
     * `pyo3` : 0.11 -> 0.12
+* Add `print` for `&Vec<T>`
 
 # Release 0.26.4 (2020-09-24)
 
