@@ -419,9 +419,88 @@
 //!     }
 //!     ```
 //!
+//! ## QR Decomposition (`O3` feature only)
+//!
+//! * Use `dgeqrf` of LAPACK
+//! * Return `QR` structure.
+//!     
+//!     ```no-run
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     pub struct QR {
+//!         pub q: Matrix,
+//!         pub r: Matrix,
+//!     }
+//!     ```
+//!
+//! * Example
+//!     
+//!     ```ignore
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     let a = ml_matrix("
+//!         1 -1 4;
+//!         1 4 -2;
+//!         1 4 2;
+//!         1 -1 0
+//!     ");
+//!
+//!     // QR decomposition
+//!     let qr = a.qr();
+//!
+//!     qr.q().print();
+//!     //         c[0]    c[1]    c[2]
+//!     // r[0]    -0.5     0.5    -0.5
+//!     // r[1]    -0.5 -0.5000  0.5000
+//!     // r[2]    -0.5 -0.5000    -0.5
+//!     // r[3]    -0.5     0.5  0.5000
+//!
+//!     qr.r().print();
+//!     //      c[0] c[1] c[2]
+//!     // r[0]   -2   -3   -2
+//!     // r[1]    0   -5    2
+//!     // r[2]    0    0   -4
+//!     ```
+//!
+//! ## Singular Value Decomposition (`O3` feature only)
+//!
+//! * Use `dgesvd` of LAPACK
+//! * Return `SVD` structure
+//!
+//!     ```no_run
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     pub struct SVD {
+//!         pub s: Vec<f64>,
+//!         pub u: Matrix,
+//!         pub vt: Matrix,
+//!     }
+//!     ```
+//!
+//! * Example
+//!
+//!     ```
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("3 2 2;2 3 -2");
+//!         #[cfg(feature="O3")]
+//!         {
+//!             let svd = a.svd();
+//!             assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
+//!         }
+//!         a.print();
+//!     }
+//!     ```
+//!
 //! ## Moore-Penrose Pseudo Inverse
 //!
-//! * $ X^\dagger = \left(X^T X\right)^{-1} X $
+//! * $ X^\dagger = \left(X^T X\right)^{-1} X^T $
+//! * For `O3` feature, peroxide use SVD to obtain pseudo inverse
 //!
 //!     ```rust
 //!     #[macro_use]
@@ -2693,6 +2772,24 @@ pub struct SVD {
     pub vt: Matrix,
 }
 
+impl SVD {
+    pub fn u(&self) -> &Matrix {
+        &self.u
+    }
+
+    pub fn vt(&self) -> &Matrix {
+        &self.vt
+    }
+
+    pub fn s_mat(&self) -> Matrix {
+        let mut mat = zeros(self.u.col, self.vt.row);
+        for i in 0 .. mat.row.min(mat.col) {
+            mat[(i, i)] = self.s[i];
+        }
+        mat
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum SolveKind {
     LU,
@@ -3156,7 +3253,7 @@ impl LinearAlgebra for Matrix {
     /// Moore-Penrose Pseudo inverse
     ///
     /// # Description
-    /// `$(X^T X)^{-1} X^T$`
+    /// `$X^\dagger = (X^T X)^{-1} X^T$`
     ///
     /// # Examples
     /// ```
@@ -3173,9 +3270,24 @@ impl LinearAlgebra for Matrix {
     /// }
     /// ```
     fn pseudo_inv(&self) -> Self {
-        let xt = self.t();
-        let xtx = &xt * self;
-        xtx.inv() * xt
+        match () {
+            #[cfg(feature="O3")]
+            () => {
+                let svd = self.svd();
+                let row = svd.vt.row;
+                let col = svd.u.row;
+                let mut sp = zeros(row, col);
+                for i in 0 .. row.min(col) {
+                    sp[(i, i)] = 1f64 / svd.s[i];
+                }
+                svd.vt.t() * sp * svd.u.t()
+            }
+            _ => {
+                let xt = self.t();
+                let xtx = &xt * self;
+                xtx.inv() * xt
+            }
+        }
     }
 
     /// Solve with Vector
