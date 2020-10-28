@@ -1,3 +1,9 @@
+# Release 0.27.1 (2020-10-28)
+
+* Add doc for `Matrix::qr` & `Matrix::svd`
+* Enhance doc for `Matrix::pseudo_inv`
+* Implement `pseudo_inv` via `svd` (`O3` feature only)
+
 # Release 0.27.0 (2020-10-12)
 
 * Update dependencies
