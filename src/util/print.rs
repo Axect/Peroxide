@@ -2,7 +2,6 @@
 
 use crate::statistics::dist::*;
 #[allow(unused_imports)]
-#[cfg(feature = "dataframe")]
 use crate::structure::dataframe::*;
 use crate::structure::{
     dual::{Dual, Dualist},
@@ -30,11 +29,13 @@ impl Printable for f32 {
         println!("{}", self);
     }
 }
+
 impl Printable for u64 {
     fn print(&self) {
         println!("{}", self);
     }
 }
+
 impl Printable for u32 {
     fn print(&self) {
         println!("{}", self);
@@ -65,6 +66,18 @@ impl Printable for Vec<usize> {
     }
 }
 
+impl Printable for Vec<u8> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for Vec<u16> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
 impl Printable for Vec<u32> {
     fn print(&self) {
         println!("{:?}", self);
@@ -78,6 +91,18 @@ impl Printable for Vec<u64> {
 }
 
 impl Printable for Vec<isize> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for Vec<i8> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for Vec<i16> {
     fn print(&self) {
         println!("{:?}", self);
     }
@@ -113,6 +138,31 @@ impl Printable for Vec<String> {
     }
 }
 
+impl Printable for Vec<f32> {
+    fn print(&self) {
+        let mut result = String::new();
+        result.push_str("[");
+        for i in 0..self.len() {
+            let st1 = format!("{:.4}", self[i]);
+            let st2 = self[i].to_string();
+            let mut st = st2.clone();
+
+            if st1.len() < st2.len() {
+                st = st1;
+            }
+
+            result.push_str(&st);
+            if i == self.len() - 1 {
+                break;
+            }
+            result.push_str(", ");
+        }
+        result.push_str("]");
+
+        println!("{}", result);
+    }
+}
+
 impl Printable for Vec<f64> {
     fn print(&self) {
         let mut result = String::new();
@@ -144,6 +194,18 @@ impl Printable for &Vec<usize> {
     }
 }
 
+impl Printable for &Vec<u8> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for &Vec<u16> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
 impl Printable for &Vec<u32> {
     fn print(&self) {
         println!("{:?}", self);
@@ -157,6 +219,18 @@ impl Printable for &Vec<u64> {
 }
 
 impl Printable for &Vec<isize> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for &Vec<i8> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for &Vec<i16> {
     fn print(&self) {
         println!("{:?}", self);
     }
@@ -192,6 +266,36 @@ impl Printable for &Vec<String> {
     }
 }
 
+impl Printable for &Vec<bool> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+impl Printable for &Vec<f32> {
+    fn print(&self) {
+        let mut result = String::new();
+        result.push_str("[");
+        for i in 0..self.len() {
+            let st1 = format!("{:.4}", self[i]);
+            let st2 = self[i].to_string();
+            let mut st = st2.clone();
+
+            if st1.len() < st2.len() {
+                st = st1;
+            }
+
+            result.push_str(&st);
+            if i == self.len() - 1 {
+                break;
+            }
+            result.push_str(", ");
+        }
+        result.push_str("]");
+
+        println!("{}", result);
+    }
+}
 
 impl Printable for &Vec<f64> {
     fn print(&self) {
@@ -281,12 +385,78 @@ impl Printable for Vec<Number> {
     }
 }
 
-#[cfg(feature = "dataframe")]
-impl Printable for DataFrame {
+impl Printable for DTypeArray {
     fn print(&self) {
-        println!("{}", self)
+        match self {
+            DTypeArray::USIZE(v) => {
+                v.print();
+                println!("dtype: usize");
+            }
+            DTypeArray::U8(v) => {
+                v.print();
+                println!("dtype: u8");
+            }
+            DTypeArray::U16(v) => {
+                v.print();
+                println!("dtype: u16");
+            }
+            DTypeArray::U32(v) => {
+                v.print();
+                println!("dtype: u32");
+            }
+            DTypeArray::U64(v) => {
+                v.print();
+                println!("dtype: u64");
+            }
+            DTypeArray::ISIZE(v) => {
+                v.print();
+                println!("dtype: isize");
+            }
+            DTypeArray::I8(v) => {
+                v.print();
+                println!("dtype: i8");
+            }
+            DTypeArray::I16(v) => {
+                v.print();
+                println!("dtype: i16");
+            }
+            DTypeArray::I32(v) => {
+                v.print();
+                println!("dtype: i32");
+            }
+            DTypeArray::I64(v) => {
+                v.print();
+                println!("dtype: i64");
+            }
+            DTypeArray::F32(v) => {
+                v.print();
+                println!("dtype: f32");
+            }
+            DTypeArray::F64(v) => {
+                v.print();
+                println!("dtype: f64");
+            }
+            DTypeArray::Bool(v) => {
+                v.print();
+                println!("dtype: bool");
+            }
+            DTypeArray::Str(v) => {
+                v.print();
+                println!("dtype: String");
+            }
+            DTypeArray::Char(v) => {
+                v.print();
+                println!("dtype: char");
+            }
+        }
     }
 }
+
+// impl Printable for DataFrame {
+//     fn print(&self) {
+//         println!("{}", self)
+//     }
+// }
 
 //impl<A: Array<Item=f64>> Printable for AD<A> {
 //    fn print(&self) {

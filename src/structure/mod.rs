@@ -9,7 +9,6 @@
 //! * Multinomial (not yet implemented)
 
 pub mod ad;
-#[cfg(feature = "dataframe")]
 pub mod dataframe;
 pub mod dual;
 pub mod hyper_dual;

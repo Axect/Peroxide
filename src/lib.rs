@@ -174,13 +174,8 @@ extern crate serde;
 
 extern crate rand;
 
-#[cfg(feature = "dataframe")]
 extern crate indexmap;
 
-#[cfg(feature = "dataframe")]
-extern crate netcdf;
-
-#[cfg(feature = "dataframe")]
 extern crate json;
 
 extern crate order_stat;
@@ -190,6 +185,9 @@ extern crate puruspe;
 extern crate matrixmultiply;
 
 extern crate peroxide_ad;
+
+#[cfg(feature = "hdfs")]
+extern crate netcdf;
 
 #[macro_use]
 pub mod macros;
