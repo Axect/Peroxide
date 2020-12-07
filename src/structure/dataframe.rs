@@ -52,6 +52,25 @@ pub enum DTypeArray {
     Char(Vec<char>),
 }
 
+#[derive(Debug, Clone)]
+pub enum DTypeValue {
+    USIZE(usize),
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    ISIZE(isize),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
+    Bool(bool),
+    Str(String),
+    Char(char),
+}
+
 // =============================================================================
 // Structs
 // =============================================================================
@@ -76,6 +95,133 @@ pub struct IndexSeries {
 // =============================================================================
 // Implementations
 // =============================================================================
+
+impl DTypeValue {
+    pub fn to_array(&self) -> DTypeArray {
+        match self {
+            DTypeValue::USIZE(x) => DTypeArray::USIZE(vec![*x]),
+            DTypeValue::ISIZE(x) => DTypeArray::ISIZE(vec![*x]),
+            DTypeValue::U8(x) => DTypeArray::U8(vec![*x]),
+            DTypeValue::I8(x) => DTypeArray::I8(vec![*x]),
+            DTypeValue::U16(x) => DTypeArray::U16(vec![*x]),
+            DTypeValue::I16(x) => DTypeArray::I16(vec![*x]),
+            DTypeValue::U32(x) => DTypeArray::U32(vec![*x]),
+            DTypeValue::I32(x) => DTypeArray::I32(vec![*x]),
+            DTypeValue::F32(x) => DTypeArray::F32(vec![*x]),
+            DTypeValue::U64(x) => DTypeArray::U64(vec![*x]),
+            DTypeValue::I64(x) => DTypeArray::I64(vec![*x]),
+            DTypeValue::F64(x) => DTypeArray::F64(vec![*x]),
+            DTypeValue::Bool(x) => DTypeArray::Bool(vec![*x]),
+            DTypeValue::Char(x) => DTypeArray::Char(vec![*x]),
+            DTypeValue::Str(x) => DTypeArray::Str(vec![x.clone()]),
+        }
+    }
+
+    pub fn unwrap_usize(&self) -> usize {
+        match self {
+            DTypeValue::USIZE(x) => *x,
+            _ => panic!("Can't unwrap usize"),
+        }
+    }
+
+    pub fn unwrap_u8(&self) -> u8 {
+        match self {
+            DTypeValue::U8(x) => *x,
+            _ => panic!("Can't unwrap u8"),
+        }
+    }
+
+    pub fn unwrap_u16(&self) -> u16 {
+        match self {
+            DTypeValue::U16(x) => *x,
+            _ => panic!("Can't unwrap u16"),
+        }
+    }
+
+    pub fn unwrap_u32(&self) -> u32 {
+        match self {
+            DTypeValue::U32(x) => *x,
+            _ => panic!("Can't unwrap u32"),
+        }
+    }
+
+    pub fn unwrap_u64(&self) -> u64 {
+        match self {
+            DTypeValue::U64(x) => *x,
+            _ => panic!("Can't unwrap u64"),
+        }
+    }
+
+    pub fn unwrap_isize(&self) -> isize {
+        match self {
+            DTypeValue::ISIZE(x) => *x,
+            _ => panic!("Can't unwrap isize"),
+        }
+    }
+
+    pub fn unwrap_i8(&self) -> i8 {
+        match self {
+            DTypeValue::I8(x) => *x,
+            _ => panic!("Can't unwrap i8"),
+        }
+    }
+
+    pub fn unwrap_i16(&self) -> i16 {
+        match self {
+            DTypeValue::I16(x) => *x,
+            _ => panic!("Can't unwrap i16"),
+        }
+    }
+
+    pub fn unwrap_i32(&self) -> i32 {
+        match self {
+            DTypeValue::I32(x) => *x,
+            _ => panic!("Can't unwrap i32"),
+        }
+    }
+
+    pub fn unwrap_i64(&self) -> i64 {
+        match self {
+            DTypeValue::I64(x) => *x,
+            _ => panic!("Can't unwrap i64"),
+        }
+    }
+
+    pub fn unwrap_f32(&self) -> f32 {
+        match self {
+            DTypeValue::F32(x) => *x,
+            _ => panic!("Can't unwrap f32"),
+        }
+    }
+
+    pub fn unwrap_f64(&self) -> f64 {
+        match self {
+            DTypeValue::F64(x) => *x,
+            _ => panic!("Can't unwrap f64"),
+        }
+    }
+
+    pub fn unwrap_bool(&self) -> bool {
+        match self {
+            DTypeValue::Bool(x) => *x,
+            _ => panic!("Can't unwrap bool"),
+        }
+    }
+
+    pub fn unwrap_str(&self) -> String {
+        match self {
+            DTypeValue::Str(x) => x.clone(),
+            _ => panic!("Can't unwrap String"),
+        }
+    }
+
+    pub fn unwrap_char(&self) -> char {
+        match self {
+            DTypeValue::Char(x) => *x,
+            _ => panic!("Can't unwrap char"),
+        }
+    }
+}
 
 impl Series {
     pub fn new(values: DTypeArray) -> Self {
@@ -102,6 +248,26 @@ impl Series {
             dtype,
         }
     }
+
+    pub fn at(&self, i: usize) -> DTypeValue {
+        match &self.values {
+            DTypeArray::USIZE(v) => DTypeValue::USIZE(v[i]),
+            DTypeArray::U8(v) => DTypeValue::U8(v[i]),
+            DTypeArray::U16(v) => DTypeValue::U16(v[i]),
+            DTypeArray::U32(v) => DTypeValue::U32(v[i]),
+            DTypeArray::U64(v) => DTypeValue::U64(v[i]),
+            DTypeArray::ISIZE(v) => DTypeValue::ISIZE(v[i]),
+            DTypeArray::I8(v) => DTypeValue::I8(v[i]),
+            DTypeArray::I16(v) => DTypeValue::I16(v[i]),
+            DTypeArray::I32(v) => DTypeValue::I32(v[i]),
+            DTypeArray::I64(v) => DTypeValue::I64(v[i]),
+            DTypeArray::F32(v) => DTypeValue::F32(v[i]),
+            DTypeArray::F64(v) => DTypeValue::F64(v[i]),
+            DTypeArray::Bool(v) => DTypeValue::Bool(v[i]),
+            DTypeArray::Str(v) => DTypeValue::Str(v[i].clone()),
+            DTypeArray::Char(v) => DTypeValue::Char(v[i]),
+        }
+    }
 }
 
 impl DataFrame {
@@ -122,16 +288,26 @@ impl DataFrame {
         &mut self.ics
     }
 
-    pub fn header_replace(&mut self, new_header: Vec<&str>) {
+    pub fn set_header(&mut self, new_header: Vec<&str>) {
         assert_eq!(self.ics.len(), new_header.len(), "Improper Header length!");
         self.ics = new_header.into_iter().map(|x| x.to_string()).collect();
     }
 
     pub fn push(&mut self, name: &str, series: Series) {
-        assert_eq!(self.ics.iter().find(|x| x.as_str() == name), None, "Repetitive index!");
-        
+        if self.ics.len() > 0 {
+            assert_eq!(self.ics.iter().find(|x| x.as_str() == name), None, "Repetitive index!");
+        }
         self.ics.push(name.to_string());
         self.data.push(series);
+    }
+
+    pub fn row(&self, i: usize) -> DataFrame {
+        let mut df = DataFrame::new(vec![]);
+        for (j, series) in self.data.iter().enumerate() {
+            let new_series = Series::new(series.at(i).to_array());
+            df.push(&self.ics[j], new_series);
+        }
+        df
     }
 }
 

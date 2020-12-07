@@ -20,4 +20,7 @@ fn main() {
     df.push("a", Series::new(Char(vec!['a', 'b', 'c'])));
 
     println!("{:?}", df);
+    println!("{:?}", df.row(1));
+
+    println!("{}", df.row(1)["a"].at(0).unwrap_char());
 }
