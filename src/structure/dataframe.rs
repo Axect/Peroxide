@@ -8,6 +8,11 @@
 //use std::collections::HashMap;
 //use std::error::Error;
 use std::ops::{Index, IndexMut};
+use DType::{
+    USIZE,U8,U16,U32,U64,
+    ISIZE,I8,I16,I32,I64,
+    F32,F64,Bool,Char,Str
+};
 //use std::{fmt, fmt::Debug};
 
 // =============================================================================
@@ -223,52 +228,101 @@ impl DTypeValue {
     }
 }
 
-impl Series {
-    pub fn new(values: DTypeArray) -> Self {
-        let dtype = match values {
-            DTypeArray::USIZE(_) => DType::USIZE,
-            DTypeArray::U8(_) => DType::U8,
-            DTypeArray::U16(_) => DType::U16,
-            DTypeArray::U32(_) => DType::U32,
-            DTypeArray::U64(_) => DType::U64,
-            DTypeArray::ISIZE(_) => DType::ISIZE,
-            DTypeArray::I8(_) => DType::I8,
-            DTypeArray::I16(_) => DType::I16,
-            DTypeArray::I32(_) => DType::I32,
-            DTypeArray::I64(_) => DType::I64,
-            DTypeArray::F32(_) => DType::F32,
-            DTypeArray::F64(_) => DType::F64,
-            DTypeArray::Bool(_) => DType::Bool,
-            DTypeArray::Str(_) => DType::Str,
-            DTypeArray::Char(_) => DType::Char,
-        };
+pub trait TypedVector<T> {
+    fn new(v: Vec<T>) -> Self;
+    fn to_vec(self) -> Vec<T>;
+    fn at(&self, i: usize) -> T;
+}
 
-        Self {
-            values,
-            dtype,
-        }
-    }
+macro_rules! impl_typed_array {
+    ($type:ty, $dtype:ident) => {
+        impl TypedVector<$type> for Series {
+            fn new(v: Vec<$type>) -> Self {
+                Self {
+                    values: DTypeArray::$dtype(v),
+                    dtype: DType::$dtype,
+                }
+            }
 
-    pub fn at(&self, i: usize) -> DTypeValue {
-        match &self.values {
-            DTypeArray::USIZE(v) => DTypeValue::USIZE(v[i]),
-            DTypeArray::U8(v) => DTypeValue::U8(v[i]),
-            DTypeArray::U16(v) => DTypeValue::U16(v[i]),
-            DTypeArray::U32(v) => DTypeValue::U32(v[i]),
-            DTypeArray::U64(v) => DTypeValue::U64(v[i]),
-            DTypeArray::ISIZE(v) => DTypeValue::ISIZE(v[i]),
-            DTypeArray::I8(v) => DTypeValue::I8(v[i]),
-            DTypeArray::I16(v) => DTypeValue::I16(v[i]),
-            DTypeArray::I32(v) => DTypeValue::I32(v[i]),
-            DTypeArray::I64(v) => DTypeValue::I64(v[i]),
-            DTypeArray::F32(v) => DTypeValue::F32(v[i]),
-            DTypeArray::F64(v) => DTypeValue::F64(v[i]),
-            DTypeArray::Bool(v) => DTypeValue::Bool(v[i]),
-            DTypeArray::Str(v) => DTypeValue::Str(v[i].clone()),
-            DTypeArray::Char(v) => DTypeValue::Char(v[i]),
+            fn to_vec(self) -> Vec<$type> {
+                match self.values {
+                    DTypeArray::$dtype(v) => v,
+                    _ => panic!("Can't convert to {:?} vector", $dtype),
+                }
+            }
+
+            fn at(&self, i: usize) -> $type {
+                match &self.values {
+                    DTypeArray::$dtype(v) => v[i].clone(),
+                    _ => panic!("Can't extract {:?} value", $dtype),
+                }
+            }
         }
     }
 }
+
+impl_typed_array!(usize, USIZE);
+impl_typed_array!(u8, U8);
+impl_typed_array!(u16, U16);
+impl_typed_array!(u32, U32);
+impl_typed_array!(u64, U64);
+impl_typed_array!(isize, ISIZE);
+impl_typed_array!(i8, I8);
+impl_typed_array!(i16, I16);
+impl_typed_array!(i32, I32);
+impl_typed_array!(i64, I64);
+impl_typed_array!(f32, F32);
+impl_typed_array!(f64, F64);
+impl_typed_array!(bool, Bool);
+impl_typed_array!(char, Char);
+impl_typed_array!(String, Str);
+
+//impl Series {
+//    pub fn new(values: DTypeArray) -> Self {
+//        let dtype = match values {
+//            DTypeArray::USIZE(_) => DType::USIZE,
+//            DTypeArray::U8(_) => DType::U8,
+//            DTypeArray::U16(_) => DType::U16,
+//            DTypeArray::U32(_) => DType::U32,
+//            DTypeArray::U64(_) => DType::U64,
+//            DTypeArray::ISIZE(_) => DType::ISIZE,
+//            DTypeArray::I8(_) => DType::I8,
+//            DTypeArray::I16(_) => DType::I16,
+//            DTypeArray::I32(_) => DType::I32,
+//            DTypeArray::I64(_) => DType::I64,
+//            DTypeArray::F32(_) => DType::F32,
+//            DTypeArray::F64(_) => DType::F64,
+//            DTypeArray::Bool(_) => DType::Bool,
+//            DTypeArray::Str(_) => DType::Str,
+//            DTypeArray::Char(_) => DType::Char,
+//        };
+//
+//        Self {
+//            values,
+//            dtype,
+//        }
+//    }
+//
+//    pub fn at(&self, i: usize) -> DTypeValue {
+//        match &self.values {
+//            DTypeArray::USIZE(v) => DTypeValue::USIZE(v[i]),
+//            DTypeArray::U8(v) => DTypeValue::U8(v[i]),
+//            DTypeArray::U16(v) => DTypeValue::U16(v[i]),
+//            DTypeArray::U32(v) => DTypeValue::U32(v[i]),
+//            DTypeArray::U64(v) => DTypeValue::U64(v[i]),
+//            DTypeArray::ISIZE(v) => DTypeValue::ISIZE(v[i]),
+//            DTypeArray::I8(v) => DTypeValue::I8(v[i]),
+//            DTypeArray::I16(v) => DTypeValue::I16(v[i]),
+//            DTypeArray::I32(v) => DTypeValue::I32(v[i]),
+//            DTypeArray::I64(v) => DTypeValue::I64(v[i]),
+//            DTypeArray::F32(v) => DTypeValue::F32(v[i]),
+//            DTypeArray::F64(v) => DTypeValue::F64(v[i]),
+//            DTypeArray::Bool(v) => DTypeValue::Bool(v[i]),
+//            DTypeArray::Str(v) => DTypeValue::Str(v[i].clone()),
+//            DTypeArray::Char(v) => DTypeValue::Char(v[i]),
+//        }
+//    }
+//}
 
 impl DataFrame {
     pub fn new(v: Vec<Series>) -> Self {
@@ -301,14 +355,14 @@ impl DataFrame {
         self.data.push(series);
     }
 
-    pub fn row(&self, i: usize) -> DataFrame {
-        let mut df = DataFrame::new(vec![]);
-        for (j, series) in self.data.iter().enumerate() {
-            let new_series = Series::new(series.at(i).to_array());
-            df.push(&self.ics[j], new_series);
-        }
-        df
-    }
+    //pub fn row(&self, i: usize) -> DataFrame {
+    //    let mut df = DataFrame::new(vec![]);
+    //    for (j, series) in self.data.iter().enumerate() {
+    //        let new_series = Series::new(series.at(i).to_array());
+    //        df.push(&self.ics[j], new_series);
+    //    }
+    //    df
+    //}
 }
 
 impl Index<&str> for DataFrame {
