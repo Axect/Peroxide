@@ -30,4 +30,6 @@ fn main() {
 
     let ch: char = df.row(1)["a"].at(0).unwrap();
     println!("{}", ch);
+
+    println!("{}", df);
 }

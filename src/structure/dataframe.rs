@@ -7,7 +7,10 @@
 //use std::cmp::{max, min};
 //use std::collections::HashMap;
 //use std::error::Error;
+use std::fmt;
 use std::ops::{Index, IndexMut};
+use std::cmp::{max, min};
+use crate::util::useful::tab;
 use DType::{
     USIZE,U8,U16,U32,U64,
     ISIZE,I8,I16,I32,I64,
@@ -223,6 +226,14 @@ macro_rules! dtype_match {
     }};
 }
 
+fn len<T>(x: Vec<T>) -> usize {
+    x.len()
+}
+
+fn to_string<T: fmt::Display>(x: T) -> String {
+    x.to_string()
+}
+
 // =============================================================================
 // Implementations
 // =============================================================================
@@ -231,11 +242,19 @@ impl Scalar {
     pub fn to_series(self) -> Series {
         dtype_match!(self.dtype, vec![self.unwrap()], Series::new; Vec)
     }
+
+    pub fn to_string(self) -> String {
+        dtype_match!(self.dtype, self.unwrap(), to_string)
+    }
 }
 
 impl Series {
     pub fn at(&self, i: usize) -> Scalar {
         dtype_match!(self.dtype, self.at_raw(i), Scalar::new)
+    }
+
+    pub fn len(&self) -> usize {
+        dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
     }
 }
 
@@ -311,6 +330,256 @@ impl DataFrame {
         }
         df
     }
+
+    pub fn spread(&self) -> String {
+        let r: usize = self.data.iter().fold(0, |max_len, column| max(max_len, column.len()));
+        let h = self.header();
+        
+        let mut result = String::new();
+
+        if r > 100 {
+            let lc1 = ((r as f64).log10() as usize) + 5;
+            result.push_str(&tab("", lc1));
+
+            let mut space_vec: Vec<usize> = vec![];
+            for i in 0 .. self.data.len() {
+                let v = &self[i];
+                let mut space = 0usize;
+                for j in 0 .. 5 {
+                    let elem = v.at(j);
+                    match v.dtype {
+                        F32 => {
+                            let elem: f32 = elem.unwrap();
+                            space = max(
+                                space,
+                                min(format!("{:.4}", elem).len(), elem.to_string().len())
+                            );
+                        }
+                        F64 => {
+                            let elem: f64 = elem.unwrap();
+                            space = max(
+                                space,
+                                min(format!("{:.4}", elem).len(), elem.to_string().len())
+                            );
+                        }
+                        _ => {
+                            space = elem.to_string().len();  
+                        }
+                    } // match
+                } // for 0 .. 5
+                if v.len() >= r-5 {
+                    for j in v.len()-5 .. v.len() {
+                        let elem = v.at(j);
+                        match v.dtype {
+                            F32 => {
+                                let elem: f32 = elem.unwrap();
+                                space = max(
+                                    space,
+                                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                                );
+                            }
+                            F64 => {
+                                let elem: f64 = elem.unwrap();
+                                space = max(
+                                    space,
+                                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                                );
+                            }
+                            _ => {
+                                space = elem.to_string().len();  
+                            }
+                        }
+                    }
+                } // if v.len >= r-5
+                space = max(space + 1, 5);
+                let k = &h[i];
+                if k.len() >= space {
+                    space = k.len() + 1;
+                }
+                result.push_str(&tab(k, space));
+                space_vec.push(space);
+            } // for i in 0 .. len()
+            result.push('\n');
+            
+            for i in 0 .. 5 {
+                result.push_str(&tab(&format!("r[{}]", i), lc1));
+                for j in 0 .. self.data.len() {
+                    let v = &self[j];
+                    let space = space_vec[j];
+                    if i < v.len() {
+                        let elem = v.at(i);
+                        let st = match elem.dtype {
+                            F32 => {
+                                let elem: f32 = elem.unwrap();
+                                let st1 = format!("{:.4}", elem);
+                                let st2 = elem.to_string();
+
+                                if st1.len() < st2.len() {
+                                    st1
+                                } else {
+                                    st2
+                                }
+                            }
+                            F64 => {
+                                let elem: f64 = elem.unwrap();
+                                let st1 = format!("{:.4}", elem);
+                                let st2 = elem.to_string();
+
+                                if st1.len() < st2.len() {
+                                    st1
+                                } else {
+                                    st2
+                                }
+                            }
+                            _ => {
+                                elem.to_string()
+                            }
+                        };
+
+                        result.push_str(&tab(&st, space));
+                    }  else { 
+                        result.push_str(&tab("", space));      
+                    } // if i < v.len()
+                } // for j in 0 .. self.data.len()
+                result.push('\n');
+            } // for i in 0 .. 5
+            result.push_str(&tab("...", lc1));
+            for j in 0 .. self.data.len() {
+                let space = space_vec[j];
+                result.push_str(&tab("...", space));
+            } // for j in 0 .. self.data.len()
+            result.push('\n');
+            for i in r-5 .. r {
+                result.push_str(&tab(&format!("r[{}]", i), lc1));
+                for j in 0 .. self.data.len() {
+                    let v = &self[j];
+                    let space = space_vec[j];
+                    if i < v.len() {
+                        let elem = v.at(i);
+                        let st = match elem.dtype {
+                            F32 => {
+                                let elem: f32 = elem.unwrap();
+                                let st1 = format!("{:.4}", elem);
+                                let st2 = elem.to_string();
+
+                                if st1.len() < st2.len() {
+                                    st1
+                                } else {
+                                    st2
+                                }
+                            }
+                            F64 => {
+                                let elem: f64 = elem.unwrap();
+                                let st1 = format!("{:.4}", elem);
+                                let st2 = elem.to_string();
+
+                                if st1.len() < st2.len() {
+                                    st1
+                                } else {
+                                    st2
+                                }
+                            }
+                            _ => {
+                                elem.to_string()
+                            }
+                        };
+                        result.push_str(&tab(&st, space));
+                    } else {
+                        result.push_str(&tab("", space));
+                    }
+                }
+                if i == r-1 {
+                    break;
+                }
+                result.push('\n');
+            }
+            return result;
+        } // if r > 100
+
+        result.push_str(&tab("", 5));
+        let mut space_vec: Vec<usize> = vec![];
+
+        for i in 0 .. self.data.len() {
+            let v = &self[i];
+            let mut space = 0usize;
+            for j in 0 .. v.len() {
+                let elem = v.at(j);
+                match v.dtype {
+                    F32 => {
+                        let elem: f32 = elem.unwrap();
+                        space = max(
+                            space,
+                            min(format!("{:.4}", elem).len(), elem.to_string().len())
+                        );
+                    }
+                    F64 => {
+                        let elem: f64 = elem.unwrap();
+                        space = max(
+                            space,
+                            min(format!("{:.4}", elem).len(), elem.to_string().len())
+                        );
+                    }
+                    _ => {
+                        space = elem.to_string().len();  
+                    }
+                } // match
+            }
+            space = max(space + 1, 5);
+            let k = &h[i];
+            if k.len() >= space {
+                space = k.len() + 1;
+            }
+            result.push_str(&tab(k, space));
+            space_vec.push(space);
+        } // for i in 0 .. len()
+        result.push('\n');
+
+        for i in 0 .. r {
+            result.push_str(&tab(&format!("r[{}]", i), 5));
+            for j in 0 .. self.data.len() {
+                let v = &self[j];
+                let space = space_vec[j];
+                if i < v.len() {
+                    let elem = v.at(i);
+                    let st = match elem.dtype {
+                        F32 => {
+                            let elem: f32 = elem.unwrap();
+                            let st1 = format!("{:.4}", elem);
+                            let st2 = elem.to_string();
+
+                            if st1.len() < st2.len() {
+                                st1
+                            } else {
+                                st2
+                            }
+                        }
+                        F64 => {
+                            let elem: f64 = elem.unwrap();
+                            let st1 = format!("{:.4}", elem);
+                            let st2 = elem.to_string();
+
+                            if st1.len() < st2.len() {
+                                st1
+                            } else {
+                                st2
+                            }
+                        }
+                        _ => {
+                            elem.to_string()
+                        }
+                    };
+                    result.push_str(&tab(&st, space));
+                } else {
+                    result.push_str(&tab("", space));
+                }
+            }
+            if i == (r - 1) {
+                break;
+            }
+            result.push('\n');
+        }
+        result
+    }
 }
 
 impl Index<&str> for DataFrame {
@@ -340,5 +609,11 @@ impl Index<usize> for DataFrame {
 impl IndexMut<usize> for DataFrame {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.data[index]
+    }
+}
+
+impl fmt::Display for DataFrame {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.spread())
     }
 }
