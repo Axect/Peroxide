@@ -12,21 +12,22 @@ fn main() {
     let s = a.at(0);
     println!("{:?}", s);
 
-    //let b = Series::new(Str(vec!["i", "j", "k"].into_iter().map(|x| x.into()).collect()));
+    let b = Series::new(vec!['a', 'b', 'c', 'd']);
 
-    //let mut df = DataFrame::new(vec![a, b]);
+    let mut df = DataFrame::new(vec![a, b]);
 
-    //println!("{:?}", df["0"]);
-    //println!("{:?}", df["1"]);
+    println!("{:?}", df["0"]);
+    println!("{:?}", df["1"]);
 
-    //df["1"] = Series::new(F64(c!(1,2,3)));
+    df["1"] = Series::new(c!(5,6,7,8));
 
-    //println!("{:?}", df[1]);
+    println!("{:?}", df[1]);
 
-    //df.push("a", Series::new(Char(vec!['a', 'b', 'c'])));
+    df.push("a", Series::new(vec!['a', 'b', 'c', 'd']));
 
-    //println!("{:?}", df);
-    //println!("{:?}", df.row(1));
+    println!("{:?}", df);
+    println!("{:?}", df.row(1));
 
-    //println!("{}", df.row(1)["a"].at(0).unwrap_char());
+    let ch: char = df.row(1)["a"].at(0).unwrap();
+    println!("{}", ch);
 }
