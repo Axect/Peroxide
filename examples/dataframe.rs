@@ -9,11 +9,9 @@ fn main() {
     let a = Series::new(x);
     println!("{:?}", a);
 
-    let x0: f64 = a.at(0);
-    x0.print();
+    let s = a.at(0);
+    println!("{:?}", s);
 
-    let y: Vec<f64> = a.to_vec();
-    y.print();
     //let b = Series::new(Str(vec!["i", "j", "k"].into_iter().map(|x| x.into()).collect()));
 
     //let mut df = DataFrame::new(vec![a, b]);
