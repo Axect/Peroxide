@@ -111,14 +111,13 @@ pub trait TypedScalar<T> {
 
 pub trait TypedVector<T> {
     fn new(v: Vec<T>) -> Self;
-    fn to_vec(self) -> Vec<T>;
+    fn to_vec(&self) -> Vec<T>;
     fn as_slice(&self) -> &[T];
     fn at_raw(&self, i: usize) -> T;
 }
 
-
 // =============================================================================
-// Macros
+// Macros & Private functions
 // =============================================================================
 macro_rules! impl_typed_scalar {
     ($type:ty, $dtype:ident) => {
@@ -150,11 +149,12 @@ macro_rules! impl_typed_vector {
                 }
             }
 
-            fn to_vec(self) -> Vec<$type> {
-                match self.values {
-                    DTypeArray::$dtype(v) => v,
-                    _ => panic!("Can't convert to {:?} vector", $dtype),
-                }
+            fn to_vec(&self) -> Vec<$type> {
+                self.as_slice().to_vec()
+                // match self.values {
+                //     DTypeArray::$dtype(v) => ,
+                //     _ => panic!("Can't convert to {:?} vector", $dtype),
+                // }
             }
 
             fn as_slice(&self) -> &[$type] {
@@ -221,12 +221,136 @@ macro_rules! dtype_match {
     }};
 }
 
+macro_rules! set_space {
+    ($elem:expr) => {{
+        match $elem.dtype {
+            F32 => {
+                let elem: f32 = $elem.unwrap();
+                let st1 = format!("{:.4}", elem);
+                let st2 = elem.to_string();
+
+                if st1.len() < st2.len() {
+                    st1
+                } else {
+                    st2
+                }
+            }
+            F64 => {
+                let elem: f64 = $elem.unwrap();
+                let st1 = format!("{:.4}", elem);
+                let st2 = elem.to_string();
+
+                if st1.len() < st2.len() {
+                    st1
+                } else {
+                    st2
+                }
+            }
+            _ => $elem.to_string()
+        }
+    }};
+
+    ($elem:expr, $space:expr) => {{
+        match $elem.dtype {
+            F32 => {
+                let elem: f32 = $elem.unwrap();
+                $space = max(
+                    $space,
+                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                );
+            }
+            F64 => {
+                let elem: f64 = $elem.unwrap();
+                $space = max(
+                    $space,
+                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                );
+            }
+            _ => {
+                $space = $elem.to_string().len();
+            }
+        }
+    }};
+}
+
+macro_rules! format_float_vec {
+    ($self:expr) => {{
+        let mut result = String::new();
+        result.push_str("[");
+        for i in 0 .. $self.len() {
+            let st1 = format!("{:.4}", $self[i]);
+            let st2 = $self[i].to_string();
+            let st = if st1.len() < st2.len() {
+                st1
+            } else {
+                st2
+            };
+            result.push_str(&st);
+            if i == $self.len() - 1 {
+                break;
+            }
+            result.push_str(", ");
+        }
+        result.push_str("]");
+        result
+    }};
+}
+
 fn len<T>(x: Vec<T>) -> usize {
     x.len()
 }
 
 fn to_string<T: fmt::Display>(x: T) -> String {
     x.to_string()
+}
+
+// =============================================================================
+// Implementations of DType variables
+// =============================================================================
+impl fmt::Display for DType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let st = match self {
+            USIZE => "usize",
+            U8 => "u8",
+            U16 => "u16",
+            U32 => "u32",
+            U64 => "u64",
+            ISIZE => "isize",
+            I8 => "i8",
+            I16 => "i16",
+            I32 => "i32",
+            I64 => "i64",
+            F32 => "f32",
+            F64 => "f64",
+            Bool => "bool",
+            Char => "char",
+            Str => "String",
+        };
+        write!(f, "{}", st)
+    }
+}
+
+impl fmt::Display for DTypeArray {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let st = match self {
+            DTypeArray::USIZE(v) => format!("array: {:?}\ndtype: usize", v),
+            DTypeArray::U8(v) => format!("array: {:?}\ndtype: u8", v),
+            DTypeArray::U16(v) => format!("array: {:?}\ndtype: u16", v),
+            DTypeArray::U32(v) => format!("array: {:?}\ndtype: u32", v),
+            DTypeArray::U64(v) => format!("array: {:?}\ndtype: u64", v),
+            DTypeArray::ISIZE(v) => format!("array: {:?}\ndtype: isize", v),
+            DTypeArray::I8(v) => format!("array: {:?}\ndtype: i8", v),
+            DTypeArray::I16(v) => format!("array: {:?}\ndtype: i16", v),
+            DTypeArray::I32(v) => format!("array: {:?}\ndtype: i32", v),
+            DTypeArray::I64(v) => format!("array: {:?}\ndtype: i64", v),
+            DTypeArray::F32(v) => format!("array: {}\ndtype: f32", format_float_vec!(v)),
+            DTypeArray::F64(v) => format!("array: {}\ndtype: f64", format_float_vec!(v)),
+            DTypeArray::Bool(v) => format!("array: {:?}\ndtype: bool", v),
+            DTypeArray::Str(v) => format!("array: {:?}\ndtype: String", v),
+            DTypeArray::Char(v) => format!("array: {:?}\ndtype: char", v),
+        };
+        write!(f, "{}", st)
+    }
 }
 
 // =============================================================================
@@ -285,6 +409,17 @@ impl_typed_vector!(bool, Bool);
 impl_typed_vector!(char, Char);
 impl_typed_vector!(String, Str);
 
+impl fmt::Display for Scalar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let st = format!("{}, dtype:{}", self.clone().to_string(), self.dtype);
+        write!(f, "{}", st)
+    }
+}
+
+// =============================================================================
+// Implementation for DataFrame
+// =============================================================================
+
 impl DataFrame {
     pub fn new(v: Vec<Series>) -> Self {
         let ics = (0usize .. v.len()).map(|x| x.to_string()).collect();
@@ -342,48 +477,12 @@ impl DataFrame {
                 let mut space = 0usize;
                 for j in 0 .. 5 {
                     let elem = v.at(j);
-                    match v.dtype {
-                        F32 => {
-                            let elem: f32 = elem.unwrap();
-                            space = max(
-                                space,
-                                min(format!("{:.4}", elem).len(), elem.to_string().len())
-                            );
-                        }
-                        F64 => {
-                            let elem: f64 = elem.unwrap();
-                            space = max(
-                                space,
-                                min(format!("{:.4}", elem).len(), elem.to_string().len())
-                            );
-                        }
-                        _ => {
-                            space = elem.to_string().len();  
-                        }
-                    } // match
+                    set_space!(elem, space);
                 } // for 0 .. 5
                 if v.len() >= r-5 {
                     for j in v.len()-5 .. v.len() {
                         let elem = v.at(j);
-                        match v.dtype {
-                            F32 => {
-                                let elem: f32 = elem.unwrap();
-                                space = max(
-                                    space,
-                                    min(format!("{:.4}", elem).len(), elem.to_string().len())
-                                );
-                            }
-                            F64 => {
-                                let elem: f64 = elem.unwrap();
-                                space = max(
-                                    space,
-                                    min(format!("{:.4}", elem).len(), elem.to_string().len())
-                                );
-                            }
-                            _ => {
-                                space = elem.to_string().len();  
-                            }
-                        }
+                        set_space!(elem, space);
                     }
                 } // if v.len >= r-5
                 space = max(space + 1, 5);
@@ -403,34 +502,7 @@ impl DataFrame {
                     let space = space_vec[j];
                     if i < v.len() {
                         let elem = v.at(i);
-                        let st = match elem.dtype {
-                            F32 => {
-                                let elem: f32 = elem.unwrap();
-                                let st1 = format!("{:.4}", elem);
-                                let st2 = elem.to_string();
-
-                                if st1.len() < st2.len() {
-                                    st1
-                                } else {
-                                    st2
-                                }
-                            }
-                            F64 => {
-                                let elem: f64 = elem.unwrap();
-                                let st1 = format!("{:.4}", elem);
-                                let st2 = elem.to_string();
-
-                                if st1.len() < st2.len() {
-                                    st1
-                                } else {
-                                    st2
-                                }
-                            }
-                            _ => {
-                                elem.to_string()
-                            }
-                        };
-
+                        let st = set_space!(elem);
                         result.push_str(&tab(&st, space));
                     }  else { 
                         result.push_str(&tab("", space));      
@@ -451,33 +523,7 @@ impl DataFrame {
                     let space = space_vec[j];
                     if i < v.len() {
                         let elem = v.at(i);
-                        let st = match elem.dtype {
-                            F32 => {
-                                let elem: f32 = elem.unwrap();
-                                let st1 = format!("{:.4}", elem);
-                                let st2 = elem.to_string();
-
-                                if st1.len() < st2.len() {
-                                    st1
-                                } else {
-                                    st2
-                                }
-                            }
-                            F64 => {
-                                let elem: f64 = elem.unwrap();
-                                let st1 = format!("{:.4}", elem);
-                                let st2 = elem.to_string();
-
-                                if st1.len() < st2.len() {
-                                    st1
-                                } else {
-                                    st2
-                                }
-                            }
-                            _ => {
-                                elem.to_string()
-                            }
-                        };
+                        let st = set_space!(elem);
                         result.push_str(&tab(&st, space));
                     } else {
                         result.push_str(&tab("", space));
@@ -499,25 +545,7 @@ impl DataFrame {
             let mut space = 0usize;
             for j in 0 .. v.len() {
                 let elem = v.at(j);
-                match v.dtype {
-                    F32 => {
-                        let elem: f32 = elem.unwrap();
-                        space = max(
-                            space,
-                            min(format!("{:.4}", elem).len(), elem.to_string().len())
-                        );
-                    }
-                    F64 => {
-                        let elem: f64 = elem.unwrap();
-                        space = max(
-                            space,
-                            min(format!("{:.4}", elem).len(), elem.to_string().len())
-                        );
-                    }
-                    _ => {
-                        space = elem.to_string().len();  
-                    }
-                } // match
+                set_space!(elem, space)
             }
             space = max(space + 1, 5);
             let k = &h[i];
@@ -536,33 +564,7 @@ impl DataFrame {
                 let space = space_vec[j];
                 if i < v.len() {
                     let elem = v.at(i);
-                    let st = match elem.dtype {
-                        F32 => {
-                            let elem: f32 = elem.unwrap();
-                            let st1 = format!("{:.4}", elem);
-                            let st2 = elem.to_string();
-
-                            if st1.len() < st2.len() {
-                                st1
-                            } else {
-                                st2
-                            }
-                        }
-                        F64 => {
-                            let elem: f64 = elem.unwrap();
-                            let st1 = format!("{:.4}", elem);
-                            let st2 = elem.to_string();
-
-                            if st1.len() < st2.len() {
-                                st1
-                            } else {
-                                st2
-                            }
-                        }
-                        _ => {
-                            elem.to_string()
-                        }
-                    };
+                    let st = set_space!(elem);
                     result.push_str(&tab(&st, space));
                 } else {
                     result.push_str(&tab("", space));
