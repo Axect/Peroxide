@@ -354,7 +354,7 @@ impl fmt::Display for DTypeArray {
 }
 
 // =============================================================================
-// Implementations
+// Implementations for Scalar & Series
 // =============================================================================
 
 impl Scalar {
@@ -478,13 +478,13 @@ impl DataFrame {
                 for j in 0 .. 5 {
                     let elem = v.at(j);
                     set_space!(elem, space);
-                } // for 0 .. 5
+                }
                 if v.len() >= r-5 {
                     for j in v.len()-5 .. v.len() {
                         let elem = v.at(j);
                         set_space!(elem, space);
                     }
-                } // if v.len >= r-5
+                }
                 space = max(space + 1, 5);
                 let k = &h[i];
                 if k.len() >= space {
@@ -492,7 +492,7 @@ impl DataFrame {
                 }
                 result.push_str(&tab(k, space));
                 space_vec.push(space);
-            } // for i in 0 .. len()
+            }
             result.push('\n');
             
             for i in 0 .. 5 {
@@ -506,15 +506,15 @@ impl DataFrame {
                         result.push_str(&tab(&st, space));
                     }  else { 
                         result.push_str(&tab("", space));      
-                    } // if i < v.len()
-                } // for j in 0 .. self.data.len()
+                    }
+                }
                 result.push('\n');
-            } // for i in 0 .. 5
+            }
             result.push_str(&tab("...", lc1));
             for j in 0 .. self.data.len() {
                 let space = space_vec[j];
                 result.push_str(&tab("...", space));
-            } // for j in 0 .. self.data.len()
+            }
             result.push('\n');
             for i in r-5 .. r {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
@@ -535,7 +535,7 @@ impl DataFrame {
                 result.push('\n');
             }
             return result;
-        } // if r > 100
+        }
 
         result.push_str(&tab("", 5));
         let mut space_vec: Vec<usize> = vec![];
@@ -554,7 +554,7 @@ impl DataFrame {
             }
             result.push_str(&tab(k, space));
             space_vec.push(space);
-        } // for i in 0 .. len()
+        }
         result.push('\n');
 
         for i in 0 .. r {
