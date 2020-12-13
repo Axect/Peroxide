@@ -2,13 +2,13 @@
 
 use crate::statistics::dist::*;
 #[allow(unused_imports)]
-use crate::structure::dataframe::*;
 use crate::structure::{
     dual::{Dual, Dualist},
     hyper_dual::HyperDual,
     matrix::Matrix,
     multinomial::Multinomial,
     polynomial::Polynomial,
+    dataframe::{DataFrame, DTypeArray, Series, Scalar, DType},
 };
 use crate::traits::num::Number;
 use rand::distributions::uniform::SampleUniform;
@@ -18,19 +18,19 @@ pub trait Printable {
     fn print(&self);
 }
 
-impl Printable for f64 {
+impl Printable for usize {
     fn print(&self) {
         println!("{}", self);
     }
 }
 
-impl Printable for f32 {
+impl Printable for u8 {
     fn print(&self) {
         println!("{}", self);
     }
 }
 
-impl Printable for u64 {
+impl Printable for u16 {
     fn print(&self) {
         println!("{}", self);
     }
@@ -42,7 +42,31 @@ impl Printable for u32 {
     }
 }
 
-impl Printable for usize {
+impl Printable for u64 {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for isize {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for i8 {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for i16 {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for i32 {
     fn print(&self) {
         println!("{}", self);
     }
@@ -54,7 +78,31 @@ impl Printable for i64 {
     }
 }
 
-impl Printable for i32 {
+impl Printable for f32 {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for f64 {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for char {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for bool {
+    fn print(&self) {
+        println!("{}", self);
+    }
+}
+
+impl Printable for String {
     fn print(&self) {
         println!("{}", self);
     }
@@ -138,52 +186,39 @@ impl Printable for Vec<String> {
     }
 }
 
-impl Printable for Vec<f32> {
-    fn print(&self) {
+macro_rules! format_float_vec {
+    ($self:expr) => {{
         let mut result = String::new();
         result.push_str("[");
-        for i in 0..self.len() {
-            let st1 = format!("{:.4}", self[i]);
-            let st2 = self[i].to_string();
-            let mut st = st2.clone();
-
-            if st1.len() < st2.len() {
-                st = st1;
-            }
-
+        for i in 0 .. $self.len() {
+            let st1 = format!("{:.4}", $self[i]);
+            let st2 = $self[i].to_string();
+            let st = if st1.len() < st2.len() {
+                st1
+            } else {
+                st2
+            };
             result.push_str(&st);
-            if i == self.len() - 1 {
+            if i == $self.len() - 1 {
                 break;
             }
             result.push_str(", ");
         }
         result.push_str("]");
+        result
+    }};
+}
 
+impl Printable for Vec<f32> {
+    fn print(&self) {
+        let result = format_float_vec!(self);
         println!("{}", result);
     }
 }
 
 impl Printable for Vec<f64> {
     fn print(&self) {
-        let mut result = String::new();
-        result.push_str("[");
-        for i in 0..self.len() {
-            let st1 = format!("{:.4}", self[i]);
-            let st2 = self[i].to_string();
-            let mut st = st2.clone();
-
-            if st1.len() < st2.len() {
-                st = st1;
-            }
-
-            result.push_str(&st);
-            if i == self.len() - 1 {
-                break;
-            }
-            result.push_str(", ");
-        }
-        result.push_str("]");
-
+        let result = format_float_vec!(self);
         println!("{}", result);
     }
 }
@@ -274,50 +309,14 @@ impl Printable for &Vec<bool> {
 
 impl Printable for &Vec<f32> {
     fn print(&self) {
-        let mut result = String::new();
-        result.push_str("[");
-        for i in 0..self.len() {
-            let st1 = format!("{:.4}", self[i]);
-            let st2 = self[i].to_string();
-            let mut st = st2.clone();
-
-            if st1.len() < st2.len() {
-                st = st1;
-            }
-
-            result.push_str(&st);
-            if i == self.len() - 1 {
-                break;
-            }
-            result.push_str(", ");
-        }
-        result.push_str("]");
-
+        let result = format_float_vec!(self);
         println!("{}", result);
     }
 }
 
 impl Printable for &Vec<f64> {
     fn print(&self) {
-        let mut result = String::new();
-        result.push_str("[");
-        for i in 0..self.len() {
-            let st1 = format!("{:.4}", self[i]);
-            let st2 = self[i].to_string();
-            let mut st = st2.clone();
-
-            if st1.len() < st2.len() {
-                st = st1;
-            }
-
-            result.push_str(&st);
-            if i == self.len() - 1 {
-                break;
-            }
-            result.push_str(", ");
-        }
-        result.push_str("]");
-
+        let result = format_float_vec!(self);
         println!("{}", result);
     }
 }
@@ -385,78 +384,35 @@ impl Printable for Vec<Number> {
     }
 }
 
-impl Printable for DTypeArray {
+impl Printable for DType {
     fn print(&self) {
-        match self {
-            DTypeArray::USIZE(v) => {
-                v.print();
-                println!("dtype: usize");
-            }
-            DTypeArray::U8(v) => {
-                v.print();
-                println!("dtype: u8");
-            }
-            DTypeArray::U16(v) => {
-                v.print();
-                println!("dtype: u16");
-            }
-            DTypeArray::U32(v) => {
-                v.print();
-                println!("dtype: u32");
-            }
-            DTypeArray::U64(v) => {
-                v.print();
-                println!("dtype: u64");
-            }
-            DTypeArray::ISIZE(v) => {
-                v.print();
-                println!("dtype: isize");
-            }
-            DTypeArray::I8(v) => {
-                v.print();
-                println!("dtype: i8");
-            }
-            DTypeArray::I16(v) => {
-                v.print();
-                println!("dtype: i16");
-            }
-            DTypeArray::I32(v) => {
-                v.print();
-                println!("dtype: i32");
-            }
-            DTypeArray::I64(v) => {
-                v.print();
-                println!("dtype: i64");
-            }
-            DTypeArray::F32(v) => {
-                v.print();
-                println!("dtype: f32");
-            }
-            DTypeArray::F64(v) => {
-                v.print();
-                println!("dtype: f64");
-            }
-            DTypeArray::Bool(v) => {
-                v.print();
-                println!("dtype: bool");
-            }
-            DTypeArray::Str(v) => {
-                v.print();
-                println!("dtype: String");
-            }
-            DTypeArray::Char(v) => {
-                v.print();
-                println!("dtype: char");
-            }
-        }
+        println!("{}", self)
     }
 }
 
-// impl Printable for DataFrame {
-//     fn print(&self) {
-//         println!("{}", self)
-//     }
-// }
+impl Printable for DTypeArray {
+    fn print(&self) {
+        println!("{}", self)
+    }
+}
+
+impl Printable for Scalar {
+    fn print(&self) {
+        println!("{}", self)
+    }
+}
+
+impl Printable for Series {
+    fn print(&self) {
+        self.values.print();
+    }
+}
+
+impl Printable for DataFrame {
+    fn print(&self) {
+        println!("{}", self)
+    }
+}
 
 //impl<A: Array<Item=f64>> Printable for AD<A> {
 //    fn print(&self) {
