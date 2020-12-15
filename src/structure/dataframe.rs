@@ -16,6 +16,7 @@ use DType::{
     ISIZE,I8,I16,I32,I64,
     F32,F64,Bool,Char,Str
 };
+use std::error::Error;
 //use std::{fmt, fmt::Debug};
 
 // =============================================================================
@@ -113,6 +114,7 @@ pub trait TypedVector<T> {
     fn new(v: Vec<T>) -> Self;
     fn to_vec(&self) -> Vec<T>;
     fn as_slice(&self) -> &[T];
+    fn as_slice_mut(&mut self) -> &mut [T];
     fn at_raw(&self, i: usize) -> T;
 }
 
@@ -151,14 +153,17 @@ macro_rules! impl_typed_vector {
 
             fn to_vec(&self) -> Vec<$type> {
                 self.as_slice().to_vec()
-                // match self.values {
-                //     DTypeArray::$dtype(v) => ,
-                //     _ => panic!("Can't convert to {:?} vector", $dtype),
-                // }
             }
 
             fn as_slice(&self) -> &[$type] {
                 match &self.values {
+                    DTypeArray::$dtype(v) => v,
+                    _ => panic!("Can't convert to {:?} vector", $dtype),
+                }
+            }
+
+            fn as_slice_mut(&mut self) -> &mut [$type] {
+                match &mut self.values {
                     DTypeArray::$dtype(v) => v,
                     _ => panic!("Can't convert to {:?} vector", $dtype),
                 }
@@ -296,6 +301,106 @@ macro_rules! format_float_vec {
     }};
 }
 
+/// ty1 -> ty2
+macro_rules! type_cast_vec {
+    ($ty1:ty, $ty2:ty, $to_vec:expr, $wrapper:expr) => {{
+        let y: Vec<$ty1> = $to_vec;
+        let x: Vec<$ty2> = y.into_iter().map(|x| x as $ty2).collect();
+        $wrapper(x)
+    }};
+}
+
+macro_rules! string_cast_vec {
+    ($ty1:ty, $to_vec:expr, $wrapper:expr) => {{
+        let y: Vec<$ty1> = $to_vec;
+        let x: Vec<String> = y.into_iter().map(|x| x.to_string()).collect();
+        $wrapper(x)
+    }}
+}
+
+macro_rules! type_parse_vec {
+    ($ty2:ty, $to_vec:expr, $wrapper:expr) => {{
+        let y: Vec<String> = $to_vec.to_vec();
+        let x: Vec<$ty2> = y.into_iter().map(|x| x.parse().unwrap()).collect();
+        $wrapper(x)
+    }};
+}
+
+macro_rules! dtype_parse_vec_part {
+    ($dt2:expr, $to_vec:expr, $wrapper:expr) => {{
+        match $dt2 {
+            USIZE => type_parse_vec!(usize, $to_vec, $wrapper),
+            U8 => type_parse_vec!(u8, $to_vec, $wrapper),
+            U16 => type_parse_vec!(u16, $to_vec, $wrapper),
+            U32 => type_parse_vec!(u32, $to_vec, $wrapper),
+            U64 => type_parse_vec!(u64, $to_vec, $wrapper),
+            ISIZE => type_parse_vec!(isize, $to_vec, $wrapper),
+            I8 => type_parse_vec!(i8, $to_vec, $wrapper),
+            I16 => type_parse_vec!(i16, $to_vec, $wrapper),
+            I32 => type_parse_vec!(i32, $to_vec, $wrapper),
+            I64 => type_parse_vec!(i64, $to_vec, $wrapper),
+            F32 => type_parse_vec!(f32, $to_vec, $wrapper),
+            F64 => type_parse_vec!(f64, $to_vec, $wrapper),
+            Bool => type_parse_vec!(bool, $to_vec, $wrapper),
+            Char => type_parse_vec!(char, $to_vec, $wrapper),
+            Str => type_parse_vec!(String, $to_vec, $wrapper),
+        }
+    }};
+}
+
+macro_rules! dtype_cast_vec_part {
+    ($ty1:ty, $dt2:expr, $to_vec:expr, $wrapper:expr) => {{
+        match $dt2 {
+            USIZE => type_cast_vec!($ty1, usize, $to_vec, $wrapper),
+            U8 => type_cast_vec!($ty1, u8, $to_vec, $wrapper),
+            U16 => type_cast_vec!($ty1, u16, $to_vec, $wrapper),
+            U32 => type_cast_vec!($ty1, u32, $to_vec, $wrapper),
+            U64 => type_cast_vec!($ty1, u64, $to_vec, $wrapper),
+            ISIZE => type_cast_vec!($ty1, isize, $to_vec, $wrapper),
+            I8 => type_cast_vec!($ty1, i8, $to_vec, $wrapper),
+            I16 => type_cast_vec!($ty1, i16, $to_vec, $wrapper),
+            I32 => type_cast_vec!($ty1, i32, $to_vec, $wrapper),
+            I64 => type_cast_vec!($ty1, i64, $to_vec, $wrapper),
+            F32 => type_cast_vec!($ty1, f32, $to_vec, $wrapper),
+            F64 => type_cast_vec!($ty1, f64, $to_vec, $wrapper),
+            Str => string_cast_vec!($ty1, $to_vec, $wrapper),
+            _ => panic!("Can't convert type to {}", $dt2),
+        }
+    }};
+}
+
+macro_rules! dtype_cast_vec {
+    ($dt1:expr, $dt2:expr, $to_vec:expr, $wrapper:expr) => {{
+        match $dt1 {
+            USIZE => dtype_cast_vec_part!(usize, $dt2, $to_vec, $wrapper),
+            U8 => dtype_cast_vec_part!(u8, $dt2, $to_vec, $wrapper),
+            U16 => dtype_cast_vec_part!(u16, $dt2, $to_vec, $wrapper),
+            U32 => dtype_cast_vec_part!(u32, $dt2, $to_vec, $wrapper),
+            U64 => dtype_cast_vec_part!(u64, $dt2, $to_vec, $wrapper),
+            ISIZE => dtype_cast_vec_part!(isize, $dt2, $to_vec, $wrapper),
+            I8 => dtype_cast_vec_part!(i8, $dt2, $to_vec, $wrapper),
+            I16 => dtype_cast_vec_part!(i16, $dt2, $to_vec, $wrapper),
+            I32 => dtype_cast_vec_part!(i32, $dt2, $to_vec, $wrapper),
+            I64 => dtype_cast_vec_part!(i64, $dt2, $to_vec, $wrapper),
+            F32 => dtype_cast_vec_part!(f32, $dt2, $to_vec, $wrapper),
+            F64 => dtype_cast_vec_part!(f64, $dt2, $to_vec, $wrapper),
+            Str => dtype_parse_vec_part!($dt2, $to_vec, $wrapper),
+            Char => {
+                match $dt2 {
+                    Str => string_cast_vec!(char, $to_vec, $wrapper),
+                    _ => panic!("Can't convert char type to {}", $dt2),
+                }
+            }
+            Bool => {
+                match $dt2 {
+                    Str => string_cast_vec!(bool, $to_vec, $wrapper),
+                    _ => panic!("Can't convert bool type to {}", $dt2),
+                }
+            }
+        }
+    }};
+}
+
 fn len<T>(x: Vec<T>) -> usize {
     x.len()
 }
@@ -307,6 +412,28 @@ fn to_string<T: fmt::Display>(x: T) -> String {
 // =============================================================================
 // Implementations of DType variables
 // =============================================================================
+impl DType {
+    pub fn is_numeric(&self) -> bool {
+        match self {
+            Bool => false,
+            Str => false,
+            Char => false,
+            _ => true,
+        }
+    }
+
+    pub fn is_integer(&self) -> bool {
+        match self {
+            Bool => false,
+            Str => false,
+            Char => false,
+            F32 => false,
+            F64 => false,
+            _ => true,
+        }
+    }
+}
+
 impl fmt::Display for DType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let st = match self {
@@ -374,6 +501,16 @@ impl Series {
 
     pub fn len(&self) -> usize {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
+    }
+
+    pub fn to_type(&self, dtype: DType) -> Series {
+        dtype_cast_vec!(self.dtype, dtype, self.to_vec(), Series::new)
+    }
+
+    pub fn as_type(&mut self, dtype: DType) {
+        let x = self.to_type(dtype);
+        self.dtype = x.dtype;
+        self.values = x.values;
     }
 }
 
@@ -613,4 +750,13 @@ impl fmt::Display for DataFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.spread())
     }
+}
+
+// =============================================================================
+// IO Implementations
+// =============================================================================
+
+pub trait WithCSV: Sized {
+    fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+    fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
 }
