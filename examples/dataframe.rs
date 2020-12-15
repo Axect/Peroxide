@@ -34,4 +34,8 @@ fn main() {
 
     let ch: char = df.row(1)["a"].at(0).unwrap();
     ch.print();
+
+    df[0].as_type(DType::USIZE);
+
+    df.print();
 }
