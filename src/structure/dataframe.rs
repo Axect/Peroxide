@@ -1,23 +1,20 @@
 //use self::csv::{ReaderBuilder, WriterBuilder};
 //use crate::structure::matrix::{matrix, Matrix, Shape::*};
 //use crate::traits::fp::FPMatrix;
-//use crate::util::useful::tab;
 //use indexmap::{map::Keys, IndexMap};
 //use json::JsonValue;
-//use std::cmp::{max, min};
-//use std::collections::HashMap;
-//use std::error::Error;
+use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
 use std::cmp::{max, min};
+use std::error::Error;
 use crate::util::useful::tab;
+use csv::{ReaderBuilder, WriterBuilder};
 use DType::{
     USIZE,U8,U16,U32,U64,
     ISIZE,I8,I16,I32,I64,
     F32,F64,Bool,Char,Str
 };
-use std::error::Error;
-//use std::{fmt, fmt::Debug};
 
 // =============================================================================
 // Enums
@@ -116,6 +113,7 @@ pub trait TypedVector<T> {
     fn as_slice(&self) -> &[T];
     fn as_slice_mut(&mut self) -> &mut [T];
     fn at_raw(&self, i: usize) -> T;
+    fn push(&mut self, elem: T);
 }
 
 // =============================================================================
@@ -172,6 +170,14 @@ macro_rules! impl_typed_vector {
             fn at_raw(&self, i: usize) -> $type {
                 let v: &[$type] = self.as_slice();
                 v[i].clone()
+            }
+
+            fn push(&mut self, elem: $type) {
+                let v: &mut Vec<$type> = match &mut self.values {
+                    DTypeArray::$dtype(v) => v,
+                    _ => panic!("Can't convert to {:?} vector", $dtype),
+                };
+                v.push(elem);
             }
         }
     }
@@ -714,6 +720,13 @@ impl DataFrame {
         }
         result
     }
+
+    pub fn as_types(&mut self, dtypes: Vec<DType>) {
+        assert_eq!(self.data.len(), dtypes.len(), "Length of dtypes are not compatible with DataFrame");
+        for (i, dtype) in dtypes.into_iter().enumerate() {
+            self[i].as_type(dtype);
+        }
+    }
 }
 
 impl Index<&str> for DataFrame {
@@ -759,4 +772,56 @@ impl fmt::Display for DataFrame {
 pub trait WithCSV: Sized {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
+}
+
+impl WithCSV for DataFrame {
+    fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let mut wtr = WriterBuilder::new().from_path(file_path)?;
+        let r: usize = self
+            .data
+            .iter()
+            .fold(0, |max_len, column| max(max_len, column.len()));
+        let c: usize = self.data.len();
+        wtr.write_record(
+            self.header().clone()
+        )?;
+        
+        for i in 0 .. r {
+            let mut record: Vec<String> = vec!["".to_string(); c];
+            for (j, v) in self.data.iter().enumerate() {
+                if i < v.len() {
+                    record[j] = v.at(i).to_string();
+                }
+            }
+            wtr.write_record(record)?;
+        }
+        wtr.flush()?;
+        Ok(())
+    }
+
+    fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>> {
+        let mut rdr = ReaderBuilder::new()
+            .has_headers(true)
+            .delimiter(delimiter as u8)
+            .from_path(file_path)?;
+
+        let headers_vec = rdr.headers()?;
+        let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
+        let mut result = DataFrame::new(vec![]);
+        for h in headers.iter() {
+            result.push(*h, Series::new(Vec::<String>::new()));
+        }
+
+        for rec in rdr.deserialize() {
+            let record: HashMap<String, String> = rec?;
+            for head in record.keys() {
+                let value = &record[head];
+                if value.len() > 0 {
+                    result[head.as_str()].push(value.to_string());
+                }
+            }
+        }
+
+        Ok(result)
+    }
 }
