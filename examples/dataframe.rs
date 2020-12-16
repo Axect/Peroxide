@@ -38,4 +38,12 @@ fn main() {
     df[0].as_type(DType::USIZE);
 
     df.print();
+
+    let mut c = Series::new(vec![1usize, 2, 3, 4]);
+    c.print();
+    c.push(5usize);
+    c.print();
+
+    df[1].push(3.14f64);
+    df.print();
 }
