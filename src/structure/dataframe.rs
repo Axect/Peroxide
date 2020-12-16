@@ -720,6 +720,13 @@ impl DataFrame {
         }
         result
     }
+
+    pub fn as_types(&mut self, dtypes: Vec<DType>) {
+        assert_eq!(self.data.len(), dtypes.len(), "Length of dtypes are not compatible with DataFrame");
+        for (i, dtype) in dtypes.into_iter().enumerate() {
+            self[i].as_type(dtype);
+        }
+    }
 }
 
 impl Index<&str> for DataFrame {
@@ -810,11 +817,11 @@ impl WithCSV for DataFrame {
             for head in record.keys() {
                 let value = &record[head];
                 if value.len() > 0 {
-                    
+                    result[head.as_str()].push(value.to_string());
                 }
             }
         }
 
-        unimplemented!()
+        Ok(result)
     }
 }
