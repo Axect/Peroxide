@@ -127,12 +127,33 @@ pub struct DataFrame {
     pub ics: Vec<String>,
 }
 
+/// Generic Series
+///
+/// # Example
+///
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     // Declare Series with Vec<T> (T: primitive type)
+///     let a = Series::new(vec![1i32, 2, 3, 4]);
+///     a.print();                      // print for Series
+///     a.dtype().print();              // print for dtype of Series
+///
+///     let b: &[i32] = a.as_slice();   // Borrow series to &[T]
+///     let c: Vec<i32> = a.to_vec();   // Series to Vec<T> (clone)
+///     
+///     // ...
+/// }
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Series {
     pub values: DTypeArray,
     pub dtype: DType,
 }
 
+/// Generic Scalar
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scalar {
     pub value: DTypeValue,
@@ -565,11 +586,14 @@ fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>
 // Implementations of DType variables
 // =============================================================================
 impl DType {
+    /// Check for static numeric type
     pub fn is_numeric(&self) -> bool {
         match self {
             Bool => false,
             Str => false,
             Char => false,
+            USIZE => false,
+            ISIZE => false,
             _ => true,
         }
     }
@@ -637,6 +661,7 @@ impl fmt::Display for DTypeArray {
 // =============================================================================
 
 impl Scalar {
+    /// Scalar to length 1 Series
     pub fn to_series(self) -> Series {
         dtype_match!(self.dtype, vec![self.unwrap()], Series::new; Vec)
     }
@@ -647,6 +672,21 @@ impl Scalar {
 }
 
 impl Series {
+    /// Getter for Series
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![1i32,2,3,4]);
+    ///     let x = a.at(0);
+    ///
+    ///     assert_eq!(x, Scalar::new(1i32));
+    /// }
+    /// ```
     pub fn at(&self, i: usize) -> Scalar {
         dtype_match!(self.dtype, self.at_raw(i), Scalar::new)
     }
@@ -655,10 +695,26 @@ impl Series {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
     }
 
+    /// Explicit type casting for Series
     pub fn to_type(&self, dtype: DType) -> Series {
         dtype_cast_vec!(self.dtype, dtype, self.to_vec(), Series::new)
     }
 
+    /// Type casting for Series
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let mut a = Series::new(vec![1i32, 2, 3, 4]);
+    ///     a.as_type(USIZE);
+    ///     
+    ///     assert_eq!(a, Series::new(vec![1usize, 2, 3, 4]));
+    /// }
+    /// ```
     pub fn as_type(&mut self, dtype: DType) {
         let x = self.to_type(dtype);
         self.dtype = x.dtype;
@@ -710,6 +766,7 @@ impl fmt::Display for Scalar {
 // =============================================================================
 
 impl DataFrame {
+    /// Declare new DataFrame with `Vec<Series>`
     pub fn new(v: Vec<Series>) -> Self {
         let ics = (0usize .. v.len()).map(|x| x.to_string()).collect();
 
@@ -727,11 +784,13 @@ impl DataFrame {
         &mut self.ics
     }
 
+    /// Change header
     pub fn set_header(&mut self, new_header: Vec<&str>) {
         assert_eq!(self.ics.len(), new_header.len(), "Improper Header length!");
         self.ics = new_header.into_iter().map(|x| x.to_string()).collect();
     }
 
+    /// Push new pair of head, Series to DataFrame
     pub fn push(&mut self, name: &str, series: Series) {
         if self.ics.len() > 0 {
             assert_eq!(self.ics.iter().find(|x| x.as_str() == name), None, "Repetitive index!");
@@ -740,6 +799,7 @@ impl DataFrame {
         self.data.push(series);
     }
 
+    /// Extract specific row as DataFrame
     pub fn row(&self, i: usize) -> DataFrame {
         let mut df = DataFrame::new(vec![]);
         for (j, series) in self.data.iter().enumerate() {
@@ -866,7 +926,29 @@ impl DataFrame {
         }
         result
     }
-
+    
+    /// Type casting for DataFrame
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![1i32, 2, 3, 4]);
+    ///     let b = Series::new(vec![true, false, false, true]);
+    ///     
+    ///     let mut df = DataFrame::new(vec![a, b]);    // I32, Bool
+    ///     df.as_types(vec![USIZE, U8]);               // USIZE, U8
+    ///
+    ///     let c = Series::new(vec![1usize, 2, 3, 4]);
+    ///     let d = Series::new(vec![1u8, 0, 0, 1]);
+    ///     let dg = DataFrame::new(vec![c, d]);
+    ///
+    ///     assert_eq!(df, dg);
+    /// }
+    /// ```
     pub fn as_types(&mut self, dtypes: Vec<DType>) {
         assert_eq!(self.data.len(), dtypes.len(), "Length of dtypes are not compatible with DataFrame");
         for (i, dtype) in dtypes.into_iter().enumerate() {
@@ -915,12 +997,14 @@ impl fmt::Display for DataFrame {
 // IO Implementations
 // =============================================================================
 
+/// To handle CSV file format
 pub trait WithCSV: Sized {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
 }
 
 impl WithCSV for DataFrame {
+    /// Write csv file
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r: usize = self
@@ -945,6 +1029,7 @@ impl WithCSV for DataFrame {
         Ok(())
     }
 
+    /// Read csv file with delimiter
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>> {
         let mut rdr = ReaderBuilder::new()
             .has_headers(true)
@@ -972,6 +1057,7 @@ impl WithCSV for DataFrame {
     }
 }
 
+/// To handle with NetCDF file format
 #[cfg(feature="hdfs")]
 pub trait WithNetCDF: Sized {
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
@@ -981,6 +1067,7 @@ pub trait WithNetCDF: Sized {
 
 #[cfg(feature="hdfs")]
 impl WithNetCDF for DataFrame {
+    /// write netcdf file
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut f = netcdf::create(file_path)?;
 
@@ -1033,6 +1120,7 @@ impl WithNetCDF for DataFrame {
         Ok(())
     }
 
+    /// Read netcdf to DataFrame
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new(vec![]);
@@ -1054,7 +1142,27 @@ impl WithNetCDF for DataFrame {
         Ok(df)
     }
 
+    /// Read netcdf to DataFrame with specific header
     fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> {
-        unimplemented!()
+        let f = netcdf::open(file_path)?;
+        let mut df = DataFrame::new(vec![]);
+        for h in header {
+            let v = match f.variable(h) {
+                Some(val) => val,
+                None => panic!("There are no corresponding values"),
+            };
+            if v.vartype().is_string() {
+                let mut data: Vec<String> = vec![Default::default(); v.len()];
+                for i in 0 .. v.len() {
+                    data[i] = v.string_value(Some(&[i]))?;
+                }
+                df.push(&h, Series::new(data));
+            } else {
+                let dtype = vtype_to_dtype(v.vartype().as_basic().unwrap());
+                let series = dtype_match!(N; dtype, vec![], |vec| nc_read_value(&v, vec); Vec)?;
+                df.push(&h, series);
+            }
+        }
+        Ok(df)
     }
 }
