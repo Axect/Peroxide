@@ -119,7 +119,7 @@ pub use crate::traits::{
 };
 
 #[allow(unused_imports)]
-pub use crate::structure::{dual::*, hyper_dual::*, matrix::*, polynomial::*, vector::*};
+pub use crate::structure::{dual::*, hyper_dual::*, matrix::*, polynomial::*, vector::*, dataframe::*};
 
 pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
 
@@ -136,10 +136,6 @@ pub use crate::numerical::{
 
 #[allow(unused_imports)]
 pub use crate::ml::reg::*;
-
-#[allow(unused_imports)]
-#[cfg(feature = "dataframe")]
-pub use crate::structure::dataframe::*;
 
 #[allow(unused_imports)]
 #[cfg(feature = "plot")]
@@ -161,3 +157,4 @@ pub use crate::structure::matrix::{
     SolveKind::{LU, WAZ},
 };
 pub use crate::traits::num::Number::{D, F};
+pub use crate::structure::dataframe::DType::*;

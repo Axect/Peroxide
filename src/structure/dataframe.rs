@@ -16,10 +16,18 @@ use DType::{
     F32,F64,Bool,Char,Str
 };
 
+#[cfg(feature="hdfs")]
+use netcdf::{
+    types::VariableType,
+    variable::{VariableMut, Variable},
+    Numeric,
+};
+
 // =============================================================================
 // Enums
 // =============================================================================
 
+/// Data Type enum
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum DType {
     USIZE,
@@ -39,7 +47,8 @@ pub enum DType {
     Char,
 }
 
-#[derive(Debug, Clone)]
+/// Vector with `DType`
+#[derive(Debug, Clone, PartialEq)]
 pub enum DTypeArray {
     USIZE(Vec<usize>),
     U8(Vec<u8>),
@@ -58,7 +67,8 @@ pub enum DTypeArray {
     Char(Vec<char>),
 }
 
-#[derive(Debug, Clone)]
+/// Scalar with `DType`
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum DTypeValue {
     USIZE(usize),
     U8(u8),
@@ -81,19 +91,49 @@ pub enum DTypeValue {
 // Structs
 // =============================================================================
 
-#[derive(Debug, Clone)]
+/// Generic `DataFrame` structure
+///
+/// # Example
+///
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     // 1. Series to DataFrame
+///     // 1-1. Declare Series
+///     let a = Series::new(vec![1, 2, 3, 4]);
+///     let b = Series::new(vec![true, false, false, true]);
+///     let c = Series::new(vec![0.1, 0.2, 0.3, 0.4]);
+///
+///     // 1-2. Declare DataFrame (default header: 0, 1, 2)
+///     let mut df = DataFrame::new(vec![a, b, c]);
+///     df.set_header(vec!["a", "b", "c"]);
+///     df.print(); // Pretty print for DataFrame
+///
+///     // 2. Empty DataFrame
+///     let mut dg = DataFrame::new(vec![]);
+///     dg.push("a", Series::new(vec![1,2,3,4]));
+///     dg.push("b", Series::new(vec![true, false, false, true]));
+///     dg.push("c", Series::new(vec![0.1, 0.2, 0.3, 0.4]));
+///     dg.print();
+///
+///     assert_eq!(df, dg);
+/// }
+/// ```
+#[derive(Debug, Clone, PartialEq)]
 pub struct DataFrame {
     pub data: Vec<Series>,
     pub ics: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Series {
     pub values: DTypeArray,
     pub dtype: DType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scalar {
     pub value: DTypeValue,
     pub dtype: DType,
@@ -228,6 +268,38 @@ macro_rules! dtype_match {
             Bool => dtype_case!($functor<bool>, $value, $wrapper),
             Char => dtype_case!($functor<char>, $value, $wrapper),
             Str => dtype_case!($functor<String>, $value, $wrapper),
+        }
+    }};
+
+    (N; $dtype:expr, $value:expr, $wrapper:expr) => {{
+        match $dtype {
+            U8 => dtype_case!(u8, $value, $wrapper),
+            U16 => dtype_case!(u16, $value, $wrapper),
+            U32 => dtype_case!(u32, $value, $wrapper),
+            U64 => dtype_case!(u64, $value, $wrapper),
+            I8 => dtype_case!(i8, $value, $wrapper),
+            I16 => dtype_case!(i16, $value, $wrapper),
+            I32 => dtype_case!(i32, $value, $wrapper),
+            I64 => dtype_case!(i64, $value, $wrapper),
+            F32 => dtype_case!(f32, $value, $wrapper),
+            F64 => dtype_case!(f64, $value, $wrapper),
+            _ => panic!("Can't use {} to numeric", $dtype);
+        }
+    }};
+
+    (N; $dtype:expr, $value:expr, $wrapper:expr; $functor:ident) => {{
+        match $dtype {
+            U8 => dtype_case!($functor<u8>, $value, $wrapper),
+            U16 => dtype_case!($functor<u16>, $value, $wrapper),
+            U32 => dtype_case!($functor<u32>, $value, $wrapper),
+            U64 => dtype_case!($functor<u64>, $value, $wrapper),
+            I8 => dtype_case!($functor<i8>, $value, $wrapper),
+            I16 => dtype_case!($functor<i16>, $value, $wrapper),
+            I32 => dtype_case!($functor<i32>, $value, $wrapper),
+            I64 => dtype_case!($functor<i64>, $value, $wrapper),
+            F32 => dtype_case!($functor<f32>, $value, $wrapper),
+            F64 => dtype_case!($functor<f64>, $value, $wrapper),
+            _ => panic!("Can't use {} to numeric", $dtype),
         }
     }};
 }
@@ -379,7 +451,21 @@ macro_rules! dtype_cast_vec {
     ($dt1:expr, $dt2:expr, $to_vec:expr, $wrapper:expr) => {{
         match $dt1 {
             USIZE => dtype_cast_vec_part!(usize, $dt2, $to_vec, $wrapper),
-            U8 => dtype_cast_vec_part!(u8, $dt2, $to_vec, $wrapper),
+            U8 => {
+                match $dt2 {
+                    Bool => {
+                        let y: Vec<u8> = $to_vec;
+                        let x: Vec<bool> = y.into_iter().map(|x| x != 0).collect();
+                        $wrapper(x)
+                    },
+                    Char => {
+                        let y: Vec<u8> = $to_vec;
+                        let x: Vec<char> = y.into_iter().map(|x| x as char).collect();
+                        $wrapper(x)
+                    },
+                    _ => dtype_cast_vec_part!(u8, $dt2, $to_vec, $wrapper)
+                }
+            },
             U16 => dtype_cast_vec_part!(u16, $dt2, $to_vec, $wrapper),
             U32 => dtype_cast_vec_part!(u32, $dt2, $to_vec, $wrapper),
             U64 => dtype_cast_vec_part!(u64, $dt2, $to_vec, $wrapper),
@@ -394,12 +480,22 @@ macro_rules! dtype_cast_vec {
             Char => {
                 match $dt2 {
                     Str => string_cast_vec!(char, $to_vec, $wrapper),
+                    U8 => {
+                        let y: Vec<char> = $to_vec;
+                        let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
+                        $wrapper(x)
+                    },
                     _ => panic!("Can't convert char type to {}", $dt2),
                 }
             }
             Bool => {
                 match $dt2 {
                     Str => string_cast_vec!(bool, $to_vec, $wrapper),
+                    U8 => {
+                        let y: Vec<bool> = $to_vec;
+                        let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
+                        $wrapper(x)
+                    },
                     _ => panic!("Can't convert bool type to {}", $dt2),
                 }
             }
@@ -413,6 +509,56 @@ fn len<T>(x: Vec<T>) -> usize {
 
 fn to_string<T: fmt::Display>(x: T) -> String {
     x.to_string()
+}
+
+#[cfg(feature="hdfs")]
+fn dtype_to_vtype(dt: DType) -> netcdf::types::BasicType {
+    match dt {
+        USIZE => netcdf::types::BasicType::Uint64,
+        U8 => netcdf::types::BasicType::Ubyte,
+        U16 => netcdf::types::BasicType::Ushort,
+        U32 => netcdf::types::BasicType::Uint,
+        U64 => netcdf::types::BasicType::Uint64,
+        ISIZE => netcdf::types::BasicType::Int64,
+        I8 => netcdf::types::BasicType::Byte,
+        I16 => netcdf::types::BasicType::Short,
+        I32 => netcdf::types::BasicType::Int,
+        I64 => netcdf::types::BasicType::Int64,
+        F32 => netcdf::types::BasicType::Float,
+        F64 => netcdf::types::BasicType::Double,
+        Bool => netcdf::types::BasicType::Ubyte,
+        Char => netcdf::types::BasicType::Ubyte,
+        _ => panic!("Can't convert type to netcdf::types::BasicType"),
+    }
+}
+
+#[cfg(feature="hdfs")]
+fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
+    match dv {
+        netcdf::types::BasicType::Ubyte => U8,
+        netcdf::types::BasicType::Ushort => U16,
+        netcdf::types::BasicType::Uint => U32,
+        netcdf::types::BasicType::Uint64 => U64,
+        netcdf::types::BasicType::Byte => I8,
+        netcdf::types::BasicType::Short => I16,
+        netcdf::types::BasicType::Int => I32,
+        netcdf::types::BasicType::Int64 => I64,
+        netcdf::types::BasicType::Float => F32,
+        netcdf::types::BasicType::Double => F64,
+    }
+}
+
+#[cfg(feature="hdfs")]
+fn nc_put_value<'f, T: Numeric>(var: &mut VariableMut<'f>, v: Vec<T>) -> Result<(), netcdf::error::Error> {
+    var.put_values(&v, None, None)
+}
+
+#[cfg(feature="hdfs")]
+fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>) -> Result<Series, netcdf::error::Error> where Series: TypedVector<T> {
+    let mut v = v;
+    v.resize_with(val.len(), Default::default);
+    val.values_to(&mut v, None, None)?;
+    Ok(Series::new(v.clone()))
 }
 
 // =============================================================================
@@ -823,5 +969,92 @@ impl WithCSV for DataFrame {
         }
 
         Ok(result)
+    }
+}
+
+#[cfg(feature="hdfs")]
+pub trait WithNetCDF: Sized {
+    fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+    fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>>;
+    fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
+}
+
+#[cfg(feature="hdfs")]
+impl WithNetCDF for DataFrame {
+    fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let mut f = netcdf::create(file_path)?;
+
+        for (i, h) in self.header().iter().enumerate() {
+            let dim_name = format!("{}th col", i);
+            let v = &self[h.as_str()];
+            let dim = v.len();
+            f.add_dimension(&dim_name, dim)?;
+            match v.dtype {
+                dtype if dtype.is_numeric() => {
+                    let vtype = dtype_to_vtype(dtype);
+                    let var = &mut f.add_variable_with_type(h, &[&dim_name], &VariableType::Basic(vtype))?;
+                    dtype_match!(N; dtype, v.to_vec(), |v| nc_put_value(var, v); Vec)?;
+                }
+                Str => {
+                    let var = &mut f.add_string_variable(h, &[&dim_name])?;
+                    let v_s: &[String] = v.as_slice();
+                    for (i, s) in v_s.iter().enumerate() {
+                        var.put_string(s, Some(&[i]))?;
+                    }
+                }
+                USIZE => {
+                    let v = v.to_type(U64);
+                    let var = &mut f.add_variable::<u64>(h, &[&dim_name])?;
+                    let v_slice: &[u64] = v.as_slice();
+                    var.put_values(v_slice, None, None)?;
+                }
+                ISIZE => {
+                    let v = v.to_type(I64);
+                    let var = &mut f.add_variable::<i64>(h, &[&dim_name])?;
+                    let v_slice: &[i64] = v.as_slice();
+                    var.put_values(v_slice, None, None)?;
+                }
+                Bool => {
+                    let v = v.to_type(U8);
+                    let var = &mut f.add_variable::<u8>(h, &[&dim_name])?;
+                    let v_slice: &[u8] = v.as_slice();
+                    var.put_values(v_slice, None, None)?;
+                }
+                Char => {
+                    let v = v.to_type(U8);
+                    let var = &mut f.add_variable::<u8>(h, &[&dim_name])?;
+                    let v_slice: &[u8] = v.as_slice();
+                    var.put_values(v_slice, None, None)?;
+                }
+                _ => unreachable!()
+            }
+        }
+
+        Ok(())
+    }
+
+    fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>> {
+        let f = netcdf::open(file_path)?;
+        let mut df = DataFrame::new(vec![]);
+        for v in f.variables() {
+            let h = v.name();
+            if v.vartype().is_string() {
+                let mut data: Vec<String> = vec![Default::default(); v.len()];
+                for i in 0 .. v.len() {
+                    data[i] = v.string_value(Some(&[i]))?;
+                }
+                df.push(&h, Series::new(data));
+            } else {
+                let dtype = vtype_to_dtype(v.vartype().as_basic().unwrap());
+                let series = dtype_match!(N; dtype, vec![], |vec| nc_read_value(&v, vec); Vec)?;
+                df.push(&h, series);
+            }
+            
+        }
+        Ok(df)
+    }
+
+    fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> {
+        unimplemented!()
     }
 }
