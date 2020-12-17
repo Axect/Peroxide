@@ -350,7 +350,7 @@ macro_rules! set_space {
                 );
             }
             _ => {
-                $space = $elem.to_string().len();
+                $space = max($space, $elem.to_string().len());
             }
         }
     }};

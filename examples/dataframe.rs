@@ -44,6 +44,6 @@ fn main() {
     c.push(5usize);
     c.print();
 
-    df[1].push(3.14f64);
+    df[1].push(3.1415928f64);
     df.print();
 }
