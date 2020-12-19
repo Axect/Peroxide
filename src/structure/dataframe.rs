@@ -1,8 +1,120 @@
-//use self::csv::{ReaderBuilder, WriterBuilder};
-//use crate::structure::matrix::{matrix, Matrix, Shape::*};
-//use crate::traits::fp::FPMatrix;
-//use indexmap::{map::Keys, IndexMap};
-//use json::JsonValue;
+//! Pandas-like dataframe & series.
+//!
+//! ## Series
+//!
+//! ### 1. Declare Series
+//!
+//! * To declare series, you should have `Vec<T>` where `T` is one of following types.
+//!
+//!     | Primitive type | DType   |
+//!     | :------------: | :-----: |
+//!     | `usize`        | `USIZE` |
+//!     | `u8`           | `U8`    |
+//!     | `u16`          | `U16`   |
+//!     | `u32`          | `U32`   |
+//!     | `u64`          | `U64`   |
+//!     | `isize`        | `ISIZE` |
+//!     | `i8`           | `I8`    |
+//!     | `i16`          | `I16`   |
+//!     | `i32`          | `I32`   |
+//!     | `i64`          | `I64`   |
+//!     | `f32`          | `F32`   |
+//!     | `f64`          | `F64`   |
+//!     | `bool`         | `Bool`  |
+//!     | `char`         | `Char`  |
+//!     | `String`       | `Str`   |
+//!
+//! * If you prepare `Vec<T>`, then `Series::new(Vec<T>)`
+//!
+//! ### 2. Methods for Series
+//!
+//! * `TypedVector<T> trait for Series`
+//!     
+//!     ```ignore
+//!     pub trait TypedVector<T> {
+//!         fn new(v: Vec<T>) -> Self;
+//!         fn to_vec(&self) -> Vec<T>;
+//!         fn as_slice(&self) -> &[T];
+//!         fn as_slice_mut(&mut self) -> &mut [T];
+//!         fn at_raw(&self, i: usize) -> T;
+//!         fn push(&mut self, elem: T);
+//!     }
+//!     ``` 
+//!
+//! * `Series` methods
+//!
+//!     ```ignore
+//!     impl Series {
+//!         pub fn at(&self, i: usize) -> Scalar;
+//!         pub fn len(&self) -> usize;
+//!         pub fn to_type(&self, dtype: DType) -> Series;
+//!         pub fn as_type(&mut self, dtype: DType);
+//!     }
+//!     ```
+//!
+//!     * `at` is simple getter for `Series`. It returns `Scalar`.
+//!     * `as_type` is a method for mutable type casting.
+//!         * All types can be changed to `Str`.
+//!         * All integer & float types can be exchanged.
+//!         * `Bool, Char` can be changed to `Str` or `U8` only.
+//!         * `U8` can be changed to all types.
+//! 
+//! ### 3. Example
+//!
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = Series::new(vec![1, 2, 3, 4]);
+//!     let b = Series::new(vec!['a', 'b', 'c', 'd']);
+//!     let mut c = Series::new(vec![true, false, false, true]);
+//!
+//!     a.print();       // print for Series
+//!     b.dtype.print(); // print for dtype of Series (=Char)
+//!     c.as_type(U8);   // Bool => U8 
+//!     
+//!     assert_eq!(c.dtype, U8);
+//! }
+//! ```
+//!
+//! ## DataFrame
+//!
+//! ### 1. Declare DataFrame
+//!
+//! * To declare dataframe, use constructor.
+//!     * `DataFrame::new(Vec<Series>)`
+//!
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     // 1-1. Empty DataFrame
+//!     let mut df = DataFrame::new(vec![]);
+//!
+//!     // 1-2. Push Series
+//!     df.push("a", Series::new(vec![1, 2, 3, 4]));
+//!     df.push("b", Series::new(vec![0.1, 0.2, 0.3, 0.4]));
+//!     df.push("c", Series::new(vec!['a', 'b', 'c', 'd']));
+//!
+//!     // 1-3. Print
+//!     df.print();
+//!
+//!     // 2-1. Construct Series first
+//!     let a = Series::new(vec![1, 2, 3, 4]);
+//!     let b = Series::new(vec![0.1, 0.2, 0.3, 0.4]);
+//!     let c = Series::new(vec!['a', 'b', 'c', 'd']);
+//!
+//!     // 2-2. Declare DataFrame with exist Series
+//!     let mut dg = DataFrame::new(vec![a, b, c]);
+//!
+//!     // 2-3. Print or Set header
+//!     dg.print();                         // But header: 0 1 2
+//!     dg.set_header(vec!["a", "b", "c"]); // Change header
+//! }
+//! ```
+
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
@@ -139,7 +251,7 @@ pub struct DataFrame {
 ///     // Declare Series with Vec<T> (T: primitive type)
 ///     let a = Series::new(vec![1i32, 2, 3, 4]);
 ///     a.print();                      // print for Series
-///     a.dtype().print();              // print for dtype of Series
+///     a.dtype.print();              // print for dtype of Series
 ///
 ///     let b: &[i32] = a.as_slice();   // Borrow series to &[T]
 ///     let c: Vec<i32> = a.to_vec();   // Series to Vec<T> (clone)
@@ -690,7 +802,8 @@ impl Series {
     pub fn at(&self, i: usize) -> Scalar {
         dtype_match!(self.dtype, self.at_raw(i), Scalar::new)
     }
-
+    
+    /// Length for Series
     pub fn len(&self) -> usize {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
     }
