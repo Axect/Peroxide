@@ -6,23 +6,23 @@
 //!
 //! * To declare series, you should have `Vec<T>` where `T` is one of following types.
 //!
-//!     | Primitive type | DType   |
-//!     | :------------: | :-----: |
-//!     | `usize`        | `USIZE` |
-//!     | `u8`           | `U8`    |
-//!     | `u16`          | `U16`   |
-//!     | `u32`          | `U32`   |
-//!     | `u64`          | `U64`   |
-//!     | `isize`        | `ISIZE` |
-//!     | `i8`           | `I8`    |
-//!     | `i16`          | `I16`   |
-//!     | `i32`          | `I32`   |
-//!     | `i64`          | `I64`   |
-//!     | `f32`          | `F32`   |
-//!     | `f64`          | `F64`   |
-//!     | `bool`         | `Bool`  |
-//!     | `char`         | `Char`  |
-//!     | `String`       | `Str`   |
+//! | Primitive type | DType   |
+//! | :-----:  | :-----: |
+//! | `usize`  | `USIZE` |
+//! | `u8`     | `U8`    |
+//! | `u16`    | `U16`   |
+//! | `u32`    | `U32`   |
+//! | `u64`    | `U64`   |
+//! | `isize`  | `ISIZE` |
+//! | `i8`     | `I8`    |
+//! | `i16`    | `I16`   |
+//! | `i32`    | `I32`   |
+//! | `i64`    | `I64`   |
+//! | `f32`    | `F32`   |
+//! | `f64`    | `F64`   |
+//! | `bool`   | `Bool`  |
+//! | `char`   | `Char`  |
+//! | `String` | `Str`   |
 //!
 //! * If you prepare `Vec<T>`, then `Series::new(Vec<T>)`
 //!
@@ -114,6 +114,102 @@
 //!     dg.set_header(vec!["a", "b", "c"]); // Change header
 //! }
 //! ```
+//!
+//! ### 2. Methods for DataFrame
+//!
+//! * `DataFrame` method
+//!
+//!     ```ignore
+//!     impl DataFrame {
+//!         pub fn new(v: Vec<Series>) -> Self;
+//!         pub fn header(&self) -> &Vec<String>;
+//!         pub fn header_mut(&mut self) -> &mut Vec<String>;
+//!         pub fn set_header(&mut self, new_header: Vec<&str>);
+//!         pub fn push(&mut self, name: &str, series: Series);
+//!         pub fn drop(&mut self, col_header: &str);
+//!         pub fn row(&self, i: usize) -> DataFrame;
+//!         pub fn spread(&self) -> String;
+//!         pub fn as_types(&mut self, dtypes: Vec<DType>);
+//!     }
+//!     ```
+//!
+//!     * `push(&mut self, name: &str, series: Series)`: push head & Series pair
+//!     * `drop(&mut self, col_header: &str)`: drop specific column by header
+//!     * `row(&self, i: usize) -> DataFrame` : Extract $i$-th row as new DataFrame
+//!
+//! * `WithCSV` trait
+//!
+//!     ```ignore
+//!     pub trait WithCSV: Sized {
+//!         fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+//!         fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
+//!     }
+//!     ```
+//!
+//!     ```rust
+//!     // Example for CSV
+//!     #[macro_use]
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() -> Result<(), Box<dyn Error>> {
+//!         // Write CSV
+//!         let mut df = DataFrame::new(vec![]);
+//!         df.push("a", Series::new(vec!['x', 'y', 'z']));
+//!         df.push("b", Series::new(vec![0, 1, 2]));
+//!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
+//!         df.write_csv("example_data/doc_csv.csv")?;
+//!
+//!         // Read CSV
+//!         let mut dg = DataFrame::read_csv("example_data/doc_csv.csv", ',')?;
+//!         dg.as_types(vec![Char, I32, F64]);
+//!
+//!         assert_eq!(df, dg);
+//!
+//!         Ok(())
+//!     }
+//!     ```
+//!
+//! * `WithNetCDF` trait
+//!
+//!     ```ignore
+//!     pub trait WithNetCDF: Sized {
+//!         fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+//!         fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>>;
+//!         fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
+//!     }
+//!     ```
+//!
+//!     * `nc` feature should be required
+//!     * `libnetcdf` dependency should be required
+//!     * `Char`, `Bool` are saved as `U8` type. Thus, for reading `Char` or `Bool` type nc file,
+//!     explicit type casting is required.
+//!
+//!     ```
+//!     #[macro_use]
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() -> Result<(), Box<dyn Error>> {
+//!     #    #[cfg(feature = "nc")]
+//!     #    {
+//!         // Write netcdf
+//!         let mut df = DataFrame::new(vec![]);
+//!         df.push("a", Series::new(vec!['x', 'y', 'z']));
+//!         df.push("b", Series::new(vec![0, 1, 2]));
+//!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
+//!         df.write_nc("example_data/doc_nc.nc")?;
+//!
+//!         // Read netcdf
+//!         let mut dg = DataFrame::read_nc("example_data/doc_nc.nc")?;
+//!         dg[0].as_type(Char); // Char, Bool are only read/written as U8 type
+//!
+//!         assert_eq!(df, dg);
+//!     #    }
+//!
+//!         Ok(())
+//!     }
+//!     ```
 
 use std::collections::HashMap;
 use std::fmt;
@@ -128,7 +224,7 @@ use DType::{
     F32,F64,Bool,Char,Str
 };
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 use netcdf::{
     types::VariableType,
     variable::{VariableMut, Variable},
@@ -644,7 +740,7 @@ fn to_string<T: fmt::Display>(x: T) -> String {
     x.to_string()
 }
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 fn dtype_to_vtype(dt: DType) -> netcdf::types::BasicType {
     match dt {
         USIZE => netcdf::types::BasicType::Uint64,
@@ -665,7 +761,7 @@ fn dtype_to_vtype(dt: DType) -> netcdf::types::BasicType {
     }
 }
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
     match dv {
         netcdf::types::BasicType::Ubyte => U8,
@@ -681,12 +777,12 @@ fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
     }
 }
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 fn nc_put_value<'f, T: Numeric>(var: &mut VariableMut<'f>, v: Vec<T>) -> Result<(), netcdf::error::Error> {
     var.put_values(&v, None, None)
 }
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>) -> Result<Series, netcdf::error::Error> where Series: TypedVector<T> {
     let mut v = v;
     v.resize_with(val.len(), Default::default);
@@ -1068,6 +1164,39 @@ impl DataFrame {
             self[i].as_type(dtype);
         }
     }
+
+    /// Drop specific column by header
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![1,2,3,4]);
+    ///     let b = Series::new(vec![5,6,7,8]);
+    ///
+    ///     let mut df = DataFrame::new(vec![a.clone(), b]);
+    ///     df.set_header(vec!["a", "b"]);
+    ///
+    ///     let mut dg = DataFrame::new(vec![a]);
+    ///     dg.set_header(vec!["a"]);
+    ///
+    ///     df.drop("b");
+    ///
+    ///     assert_eq!(df, dg);
+    /// }
+    /// ```
+    pub fn drop(&mut self, col_header: &str) {
+        match self.ics.iter().position(|h| h == col_header) {
+            Some(index) => {
+                self.data.remove(index);
+                self.ics.remove(index);
+            }
+            None => panic!("Can't drop header '{}'", col_header),
+        }
+    }
 }
 
 impl Index<&str> for DataFrame {
@@ -1171,14 +1300,14 @@ impl WithCSV for DataFrame {
 }
 
 /// To handle with NetCDF file format
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 pub trait WithNetCDF: Sized {
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>>;
     fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
 }
 
-#[cfg(feature="hdfs")]
+#[cfg(feature= "nc")]
 impl WithNetCDF for DataFrame {
     /// write netcdf file
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
@@ -1256,6 +1385,30 @@ impl WithNetCDF for DataFrame {
     }
 
     /// Read netcdf to DataFrame with specific header
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() -> Result<(), Box<dyn Error>> {
+    ///     let mut df = DataFrame::new(vec![]);
+    ///     df.push("a", Series::new(vec![1,2,3,4]));
+    ///     df.push("b", Series::new(vec!['a', 'b', 'c', 'd']));
+    ///     df.push("c", Series::new(c!(0.1, 0.2, 0.3, 0.4)));
+    ///     df.write_nc("example_data/doc_nc2.nc")?;
+    ///
+    ///     let dg = DataFrame::read_nc_by_header("example_data/doc_nc2.nc", vec!["a", "c"])?;
+    ///
+    ///     df.drop("b");
+    ///
+    ///     assert_eq!(df, dg);
+    ///     
+    ///     Ok(())
+    /// }
+    /// ```
     fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> {
         let f = netcdf::open(file_path)?;
         let mut df = DataFrame::new(vec![]);

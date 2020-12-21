@@ -186,7 +186,7 @@ extern crate matrixmultiply;
 
 extern crate peroxide_ad;
 
-#[cfg(feature = "hdfs")]
+#[cfg(feature = "nc")]
 extern crate netcdf;
 
 #[macro_use]

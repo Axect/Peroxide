@@ -2,7 +2,7 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    #[cfg(feature="hdfs")]
+    #[cfg(feature= "nc")]
     {
         let a = Series::new(vec![1, 2, 3, 4]);
         let b = Series::new(vec![0.1, 0.2, 0.3, 0.4]);
