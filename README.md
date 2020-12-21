@@ -20,7 +20,7 @@ Peroxide provides various features.
 * `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
 * `O3` - OpenBLAS (Perfect performance but little bit hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * `plot` - With matplotlib of python, we can draw any plots.
-* `dataframe` - Dataframe & netcdf
+* `nc` - To handle netcdf file format with DataFrame
 * `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation and more linear algebra, then choose openblas feature.
@@ -217,7 +217,7 @@ Corresponding to `0.27.0`
 
 * For `O3` feature - Need `OpenBLAS`
 * For `plot` feature - Need `matplotlib` of python
-* For `dataframe` feature - Need `netcdf`
+* For `nc` feature - Need `netcdf`
 
 ## Install
 
@@ -226,42 +226,42 @@ Corresponding to `0.27.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.27"
+   peroxide = "0.28"
     ```
 2. OpenBLAS
     ```toml
    [dependencies.peroxide]
-   version = "0.27"
+   version = "0.28"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.27"
+   version = "0.28"
    default-features = false
    features = ["plot"] 
    ```
-4. DataFrame
+4. NetCDF dependency for DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.27"
+   version = "0.28"
    default-features = false
-   features = ["dataframe"]
+   features = ["nc"]
    ```
 4. OpenBLAS & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
    version = "0.27"
    default-features = false
-   features = ["O3", "plot", "dataframe"] 
+   features = ["O3", "plot", "nc"] 
    ```
 
 ## Useful tips for features
 
 * If you want to use `QR` or `SVD` then should use `O3` feature (there are no implementations for these decompositions in `default`)
-* If you want to write your numerical results, then use `dataframe` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
-* To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
+* If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
+* To plot, use `nc` feature to export data as netcdf format and use python to draw plot.
     * `plot` feature has limited plot abilities.
     * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
 

@@ -1,3 +1,16 @@
+# Release 0.28.0 (2020-12-21)
+
+## Rebirth of DataFrame
+
+* Now, `DataFrame` can contain multiple type columns. Refer to [dataframe](https://peroxide.surge.sh/structure/dataframe/index.html).
+* `DataFrame` is merged default feature. No more `dataframe` feature required. Thus, `dataframe` feature is removed.
+* But if you want to `netcdf` file format, then `nc` feature is required.
+
+## Minor changes
+
+* Fix errata in `README.md`
+* Remove unnecessary imports
+
 # Release 0.27.1 (2020-10-28)
 
 * Add doc for `Matrix::qr` & `Matrix::svd`
