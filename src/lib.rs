@@ -82,7 +82,7 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.27.0`
+//! * Current document version is corresponding to `0.28.0`
 //!
 //! 1. Default
 //!     ```toml

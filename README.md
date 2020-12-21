@@ -211,7 +211,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.27.0`
+Corresponding to `0.28.0`
 
 ## Pre-requisite
 
@@ -252,7 +252,7 @@ Corresponding to `0.27.0`
 4. OpenBLAS & Plot & DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.27"
+   version = "0.28"
    default-features = false
    features = ["O3", "plot", "nc"] 
    ```
