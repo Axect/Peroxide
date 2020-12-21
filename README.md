@@ -281,7 +281,7 @@ Corresponding to `0.27.0`
       - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
     - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula (deprecated)
-    - [eigen.rs](src/numerica;/eigen.rs) : Eigenvalue, Eigenvector algorithm
+    - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
