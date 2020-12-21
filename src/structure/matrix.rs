@@ -424,10 +424,7 @@
 //! * Use `dgeqrf` of LAPACK
 //! * Return `QR` structure.
 //!     
-//!     ```no-run
-//!     extern crate peroxide;
-//!     use peroxide::fuga::*;
-//!
+//!     ```ignore
 //!     pub struct QR {
 //!         pub q: Matrix,
 //!         pub r: Matrix,

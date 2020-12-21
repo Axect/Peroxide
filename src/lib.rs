@@ -87,42 +87,42 @@
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.27"
+//!     peroxide = "0.28"
 //!     ```
 //! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.27"
+//!     version = "0.28"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.27"
+//!     version = "0.28"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
-//! 4. DataFrame
+//! 4. `netcdf` dependency for DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.27"
+//!     version = "0.28"
 //!     default-features = false
-//!     features = ["dataframe"]
+//!     features = ["nc"]
 //!     ```
 //! 5. Together
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.27"
+//!     version = "0.28"
 //!     default-features = false
-//!     features = ["O3", "plot", "dataframe"]
+//!     features = ["O3", "plot", "nc"]
 //!     ```
 //!
 //! ## Import all at once
 //!
 //! Peroxide has two options.
 //!
-//! * [`prelude`](prelude/inde.html) : To simple use
+//! * [`prelude`](prelude/index.html) : To simple use
 //! * [`fuga`](fuga/index.html) : To control numerical algorithms
 //!
 //! To see differences, follow above two links.
@@ -153,10 +153,11 @@
 //!
 //! ## Useful tips for features
 //!
+//! * After `0.28.0`, `dataframe` feature is replaced by `nc` feature.
 //! * If you want to use `QR` or `SVD` then should use `O3` feature (there are no implementations for these decompositions in `default`)
-//! * If you want to write your numerical results, then use `dataframe` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
+//! * If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
 //! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
-//! * To plot, use `dataframe` to export data as netcdf format and use python to draw plot.
+//! * To plot, use `nc` feature to export data as netcdf format and use python to draw plot.
 //!     * `plot` feature has limited plot abilities.
 //!     * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
 
@@ -174,13 +175,8 @@ extern crate serde;
 
 extern crate rand;
 
-#[cfg(feature = "dataframe")]
 extern crate indexmap;
 
-#[cfg(feature = "dataframe")]
-extern crate netcdf;
-
-#[cfg(feature = "dataframe")]
 extern crate json;
 
 extern crate order_stat;
@@ -190,6 +186,9 @@ extern crate puruspe;
 extern crate matrixmultiply;
 
 extern crate peroxide_ad;
+
+#[cfg(feature = "nc")]
+extern crate netcdf;
 
 #[macro_use]
 pub mod macros;
