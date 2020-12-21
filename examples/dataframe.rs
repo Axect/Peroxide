@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate peroxide;
 use peroxide::fuga::*;
-use peroxide::structure::dataframe::*;
 
 fn main() {
     let x = c!(1,2,3,4);

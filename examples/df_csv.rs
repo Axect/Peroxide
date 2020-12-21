@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate peroxide;
 use peroxide::fuga::*;
-use peroxide::structure::dataframe::*;
-use peroxide::structure::dataframe::DType::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let a = Series::new(vec![1,2,3,4]);
