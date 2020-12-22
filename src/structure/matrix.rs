@@ -1534,7 +1534,7 @@ impl LinearOp<Vec<f64>, Vec<f64>> for Matrix {
                 let n_i32 = self.col as i32;
                 match self.shape {
                     Row => unsafe {
-                        dgemv(b'T', m_i32, n_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
+                        dgemv(b'T', n_i32, m_i32, 1f64, A, n_i32, x, 1, 0f64, &mut y, 1);
                     },
                     Col => unsafe {
                         dgemv(b'N', m_i32, n_i32, 1f64, A, m_i32, x, 1, 0f64, &mut y, 1);
