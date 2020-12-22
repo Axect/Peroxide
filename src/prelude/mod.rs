@@ -128,6 +128,7 @@ pub use crate::structure::{
     },
     polynomial::*,
     vector::*,
+    dataframe::*,
 };
 
 pub use simpler::{solve, SimplerLinearAlgebra};
