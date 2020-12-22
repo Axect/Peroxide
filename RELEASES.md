@@ -1,3 +1,9 @@
+# Release 0.28.1 (2020-12-22)
+
+* Fix dimension error of `apply` in `O3` feature
+* Import `structure/dataframe.rs` into `prelude`
+* Update version of `README.md`
+
 # Release 0.28.0 (2020-12-21)
 
 ## Rebirth of DataFrame
