@@ -1030,19 +1030,6 @@ impl Vector for Series {
     }
 }
 
-//impl FPVector for Series {
-//    type Scalar = Scalar;
-//
-//    fn fmap<F>(&self, f: F) -> Self
-//    where
-//            F: Fn(Self::Scalar) -> Self::Scalar {
-//        dtype_match!(
-//            self.dtype,
-//
-//        )
-//    }
-//}
-
 impl_typed_scalar!(usize, USIZE);
 impl_typed_scalar!(u8, U8);
 impl_typed_scalar!(u16, U16);
