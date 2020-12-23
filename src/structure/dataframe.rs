@@ -384,6 +384,8 @@ pub trait TypedVector<T> {
     fn as_slice_mut(&mut self) -> &mut [T];
     fn at_raw(&self, i: usize) -> T;
     fn push(&mut self, elem: T);
+    fn map<F: Fn(T) -> T>(&self, f: F) -> Self;
+    fn mut_map<F: Fn(&mut T)>(&mut self, f: F);
 }
 
 // =============================================================================
@@ -448,6 +450,16 @@ macro_rules! impl_typed_vector {
                     _ => panic!("Can't convert to {:?} vector", $dtype),
                 };
                 v.push(elem);
+            }
+
+            fn map<F: Fn($type) -> $type>(&self, f: F) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().map(f).collect::<Vec<$type>>())
+            }
+
+            fn mut_map<F: Fn(&mut $type)>(&mut self, f: F) {
+                let v = self.as_slice_mut();
+                v.iter_mut().for_each(f);
             }
         }
     }
@@ -1017,6 +1029,19 @@ impl Vector for Series {
         b.to_type(self.dtype) 
     }
 }
+
+//impl FPVector for Series {
+//    type Scalar = Scalar;
+//
+//    fn fmap<F>(&self, f: F) -> Self
+//    where
+//            F: Fn(Self::Scalar) -> Self::Scalar {
+//        dtype_match!(
+//            self.dtype,
+//
+//        )
+//    }
+//}
 
 impl_typed_scalar!(usize, USIZE);
 impl_typed_scalar!(u8, U8);
