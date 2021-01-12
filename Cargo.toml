@@ -20,19 +20,18 @@ maintenance = { status = "actively-developed" }
 float-cmp = "0.8"
 
 [dependencies]
-csv = "1.1"
+csv = { version = "1.1", optional = true, default_features = false }
 rand = "0.7"
 rand_distr = "0.3"
 order-stat = "0.1"
 puruspe = "0.1"
 matrixmultiply = "0.2"
-peroxide-ad = "0.2"
 netcdf = { version = "0.5", optional = true, default_features = false }
 pyo3 = { version = "0.12", optional = true }
 blas = { version = "0.20", optional = true }
 lapack = { version = "0.16", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
-json = { version = "0.12" }
+json = { version = "0.12", optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]

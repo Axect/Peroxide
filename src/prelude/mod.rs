@@ -120,6 +120,7 @@ pub use simpler::SimpleNorm;
 #[allow(unused_imports)]
 pub use crate::structure::{
     ad::*,
+    ad::AD::*,
     dual::*,
     hyper_dual::*,
     matrix::{

@@ -3,6 +3,7 @@
 use crate::statistics::dist::*;
 #[allow(unused_imports)]
 use crate::structure::{
+    ad::AD,
     dual::{Dual, Dualist},
     hyper_dual::HyperDual,
     matrix::Matrix,
@@ -409,6 +410,12 @@ impl Printable for Series {
 }
 
 impl Printable for DataFrame {
+    fn print(&self) {
+        println!("{}", self)
+    }
+}
+
+impl Printable for AD {
     fn print(&self) {
         println!("{}", self)
     }

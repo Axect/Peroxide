@@ -13,18 +13,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     df.print();
 
-    df.write_csv("example_data/df_csv.csv")?;
+    #[cfg(feature="csv")]
+    {
+        df.write_csv("example_data/df_csv.csv")?;
 
-    let mut dg = DataFrame::read_csv("example_data/df_csv.csv", ',')?;
-    dg.print();
-    dg[0].dtype.print();
+        let mut dg = DataFrame::read_csv("example_data/df_csv.csv", ',')?;
+        dg.print();
+        dg[0].dtype.print();
 
-    dg.as_types(vec![USIZE, F32, Bool, Char]);
+        dg.as_types(vec![USIZE, F32, Bool, Char]);
 
-    println!("");
+        println!("");
 
-    dg.print();
-    dg[0].dtype.print();
+        dg.print();
+        dg[0].dtype.print();
+    }
 
     Ok(())
 }
