@@ -1,11 +1,11 @@
 [package]
 name = "peroxide-ad"
-version = "0.2.0"
+version = "0.1.4"
 authors = ["Axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Proc macro for automatic differenitation of Peroxide"
 repository = "https://github.com/Axect/Peroxide"
-license = "MIT OR Apache-2.0"
+license = "BSD-3-Clause"
 categories = ["science"]
 readme = "README.md"
 keywords = ["automatic-derivative", "numerical"]
@@ -13,7 +13,7 @@ keywords = ["automatic-derivative", "numerical"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-proc-macro=true
+crate-type = ["cdylib"]
 
 [dependencies]
-watt = "0.4"
+proc-macro2 = { git = "https://github.com/dtolnay/watt" }
