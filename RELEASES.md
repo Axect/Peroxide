@@ -1,3 +1,8 @@
+# Release 0.28.2 (2021-01-12)
+
+* Reduce compile time via `watt` integration
+    * Now, `peroxide-ad` is pre-compiled to wasm
+
 # Release 0.28.1 (2020-12-22)
 
 * Fix dimension error of `apply` in `O3` feature
