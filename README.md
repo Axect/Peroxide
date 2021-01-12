@@ -21,6 +21,7 @@ Peroxide provides various features.
 * `O3` - OpenBLAS (Perfect performance but little bit hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
 * `plot` - With matplotlib of python, we can draw any plots.
 * `nc` - To handle netcdf file format with DataFrame
+* `csv` - To handle csv file format with Matrix or DataFrame
 * `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation and more linear algebra, then choose openblas feature.
@@ -211,7 +212,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.28.0`
+Corresponding to `0.29.0`
 
 ## Pre-requisite
 
@@ -226,35 +227,42 @@ Corresponding to `0.28.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.28"
+   peroxide = "0.29"
     ```
 2. OpenBLAS
     ```toml
    [dependencies.peroxide]
-   version = "0.28"
+   version = "0.29"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.28"
+   version = "0.29"
    default-features = false
    features = ["plot"] 
    ```
 4. NetCDF dependency for DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.28"
+   version = "0.29"
    default-features = false
    features = ["nc"]
    ```
-4. OpenBLAS & Plot & DataFrame
+5. CSV dependency for DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.28"
+   version = "0.29"
    default-features = false
-   features = ["O3", "plot", "nc"] 
+   features = ["csv"]
+   ```
+6. OpenBLAS & Plot & NetCDF
+    ```toml
+   [dependencies.peroxide]
+   version = "0.29"
+   default-features = false
+   features = ["O3", "plot", "nc", "csv"] 
    ```
 
 ## Useful tips for features
