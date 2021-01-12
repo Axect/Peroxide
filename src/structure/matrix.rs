@@ -146,6 +146,7 @@
 //!
 //! ### CSV (Legacy)
 //!
+//! * `csv` feature should be required
 //! * `write(&self, file_path: &str)`: Write matrix to csv
 //! * `write_with_header(&self, file_path, header: Vec<&str>)`: Write with header
 //!
@@ -154,12 +155,16 @@
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
+//!     # #[cfg(feature="csv")]
+//!     # {
 //!         let a = ml_matrix("1 2;3 4");
 //!         a.write("example_data/matrix.csv").expect("Can't write file");
 //!
 //!         let b = ml_matrix("1 2; 3 4; 5 6");
 //!         b.write_with_header("example_data/header.csv", vec!["odd", "even"])
 //!             .expect("Can't write header file");
+//!     # }
+//!         println!("Complete!")
 //!     }
 //!     ```
 //!
@@ -513,6 +518,7 @@
 //!     }
 //!     ```
 
+#[cfg(feature="csv")]
 extern crate csv;
 
 #[cfg(feature = "O3")]
@@ -520,6 +526,7 @@ extern crate blas;
 #[cfg(feature = "O3")]
 extern crate lapack;
 
+#[cfg(feature="csv")]
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 use ::matrixmultiply;
 #[cfg(feature = "O3")]
@@ -1066,6 +1073,7 @@ impl Matrix {
     ///     a.write("example_data/test.csv");
     /// }
     /// ```
+    #[cfg(feature="csv")]
     pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1094,6 +1102,7 @@ impl Matrix {
     ///     a.write_round("example_data/test.csv", 0);
     /// }
     /// ```
+    #[cfg(feature="csv")]
     pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1109,6 +1118,7 @@ impl Matrix {
         Ok(())
     }
 
+    #[cfg(feature="csv")]
     pub fn write_with_header(
         &self,
         file_path: &str,
@@ -1130,6 +1140,7 @@ impl Matrix {
         Ok(())
     }
 
+    #[cfg(feature="csv")]
     pub fn write_with_header_round(
         &self,
         file_path: &str,
@@ -1175,6 +1186,7 @@ impl Matrix {
     ///     }
     /// }
     /// ```
+    #[cfg(feature="csv")]
     pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<dyn Error>> {
         let mut rdr = ReaderBuilder::new()
             .has_headers(header)

@@ -39,7 +39,7 @@
 //!
 //! fn main() -> Result<(), RootError> {
 //!     let init = RootState::I(1f64, 4f64);
-//!     let mut rf = RootFinder::<_, AD1>::new(init, Bisection, f)?;
+//!     let mut rf = RootFinder::new(init, Bisection, f)?;
 //!     rf.set_tol(1e-15)       // Default: 1e-10
 //!         .set_times(200);    // Default: 100
 //!     let root = rf.find_root()?;
@@ -47,7 +47,7 @@
 //!     Ok(())
 //! }
 //!
-//! fn f<T: AD>(x: T) -> T {
+//! fn f(x: AD) -> AD {
 //!     x.sin()
 //! }
 //! ```
@@ -75,7 +75,7 @@
 //!     Ok(())
 //! }
 //!
-//! fn f<T: AD>(x: T) -> T {
+//! fn f(x: AD) -> AD {
 //!     x.sin()
 //! }
 //! ```
@@ -84,10 +84,8 @@
 //!
 //! * Walter Gautschi, *Numerical Analysis*, Springer (2012)
 
-use crate::structure::ad::{ADLift, AD, AD1};
-use crate::traits::stable::StableFn;
+use crate::structure::ad::{AD, AD::AD1, ADLift};
 use std::fmt::Display;
-use std::marker::PhantomData;
 use RootState::{I, P};
 //use std::collections::HashMap;
 //use std::marker::PhantomData;
@@ -107,10 +105,8 @@ pub enum RootFind {
 }
 
 /// Structure for Root finding
-///
-/// * **Caution**: `T` $\geq$ `AD1`
 #[derive(Debug, Clone)]
-pub struct RootFinder<F: Fn(T) -> T, T: AD> {
+pub struct RootFinder<F: Fn(AD) -> AD> {
     init: RootState,
     pub curr: RootState,
     method: RootFind,
@@ -119,7 +115,6 @@ pub struct RootFinder<F: Fn(T) -> T, T: AD> {
     times: usize,
     tol: f64,
     root: f64,
-    _marker: PhantomData<T>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -148,7 +143,7 @@ impl Display for RootError {
 
 impl std::error::Error for RootError {}
 
-impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
+impl<F: Fn(AD) -> AD> RootFinder<F> {
     /// Create RootFinder
     ///
     /// # Default Options
@@ -163,13 +158,13 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
     ///
     /// fn main() -> Result<(), RootError> {
     ///     let init = RootState::I(1f64, 3f64);
-    ///     let mut a = RootFinder::<_, AD1>::new(init, Bisection, f)?;
+    ///     let mut a = RootFinder::new(init, Bisection, f)?;
     ///     let x = a.find_root()?;
     ///     x.print();
     ///     Ok(())
     /// }
     ///
-    /// fn f<T: AD>(x: T) -> T {
+    /// fn f(x: AD) -> AD {
     ///     x.powi(2) - 4f64
     /// }
     /// ```
@@ -186,7 +181,6 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
                     times: 100,
                     tol: 1e-10,
                     root: 0f64,
-                    _marker: PhantomData,
                 }),
             },
             RootFind::Newton => match init {
@@ -199,7 +193,6 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
                     times: 100,
                     tol: 1e-10,
                     root: 0f64,
-                    _marker: PhantomData,
                 }),
                 _ => Err(RootError::MismatchedState),
             },
@@ -214,7 +207,6 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
                     times: 100,
                     tol: 1e-10,
                     root: 0f64,
-                    _marker: PhantomData,
                 }),
             },
             RootFind::FalsePosition => match init {
@@ -227,14 +219,13 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
                     times: 100,
                     tol: 1e-10,
                     root: 0f64,
-                    _marker: PhantomData,
                 }),
                 _ => Err(RootError::MismatchedState),
             },
         }
     }
 
-    pub fn f(&self, x: T) -> T {
+    pub fn f(&self, x: AD) -> AD {
         (self.f)(x)
     }
 
@@ -242,17 +233,15 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
     pub fn condition_number(&self) -> f64 {
         match self.curr {
             P(p) => {
-                let mut z = AD1::from(p);
-                z.d1 = 1f64;
-                let fz = (self.f)(z.into()).to_ad1();
-                p * fz.d1 / fz.d0
+                let z = AD1(p, 1f64);
+                let fz = self.f(z);
+                p * fz.dx() / fz.x()
             }
             I(a, b) => {
                 let p = (a + b) / 2f64;
-                let mut z = AD1::from(p);
-                z.d1 = 1f64;
-                let fz = (self.f)(z.into()).to_ad1();
-                p * fz.d1 / fz.d0
+                let z = AD1(p, 1f64);
+                let fz = self.f(z);
+                p * fz.dx() / fz.x()
             }
         }
     }
@@ -277,9 +266,9 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
                 I(a, b) => {
                     let lift = ADLift::new(|x| self.f(x));
                     let x = 0.5 * (a + b);
-                    let fa = lift.call_stable(a);
-                    let fx = lift.call_stable(x);
-                    let fb = lift.call_stable(b);
+                    let fa = lift.f_0(a);
+                    let fx = lift.f_0(x);
+                    let fb = lift.f_0(b);
                     if (a - b).abs() <= self.tol {
                         self.find = RootBool::Find;
                         self.root = x;
@@ -301,10 +290,10 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
             RootFind::FalsePosition => match self.curr {
                 I(a, b) => {
                     let lift = ADLift::new(|x| self.f(x));
-                    let fa = lift.call_stable(a);
-                    let fb = lift.call_stable(b);
+                    let fa = lift.f_0(a);
+                    let fb = lift.f_0(b);
                     let x = (a * fb - b * fa) / (fb - fa);
-                    let fx = lift.call_stable(x);
+                    let fx = lift.f_0(x);
                     if (a - b).abs() <= self.tol || fx.abs() <= self.tol {
                         self.find = RootBool::Find;
                         self.root = x;
@@ -325,11 +314,9 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
             },
             RootFind::Newton => match self.curr {
                 P(xn) => {
-                    let lift = ADLift::new(|x| self.f(x));
-                    let mut z = AD1::from(xn);
-                    z.d1 = 1f64;
-                    let fz = lift.call_stable(z);
-                    let x = xn - (fz.d0 / fz.d1);
+                    let z = AD1(xn, 1f64);
+                    let fz = self.f(z);
+                    let x = xn - (fz.x() / fz.dx());
                     if (x - xn).abs() <= self.tol {
                         self.find = RootBool::Find;
                         self.root = x;
@@ -341,8 +328,8 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
             RootFind::Secant => match self.curr {
                 I(xn_1, xn) => {
                     let lift = ADLift::new(|x| self.f(x));
-                    let fxn_1 = lift.call_stable(xn_1);
-                    let fxn = lift.call_stable(xn);
+                    let fxn_1 = lift.f_0(xn_1);
+                    let fxn = lift.f_0(xn);
                     let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
                     if (x - xn).abs() <= self.tol {
                         self.find = RootBool::Find;
@@ -387,11 +374,11 @@ impl<F: Fn(T) -> T, T: AD> RootFinder<F, T> {
 ///     Ok(())
 /// }
 ///
-/// fn f<T: AD>(x: T) -> T {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn bisection<F: Fn(AD1) -> AD1>(
+pub fn bisection<F: Fn(AD) -> AD>(
     f: F,
     interval: (f64, f64),
     times: usize,
@@ -417,11 +404,11 @@ pub fn bisection<F: Fn(AD1) -> AD1>(
 ///     Ok(())
 /// }
 ///
-/// fn f<T: AD>(x: T) -> T {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn false_position<F: Fn(AD1) -> AD1>(
+pub fn false_position<F: Fn(AD) -> AD>(
     f: F,
     interval: (f64, f64),
     times: usize,
@@ -447,11 +434,11 @@ pub fn false_position<F: Fn(AD1) -> AD1>(
 ///     Ok(())
 /// }
 ///
-/// fn f<T: AD>(x: T) -> T {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn newton<F: Fn(AD1) -> AD1>(
+pub fn newton<F: Fn(AD) -> AD>(
     f: F,
     initial_guess: f64,
     times: usize,
@@ -476,11 +463,11 @@ pub fn newton<F: Fn(AD1) -> AD1>(
 ///     Ok(())
 /// }
 ///
-/// fn f<T: AD>(x: T) -> T {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2) - x * 2f64 - 3f64
 /// }
 /// ```
-pub fn secant<F: Fn(AD1) -> AD1>(
+pub fn secant<F: Fn(AD) -> AD>(
     f: F,
     initial_guess: (f64, f64),
     times: usize,

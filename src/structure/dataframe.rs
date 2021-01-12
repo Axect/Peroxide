@@ -146,6 +146,8 @@
 //!     }
 //!     ```
 //!
+//!     * `csv` feature should be required
+//!
 //!     ```rust
 //!     // Example for CSV
 //!     #[macro_use]
@@ -153,6 +155,8 @@
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() -> Result<(), Box<dyn Error>> {
+//!     # #[cfg(feature="csv")]
+//!     # {
 //!         // Write CSV
 //!         let mut df = DataFrame::new(vec![]);
 //!         df.push("a", Series::new(vec!['x', 'y', 'z']));
@@ -165,6 +169,7 @@
 //!         dg.as_types(vec![Char, I32, F64]);
 //!
 //!         assert_eq!(df, dg);
+//!     # }
 //!
 //!         Ok(())
 //!     }
@@ -211,10 +216,12 @@
 //!     }
 //!     ```
 
+#[cfg(any(feature="csv", feature="nc"))]
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
 use std::cmp::{max, min};
+#[cfg(any(feature="csv", feature="nc"))]
 use std::error::Error;
 use crate::util::useful::tab;
 use crate::traits::math::Vector;
@@ -224,8 +231,9 @@ use DType::{
     F32,F64,Bool,Char,Str
 };
 
+#[cfg(feature="csv")]
 use csv::{ReaderBuilder, WriterBuilder};
-#[cfg(feature= "nc")]
+#[cfg(feature="nc")]
 use netcdf::{
     types::VariableType,
     variable::{VariableMut, Variable},
@@ -1339,11 +1347,13 @@ impl fmt::Display for DataFrame {
 // =============================================================================
 
 /// To handle CSV file format
+#[cfg(feature="csv")]
 pub trait WithCSV: Sized {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
 }
 
+#[cfg(feature="csv")]
 impl WithCSV for DataFrame {
     /// Write csv file
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
