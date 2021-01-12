@@ -175,8 +175,6 @@ extern crate serde;
 
 extern crate rand;
 
-extern crate indexmap;
-
 extern crate json;
 
 extern crate order_stat;

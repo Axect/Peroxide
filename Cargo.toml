@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.28.1"
+version = "0.28.2"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -10,7 +10,7 @@ categories = ["science"]
 readme = "README.md"
 documentation = "https://peroxide.surge.sh"
 keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
-exclude = ["example_data/", "src/bin/", "benches/", "example/", "test_data/"]
+exclude = ["example_data/", "src/bin/", "benches/", "example/", "test_data/", "peroxide-ad2"]
 
 [badges]
 travis-ci = { repository = "axect/peroxide" }
@@ -26,8 +26,7 @@ rand_distr = "0.3"
 order-stat = "0.1"
 puruspe = "0.1"
 matrixmultiply = "0.2"
-peroxide-ad = { version = "0.1" }
-indexmap = { version = "1.6" }
+peroxide-ad = "0.2"
 netcdf = { version = "0.5", optional = true, default_features = false }
 pyo3 = { version = "0.12", optional = true }
 blas = { version = "0.20", optional = true }

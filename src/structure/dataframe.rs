@@ -217,13 +217,14 @@ use std::ops::{Index, IndexMut};
 use std::cmp::{max, min};
 use std::error::Error;
 use crate::util::useful::tab;
-use csv::{ReaderBuilder, WriterBuilder};
+use crate::traits::math::Vector;
 use DType::{
     USIZE,U8,U16,U32,U64,
     ISIZE,I8,I16,I32,I64,
     F32,F64,Bool,Char,Str
 };
 
+use csv::{ReaderBuilder, WriterBuilder};
 #[cfg(feature= "nc")]
 use netcdf::{
     types::VariableType,
@@ -383,6 +384,8 @@ pub trait TypedVector<T> {
     fn as_slice_mut(&mut self) -> &mut [T];
     fn at_raw(&self, i: usize) -> T;
     fn push(&mut self, elem: T);
+    fn map<F: Fn(T) -> T>(&self, f: F) -> Self;
+    fn mut_map<F: Fn(&mut T)>(&mut self, f: F);
 }
 
 // =============================================================================
@@ -447,6 +450,16 @@ macro_rules! impl_typed_vector {
                     _ => panic!("Can't convert to {:?} vector", $dtype),
                 };
                 v.push(elem);
+            }
+
+            fn map<F: Fn($type) -> $type>(&self, f: F) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().map(f).collect::<Vec<$type>>())
+            }
+
+            fn mut_map<F: Fn(&mut $type)>(&mut self, f: F) {
+                let v = self.as_slice_mut();
+                v.iter_mut().for_each(f);
             }
         }
     }
@@ -790,6 +803,16 @@ fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>
     Ok(Series::new(v.clone()))
 }
 
+fn add_vec<T: std::ops::Add<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
+where Series: TypedVector<T> {
+    Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x + y).collect::<Vec<T>>())
+}
+
+fn sub_vec<T: std::ops::Sub<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
+where Series: TypedVector<T> {
+    Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x - y).collect::<Vec<T>>())
+}
+
 // =============================================================================
 // Implementations of DType variables
 // =============================================================================
@@ -928,6 +951,82 @@ impl Series {
         let x = self.to_type(dtype);
         self.dtype = x.dtype;
         self.values = x.values;
+    }
+}
+
+impl Vector for Series {
+    /// Add series
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![1,2,3]);
+    ///     let b = Series::new(vec![3,2,1]);
+    ///     let c = a.add_vec(&b);
+    ///     assert_eq!(c, Series::new(vec![4,4,4]));
+    /// }
+    /// ```
+    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        assert_eq!(self.dtype, rhs.dtype, "DType are not same (add_vec)");
+        dtype_match!(
+            N;
+            self.dtype, 
+            self.to_vec(),
+            |x| add_vec(x, rhs.to_vec());
+            Vec
+        )
+    }
+
+    /// Sub series
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![4,5,6]);
+    ///     let b = Series::new(vec![1,2,3]);
+    ///     let c = a.sub_vec(&b);
+    ///     assert_eq!(c, Series::new(vec![3,3,3]));
+    /// }
+    /// ```
+    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        assert_eq!(self.dtype, rhs.dtype, "DType are not same (add_vec)");
+        dtype_match!(
+            N;
+            self.dtype, 
+            self.to_vec(),
+            |x| sub_vec(x, rhs.to_vec());
+            Vec
+        )
+    }
+
+    /// Mul Scalar
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![1,2,3]);
+    ///     let b = 2;
+    ///     let c = a.mul_scalar(b);
+    ///     assert_eq!(c, Series::new(vec![2,4,6]));
+    /// }
+    /// ```
+    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
+        let a = self.to_type(F64);
+        let v: Vec<f64> = a.to_vec();
+        let b = Series::new(v.mul_scalar(rhs));
+        b.to_type(self.dtype) 
     }
 }
 

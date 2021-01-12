@@ -538,10 +538,11 @@ use crate::traits::{
     mutable::MutMatrix,
 };
 use crate::util::{
-    low_level::{copy_vec_ptr, swap_vec_ptr},
+    low_level::{swap_vec_ptr, copy_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
     useful::{nearly_eq, tab},
 };
+use crate::structure::dataframe::{Series, TypedVector};
 use std::cmp::{max, min};
 use std::convert;
 pub use std::error::Error;
@@ -1349,6 +1350,26 @@ impl Matrix {
                 self[(start.0 + i, start.1 + j)] = m[(i, j)];
             }
         }
+    }
+
+    /// Matrix from series
+    ///
+    /// # Example
+    /// ```rust
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(c!(1,2,3,4));
+    ///     let m = Matrix::from_series(&a, 2, 2, Row);
+    ///     
+    ///     assert_eq!(m, matrix(c!(1,2,3,4), 2, 2, Row));
+    /// }
+    /// ```
+    pub fn from_series(series: &Series, row: usize, col: usize, shape: Shape) -> Self {
+        let v: Vec<f64> = series.to_vec();
+        matrix(v, row, col, shape)
     }
 }
 
