@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 
 /// Maximum order for Taylor mode AD
-const N: usize = 10;
+const N: usize = 5;
 
 #[no_mangle]
 pub extern "C" fn ad_struct_def(_item: TokenStream) -> TokenStream {

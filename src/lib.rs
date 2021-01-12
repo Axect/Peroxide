@@ -175,15 +175,13 @@ extern crate serde;
 
 extern crate rand;
 
-extern crate json;
+// extern crate json;
 
 extern crate order_stat;
 
 extern crate puruspe;
 
 extern crate matrixmultiply;
-
-extern crate peroxide_ad;
 
 #[cfg(feature = "nc")]
 extern crate netcdf;

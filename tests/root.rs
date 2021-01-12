@@ -9,30 +9,30 @@ fn test_root_finder() -> Result<(), RootError> {
     let init_p = RootState::P(0.1f64);
     let init_s = RootState::I(0.1f64, 0.2f64);
     // Bisection
-    let mut a1 = RootFinder::<_, AD1>::new(init, RootFind::Bisection, f_exp)?;
-    let mut b1 = RootFinder::<_, AD1>::new(init, RootFind::Bisection, f_ln)?;
-    let mut c1 = RootFinder::<_, AD1>::new(init, RootFind::Bisection, f_sqrt)?;
+    let mut a1 = RootFinder::new(init, RootFind::Bisection, f_exp)?;
+    let mut b1 = RootFinder::new(init, RootFind::Bisection, f_ln)?;
+    let mut c1 = RootFinder::new(init, RootFind::Bisection, f_sqrt)?;
     a1.set_tol(1e-15);
     b1.set_tol(1e-15);
     c1.set_tol(1e-15);
     // FalsePosition
-    let mut a2 = RootFinder::<_, AD1>::new(init, RootFind::FalsePosition, f_exp)?;
-    let mut b2 = RootFinder::<_, AD1>::new(init, RootFind::FalsePosition, f_ln)?;
-    let mut c2 = RootFinder::<_, AD1>::new(init, RootFind::FalsePosition, f_sqrt)?;
+    let mut a2 = RootFinder::new(init, RootFind::FalsePosition, f_exp)?;
+    let mut b2 = RootFinder::new(init, RootFind::FalsePosition, f_ln)?;
+    let mut c2 = RootFinder::new(init, RootFind::FalsePosition, f_sqrt)?;
     a2.set_times(10000);
     b2.set_times(10000);
     c2.set_times(10000);
     // Secant
-    let mut a3 = RootFinder::<_, AD1>::new(init_s, RootFind::Secant, f_exp)?;
-    let mut b3 = RootFinder::<_, AD1>::new(init_s, RootFind::Secant, f_ln)?;
-    let mut c3 = RootFinder::<_, AD1>::new(init_s, RootFind::Secant, f_sqrt)?;
+    let mut a3 = RootFinder::new(init_s, RootFind::Secant, f_exp)?;
+    let mut b3 = RootFinder::new(init_s, RootFind::Secant, f_ln)?;
+    let mut c3 = RootFinder::new(init_s, RootFind::Secant, f_sqrt)?;
     a3.set_times(10000);
     b3.set_times(10000);
     c3.set_times(10000);
     // Newton
-    let mut a4 = RootFinder::<_, AD1>::new(init_p, RootFind::Newton, f_exp)?;
-    let mut b4 = RootFinder::<_, AD1>::new(init_p, RootFind::Newton, f_ln)?;
-    let mut c4 = RootFinder::<_, AD1>::new(init_p, RootFind::Newton, f_sqrt)?;
+    let mut a4 = RootFinder::new(init_p, RootFind::Newton, f_exp)?;
+    let mut b4 = RootFinder::new(init_p, RootFind::Newton, f_ln)?;
+    let mut c4 = RootFinder::new(init_p, RootFind::Newton, f_sqrt)?;
     a4.set_tol(1e-15);
     b4.set_tol(1e-15);
     c4.set_tol(1e-15);
@@ -129,18 +129,18 @@ fn test_newton() -> Result<(), RootError> {
     Ok(())
 }
 
-fn f_exp<T: AD>(x: T) -> T {
+fn f_exp(x: AD) -> AD {
     x.exp() - 2f64
 }
 
-fn f_ln<T: AD>(x: T) -> T {
+fn f_ln(x: AD) -> AD {
     x.ln()
 }
 
-fn f_sqrt<T: AD>(x: T) -> T {
+fn f_sqrt(x: AD) -> AD {
     x.sqrt() - 2f64
 }
 
-fn f_sin<T: AD>(x: T) -> T {
+fn f_sin(x: AD) -> AD {
     x.sin()
 }

@@ -158,3 +158,4 @@ pub use crate::structure::matrix::{
 };
 pub use crate::traits::num::Number::{D, F};
 pub use crate::structure::dataframe::DType::*;
+pub use crate::structure::ad::AD::*;

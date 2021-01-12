@@ -1,3 +1,15 @@
+# Release 0.29.0 (2021-01-13)
+
+## Diet
+
+* Remove all `proc_macro` (Remove dependency of `peroxide-ad`)
+  * Now, `AD` are enums
+    * `AD0(f64)`
+    * `AD1(f64, f64)`
+    * `AD2(f64, f64, f64)`
+* `csv` becomes optional
+  * Remove dependency of `csv, serde, iota, ...`
+
 # Release 0.28.2 (2021-01-12)
 
 * Reduce compile time via `watt` integration
