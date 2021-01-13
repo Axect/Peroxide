@@ -84,9 +84,10 @@
 //!
 //! * Walter Gautschi, *Numerical Analysis*, Springer (2012)
 
-use crate::structure::ad::{AD, AD::AD1, ADLift};
+use crate::structure::ad::{AD, AD::AD1, ADFn};
 use std::fmt::Display;
 use RootState::{I, P};
+use crate::traits::stable::StableFn;
 //use std::collections::HashMap;
 //use std::marker::PhantomData;
 
@@ -264,11 +265,11 @@ impl<F: Fn(AD) -> AD> RootFinder<F> {
         match self.method {
             RootFind::Bisection => match self.curr {
                 I(a, b) => {
-                    let lift = ADLift::new(|x| self.f(x));
+                    let f_ad = ADFn::new(|x| self.f(x));
                     let x = 0.5 * (a + b);
-                    let fa = lift.f_0(a);
-                    let fx = lift.f_0(x);
-                    let fb = lift.f_0(b);
+                    let fa = f_ad.call_stable(a);
+                    let fx = f_ad.call_stable(x);
+                    let fb = f_ad.call_stable(b);
                     if (a - b).abs() <= self.tol {
                         self.find = RootBool::Find;
                         self.root = x;
@@ -289,11 +290,11 @@ impl<F: Fn(AD) -> AD> RootFinder<F> {
             },
             RootFind::FalsePosition => match self.curr {
                 I(a, b) => {
-                    let lift = ADLift::new(|x| self.f(x));
-                    let fa = lift.f_0(a);
-                    let fb = lift.f_0(b);
+                    let f_ad = ADFn::new(|x| self.f(x));
+                    let fa = f_ad.call_stable(a);
+                    let fb = f_ad.call_stable(b);
                     let x = (a * fb - b * fa) / (fb - fa);
-                    let fx = lift.f_0(x);
+                    let fx = f_ad.call_stable(x);
                     if (a - b).abs() <= self.tol || fx.abs() <= self.tol {
                         self.find = RootBool::Find;
                         self.root = x;
@@ -327,9 +328,9 @@ impl<F: Fn(AD) -> AD> RootFinder<F> {
             },
             RootFind::Secant => match self.curr {
                 I(xn_1, xn) => {
-                    let lift = ADLift::new(|x| self.f(x));
-                    let fxn_1 = lift.f_0(xn_1);
-                    let fxn = lift.f_0(xn);
+                    let f_ad = ADFn::new(|x| self.f(x));
+                    let fxn_1 = f_ad.call_stable(xn_1);
+                    let fxn = f_ad.call_stable(xn);
                     let x = xn - (xn - xn_1) / (fxn - fxn_1) * fxn;
                     if (x - xn).abs() <= self.tol {
                         self.find = RootBool::Find;

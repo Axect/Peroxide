@@ -20,8 +20,8 @@ fn test_lift_ad2() {
 #[test]
 fn test_lift_f64() {
     let f = 2f64;
-    let lift = ADLift::new(f_ad);
-    let x = lift.f_0(f);
+    let lift = ADFn::new(f_ad);
+    let x = lift.call_stable(f);
     x.print();
     assert_eq!(x, f * 2f64);
 }

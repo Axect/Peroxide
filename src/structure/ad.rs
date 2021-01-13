@@ -1055,45 +1055,53 @@ impl Div<AD> for f64 {
 ///     let ad0 = 2f64;
 ///     let ad1 = AD1(2f64, 1f64);
 ///
-///     let lift = ADLift::new(f_ad);
+///     let f_ad = ADFn::new(f);
 ///
 ///     let ans_ad0 = ad0.powi(2);
-///     let ans_ad1 = ad1.powi(2);
+///     let ans_ad1 = ad1.powi(2).dx();
 ///
-///     // f_0: f64 -> f64
-///     // f:   AD -> AD
-///     assert_eq!(ans_ad0, lift.f_0(ad0));
-///     assert_eq!(ans_ad1, lift.f(ad1));
+///     assert_eq!(ans_ad0, f_ad.call_stable(ad0));
+///
+///     let f_grad = f_ad.grad();
+///     assert_eq!(ans_ad1, f_grad.call_stable(ad0));
 /// }
 ///
-/// fn f_ad(x: AD) -> AD {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2)
 /// }
 /// ```
-pub struct ADLift<F> {
+pub struct ADFn<F> {
     f: Box<F>,
+    grad_level: usize,
 }
 
-impl<F: Fn(AD) -> AD> ADLift<F> {
+impl<F: Fn(AD) -> AD + Clone> ADFn<F> {
     pub fn new(f: F) -> Self {
         Self {
             f: Box::new(f),
+            grad_level: 0usize,
         }
     }
 
-    pub fn f(&self, t: AD) -> AD {
-        (self.f)(t)
-    }
-
-    pub fn f_0(&self, t: f64) -> f64 {
-        (self.f)(AD::from(t)).into()
+    /// Gradient
+    pub fn grad(&self) -> Self {
+        assert!(self.grad_level < 2, "Higher order AD is not allowed");
+        ADFn {
+            f: (self.f).clone(),
+            grad_level: self.grad_level + 1,
+        }
     }
 }
 
-impl<F: Fn(AD) -> AD> StableFn<f64> for ADLift<F> {
+impl<F: Fn(AD) -> AD> StableFn<f64> for ADFn<F> {
     type Output = f64;
     fn call_stable(&self, target: f64) -> Self::Output {
-        self.f(AD::from(target)).into()
+        match self.grad_level {
+            0 => (self.f)(AD::from(target)).into(),
+            1 => (self.f)(AD1(target, 1f64)).dx(),
+            2 => (self.f)(AD2(target, 1f64, 0f64)).ddx(),
+            _ => panic!("Higher order AD is not allowed"),
+        }
     }
 }
 
