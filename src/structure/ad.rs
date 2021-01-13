@@ -56,13 +56,9 @@
 //! * `sinh, cosh, tanh`
 //! * `sin_cos`, `sinh_cosh`
 //! * `exp, ln, log, log2, log10`
-//! * `powi, powf, sqrt`
-//!
-//! ## Not yet implemented
-//!
+//! * `powi, powf, sqrt, pow`
 //! * `asin`, `acos`, `atan`
 //! * `asinh`, `acosh`, `atanh`
-//! * `pow`
 //!
 //! ## Usage
 //!
@@ -108,38 +104,12 @@
 //! }
 //! ```
 //!
-// ### Generic
-//
-// * All of `AD{i}` implements `AD` trait
-//
-// ```
-// extern crate peroxide;
-// use peroxide::fuga::*;
-//
-// fn main() {
-//     let a = AD1::new(2f64, 1f64);
-//     let b = AD2::new(4f64, 4f64, 2f64);
-//     assert_eq!(f(a, b), AD1::new(6f64, 5f64));
-// }
-//
-// fn f<T: AD, S: AD>(x: T, y: S) -> T {
-//     T::from(x.to_ad2() + y.to_ad2())
-// }
-// ```
 
 use crate::statistics::ops::C;
 use crate::traits::{
     num::{ExpLogOps, PowOps, TrigOps},
     stable::StableFn,
 };
-// use peroxide_ad::{
-//     ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_add_f64, ad_impl_div, ad_impl_div_f64,
-//     ad_impl_double_ended_iter, ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from,
-//     ad_impl_from_iter, ad_impl_from_type, ad_impl_index, ad_impl_into_iter, ad_impl_iter,
-//     ad_impl_mul, ad_impl_mul_f64, ad_impl_neg, ad_impl_powops, ad_impl_stable_fn, ad_impl_sub,
-//     ad_impl_sub_f64, ad_impl_trigops, ad_iter_def, ad_struct_def, def_ad, f64_impl_add_ad,
-//     f64_impl_div_ad, f64_impl_from_ad, f64_impl_mul_ad, f64_impl_sub_ad,
-// };
 use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 use self::AD::{AD0, AD1, AD2};
