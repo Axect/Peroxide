@@ -1,3 +1,10 @@
+# Release 0.29.1 (2021-01-13)
+
+* Implements all numerical operations of `AD`
+    * Inverse trigonometric: `asin, acos, atan`
+    * Inverse hyperbolic: `asinh, acosh, atanh`
+    * Power of AD: `pow(&self, other: AD) -> Self`
+
 # Release 0.29.0 (2021-01-13)
 
 ## Diet
