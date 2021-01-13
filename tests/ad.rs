@@ -6,6 +6,7 @@ use peroxide::prelude::*;
 fn add_test() {
     let a = AD2(4f64, 4f64, 2f64);
     let b = AD1(2f64, 1f64);
+    let c = AD2(0.25f64, 1f64, 2f64);
     assert_eq!(a + b, AD2(6f64, 5f64, 2f64));
     println!("a     : {:?}", a);
     println!("b     : {:?}", b);
@@ -25,5 +26,7 @@ fn add_test() {
     println!("a.cosh: {:?}", a.cosh());
     println!("a.tanh: {:?}", a.tanh());
     println!("a ^ b : {:?}", a.pow(b));
-    a.pow(b).print();
+    println!("c.asin: {:?}", c.asin());
+    println!("c.acos: {:?}", c.acos());
+    println!("c.atan: {:?}", c.atan());
 }

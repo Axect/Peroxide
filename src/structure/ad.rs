@@ -779,15 +779,45 @@ impl TrigOps for AD {
     }
 
     fn asin(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 - self.powi(2)).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].asin();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn acos(&self) -> Self {
-        unimplemented!()
+        let dx = (-1f64) / (1f64 - self.powi(2)).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].acos();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn atan(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 + self.powi(2));
+        let mut z = self.empty();
+        z[0] = self[0].atan();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn asinh(&self) -> Self {
