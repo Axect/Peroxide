@@ -153,15 +153,7 @@ pub enum AD {
 
 impl std::fmt::Display for AD {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut s = format!("AD\n   x: {:.4}", self.x());
-        match self {
-            AD1(_, dx) => s.push_str(&format!("\n    dx: {:.4}", dx)),
-            AD2(_, dx, ddx) => {
-                s.push_str(&format!("\n    dx: {:.4}", dx));
-                s.push_str(&format!("\n    ddx: {:.4}", ddx));
-            }
-            _ => (),
-        }
+        let s = format!("{:?}", self);
         write!(f, "{}", s)
     }
 }
@@ -729,8 +721,19 @@ impl PowOps for AD {
         z
     }
 
-    fn pow(&self, _f: Self) -> Self {
-        unimplemented!()
+    fn pow(&self, y: Self) -> Self {
+        let ln_x = self.ln();
+        let p = y * ln_x;
+        let mut z = self.empty();
+        z[0] = self.x().powf(y.x());
+        for n in 1 .. z.len() {
+            let mut s = 0f64;
+            for (k, (&z1, &p1)) in z.iter().skip(1).take(n-1).zip(p.iter().skip(1).take(n-1).rev()).enumerate() {
+                s += (C(n-1, k+1) as f64) * z1 * p1; 
+            }
+            z[n] = z[0] * p[n] + s;
+        }
+        z
     }
 }
 
