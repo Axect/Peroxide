@@ -10,7 +10,7 @@
     - [ ] QR
     - [ ] SVD
 - [ ] Add more IO options for DataFrame
-    - [x] CSV
+    - [x] CSV (`csv` feature)
     - [x] NetCDF (`nc` feature)
     - [ ] JSON
     - [ ] Arrow IPC

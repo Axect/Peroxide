@@ -56,13 +56,9 @@
 //! * `sinh, cosh, tanh`
 //! * `sin_cos`, `sinh_cosh`
 //! * `exp, ln, log, log2, log10`
-//! * `powi, powf, sqrt`
-//!
-//! ## Not yet implemented
-//!
+//! * `powi, powf, sqrt, pow`
 //! * `asin`, `acos`, `atan`
 //! * `asinh`, `acosh`, `atanh`
-//! * `pow`
 //!
 //! ## Usage
 //!
@@ -108,38 +104,12 @@
 //! }
 //! ```
 //!
-// ### Generic
-//
-// * All of `AD{i}` implements `AD` trait
-//
-// ```
-// extern crate peroxide;
-// use peroxide::fuga::*;
-//
-// fn main() {
-//     let a = AD1::new(2f64, 1f64);
-//     let b = AD2::new(4f64, 4f64, 2f64);
-//     assert_eq!(f(a, b), AD1::new(6f64, 5f64));
-// }
-//
-// fn f<T: AD, S: AD>(x: T, y: S) -> T {
-//     T::from(x.to_ad2() + y.to_ad2())
-// }
-// ```
 
 use crate::statistics::ops::C;
 use crate::traits::{
     num::{ExpLogOps, PowOps, TrigOps},
     stable::StableFn,
 };
-// use peroxide_ad::{
-//     ad_display, ad_impl, ad_impl_ad, ad_impl_add, ad_impl_add_f64, ad_impl_div, ad_impl_div_f64,
-//     ad_impl_double_ended_iter, ad_impl_exact_size_iter, ad_impl_explogops, ad_impl_from,
-//     ad_impl_from_iter, ad_impl_from_type, ad_impl_index, ad_impl_into_iter, ad_impl_iter,
-//     ad_impl_mul, ad_impl_mul_f64, ad_impl_neg, ad_impl_powops, ad_impl_stable_fn, ad_impl_sub,
-//     ad_impl_sub_f64, ad_impl_trigops, ad_iter_def, ad_struct_def, def_ad, f64_impl_add_ad,
-//     f64_impl_div_ad, f64_impl_from_ad, f64_impl_mul_ad, f64_impl_sub_ad,
-// };
 use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 use self::AD::{AD0, AD1, AD2};
@@ -153,15 +123,7 @@ pub enum AD {
 
 impl std::fmt::Display for AD {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut s = format!("AD\n   x: {:.4}", self.x());
-        match self {
-            AD1(_, dx) => s.push_str(&format!("\n    dx: {:.4}", dx)),
-            AD2(_, dx, ddx) => {
-                s.push_str(&format!("\n    dx: {:.4}", dx));
-                s.push_str(&format!("\n    ddx: {:.4}", ddx));
-            }
-            _ => (),
-        }
+        let s = format!("{:?}", self);
         write!(f, "{}", s)
     }
 }
@@ -729,8 +691,19 @@ impl PowOps for AD {
         z
     }
 
-    fn pow(&self, _f: Self) -> Self {
-        unimplemented!()
+    fn pow(&self, y: Self) -> Self {
+        let ln_x = self.ln();
+        let p = y * ln_x;
+        let mut z = self.empty();
+        z[0] = self.x().powf(y.x());
+        for n in 1 .. z.len() {
+            let mut s = 0f64;
+            for (k, (&z1, &p1)) in z.iter().skip(1).take(n-1).zip(p.iter().skip(1).take(n-1).rev()).enumerate() {
+                s += (C(n-1, k+1) as f64) * z1 * p1; 
+            }
+            z[n] = z[0] * p[n] + s;
+        }
+        z
     }
 }
 
@@ -776,27 +749,87 @@ impl TrigOps for AD {
     }
 
     fn asin(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 - self.powi(2)).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].asin();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn acos(&self) -> Self {
-        unimplemented!()
+        let dx = (-1f64) / (1f64 - self.powi(2)).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].acos();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn atan(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 + self.powi(2));
+        let mut z = self.empty();
+        z[0] = self[0].atan();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn asinh(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 + self.powi(2)).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].asinh();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn acosh(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (self.powi(2) - 1f64).sqrt();
+        let mut z = self.empty();
+        z[0] = self[0].acosh();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 
     fn atanh(&self) -> Self {
-        unimplemented!()
+        let dx = 1f64 / (1f64 - self.powi(2));
+        let mut z = self.empty();
+        z[0] = self[0].atanh();
+        for n in 1 .. z.len() {
+            z[n] = dx.iter()
+                .take(n)
+                .zip(self.iter().skip(1).take(n).rev())
+                .enumerate()
+                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+        }
+        z
     }
 }
 
