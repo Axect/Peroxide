@@ -10,11 +10,11 @@
 //! use std::collections::HashMap;
 //!
 //! pub struct Optimizer<F>
-//! where F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>> {
+//! where F: Fn(&Vec<f64>, Vec<AD>) -> Option<Vec<AD>> {
 //!     domain: Vec<f64>,
 //!     observed: Vec<f64>,
 //!     func: Box<F>,
-//!     param: Vec<Number>,
+//!     param: Vec<AD>,
 //!     max_iter: usize,
 //!     error: f64,
 //!     method: OptMethod,
@@ -74,7 +74,7 @@
 //!     opt.get_error().print();    // Optimized RMSE
 //!
 //!     // To prepare plotting
-//!     let z = quad(&x, NumberVector::from_f64_vec(p)).unwrap().to_f64_vec();
+//!     let z = quad(&x, p.to_ad_vec()).unwrap().to_f64_vec();
 //!
 //!     // Plot
 //!     //#[cfg(feature = "plot")]
@@ -91,7 +91,7 @@
 //!     //}
 //! }
 //!
-//! fn quad(x: &Vec<f64>, n: Vec<Number>) -> Option<Vec<Number>> {
+//! fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
 //!     Some(
 //!         x.clone().into_iter()
 //!             .map(|t| Number::from_f64(t))
@@ -107,7 +107,7 @@ pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
 use crate::numerical::utils::jacobian;
 use crate::structure::matrix::{LinearAlgebra, Matrix};
-use crate::traits::num::{Number, NumberVector};
+use crate::structure::ad::{AD, ADVec};
 use crate::util::useful::max;
 use std::collections::HashMap;
 
@@ -135,12 +135,12 @@ pub enum OptOption {
 /// * `func` should be boxed. (This allows more generic function)
 pub struct Optimizer<F>
 where
-    F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>>,
+    F: Fn(&Vec<f64>, Vec<AD>) -> Option<Vec<AD>>,
 {
     domain: Vec<f64>,
     observed: Vec<f64>,
     func: Box<F>,
-    param: Vec<Number>,
+    param: Vec<AD>,
     max_iter: usize,
     error: f64,
     method: OptMethod,
@@ -149,7 +149,7 @@ where
 
 impl<F> Optimizer<F>
 where
-    F: Fn(&Vec<f64>, Vec<Number>) -> Option<Vec<Number>>,
+    F: Fn(&Vec<f64>, Vec<AD>) -> Option<Vec<AD>>,
 {
     pub fn new(data: Matrix, func: F) -> Self {
         let mut default_option: HashMap<OptOption, bool> = HashMap::new();
@@ -181,7 +181,7 @@ where
             *x = true
         }
 
-        self.param = NumberVector::from_f64_vec(p);
+        self.param = p.to_ad_vec();
         self
     }
 
@@ -203,8 +203,8 @@ where
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
         let (p_init, max_iter) = (self.param.clone(), self.max_iter);
-        let safe_f = |p: Vec<Number>| (self.func)(&x_vec, p.clone()).unwrap();
-        let unsafe_f = |p: Vec<Number>| (self.func)(&x_vec, p);
+        let safe_f = |p: Vec<AD>| (self.func)(&x_vec, p.clone()).unwrap();
+        let unsafe_f = |p: Vec<AD>| (self.func)(&x_vec, p);
 
         // Take various form of initial data
         let p_init_vec = p_init.to_f64_vec();
@@ -223,7 +223,7 @@ where
                 for i in 0..max_iter {
                     let h = alpha * j.t() * (&y - &y_hat);
                     let p_cand = &p + &h;
-                    match unsafe_f(NumberVector::from_f64_vec(p_cand.data.clone())) {
+                    match unsafe_f(p_cand.data.to_ad_vec()) {
                         Some(value) => {
                             p = p_cand;
                             valid_p = p.clone();
@@ -263,7 +263,7 @@ where
                     h = b * j.t() * (&y - &y_hat);
 
                     let p_temp = &p + &h;
-                    match unsafe_f(NumberVector::from_f64_vec(p_temp.data.clone())) {
+                    match unsafe_f(p_temp.data.to_ad_vec()) {
                         Some(value) => {
                             let j_temp = jacobian(safe_f, &p.data);
                             let y_hat_temp: Matrix = value.to_f64_vec().into();

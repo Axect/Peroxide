@@ -1,6 +1,6 @@
-use crate::structure::dual::*;
 use crate::structure::matrix::*;
-use crate::traits::num::{Number, NumberVector, Real};
+use crate::structure::ad::*;
+use crate::structure::ad::AD::*;
 use crate::util::non_macro::{cat, zeros};
 
 /// Jacobian Matrix
@@ -27,7 +27,7 @@ use crate::util::non_macro::{cat, zeros};
 ///     // r[1]   -1    2
 /// }
 ///
-/// fn f(xs: Vec<Number>) -> Vec<Number> {
+/// fn f(xs: &Vec<AD>) -> Vec<AD> {
 ///     let x = xs[0];
 ///     let y = xs[1];
 ///
@@ -38,69 +38,18 @@ use crate::util::non_macro::{cat, zeros};
 /// }
 /// ```
 #[allow(non_snake_case)]
-pub fn jacobian<F>(g: F, x: &Vec<f64>) -> Matrix
-where
-    F: Fn(Vec<Number>) -> Vec<Number>,
-{
-    let f = |x: &Vec<Dual>| g(NumberVector::from_dual_vec(x.clone())).to_dual_vec();
-    jacobian_real(Box::new(f), x)
-}
-
-/// Jacobian Matrix for Real input
-///
-/// # Description
-/// : Exact jacobian matrix using Automatic Differenitation
-///
-/// # Type
-/// (Box<F>, &Vec<T>) -> Matrix where F: Fn(&Vec<Dual>) -> Vec<Dual>, T: Real
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() {
-///     let x = c!(1, 1);
-///     let j = jacobian_real(Box::new(f), &x);
-///     j.print();
-///
-///     //      c[0] c[1]
-///     // r[0]    1    1
-///     // r[1]   -1    2
-/// }
-///
-/// fn f(xs: &Vec<Dual>) -> Vec<Dual> {
-///     let x = xs[0];
-///     let y = xs[1];
-///
-///     vec![
-///        x - y,
-///        x + 2.*y,
-///    ]
-/// }
-/// ```
-#[allow(non_snake_case)]
-pub fn jacobian_real<F, T>(f: Box<F>, x: &Vec<T>) -> Matrix
-where
-    T: Real,
-    F: Fn(&Vec<Dual>) -> Vec<Dual>,
-{
+pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
     let l = x.len();
-    let mut x_dual: Vec<Dual> = x
-        .clone()
-        .into_iter()
-        .map(|t| dual(t.to_f64(), 0f64))
-        .collect();
-    let l2 = f(&x_dual).len();
+    let mut x_ad: Vec<AD> = x.iter().map(|&x| AD1(x, 0f64)).collect();
+    let l2 = f(&x_ad).len();
 
     let mut J = zeros(l2, l);
 
-    for i in 0..l {
-        x_dual[i].set_slope(1f64);
-        let slopes = f(&x_dual).slopes();
+    for i in 0 .. l {
+        x_ad[i][1] = 1f64;
+        let slopes: Vec<f64> = f(&x_ad).iter().map(|ad| ad.dx()).collect();
         J.subs_col(i, &slopes);
-        x_dual[i].set_slope(0f64);
+        x_ad[i][0] = 0f64;
     }
     J
 }
