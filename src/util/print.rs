@@ -4,14 +4,11 @@ use crate::statistics::dist::*;
 #[allow(unused_imports)]
 use crate::structure::{
     ad::AD,
-    dual::{Dual, Dualist},
-    hyper_dual::HyperDual,
     matrix::Matrix,
     multinomial::Multinomial,
     polynomial::Polynomial,
     dataframe::{DataFrame, DTypeArray, Series, Scalar, DType},
 };
-use crate::traits::num::Number;
 use rand::distributions::uniform::SampleUniform;
 use std::fmt::Debug;
 
@@ -334,11 +331,11 @@ impl Printable for Polynomial {
     }
 }
 
-impl Printable for Dual {
-    fn print(&self) {
-        println!("{}", self);
-    }
-}
+//impl Printable for Dual {
+//    fn print(&self) {
+//        println!("{}", self);
+//    }
+//}
 
 impl Printable for Multinomial {
     fn print(&self) {
@@ -346,20 +343,20 @@ impl Printable for Multinomial {
     }
 }
 
-impl Printable for Vec<Dual> {
-    fn print(&self) {
-        println!("value:");
-        self.values().print();
-        println!("slope:");
-        self.slopes().print();
-    }
-}
-
-impl Printable for HyperDual {
-    fn print(&self) {
-        println!("{}", self);
-    }
-}
+//impl Printable for Vec<Dual> {
+//    fn print(&self) {
+//        println!("value:");
+//        self.values().print();
+//        println!("slope:");
+//        self.slopes().print();
+//    }
+//}
+//
+//impl Printable for HyperDual {
+//    fn print(&self) {
+//        println!("{}", self);
+//    }
+//}
 
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for OPDist<T> {
     fn print(&self) {
@@ -373,17 +370,17 @@ impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPD
     }
 }
 
-impl Printable for Number {
-    fn print(&self) {
-        println!("{:?}", self)
-    }
-}
-
-impl Printable for Vec<Number> {
-    fn print(&self) {
-        println!("{:?}", self);
-    }
-}
+//impl Printable for Number {
+//    fn print(&self) {
+//        println!("{:?}", self)
+//    }
+//}
+//
+//impl Printable for Vec<Number> {
+//    fn print(&self) {
+//        println!("{:?}", self);
+//    }
+//}
 
 impl Printable for DType {
     fn print(&self) {

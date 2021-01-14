@@ -5,7 +5,8 @@ use std::ops::{Add, Sub, Mul, Div};
 
 /// Syntactic sugar for Vector operations
 pub trait VecOps: Sized + FPVector 
-where Self::Scalar: Add<Self::Scalar, Output=Self::Scalar>
+where Self::Scalar: Copy + Clone
+    + Add<Self::Scalar, Output=Self::Scalar>
     + Sub<Self::Scalar, Output=Self::Scalar> 
     + Mul<Self::Scalar, Output=Self::Scalar>
     + Div<Self::Scalar, Output=Self::Scalar>

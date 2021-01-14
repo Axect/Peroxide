@@ -203,7 +203,7 @@ where
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
         let (p_init, max_iter) = (self.param.clone(), self.max_iter);
-        let safe_f = |p: Vec<AD>| (self.func)(&x_vec, p.clone()).unwrap();
+        let safe_f = |p: &Vec<AD>| (self.func)(&x_vec, p.clone()).unwrap();
         let unsafe_f = |p: Vec<AD>| (self.func)(&x_vec, p);
 
         // Take various form of initial data
@@ -213,7 +213,7 @@ where
         // Declare mutable values
         let mut p: Matrix = p_init_vec.clone().into();
         let mut j = jacobian(safe_f, &p_init_vec);
-        let mut y_hat: Matrix = safe_f(p_init.clone()).to_f64_vec().into();
+        let mut y_hat: Matrix = safe_f(&p_init).to_f64_vec().into();
         let mut jtj = &j.t() * &j;
         let mut valid_p = p.clone();
         let mut err_stack = 0usize;

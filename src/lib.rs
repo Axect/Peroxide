@@ -33,8 +33,6 @@
 //!     * Incomplete Gamma
 //!     * Incomplete Beta
 //! * Automatic Differentiation
-//!     * <del>[Dual number system](structure/dual/index.html)</del>
-//!     * <del>[Hyper dual number system](structure/hyper_dual/index.html)</del>
 //!     * [Taylor mode forward AD](structure/ad/index.html)
 //! * Numerical Utils
 //!     * [Interpolation](numerical/interp/index.html)

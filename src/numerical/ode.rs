@@ -268,7 +268,6 @@ use crate::traits::{
     math::{Norm, Normed, Vector},
     mutable::MutFP,
     num::Real,
-    sugar::VecOps,
 };
 use crate::util::{
     non_macro::{cat, concat, eye, zeros},

@@ -7,7 +7,7 @@ use crate::traits::{
 };
 
 /// Newton-Raphson Method
-pub fn newton<F: Fn(&Vec<AD>) -> Vec<AD>>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
+pub fn newton<F: Fn(&Vec<AD>) -> Vec<AD> + Copy>(init_cond: Vec<f64>, f: F, rtol: f64) -> Vec<f64>
 {
     let mut x_next = init_cond;
     let mut x = x_next.clone();
@@ -23,7 +23,7 @@ pub fn newton<F: Fn(&Vec<AD>) -> Vec<AD>>(init_cond: Vec<f64>, f: F, rtol: f64) 
     x_next
 }
 
-fn update<F: Fn(&Vec<AD>) -> Vec<AD>>(xs: &mut Vec<f64>, f: F)
+fn update<F: Fn(&Vec<AD>) -> Vec<AD> + Copy>(xs: &mut Vec<f64>, f: F)
 {
     let j = jacobian(f, &xs);
     let pinv_j = j.pseudo_inv();
