@@ -94,7 +94,7 @@
 //! fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
 //!     Some(
 //!         x.clone().into_iter()
-//!             .map(|t| Number::from_f64(t))
+//!             .map(|t| AD::from(t))
 //!             .map(|t| t.pow(n[0]))
 //!             .collect()
 //!     )

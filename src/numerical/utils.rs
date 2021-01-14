@@ -49,7 +49,7 @@ pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
         x_ad[i][1] = 1f64;
         let slopes: Vec<f64> = f(&x_ad).iter().map(|ad| ad.dx()).collect();
         J.subs_col(i, &slopes);
-        x_ad[i][0] = 0f64;
+        x_ad[i][1] = 0f64;
     }
     J
 }
