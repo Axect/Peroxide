@@ -16,7 +16,7 @@ fn test_jacobian() {
 ///
 /// # Jacobian
 /// $$\begin{pmatrix} 2xy & x^2 \\\ 5 & \cos y \end{pmatrix}$$
-fn f(xs: Vec<Number>) -> Vec<Number> {
+fn f(xs: &Vec<AD>) -> Vec<AD> {
     let x = xs[0];
     let y = xs[1];
     vec![x.powi(2) * y, 5f64 * x + y.sin()]

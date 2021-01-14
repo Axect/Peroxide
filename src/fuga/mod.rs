@@ -112,14 +112,20 @@ pub use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
-    num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
-    pointer::{MatrixPtr, Oxide, Redox},
+    num::{ExpLogOps, PowOps, Real, TrigOps},
+    pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
     stable::StableFn,
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
 
 #[allow(unused_imports)]
-pub use crate::structure::{dual::*, hyper_dual::*, matrix::*, polynomial::*, vector::*, dataframe::*};
+pub use crate::structure::{
+    matrix::*, 
+    polynomial::*, 
+    vector::*, 
+    dataframe::*,
+    ad::*,
+};
 
 pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
 
@@ -141,9 +147,6 @@ pub use crate::ml::reg::*;
 #[cfg(feature = "plot")]
 pub use crate::util::plot::*;
 
-#[allow(unused_imports)]
-pub use crate::structure::ad::*;
-
 // =============================================================================
 // Enums
 // =============================================================================
@@ -156,6 +159,5 @@ pub use crate::structure::matrix::{
     Form::{Diagonal, Identity},
     SolveKind::{LU, WAZ},
 };
-pub use crate::traits::num::Number::{D, F};
 pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::ad::AD::*;

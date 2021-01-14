@@ -1,18 +1,41 @@
 use crate::structure::matrix::{Matrix, Shape, matrix};
-use crate::traits::{fp::FPVector, math::Vector};
+use crate::traits::fp::FPVector;
 use crate::util::non_macro::zeros_shape;
+use std::ops::{Add, Sub, Mul, Div};
 
 /// Syntactic sugar for Vector operations
-pub trait VecOps: Vector {
-    type Scalar;
-    fn add_v(&self, v: &Self) -> Self;
-    fn sub_v(&self, v: &Self) -> Self;
-    fn mul_v(&self, v: &Self) -> Self;
-    fn div_v(&self, v: &Self) -> Self;
-    fn add_s(&self, s: Self::Scalar) -> Self;
-    fn sub_s(&self, s: Self::Scalar) -> Self;
-    fn mul_s(&self, s: Self::Scalar) -> Self;
-    fn div_s(&self, s: Self::Scalar) -> Self;
+pub trait VecOps: Sized + FPVector 
+where Self::Scalar: Copy + Clone
+    + Add<Self::Scalar, Output=Self::Scalar>
+    + Sub<Self::Scalar, Output=Self::Scalar> 
+    + Mul<Self::Scalar, Output=Self::Scalar>
+    + Div<Self::Scalar, Output=Self::Scalar>
+{
+    //type Scalar;
+    fn add_v(&self, v: &Self) -> Self {
+        self.zip_with(|x, y| x + y, v)
+    }
+    fn sub_v(&self, v: &Self) -> Self {
+        self.zip_with(|x, y| x - y, v)
+    }
+    fn mul_v(&self, v: &Self) -> Self {
+        self.zip_with(|x, y| x * y, v)
+    }
+    fn div_v(&self, v: &Self) -> Self {
+        self.zip_with(|x, y| x / y, v)
+    }
+    fn add_s(&self, s: Self::Scalar) -> Self {
+        self.fmap(|x| x + s)
+    }
+    fn sub_s(&self, s: Self::Scalar) -> Self {
+        self.fmap(|x| x - s)
+    }
+    fn mul_s(&self, s: Self::Scalar) -> Self {
+        self.fmap(|x| x * s)
+    }
+    fn div_s(&self, s: Self::Scalar) -> Self {
+        self.fmap(|x| x / s)
+    }
 }
 
 pub trait Scalable {
@@ -38,145 +61,142 @@ pub trait ConvToMat {
 // Implementations
 // =============================================================================
 
-impl VecOps for Vec<f64> {
-    type Scalar = f64;
-
-    /// Vector + Vector
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = c!(5,4,3,2,1);
-    ///     assert_eq!(a.add_v(&b), c!(6,6,6,6,6));
-    /// }
-    /// ```
-    fn add_v(&self, v: &Self) -> Self {
-        self.add_vec(&v)
-    }
-
-    /// Vector - Vector
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = c!(5,4,3,2,1);
-    ///     assert_eq!(a.sub_v(&b), c!(-4, -2, 0, 2, 4));
-    /// }
-    /// ```
-    fn sub_v(&self, v: &Self) -> Self {
-        self.zip_with(|x, y| x - y, v)
-    }
-
-    /// Vector * Vector
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = c!(5,4,3,2,1);
-    ///     assert_eq!(a.mul_v(&b), c!(5, 8, 9, 8, 5));
-    /// }
-    /// ```
-    fn mul_v(&self, v: &Self) -> Self {
-        self.zip_with(|x, y| x * y, v)
-    }
-
-    /// Vector / Vector
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(2, 4, 6, 8, 10);
-    ///     let b = c!(2, 2, 2, 2, 2);
-    ///     assert_eq!(a.div_v(&b), c!(1,2,3,4,5));
-    /// }
-    /// ```
-    fn div_v(&self, v: &Self) -> Self {
-        self.zip_with(|x, y| x / y, v)
-    }
-
-    /// Vector + Scalar
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = 1f64;
-    ///     assert_eq!(a.add_s(b), c!(2,3,4,5,6));
-    /// }
-    /// ```
-    fn add_s(&self, s: Self::Scalar) -> Self {
-        self.fmap(|x| x + s)
-    }
-
-    /// Vector - Scalar
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = 1f64;
-    ///     assert_eq!(a.sub_s(b), c!(0,1,2,3,4));
-    /// }
-    /// ```
-    fn sub_s(&self, s: Self::Scalar) -> Self {
-        self.fmap(|x| x - s)
-    }
-
-    /// Vector * Scalar
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(1,2,3,4,5);
-    ///     let b = 2f64;
-    ///     assert_eq!(a.mul_s(b), c!(2,4,6,8,10));
-    /// }
-    /// ```
-    fn mul_s(&self, s: Self::Scalar) -> Self {
-        self.mul_scalar(s)
-    }
-
-    /// Vector / Scalar
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = c!(2,4,6,8,10);
-    ///     let b = 2f64;
-    ///     assert_eq!(a.div_s(b), c!(1,2,3,4,5));
-    /// }
-    /// ```
-    fn div_s(&self, s: Self::Scalar) -> Self {
-        self.fmap(|x| x / s)
-    }
-}
+impl VecOps for Vec<f64> {}
+//    /// Vector + Vector
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = c!(5,4,3,2,1);
+//    ///     assert_eq!(a.add_v(&b), c!(6,6,6,6,6));
+//    /// }
+//    /// ```
+//    fn add_v(&self, v: &Self) -> Self {
+//        self.add_vec(&v)
+//    }
+//
+//    /// Vector - Vector
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = c!(5,4,3,2,1);
+//    ///     assert_eq!(a.sub_v(&b), c!(-4, -2, 0, 2, 4));
+//    /// }
+//    /// ```
+//    fn sub_v(&self, v: &Self) -> Self {
+//        self.zip_with(|x, y| x - y, v)
+//    }
+//
+//    /// Vector * Vector
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = c!(5,4,3,2,1);
+//    ///     assert_eq!(a.mul_v(&b), c!(5, 8, 9, 8, 5));
+//    /// }
+//    /// ```
+//    fn mul_v(&self, v: &Self) -> Self {
+//        self.zip_with(|x, y| x * y, v)
+//    }
+//
+//    /// Vector / Vector
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(2, 4, 6, 8, 10);
+//    ///     let b = c!(2, 2, 2, 2, 2);
+//    ///     assert_eq!(a.div_v(&b), c!(1,2,3,4,5));
+//    /// }
+//    /// ```
+//    fn div_v(&self, v: &Self) -> Self {
+//        self.zip_with(|x, y| x / y, v)
+//    }
+//
+//    /// Vector + Scalar
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = 1f64;
+//    ///     assert_eq!(a.add_s(b), c!(2,3,4,5,6));
+//    /// }
+//    /// ```
+//    fn add_s(&self, s: Self::Scalar) -> Self {
+//        self.fmap(|x| x + s)
+//    }
+//
+//    /// Vector - Scalar
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = 1f64;
+//    ///     assert_eq!(a.sub_s(b), c!(0,1,2,3,4));
+//    /// }
+//    /// ```
+//    fn sub_s(&self, s: Self::Scalar) -> Self {
+//        self.fmap(|x| x - s)
+//    }
+//
+//    /// Vector * Scalar
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(1,2,3,4,5);
+//    ///     let b = 2f64;
+//    ///     assert_eq!(a.mul_s(b), c!(2,4,6,8,10));
+//    /// }
+//    /// ```
+//    fn mul_s(&self, s: Self::Scalar) -> Self {
+//        self.mul_scalar(s)
+//    }
+//
+//    /// Vector / Scalar
+//    ///
+//    /// ```
+//    /// #[macro_use]
+//    /// extern crate peroxide;
+//    /// use peroxide::fuga::*;
+//    ///
+//    /// fn main() {
+//    ///     let a = c!(2,4,6,8,10);
+//    ///     let b = 2f64;
+//    ///     assert_eq!(a.div_s(b), c!(1,2,3,4,5));
+//    /// }
+//    /// ```
+//    fn div_s(&self, s: Self::Scalar) -> Self {
+//        self.fmap(|x| x / s)
+//    }
 
 impl Scalable for Vec<f64> {
     type Vec = Self;

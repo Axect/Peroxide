@@ -39,8 +39,8 @@
 //!     * `Records` : The type to save results of ODE. Usually `Matrix` is used.
 //!     * `Vector` : Vector can be below things.
 //!         * `Vec<f64>` : Used for `ExplicitODE`
-//!         * `Vec<Dual>` : Used for `ImplicitODE`
-//!     * `Param` : Also it can be `f64` or `Dual`
+//!         * `Vec<AD>` : Used for `ImplicitODE`
+//!     * `Param` : Also it can be `f64` or `AD`
 //!     * `ODEMethod` : Method for solving ODE
 //!         * `ExMethod` : Explicit method
 //!             * `Euler` : Euler first order
@@ -67,7 +67,7 @@
 //!     }
 //!     ```
 //!
-//!     * `T` can be `f64` or `Dual`
+//!     * `T` can be `f64` or `AD`
 //!     * `param` is parameter for ODE. Usually it is represented by time.
 //!     * `value` is value of each node.
 //!     * `deriv` is value of derivative of each node.
@@ -83,7 +83,7 @@
 //! Methods for `State<T>` are as follows.
 //!
 //! * `to_f64(&self) -> State<f64>`
-//! * `to_dual(&self) -> State<Dual>`
+//! * `to_ad(&self) -> State<AD>`
 //! * `new(T, Vec<T>, Vec<T>) -> Self`
 //!
 //! ### `Environment`
@@ -257,9 +257,9 @@ use self::BoundaryCondition::Dirichlet;
 use self::ExMethod::{Euler, RK4};
 use self::ImMethod::{BDF1, GL4};
 use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
-use crate::numerical::{spline::CubicSpline, utils::jacobian_real};
+use crate::numerical::{spline::CubicSpline, utils::jacobian};
 use crate::structure::{
-    dual::{Dual, Dualist, VecWithDual},
+    ad::{AD, ADVec, AD::*},
     matrix::{LinearAlgebra, Matrix},
     polynomial::Polynomial,
 };
@@ -274,8 +274,8 @@ use crate::util::{
     print::Printable,
 };
 use std::collections::HashMap;
-#[cfg(feature = "oxidize")]
-use {blas_daxpy, blas_daxpy_return};
+//#[cfg(feature = "O3")]
+//use {blas_daxpy, blas_daxpy_return};
 
 /// Explicit ODE Methods
 ///
@@ -354,21 +354,21 @@ impl<T: Real> State<T> {
         }
     }
 
-    pub fn to_dual(&self) -> State<Dual> {
+    pub fn to_ad(&self) -> State<AD> {
         State {
-            param: self.param.to_dual(),
+            param: self.param.to_ad(),
             value: self
                 .value
                 .clone()
                 .into_iter()
-                .map(|x| x.to_dual())
-                .collect::<Vec<Dual>>(),
+                .map(|x| x.to_ad())
+                .collect::<Vec<AD>>(),
             deriv: self
                 .deriv
                 .clone()
                 .into_iter()
-                .map(|x| x.to_dual())
-                .collect::<Vec<Dual>>(),
+                .map(|x| x.to_ad())
+                .collect::<Vec<AD>>(),
         }
     }
 
@@ -469,17 +469,17 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
                 (self.func)(&mut self.state, &self.env);
                 let dt = self.step_size;
 
-                match () {
-                    #[cfg(feature = "oxidize")]
-                    () => {
-                        blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
-                    }
-                    _ => {
+                //match () {
+                //    #[cfg(feature = "oxidize")]
+                //    () => {
+                //        blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
+                //    }
+                //    _ => {
                         self.state
                             .value
                             .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
-                    }
-                }
+                //    }
+                //}
                 self.state.param += dt;
             }
             RK4 => {
@@ -668,8 +668,8 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
 
 #[derive(Clone)]
 pub struct ImplicitODE<E: Environment> {
-    state: State<Dual>,
-    func: fn(&mut State<Dual>, &E),
+    state: State<AD>,
+    func: fn(&mut State<AD>, &E),
     step_size: f64,
     rtol: f64,
     method: ImMethod,
@@ -683,7 +683,7 @@ pub struct ImplicitODE<E: Environment> {
 }
 
 impl<E: Environment> ImplicitODE<E> {
-    pub fn new(f: fn(&mut State<Dual>, &E)) -> Self {
+    pub fn new(f: fn(&mut State<AD>, &E)) -> Self {
         let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
         default_to_use.insert(InitCond, false);
         default_to_use.insert(StepSize, false);
@@ -693,7 +693,7 @@ impl<E: Environment> ImplicitODE<E> {
         default_to_use.insert(Times, false);
 
         ImplicitODE {
-            state: Default::default(),
+            state: State::new(AD0(0f64), vec![], vec![]),
             func: f,
             step_size: 0.0,
             rtol: 1e-6,
@@ -708,7 +708,7 @@ impl<E: Environment> ImplicitODE<E> {
         }
     }
 
-    pub fn get_state(&self) -> &State<Dual> {
+    pub fn get_state(&self) -> &State<AD> {
         &self.state
     }
 
@@ -734,13 +734,13 @@ const GL4_TAB: [[f64; 3]; 2] = [
 #[allow(non_snake_case)]
 impl<E: Environment> ODE<E> for ImplicitODE<E> {
     type Records = Matrix;
-    type Param = Dual;
+    type Param = AD;
     type ODEMethod = ImMethod;
     fn mut_update(&mut self) {
         match self.method {
             BDF1 => unimplemented!(),
             GL4 => {
-                let f = |t: Dual, y: Vec<Dual>| {
+                let f = |t: AD, y: Vec<AD>| {
                     let mut st = State::new(t, y.clone(), y);
                     (self.func)(&mut st, &self.env);
                     st.deriv
@@ -748,19 +748,19 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
 
                 let h = self.step_size;
                 let t = self.state.param;
-                let t1: Dual = t + GL4_TAB[0][0] * h;
-                let t2: Dual = t + GL4_TAB[1][0] * h;
+                let t1: AD = t + GL4_TAB[0][0] * h;
+                let t2: AD = t + GL4_TAB[1][0] * h;
                 let yn = &self.state.value;
                 let n = yn.len();
 
                 // 0. Initial Guess
-                let k1_init: Vec<f64> = f(t, yn.clone()).values();
-                let k2_init: Vec<f64> = f(t, yn.clone()).values();
+                let k1_init: Vec<f64> = f(t, yn.clone()).to_f64_vec();
+                let k2_init: Vec<f64> = f(t, yn.clone()).to_f64_vec();
                 let mut k_curr: Vec<f64> = concat(&k1_init, &k2_init);
                 let mut err = 1f64;
 
                 // 1. Combine two functions to one function
-                let g = |k: &Vec<Dual>| -> Vec<Dual> {
+                let g = |k: &Vec<AD>| -> Vec<AD> {
                     let k1 = k.take(n);
                     let k2 = k.skip(n);
                     concat(
@@ -784,10 +784,10 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                 // 2. Obtain Jacobian
                 let I = eye(2 * n);
 
-                let mut Dg = jacobian_real(Box::new(g), &k_curr);
+                let mut Dg = jacobian(Box::new(g), &k_curr);
                 let mut DG = &I - &Dg;
                 let mut DG_inv = DG.inv();
-                let mut G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
+                let mut G = k_curr.sub_vec(&g(&k_curr.to_ad_vec()).to_f64_vec());
                 let mut num_iter: usize = 0;
 
                 // 3. Iteration
@@ -795,10 +795,10 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                     let DGG = &DG_inv * &G;
                     let k_prev = k_curr.clone();
                     k_curr.mut_zip_with(|x, y| x - y, &DGG);
-                    Dg = jacobian_real(Box::new(g), &k_curr);
+                    Dg = jacobian(Box::new(g), &k_curr);
                     DG = &I - &Dg;
                     DG_inv = DG.inv();
-                    G = k_curr.sub_vec(&g(&k_curr.conv_dual()).values());
+                    G = k_curr.sub_vec(&g(&k_curr.to_ad_vec()).to_f64_vec());
                     err = k_curr.sub_vec(&k_prev).norm(Norm::L2);
                     num_iter += 1;
                 }
@@ -810,9 +810,9 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                 (self.func)(&mut self.state, &self.env);
 
                 // 5. Merge k1, k2
-                let mut y_curr = self.state.value.values();
+                let mut y_curr = self.state.value.to_f64_vec();
                 y_curr = y_curr.add_vec(&k1.mul_scalar(0.5 * h).add_vec(&k2.mul_scalar(0.5 * h)));
-                self.state.value = y_curr.conv_dual();
+                self.state.value = y_curr.to_ad_vec();
                 self.state.param = self.state.param + h;
             }
         }
@@ -825,7 +825,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
 
         result.subs_row(
             0,
-            &cat(self.state.param.to_f64(), &self.state.value.values()),
+            &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
         );
 
         match self.options.get(&StopCond) {
@@ -835,13 +835,13 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                     self.mut_update();
                     result.subs_row(
                         i,
-                        &cat(self.state.param.to_f64(), &self.state.value.values()),
+                        &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
                     );
                     key += 1;
                     if (self.stop_cond)(&self) {
                         println!("Reach the stop condition!");
                         print!("Current values are: ");
-                        cat(self.state.param.to_f64(), &self.state.value.values()).print();
+                        cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()).print();
                         break;
                     }
                 }
@@ -852,7 +852,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                     self.mut_update();
                     result.subs_row(
                         i,
-                        &cat(self.state.param.to_f64(), &self.state.value.values()),
+                        &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
                     );
                 }
                 return result;
@@ -865,7 +865,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
             *x = true
         }
         self.init_cond = init.to_f64();
-        self.state = init.to_dual();
+        self.state = init.to_ad();
         self
     }
 

@@ -109,6 +109,9 @@ use crate::statistics::ops::C;
 use crate::traits::{
     num::{ExpLogOps, PowOps, TrigOps},
     stable::StableFn,
+    fp::FPVector,
+    math::Vector,
+    sugar::VecOps,
 };
 use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -186,6 +189,42 @@ impl AD {
             AD0(_) => AD0(0f64),
             AD1(_,_) => AD1(0f64, 0f64),
             AD2(_,_,_) => AD2(0f64, 0f64, 0f64),
+        }
+    }
+
+    pub fn set_x(&mut self, x: f64) {
+        match self {
+            AD0(t) => {
+                *t = x;
+            }
+            AD1(t, _) => {
+                *t = x;
+            }
+            AD2(t, _, _) => {
+                *t = x;
+            }
+        }
+    }
+
+    pub fn set_dx(&mut self, dx: f64) {
+        match self {
+            AD0(_) => panic!("Can't set dx for AD0"),
+            AD1(_, dt) => {
+                *dt = dx;
+            }
+            AD2(_, dt, _) => {
+                *dt = dx;
+            }
+        }
+    }
+
+    pub fn set_ddx(&mut self, ddx: f64) {
+        match self {
+            AD0(_) => panic!("Can't set ddx for AD0"),
+            AD1(_,_) => panic!("Can't set ddx for AD1"),
+            AD2(_,_,ddt) => {
+                *ddt = ddx;
+            } 
         }
     }
 
@@ -1036,15 +1075,16 @@ impl Div<AD> for f64 {
 
 //impl AD for f64 {}
 
-/// Lift AD functions
+/// Generic AD functions
 ///
 /// # Description
 /// To lift `AD` functions
 ///
 /// # Implementation
 ///
-/// * All `Fn(T) -> T where T:AD` functions can be lift to `Fn(f64) -> f64`
-/// * If `j > i`, then `Fn(AD{j}) -> AD{j}` can be lift to `Fn(AD{i}) -> AD{i}`
+/// * All `Fn(AD) -> AD` functions can be lift to `Fn(f64) -> f64` via `StableFn<f64>`
+/// * `grad(&self) -> Self` gives gradient of original function
+/// * But still can use `Fn(AD) -> AD` via `StableFn<AD>`
 ///
 /// # Usage
 /// ```
@@ -1054,46 +1094,86 @@ impl Div<AD> for f64 {
 /// fn main() {
 ///     let ad0 = 2f64;
 ///     let ad1 = AD1(2f64, 1f64);
+///     let ad2 = AD2(2f64, 1f64, 0f64);
 ///
-///     let lift = ADLift::new(f_ad);
+///     let f_ad = ADFn::new(f);
 ///
-///     let ans_ad0 = ad0.powi(2);
-///     let ans_ad1 = ad1.powi(2);
+///     let ans0 = ad0.powi(2);
+///     let ans1 = ad1.powi(2).dx();
+///     let ans2 = ad2.powi(2).ddx();
 ///
-///     // f_0: f64 -> f64
-///     // f:   AD -> AD
-///     assert_eq!(ans_ad0, lift.f_0(ad0));
-///     assert_eq!(ans_ad1, lift.f(ad1));
+///     assert_eq!(ans0, f_ad.call_stable(ad0));
+///
+///     let df = f_ad.grad();
+///     assert_eq!(ans1, df.call_stable(ad0));
+///
+///     let ddf = df.grad();
+///     assert_eq!(ans2, ddf.call_stable(ad0));
+///
+///     let ad1_output = f_ad.call_stable(ad1);
+///     assert_eq!(ad1_output, AD1(4f64, 4f64));
+///
+///     let ad2_output = f_ad.call_stable(ad2);
+///     assert_eq!(ad2_output, AD2(4f64, 4f64, 2f64));
 /// }
 ///
-/// fn f_ad(x: AD) -> AD {
+/// fn f(x: AD) -> AD {
 ///     x.powi(2)
 /// }
 /// ```
-pub struct ADLift<F> {
+pub struct ADFn<F> {
     f: Box<F>,
+    grad_level: usize,
 }
 
-impl<F: Fn(AD) -> AD> ADLift<F> {
+impl<F: Clone> ADFn<F> {
     pub fn new(f: F) -> Self {
         Self {
             f: Box::new(f),
+            grad_level: 0usize,
         }
     }
 
-    pub fn f(&self, t: AD) -> AD {
-        (self.f)(t)
-    }
-
-    pub fn f_0(&self, t: f64) -> f64 {
-        (self.f)(AD::from(t)).into()
+    /// Gradient
+    pub fn grad(&self) -> Self {
+        assert!(self.grad_level < 2, "Higher order AD is not allowed");
+        ADFn {
+            f: (self.f).clone(),
+            grad_level: self.grad_level + 1,
+        }
     }
 }
 
-impl<F: Fn(AD) -> AD> StableFn<f64> for ADLift<F> {
+impl<F: Fn(AD) -> AD> StableFn<f64> for ADFn<F> {
     type Output = f64;
     fn call_stable(&self, target: f64) -> Self::Output {
-        self.f(AD::from(target)).into()
+        match self.grad_level {
+            0 => (self.f)(AD::from(target)).into(),
+            1 => (self.f)(AD1(target, 1f64)).dx(),
+            2 => (self.f)(AD2(target, 1f64, 0f64)).ddx(),
+            _ => panic!("Higher order AD is not allowed"),
+        }
+    }
+}
+
+impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
+    type Output = AD;
+    fn call_stable(&self, target: AD) -> Self::Output {
+        (self.f)(target)
+    }
+}
+
+impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<f64>> for ADFn<F> {
+    type Output = Vec<f64>;
+    fn call_stable(&self, target: Vec<f64>) -> Self::Output {
+        ((self.f)(target.iter().map(|&t| AD::from(t)).collect())).iter().map(|&t| t.x()).collect()
+    }
+}
+
+impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<AD>> for ADFn<F> {
+    type Output = Vec<AD>;
+    fn call_stable(&self, target: Vec<AD>) -> Self::Output {
+        (self.f)(target)
     }
 }
 
@@ -1104,3 +1184,91 @@ impl<F: Fn(AD) -> AD> StableFn<f64> for ADLift<F> {
 //    type Output = f64;
 //
 //}
+
+pub trait ADVec {
+    fn to_ad_vec(&self) -> Vec<AD>;
+    fn to_f64_vec(&self) -> Vec<f64>;
+}
+
+impl ADVec for Vec<f64> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.iter().map(|&t| AD::from(t)).collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.iter().map(|&t| t).collect()
+    }
+}
+
+impl ADVec for Vec<AD> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.iter().map(|&t| t).collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.iter().map(|t| t.x()).collect()
+    }
+}
+
+impl FPVector for Vec<AD> {
+    type Scalar = AD;
+
+    fn fmap<F>(&self, f: F) -> Self
+    where
+            F: Fn(Self::Scalar) -> Self::Scalar {
+        self.iter().map(|&x| f(x)).collect()
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    where
+            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+            T: Into<Self::Scalar> {
+        self.iter().fold(init.into(), |x, &y| f(x,y))
+    }
+
+    fn filter<F>(&self, f: F) -> Self
+    where
+            F: Fn(Self::Scalar) -> bool {
+        self.iter().filter(|&x| f(*x)).map(|&t| t).collect()
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
+        self.iter().zip(other.iter()).map(|(&x, &y)| f(x, y)).collect()
+    }
+
+    fn take(&self, n: usize) -> Self {
+        self.iter().take(n).map(|&t| t).collect()
+    }
+
+    fn skip(&self, n: usize) -> Self {
+        self.iter().skip(n).map(|&t| t).collect()
+    }
+
+    fn sum(&self) -> Self::Scalar {
+        let s = self[0];
+        self.reduce(s, |x, y| x + y)
+    }
+
+    fn prod(&self) -> Self::Scalar {
+        let s = self[0];
+        self.reduce(s, |x, y| x * y)
+    }
+}
+
+impl Vector for Vec<AD> {
+    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self.add_v(rhs)
+    }
+
+    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self.sub_v(rhs)
+    }
+
+    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
+        self.mul_s(AD::from(rhs.into()))
+    }
+}
+
+impl VecOps for Vec<AD> {}

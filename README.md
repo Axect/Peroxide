@@ -138,12 +138,9 @@ Peroxide can do many things.
         * `col_map` : map for column vectors
         * `row_map` : map for row vectors
 * Automatic Differentiation
-    * <del>Dual number system - for 1st order AD</del>
-    * <del>Hyper dual number system - for 2nd order AD</del>
     * Taylor mode Forward AD - for nth order AD 
     * Exact jacobian
-    * <del>`Real` trait to constrain for `f64` and `Dual`</del>
-    * <del>`Number` structure to unify `f64` and `Dual`</del>
+    * `Real` trait to constrain for `f64` and `AD` (for ODE)
     * Above strokes will be updated soon
 * Numerical Analysis
     * Lagrange interpolation
@@ -192,9 +189,9 @@ Peroxide can do many things.
 * Plotting
     * With `pyo3` & `matplotlib`
 * DataFrame
-    * Convert with Matrix
-    * Read & Write `csv` files
-    * Read & Write `netcdf` files
+    * Support various types simultaneously
+    * Read & Write `csv` files (`csv` feature)
+    * Read & Write `netcdf` files (`nc` feature)
 
 ### 6. Compatible with Mathematics
 
@@ -212,7 +209,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.29.0`
+Corresponding to `0.30.0`
 
 ## Pre-requisite
 
@@ -227,40 +224,40 @@ Corresponding to `0.29.0`
 1. Default
     ```toml
    [dependencies]
-   peroxide = "0.29"
+   peroxide = "0.30"
     ```
 2. OpenBLAS
     ```toml
    [dependencies.peroxide]
-   version = "0.29"
+   version = "0.30"
    default-features = false
    features = ["O3"] 
    ```
 3. Plot
     ```toml
    [dependencies.peroxide]
-   version = "0.29"
+   version = "0.30"
    default-features = false
    features = ["plot"] 
    ```
 4. NetCDF dependency for DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.29"
+   version = "0.30"
    default-features = false
    features = ["nc"]
    ```
 5. CSV dependency for DataFrame
     ```toml
    [dependencies.peroxide]
-   version = "0.29"
+   version = "0.30"
    default-features = false
    features = ["csv"]
    ```
 6. OpenBLAS & Plot & NetCDF
     ```toml
    [dependencies.peroxide]
-   version = "0.29"
+   version = "0.30"
    default-features = false
    features = ["O3", "plot", "nc", "csv"] 
    ```
@@ -311,9 +308,8 @@ Corresponding to `0.29.0`
     - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
+    - [ad.rs](src/structure/ad.rs) : Automatic derivatives
     - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
-    - [dual.rs](src/structure/dual.rs) : Dual number system for automatic differentiation
-    - [hyper_dual.rs](src/structure/hyper_dual.rs) : Hyper dual number system for automatic differentiation
     - [matrix.rs](src/structure/matrix.rs) : Matrix
     - [multinomial.rs](src/structure/multinomial.rs) : For multinomial (*Beta*)
     - [mod.rs](src/structure/mod.rs)
@@ -329,6 +325,7 @@ Corresponding to `0.29.0`
     - [num.rs](src/traits/num.rs) : Number, Real and more operations
     - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience
     - [stable.rs](src/traits/stable.rs) : Implement nightly-only features in stable
+    - [sugar.rs](src/traits/sugar.rs) : Syntactic sugar for Vector
   - __util__
     - [mod.rs](src/util/mod.rs)
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style

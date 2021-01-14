@@ -60,7 +60,7 @@ pub fn zeros_shape(r: usize, c: usize, shape: Shape) -> Matrix {
     matrix(vec![0f64; r * c], r, c, shape)
 }
 
-pub fn concat<T: Clone + Copy + Default>(v1: &Vec<T>, v2: &Vec<T>) -> Vec<T> {
+pub fn concat<T: Clone + Copy>(v1: &Vec<T>, v2: &Vec<T>) -> Vec<T> {
     let mut v = v1.clone();
     v.extend_from_slice(&v2[..]);
 
