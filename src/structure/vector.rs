@@ -274,7 +274,7 @@ use crate::traits::{
     math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct},
     mutable::MutFP,
     num::Real,
-    pointer::{Oxide, Redox},
+    pointer::{Oxide, Redox, RedoxCommon},
 };
 use std::cmp::min;
 use std::convert;

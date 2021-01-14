@@ -109,6 +109,9 @@ use crate::statistics::ops::C;
 use crate::traits::{
     num::{ExpLogOps, PowOps, TrigOps},
     stable::StableFn,
+    fp::FPVector,
+    math::Vector,
+    sugar::VecOps,
 };
 use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -186,6 +189,42 @@ impl AD {
             AD0(_) => AD0(0f64),
             AD1(_,_) => AD1(0f64, 0f64),
             AD2(_,_,_) => AD2(0f64, 0f64, 0f64),
+        }
+    }
+
+    pub fn set_x(&mut self, x: f64) {
+        match self {
+            AD0(t) => {
+                *t = x;
+            }
+            AD1(t, _) => {
+                *t = x;
+            }
+            AD2(t, _, _) => {
+                *t = x;
+            }
+        }
+    }
+
+    pub fn set_dx(&mut self, dx: f64) {
+        match self {
+            AD0(_) => panic!("Can't set dx for AD0"),
+            AD1(_, dt) => {
+                *dt = dx;
+            }
+            AD2(_, dt, _) => {
+                *dt = dx;
+            }
+        }
+    }
+
+    pub fn set_ddx(&mut self, ddx: f64) {
+        match self {
+            AD0(_) => panic!("Can't set ddx for AD0"),
+            AD1(_,_) => panic!("Can't set ddx for AD1"),
+            AD2(_,_,ddt) => {
+                *ddt = ddx;
+            } 
         }
     }
 
@@ -1087,7 +1126,7 @@ pub struct ADFn<F> {
     grad_level: usize,
 }
 
-impl<F: Fn(AD) -> AD + Clone> ADFn<F> {
+impl<F: Clone> ADFn<F> {
     pub fn new(f: F) -> Self {
         Self {
             f: Box::new(f),
@@ -1124,6 +1163,20 @@ impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
     }
 }
 
+impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<f64>> for ADFn<F> {
+    type Output = Vec<f64>;
+    fn call_stable(&self, target: Vec<f64>) -> Self::Output {
+        ((self.f)(target.iter().map(|&t| AD::from(t)).collect())).iter().map(|&t| t.x()).collect()
+    }
+}
+
+impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<AD>> for ADFn<F> {
+    type Output = Vec<AD>;
+    fn call_stable(&self, target: Vec<AD>) -> Self::Output {
+        (self.f)(target)
+    }
+}
+
 // Nightly only
 //pub struct ADLift<F>(F);
 //
@@ -1131,3 +1184,91 @@ impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
 //    type Output = f64;
 //
 //}
+
+pub trait ADVec {
+    fn to_ad_vec(&self) -> Vec<AD>;
+    fn to_f64_vec(&self) -> Vec<f64>;
+}
+
+impl ADVec for Vec<f64> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.iter().map(|&t| AD::from(t)).collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.iter().map(|&t| t).collect()
+    }
+}
+
+impl ADVec for Vec<AD> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.iter().map(|&t| t).collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.iter().map(|t| t.x()).collect()
+    }
+}
+
+impl FPVector for Vec<AD> {
+    type Scalar = AD;
+
+    fn fmap<F>(&self, f: F) -> Self
+    where
+            F: Fn(Self::Scalar) -> Self::Scalar {
+        self.iter().map(|&x| f(x)).collect()
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    where
+            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+            T: Into<Self::Scalar> {
+        self.iter().fold(init.into(), |x, &y| f(x,y))
+    }
+
+    fn filter<F>(&self, f: F) -> Self
+    where
+            F: Fn(Self::Scalar) -> bool {
+        self.iter().filter(|&x| f(*x)).map(|&t| t).collect()
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
+        self.iter().zip(other.iter()).map(|(&x, &y)| f(x, y)).collect()
+    }
+
+    fn take(&self, n: usize) -> Self {
+        self.iter().take(n).map(|&t| t).collect()
+    }
+
+    fn skip(&self, n: usize) -> Self {
+        self.iter().skip(n).map(|&t| t).collect()
+    }
+
+    fn sum(&self) -> Self::Scalar {
+        let s = self[0];
+        self.reduce(s, |x, y| x + y)
+    }
+
+    fn prod(&self) -> Self::Scalar {
+        let s = self[0];
+        self.reduce(s, |x, y| x * y)
+    }
+}
+
+impl Vector for Vec<AD> {
+    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self.add_v(rhs)
+    }
+
+    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+        self.sub_v(rhs)
+    }
+
+    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
+        self.mul_s(AD::from(rhs.into()))
+    }
+}
+
+impl VecOps for Vec<AD> {}

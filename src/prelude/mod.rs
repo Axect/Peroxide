@@ -110,7 +110,7 @@ pub use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
-    num::{ExpLogOps, Number, NumberVector, PowOps, Real, TrigOps},
+    num::{ExpLogOps, PowOps, Real, TrigOps},
     pointer::{MatrixPtr, Oxide, Redox},
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
@@ -121,8 +121,6 @@ pub use simpler::SimpleNorm;
 pub use crate::structure::{
     ad::*,
     ad::AD::*,
-    dual::*,
-    hyper_dual::*,
     matrix::{
         combine, diag, gemm, gemv, gen_householder, inv_l, inv_u, matrix, ml_matrix, py_matrix,
         r_matrix, Col, Matrix, Row, Shape, PQLU, QR, WAZD,

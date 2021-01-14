@@ -2,7 +2,7 @@
 
 use crate::statistics::ops::{double_factorial, factorial, C};
 use crate::structure::matrix::Matrix;
-use crate::traits::pointer::Oxide;
+use crate::traits::pointer::{Oxide, RedoxCommon};
 use crate::util::non_macro::zeros;
 use crate::util::useful::sgn;
 use std::f64::consts::PI;
