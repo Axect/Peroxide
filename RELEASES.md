@@ -1,3 +1,23 @@
+# Release 0.30.0 (2021-01-14)
+
+## Independence day from Dual
+
+* Replace all `Dual`, `HyperDual`, `Number` with `AD`
+    * Remove `Dual, HyperDual, Number`
+* It affected all of numerical functions
+    * `numerical/root.rs`
+    * `numerical/ode.rs`
+    * `numerical/optimize.rs`
+    * `numerical/utils.rs`
+* Also many traits are changed
+    * `traits/num.rs`
+    * `traits/pointer.rs`
+
+## Minor Changes
+
+* No more default in `util::non_macro::concat`
+* Now, `VecOps` has default implmentations - It required `FPVector`
+
 # Release 0.29.1 (2021-01-13)
 
 * Implements all numerical operations of `AD`
