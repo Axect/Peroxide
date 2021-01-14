@@ -1,6 +1,6 @@
 # TODO
 
-## 2021.01.13
+## 2021.01.14
 
 ### Primary
 
@@ -15,8 +15,6 @@
     - [ ] JSON
     - [ ] Arrow IPC
     - [ ] Parquet
-- [ ] Remove `dual`, `hyperdual` and modify `Real`, `Number` (How to bind `f64` & `AD` effectively?)
-
 
 ### Subs
 
@@ -76,3 +74,4 @@
 - [x] Reduce compile time
   - [x] Replace `proc_macro` for `AD` with ordinary macro or Enum
 - [x] Make `csv` optional
+- [x] Remove `dual`, `hyperdual` and modify `Real`, `Number` (How to bind `f64` & `AD` effectively?)
