@@ -113,7 +113,7 @@ pub use crate::traits::{
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
     num::{ExpLogOps, PowOps, Real, TrigOps},
-    pointer::{MatrixPtr, Oxide, Redox},
+    pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
     stable::StableFn,
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
