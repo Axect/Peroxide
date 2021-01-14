@@ -1,28 +1,28 @@
 //! Missing operations & comprehensive number structures
-//
-// ## `Real` trait
-//
-// * `Real` is a trait for binding `f64`, `Dual`, `HyperDual`
-// * `Real` requires `PowOps, TrigOps, ExpLogOps` & `std::Ops<Self>` & `std::Ops<f64>`
-//
-//     ```rust
-//     extern crate peroxide;
-//     use peroxide::fuga::*;
-//
-//     fn main() {
-//         let x_f64 = 2f64;
-//         let x_dual = dual(2,1);
-//         let x_hyper = hyper_dual(2, 1, 0);
-//
-//         f(x_f64).print();
-//         f(x_dual).print();
-//         f(x_hyper).print();
-//     }
-//
-//     fn f<T: Real>(x: T) -> T {
-//         return x.powi(2)
-//     }
-//     ```
+//!
+//! ## `Real` trait
+//!
+//! * `Real` is a trait for binding `f64`, `AD`
+//! * `Real` requires `PowOps, TrigOps, ExpLogOps` & `std::Ops<Self>` & `std::Ops<f64>`
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         let x_f64 = 2f64;
+//!         let x_ad1 = AD1(2f64,1f64);
+//!         let x_ad2 = AD2(2f64, 1f64, 0f64);
+//!
+//!         f(x_f64).print();
+//!         f(x_ad1).print();
+//!         f(x_ad2).print();
+//!     }
+//!
+//!     fn f<T: Real>(x: T) -> T {
+//!         return x.powi(2)
+//!     }
+//!     ```
 
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use crate::structure::ad::AD;
@@ -233,39 +233,3 @@ impl Real for AD {
         *self
     }
 }
-
-
-//pub trait NumberVector {
-//    fn to_dual_vec(&self) -> Vec<Dual>;
-//    fn to_f64_vec(&self) -> Vec<f64>;
-//    fn to_hyper_vec(&self) -> Vec<HyperDual>;
-//    fn from_dual_vec(v: Vec<Dual>) -> Self;
-//    fn from_f64_vec(v: Vec<f64>) -> Self;
-//    fn from_hyper_vec(v: Vec<HyperDual>) -> Self;
-//}
-//
-//impl NumberVector for Vec<Number> {
-//    fn to_dual_vec(&self) -> Vec<Dual> {
-//        self.into_iter().map(|x| x.to_dual()).collect()
-//    }
-//
-//    fn to_f64_vec(&self) -> Vec<f64> {
-//        self.into_iter().map(|x| x.to_f64()).collect()
-//    }
-//
-//    fn to_hyper_vec(&self) -> Vec<HyperDual> {
-//        self.into_iter().map(|x| x.to_hyper_dual()).collect()
-//    }
-//
-//    fn from_dual_vec(v: Vec<Dual>) -> Self {
-//        v.into_iter().map(|x| Number::from_dual(x)).collect()
-//    }
-//
-//    fn from_f64_vec(v: Vec<f64>) -> Self {
-//        v.into_iter().map(|x| Number::from_f64(x)).collect()
-//    }
-//
-//    fn from_hyper_vec(v: Vec<HyperDual>) -> Self {
-//        v.into_iter().map(|x| Number::from_hyper_dual(x)).collect()
-//    }
-//}

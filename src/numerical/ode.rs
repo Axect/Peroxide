@@ -39,8 +39,8 @@
 //!     * `Records` : The type to save results of ODE. Usually `Matrix` is used.
 //!     * `Vector` : Vector can be below things.
 //!         * `Vec<f64>` : Used for `ExplicitODE`
-//!         * `Vec<Dual>` : Used for `ImplicitODE`
-//!     * `Param` : Also it can be `f64` or `Dual`
+//!         * `Vec<AD>` : Used for `ImplicitODE`
+//!     * `Param` : Also it can be `f64` or `AD`
 //!     * `ODEMethod` : Method for solving ODE
 //!         * `ExMethod` : Explicit method
 //!             * `Euler` : Euler first order
@@ -67,7 +67,7 @@
 //!     }
 //!     ```
 //!
-//!     * `T` can be `f64` or `Dual`
+//!     * `T` can be `f64` or `AD`
 //!     * `param` is parameter for ODE. Usually it is represented by time.
 //!     * `value` is value of each node.
 //!     * `deriv` is value of derivative of each node.
@@ -83,7 +83,7 @@
 //! Methods for `State<T>` are as follows.
 //!
 //! * `to_f64(&self) -> State<f64>`
-//! * `to_dual(&self) -> State<Dual>`
+//! * `to_ad(&self) -> State<AD>`
 //! * `new(T, Vec<T>, Vec<T>) -> Self`
 //!
 //! ### `Environment`

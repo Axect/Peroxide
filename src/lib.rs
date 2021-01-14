@@ -80,38 +80,45 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.28.0`
+//! * Current document version is corresponding to `0.30.0`
 //!
 //! 1. Default
 //!     ```toml
 //!     [dependencies]
-//!     peroxide = "0.28"
+//!     peroxide = "0.30"
 //!     ```
 //! 2. OpenBLAS
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.28"
+//!     version = "0.30"
 //!     default-features = false
 //!     features = ["O3"]
 //!     ```
 //! 3. Plot
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.28"
+//!     version = "0.30"
 //!     default-features = false
 //!     features = ["plot"]
 //!     ```
 //! 4. `netcdf` dependency for DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.28"
+//!     version = "0.30"
 //!     default-features = false
 //!     features = ["nc"]
 //!     ```
-//! 5. Together
+//! 5. `csv` dependency for DataFrame
 //!     ```toml
 //!     [dependencies.peroxide]
-//!     version = "0.28"
+//!     version = "0.30"
+//!     default-features = false
+//!     features = ["csv"]
+//!     ```
+//! 6. Together
+//!     ```toml
+//!     [dependencies.peroxide]
+//!     version = "0.30"
 //!     default-features = false
 //!     features = ["O3", "plot", "nc"]
 //!     ```
