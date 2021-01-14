@@ -1036,15 +1036,16 @@ impl Div<AD> for f64 {
 
 //impl AD for f64 {}
 
-/// Lift AD functions
+/// Generic AD functions
 ///
 /// # Description
 /// To lift `AD` functions
 ///
 /// # Implementation
 ///
-/// * All `Fn(T) -> T where T:AD` functions can be lift to `Fn(f64) -> f64`
-/// * If `j > i`, then `Fn(AD{j}) -> AD{j}` can be lift to `Fn(AD{i}) -> AD{i}`
+/// * All `Fn(AD) -> AD` functions can be lift to `Fn(f64) -> f64` via `StableFn<f64>`
+/// * `grad(&self) -> Self` gives gradient of original function
+/// * But still can use `Fn(AD) -> AD` via `StableFn<AD>`
 ///
 /// # Usage
 /// ```
@@ -1064,6 +1065,9 @@ impl Div<AD> for f64 {
 ///
 ///     let f_grad = f_ad.grad();
 ///     assert_eq!(ans_ad1, f_grad.call_stable(ad0));
+///
+///     let ad_output = f_ad.call_stable(ad1);
+///     assert_eq!(ad_output, AD1(4f64, 4f64));
 /// }
 ///
 /// fn f(x: AD) -> AD {
@@ -1102,6 +1106,13 @@ impl<F: Fn(AD) -> AD> StableFn<f64> for ADFn<F> {
             2 => (self.f)(AD2(target, 1f64, 0f64)).ddx(),
             _ => panic!("Higher order AD is not allowed"),
         }
+    }
+}
+
+impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
+    type Output = AD;
+    fn call_stable(&self, target: AD) -> Self::Output {
+        (self.f)(target)
     }
 }
 
