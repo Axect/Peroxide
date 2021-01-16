@@ -767,15 +767,15 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                         &f(
                             t1,
                             yn.add_vec(
-                                &k1.mul_scalar(GL4_TAB[0][1] * h)
-                                    .add_vec(&k2.mul_scalar(GL4_TAB[0][2] * h)),
+                                &k1.mul_scalar(AD::from(GL4_TAB[0][1] * h))
+                                    .add_vec(&k2.mul_scalar(AD::from(GL4_TAB[0][2] * h))),
                             ),
                         ),
                         &f(
                             t2,
                             yn.add_vec(
-                                &k1.mul_scalar(GL4_TAB[1][1] * h)
-                                    .add_vec(&k2.mul_scalar(GL4_TAB[1][2] * h)),
+                                &k1.mul_scalar(AD::from(GL4_TAB[1][1] * h))
+                                    .add_vec(&k2.mul_scalar(AD::from(GL4_TAB[1][2] * h))),
                             ),
                         ),
                     )

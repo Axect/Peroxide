@@ -265,7 +265,7 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{dasum, daxpy, ddot, dnrm2, idamax};
+use blas::{daxpy, ddot, dnrm2, idamax};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
@@ -591,6 +591,8 @@ impl Algorithm for Vec<f64> {
 }
 
 impl Vector for Vec<f64> {
+    type Scalar = f64;
+
     fn add_vec(&self, rhs: &Self) -> Self {
         self.zip_with(|x, y| x + y, rhs)
     }
@@ -599,14 +601,13 @@ impl Vector for Vec<f64> {
         self.zip_with(|x, y| x - y, rhs)
     }
 
-    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
-        let alpha: f64 = rhs.into();
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self {
+        let alpha: f64 = rhs;
         self.fmap(|x| x * alpha)
     }
 }
 
 impl Normed for Vec<f64> {
-    type Scalar = f64;
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::L1 => self.iter().map(|x| x.abs()).sum(),

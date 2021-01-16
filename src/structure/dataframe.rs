@@ -821,6 +821,11 @@ where Series: TypedVector<T> {
     Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x - y).collect::<Vec<T>>())
 }
 
+fn mul_scalar<T: std::ops::Mul<T, Output=T> + Clone + Copy>(v: Vec<T>, s: T) -> Series
+where Series: TypedVector<T> {
+    Series::new(v.into_iter().map(|x| x * s).collect::<Vec<T>>())
+}
+
 // =============================================================================
 // Implementations of DType variables
 // =============================================================================
@@ -963,6 +968,8 @@ impl Series {
 }
 
 impl Vector for Series {
+    type Scalar = Scalar;
+
     /// Add series
     ///
     /// # Example
@@ -979,7 +986,7 @@ impl Vector for Series {
     /// }
     /// ```
     fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
-        assert_eq!(self.dtype, rhs.dtype, "DType are not same (add_vec)");
+        assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;
             self.dtype, 
@@ -1005,7 +1012,7 @@ impl Vector for Series {
     /// }
     /// ```
     fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
-        assert_eq!(self.dtype, rhs.dtype, "DType are not same (add_vec)");
+        assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;
             self.dtype, 
@@ -1025,16 +1032,21 @@ impl Vector for Series {
     ///
     /// fn main() {
     ///     let a = Series::new(vec![1,2,3]);
-    ///     let b = 2;
+    ///     let b = Scalar::new(2);
     ///     let c = a.mul_scalar(b);
     ///     assert_eq!(c, Series::new(vec![2,4,6]));
     /// }
     /// ```
-    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
-        let a = self.to_type(F64);
-        let v: Vec<f64> = a.to_vec();
-        let b = Series::new(v.mul_scalar(rhs));
-        b.to_type(self.dtype) 
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self {
+        assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (mul_scalar)");
+
+        dtype_match!(
+            N;
+            self.dtype,
+            self.to_vec(),
+            |x| mul_scalar(x, rhs.unwrap());
+            Vec
+        )
     }
 }
 

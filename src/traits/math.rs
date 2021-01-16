@@ -1,5 +1,4 @@
 use crate::structure::matrix::Matrix;
-use std::convert::Into;
 
 /// Mathematical Vector
 ///
@@ -7,9 +6,10 @@ use std::convert::Into;
 /// Vector has two operations : addition, scalar multiplication.
 /// And a space of the vector should closed for that operations.
 pub trait Vector {
+    type Scalar;
     fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self;
     fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self;
-    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self;
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self;
 }
 
 /// Kinds of Vector & Matrix norm
@@ -35,7 +35,6 @@ pub enum Norm {
 
 /// Normed Vector
 pub trait Normed: Vector {
-    type Scalar;
     fn norm(&self, kind: Norm) -> Self::Scalar;
     fn normalize(&self, kind: Norm) -> Self
     where
@@ -69,6 +68,8 @@ pub trait MatrixProduct {
 // =============================================================================
 
 impl Vector for f64 {
+    type Scalar = Self;
+
     fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
         self + rhs
     }
@@ -77,13 +78,12 @@ impl Vector for f64 {
         self - rhs
     }
 
-    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
-        self * rhs.into()
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self {
+        self * rhs
     }
 }
 
 impl Normed for f64 {
-    type Scalar = f64;
     fn norm(&self, _kind: Norm) -> Self::Scalar {
         self.abs()
     }
