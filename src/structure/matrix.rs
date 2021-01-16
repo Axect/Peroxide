@@ -1475,6 +1475,7 @@ impl Vector for Matrix {
 }
 
 impl Normed for Matrix {
+    type UnsignedScalar = f64;
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {

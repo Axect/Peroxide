@@ -35,7 +35,8 @@ pub enum Norm {
 
 /// Normed Vector
 pub trait Normed: Vector {
-    fn norm(&self, kind: Norm) -> Self::Scalar;
+    type UnsignedScalar;
+    fn norm(&self, kind: Norm) -> Self::UnsignedScalar;
     fn normalize(&self, kind: Norm) -> Self
     where
         Self: Sized;
@@ -84,6 +85,7 @@ impl Vector for f64 {
 }
 
 impl Normed for f64 {
+    type UnsignedScalar = f64;
     fn norm(&self, _kind: Norm) -> Self::Scalar {
         self.abs()
     }
