@@ -23,8 +23,8 @@ use crate::util::non_macro::{cat, zeros};
 ///     j.print();
 ///
 ///     //      c[0] c[1]
-///     // r[0]    1    1
-///     // r[1]   -1    2
+///     // r[0]    1   -1
+///     // r[1]    1    2
 /// }
 ///
 /// fn f(xs: &Vec<AD>) -> Vec<AD> {
