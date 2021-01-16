@@ -608,6 +608,7 @@ impl Vector for Vec<f64> {
 }
 
 impl Normed for Vec<f64> {
+    type UnsignedScalar = f64;
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::L1 => self.iter().map(|x| x.abs()).sum(),
