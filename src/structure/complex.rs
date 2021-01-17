@@ -3,6 +3,8 @@ use crate::traits::fp::FPVector;
 use crate::traits::math::{Vector, Normed, Norm, InnerProduct};
 use crate::traits::sugar::VecOps;
 
+pub type C64 = Complex<f64>;
+
 impl Vector for Complex<f64> {
     type Scalar = Self;
 
@@ -118,6 +120,12 @@ impl Normed for Vec<Complex<f64>> {
     where
             Self: Sized {
         unimplemented!()
+    }
+}
+
+impl InnerProduct for Vec<Complex<f64>> {
+    fn dot(&self, rhs: &Self) -> Self::Scalar {
+        self.zip_with(|x, y| x.conj() * y, rhs).sum()
     }
 }
 
