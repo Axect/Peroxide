@@ -5,6 +5,7 @@ use crate::numerical::{
     integral::Integral::GaussLegendre,
 };
 use crate::structure::matrix::{self, Matrix};
+use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
 
 /// Simple Norm
@@ -120,4 +121,9 @@ impl SimplerLinearAlgebra for Matrix {
 #[allow(non_snake_case)]
 pub fn solve(A: &Matrix, m: &Matrix) -> Matrix {
     matrix::solve(A, m, matrix::SolveKind::LU)
+}
+
+/// Simple Chebyshev Polynomial (First Kind)
+pub fn chebyshev_polynomial(n: usize) -> polynomial::Polynomial {
+    polynomial::chebyshev_polynomial(n, polynomial::SpecialKind::First)
 }

@@ -539,8 +539,8 @@ use std::f64::NAN;
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::traits::{
-    fp::{FPMatrix, FPVector},
     general::Algorithm,
+    fp::{FPMatrix, FPVector},
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
 };
@@ -1389,6 +1389,8 @@ impl Matrix {
 // Mathematics for Matrix
 // =============================================================================
 impl Vector for Matrix {
+    type Scalar = f64;
+
     fn add_vec(&self, other: &Self) -> Self {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
@@ -1450,13 +1452,13 @@ impl Vector for Matrix {
         }
     }
 
-    fn mul_scalar<T: Into<f64>>(&self, other: T) -> Self {
+    fn mul_scalar(&self, other: Self::Scalar) -> Self {
         match () {
             #[cfg(feature = "O3")]
             () => {
                 let x = &self.data;
                 let mut y = vec![0f64; x.len()];
-                let a_f64 = other.into();
+                let a_f64 = other;
                 let n_i32 = x.len() as i32;
 
                 unsafe {
@@ -1465,7 +1467,7 @@ impl Vector for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
-                let scalar = other.into();
+                let scalar = other;
                 self.fmap(|x| x * scalar)
             }
         }
@@ -1473,7 +1475,7 @@ impl Vector for Matrix {
 }
 
 impl Normed for Matrix {
-    type Scalar = f64;
+    type UnsignedScalar = f64;
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {

@@ -125,9 +125,10 @@ pub use crate::structure::{
         combine, diag, gemm, gemv, gen_householder, inv_l, inv_u, matrix, ml_matrix, py_matrix,
         r_matrix, Col, Matrix, Row, Shape, PQLU, QR, WAZD,
     },
-    polynomial::*,
+    polynomial::{Polynomial,poly,Calculus,lagrange_polynomial,legendre_polynomial},
     vector::*,
     dataframe::*,
+    //complex::C64,
 };
 
 pub use simpler::{solve, SimplerLinearAlgebra};
@@ -152,4 +153,4 @@ pub use crate::numerical::{
     utils::*,
 };
 
-pub use simpler::{eigen, integrate};
+pub use simpler::{eigen, integrate, chebyshev_polynomial};

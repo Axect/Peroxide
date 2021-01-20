@@ -1258,6 +1258,8 @@ impl FPVector for Vec<AD> {
 }
 
 impl Vector for Vec<AD> {
+    type Scalar = AD;
+
     fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
         self.add_v(rhs)
     }
@@ -1266,8 +1268,8 @@ impl Vector for Vec<AD> {
         self.sub_v(rhs)
     }
 
-    fn mul_scalar<T: Into<f64>>(&self, rhs: T) -> Self {
-        self.mul_s(AD::from(rhs.into()))
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self {
+        self.mul_s(rhs)
     }
 }
 

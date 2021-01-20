@@ -15,7 +15,6 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 // =============================================================================
 // Polynomial Structure
 // =============================================================================
-
 /// Polynomial Structure
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -512,6 +511,7 @@ impl Calculus for Polynomial {
 // =============================================================================
 // Useful Polynomial
 // =============================================================================
+/// Lagrange Polynomial
 pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
@@ -552,6 +552,33 @@ pub fn legendre_polynomial(n: usize) -> Polynomial {
             ((2f64 * k_f64 + 1f64) * poly(vec![1f64, 0f64]) * legendre_polynomial(k)
                 - k_f64 * legendre_polynomial(k - 1))
                 / (k_f64 + 1f64)
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SpecialKind {
+    First,
+    Second
+}
+
+/// Chebyshev Polynomial
+pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
+    let mut prev = Polynomial::new(vec![1f64]);
+    let mut curr = match kind {
+        SpecialKind::First => Polynomial::new(vec![1f64, 0f64]),
+        SpecialKind::Second => Polynomial::new(vec![2f64, 0f64]),
+    };
+
+    match n {
+        0 => prev,
+        1 => curr,
+        _ => {
+            for _i in 1 .. n {
+                std::mem::swap(&mut prev, &mut curr);
+                curr = poly(vec![2f64, 0f64]) * prev.clone() - curr;
+            }
+            curr
         }
     }
 }

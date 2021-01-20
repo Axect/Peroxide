@@ -1,3 +1,8 @@
+# Release 0.30.1 (2021-01-20)
+
+* Implement Chebyshev polynomial
+* Implement more higher order Gauss-Legendre Quadrature (Up to 30)
+
 # Release 0.30.0 (2021-01-14)
 
 ## Independence day from Dual
