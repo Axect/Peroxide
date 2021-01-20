@@ -19,7 +19,7 @@ pub enum Integral {
 ///
 /// # Method
 ///
-/// * Gauss-Legendre Quadrature (up to order 16) : `GaussLegendre(usize)`
+/// * Gauss-Legendre Quadrature (up to order 30) : `GaussLegendre(usize)`
 /// * Newton-Cotes Quadrature: `NewtonCotes(usize)`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
