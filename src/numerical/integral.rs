@@ -2,10 +2,11 @@ use crate::structure::polynomial::{lagrange_polynomial, Calculus};
 use crate::traits::fp::FPVector;
 use crate::util::non_macro::seq;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Integral {
     GaussLegendre(usize),
     NewtonCotes(usize),
+    G7K15(f64),
 }
 
 /// Numerical Integration
@@ -23,16 +24,17 @@ pub enum Integral {
 /// * Newton-Cotes Quadrature: `NewtonCotes(usize)`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> f64 + Copy,
 {
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
+        Integral::G7K15(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G7K15(tol)),
     }
 }
 
 /// Newton Cotes Quadrature
-fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
+pub fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 where
     F: Fn(f64) -> f64,
 {
@@ -54,12 +56,65 @@ where
 ///     * `(a,b)`: Interval of integration
 ///
 /// # Reference
-/// A. N. Lowan et al. (1942)
-fn gauss_legendre_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
+/// * A. N. Lowan et al. (1942)
+/// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
+pub fn gauss_legendre_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 where
     F: Fn(f64) -> f64,
 {
     (b - a) / 2f64 * unit_gauss_legendre_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n)
+}
+
+/// Gauss Kronrod Quadrature
+///
+/// # Type
+/// * `f, (a,b), method -> f64`
+///     * `f`: Numerical function (`Fn(f64) -> f64 + Copy`)
+///     * `(a,b)`: Interval of integration
+///     * `method`: Integration method
+///         * `G7K15(tol)`
+///
+/// # Reference
+/// * arXiv: [1003.4629](https://arxiv.org/abs/1003.4629)
+/// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
+#[allow(non_snake_case)]
+pub fn gauss_kronrod_quadrature<F, T, S>(f: F, (a, b): (T, S), method: Integral) -> f64
+where
+     F: Fn(f64) -> f64 + Copy,
+     T: Into<f64>,
+     S: Into<f64>,
+{
+    let mut I = 0f64;
+    let mut S: Vec<(f64, f64)> = vec![];
+    S.push((a.into(), b.into()));
+    let (g, k, tol) = match method {
+        Integral::G7K15(tol) => (7, 15, tol),
+        _ => panic!("Please input proper Gauss Kronrod order"),
+    };
+    loop {
+        match S.pop() {
+            Some((a, b)) => {
+                let G = gauss_legendre_quadrature(f, g, (a, b));
+                let K = kronrod_quadrature(f, k, (a, b));
+                let m = (a + b) / 2f64;
+                if (G - K).abs() < tol || a == b {
+                    I += G;
+                } else {
+                    S.push((a, m));
+                    S.push((m, b));
+                }
+            }
+            None => break,
+        }
+    }
+    I
+}
+
+pub fn kronrod_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64 
+where
+    F: Fn(f64) -> f64,
+{
+    (b - a) / 2f64 * unit_kronrod_quadrature(|x| f(x * (b-a) / 2f64 + (a + b) / 2f64), n)   
 }
 
 // =============================================================================
@@ -172,6 +227,62 @@ fn gauss_legendre_table(n: usize) -> (Vec<f64>, Vec<f64>) {
         _ => unreachable!(),
     }
     (result_weight, result_root)
+}
+
+// =============================================================================
+// Gauss Kronrod Backends
+// =============================================================================
+
+fn unit_kronrod_quadrature<F>(f: F, n: usize) -> f64
+where
+    F: Fn(f64) -> f64,
+{
+    let (a,x) = kronrod_table(n);
+    let mut s = 0f64;
+    for i in 0 .. a.len() {
+        s += a[i] * f(x[i]);
+    }
+    s
+}
+
+fn kronrod_table(n: usize) -> (Vec<f64>, Vec<f64>) {
+    let mut result_node = vec![0f64; n];
+    let mut result_weight = vec![0f64; n];
+    let ref_node: &[f64] = match n {
+        15 => &KRONROD_NODES_15[..],
+        _ => panic!("Not yet implemented"),
+    };
+    let ref_weight: &[f64] = match n {
+        15 => &KRONROD_WEIGHTS_15[..],
+        _ => panic!("Not yet implemented"),
+    };
+
+    match n % 2 {
+        0 => {
+            for i in 0 .. ref_node.len() {
+                result_node[i] = ref_node[i];
+                result_weight[i] = ref_weight[i];
+            }
+
+            for i in ref_node.len() .. n {
+                result_node[i] = -ref_node[n-i-1];
+                result_weight[i] = ref_weight[n-i-1];
+            }
+        }
+        1 => {
+            for i in 0 .. ref_node.len() {
+                result_node[i] = ref_node[i];
+                result_weight[i] = ref_weight[i];
+            }
+
+            for i in ref_node.len() .. n {
+                result_node[i] = -ref_node[n-i];
+                result_weight[i] = ref_weight[n-i];
+            }
+        }
+        _ => unreachable!()
+    }
+    (result_weight, result_node)
 }
 
 // =============================================================================
@@ -738,4 +849,29 @@ const LEGENDRE_WEIGHT_30: [f64; 15] = [
     0.028784707883323369,
     0.018466468311090959,
     0.007968192496166606,
+];
+
+// =============================================================================
+// Table for Kronrod Quadrature
+// =============================================================================
+const KRONROD_NODES_15: [f64; 8] = [
+    0f64,
+    0.207784955007898468,
+    0.405845151377397167,
+    0.58608723546769113,
+    0.74153118559939444,
+    0.864864423359769073,
+    0.949107912342758525,
+    0.991455371120812639,
+];
+
+const KRONROD_WEIGHTS_15: [f64; 8] = [
+    0.20948214108472783,
+    0.204432940075298892,
+    0.19035057806478541,
+    0.1690047266392679,
+    0.140653259715525919,
+    0.10479001032225018,
+    0.06309209262997855,
+    0.022935322010529225,
 ];

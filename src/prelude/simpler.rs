@@ -15,7 +15,7 @@ pub trait SimpleNorm: Normed {
 }
 
 /// Simple integrate
-pub fn integrate<F: Fn(f64) -> f64>(f: F, (a, b): (f64, f64)) -> f64 {
+pub fn integrate<F: Fn(f64) -> f64 + Copy>(f: F, (a, b): (f64, f64)) -> f64 {
     integral::integrate(f, (a, b), GaussLegendre(15))
 }
 
