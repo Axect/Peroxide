@@ -27,6 +27,13 @@ pub enum Integral {
 ///
 /// * Gauss-Legendre Quadrature (up to order 30) : `GaussLegendre(usize)`
 /// * Newton-Cotes Quadrature: `NewtonCotes(usize)`
+/// * Gauss-Kronrod Quadrature
+///     * `G7K15`
+///     * `G10K21`
+///     * `G15K31`
+///     * `G20K41`
+///     * `G25K51`
+///     * `G30K61`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
     F: Fn(f64) -> f64 + Copy,
