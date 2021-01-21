@@ -151,7 +151,16 @@ pub use crate::util::plot::*;
 // =============================================================================
 // Enums
 // =============================================================================
-pub use crate::numerical::integral::Integral::{GaussLegendre, NewtonCotes};
+pub use crate::numerical::integral::Integral::{
+    GaussLegendre, 
+    NewtonCotes,
+    G7K15,
+    G10K21,
+    G15K31,
+    G20K41,
+    G25K51,
+    G30K61,
+};
 pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};
 pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,

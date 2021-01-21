@@ -2,7 +2,7 @@ use crate::numerical::{
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
     integral,
-    integral::Integral::GaussLegendre,
+    integral::Integral::G7K15,
 };
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
@@ -15,8 +15,8 @@ pub trait SimpleNorm: Normed {
 }
 
 /// Simple integrate
-pub fn integrate<F: Fn(f64) -> f64>(f: F, (a, b): (f64, f64)) -> f64 {
-    integral::integrate(f, (a, b), GaussLegendre(15))
+pub fn integrate<F: Fn(f64) -> f64 + Copy>(f: F, (a, b): (f64, f64)) -> f64 {
+    integral::integrate(f, (a, b), G7K15(1e-16))
 }
 
 /// Simple Linear algebra
