@@ -1,3 +1,14 @@
+# Release 0.30.2 (2021-01-21)
+
+* Implement Gauss-Kronrod Quadrature
+    * G7K15
+    * G10K21
+    * G15K31
+    * G20K41
+    * G25K51
+    * G30K61
+* Now, prelude's default integration is `G7K15(1e-16)`
+
 # Release 0.30.1 (2021-01-20)
 
 * Implement Chebyshev polynomial
