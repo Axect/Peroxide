@@ -178,9 +178,13 @@
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
+//!         # #[cfg(feature="csv")]
+//!         # {
+//!         // `csv` feature should be required
 //!         let a = Matrix::read("example_data/matrix.csv", false, ',')
 //!             .expect("Can't read matrix.csv file");
 //!         a.print();
+//!         # }
 //!         //       c[0] c[1]
 //!         // r[0]     1    2
 //!         // r[1]     3    4
@@ -206,16 +210,19 @@
 //!     df.push("x", Series::new(a.col(0)));
 //!     df.push("y", Series::new(a.col(1)));
 //!
-//!     // Write nc file
+//!     // Write nc file (`nc` feature should be required)
+//!     # #[cfg(feature="nc")]
+//!     # {
 //!     df.write_nc("data.nc").expect("Can't write data.nc");
 //!
-//!     // Read nc file
+//!     // Read nc file (`nc` feature should be required)
 //!     let dg = DataFrame::read_nc("data.nc").expect("Can't read data.nc");
 //!     let x: Vec<f64> = dg["x"].to_vec();
 //!     let y: Vec<f64> = dg["y"].to_vec();
 //!
 //!     assert_eq!(a.col(0), x);
 //!     assert_eq!(a.col(1), y);
+//!     # }
 //! }
 //! ```
 //!
