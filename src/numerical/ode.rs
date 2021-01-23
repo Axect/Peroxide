@@ -177,7 +177,7 @@
 //!
 //! fn main() {
 //!     // =========================================
-//!     //  Declare ODE
+//!     //  Declare ODE (Euler)
 //!     // =========================================
 //!     let mut ex_test = ExplicitODE::new(f);
 //!
@@ -193,19 +193,62 @@
 //!         .set_step_size(0.01f64)
 //!         .set_times(10000);
 //!
+//!     // =========================================
+//!     //  Declare ODE (RK4)
+//!     // =========================================
 //!     let mut ex_test2 = ex_test.clone();
 //!     ex_test2.set_method(ExMethod::RK4);
+//!
+//!     // =========================================
+//!     //  Declare ODE (GL4)
+//!     // =========================================
+//!     let mut im_test = ImplicitODE::new(g);
+//!
+//!     let init_state: State<AD> = State::new(
+//!         AD0(0.0),
+//!         vec![AD0(10f64), AD0(1f64), AD0(1f64)],
+//!         vec![AD0(0.0), AD0(0.0), AD0(0.0)],
+//!     );
+//!
+//!     im_test
+//!         .set_initial_condition(init_state)
+//!         .set_method(ImMethod::GL4)
+//!         .set_step_size(0.01f64)
+//!         .set_times(10000);
 //!
 //!     // =========================================
 //!     //  Save results
 //!     // =========================================
 //!     let results = ex_test.integrate();
 //!     let results2 = ex_test2.integrate();
+//!     let results3 = im_test.integrate();
 //!
-//!     // Plot or extract
+//!     // Extract data
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x_euler", Series::new(results.col(1)));
+//!     df.push("z_euler", Series::new(results.col(3)));
+//!     df.push("x_rk4", Series::new(results2.col(1)));
+//!     df.push("z_rk4", Series::new(results2.col(3)));
+//!     df.push("x_gl4", Series::new(results3.col(1)));
+//!     df.push("z_gl4", Series::new(results3.col(3)));
+//!
+//!     # #[cfg(feature="nc")]
+//!     # {
+//!     // Write netcdf file (`nc` feature required)
+//!     df.write_nc("example_data/lorenz.nc")
+//!         .expect("Can't write lorenz.nc");
+//!     # }
 //! }
 //!
 //! fn f(st: &mut State<f64>, _: &NoEnv) {
+//!     let x = &st.value;
+//!     let dx = &mut st.deriv;
+//!     dx[0] = 10f64 * (x[1] - x[0]);
+//!     dx[1] = 28f64 * x[0] - x[1] - x[0] * x[2];
+//!     dx[2] = -8f64/3f64 * x[2] + x[0] * x[1];
+//! }
+//!
+//! fn g(st: &mut State<AD>, _: &NoEnv) {
 //!     let x = &st.value;
 //!     let dx = &mut st.deriv;
 //!     dx[0] = 10f64 * (x[1] - x[0]);
@@ -219,6 +262,8 @@
 //! ![Lorenz with Euler](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_euler.png)
 //!
 //! ![Lorenz with RK4](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_rk4.png)
+//!
+//! ![Lorenz with GL4](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_gl4.png)
 //!
 //! ### Simple 1D Runge-Kutta
 //!
