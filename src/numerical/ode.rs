@@ -45,8 +45,8 @@
 //!         * `ExMethod` : Explicit method
 //!             * `Euler` : Euler first order
 //!             * `RK4` : Runge Kutta 4th order
-//!         * `ImMethod` : Implicit method **(to be implemented)**
-//!             * `BDF` : Backward Euler 1st order
+//!         * `ImMethod` : Implicit method
+//!             * `BDF` : Backward Euler 1st order (To be fixed)
 //!             * `GL4` : Gauss Legendre 4th order
 //!     * `Environment` : External environment (CubicSpline, Vec<f64>, Matrix or Another external table)
 //!
@@ -166,6 +166,31 @@
 //! * `times` : How many times do you want to update?
 //! * `to_use` : Just check whether information is enough
 //! * `env` : Environment
+//!
+//! # `ImplicitODE` struct
+//!
+//! `ImplicitODE` is struct to solve stiff ODE with implicit methods.
+//!
+//! ```no_run
+//! extern crate peroxide;
+//! use std::collections::HashMap;
+//! use peroxide::fuga::{State, ImMethod, BoundaryCondition, ODEOptions, Environment, AD};
+//!
+//! #[derive(Clone)]
+//! pub struct ImplicitODE<E: Environment> {
+//!     state: State<AD>,
+//!     func: fn(&mut State<AD>, &E),
+//!     step_size: f64,
+//!     method: ImMethod,
+//!     init_cond: State<AD>,
+//!     bound_cond1: (State<AD>, BoundaryCondition),
+//!     bound_cond2: (State<AD>, BoundaryCondition),
+//!     stop_cond: fn(&Self) -> bool,
+//!     times: usize,
+//!     to_use: HashMap<ODEOptions, bool>,
+//!     env: E,
+//! }
+//! ```
 //!
 //! ## Example
 //!
