@@ -144,7 +144,7 @@
 //!
 //! In peroxide, we can write matrix to `csv`
 //!
-//! ### CSV (Legacy)
+//! ### CSV (Not recommended)
 //!
 //! * `csv` feature should be required
 //! * `write(&self, file_path: &str)`: Write matrix to csv
@@ -173,19 +173,58 @@
 //! * Type: `read(&str, bool, char) -> Result<Matrix, Box<Error>>`
 //! * Description: `read(file_path, is_header, delimiter)`
 //!
-//!     ```rust
+//!     ```no_run
 //!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
-//!         //let a = Matrix::read("example_data/matrix.csv", false, ',')
-//!         //    .expect("Can't read matrix.csv file");
-//!         //a.print();
-//!         ////       c[0] c[1]
-//!         //// r[0]     1    2
-//!         //// r[1]     3    4
+//!         # #[cfg(feature="csv")]
+//!         # {
+//!         // `csv` feature should be required
+//!         let a = Matrix::read("example_data/matrix.csv", false, ',')
+//!             .expect("Can't read matrix.csv file");
+//!         a.print();
+//!         # }
+//!         //       c[0] c[1]
+//!         // r[0]     1    2
+//!         // r[1]     3    4
 //!     }
 //!     ```
+//!
+//! ### Convert to DataFrame (Recommended)
+//!
+//! To write columns or rows, `DataFrame` and `nc` feature could be the best choice.
+//!
+//! * `nc` feature should be required - `netcdf` or `libnetcdf` are prerequisites.
+//! 
+//! ```no_run
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = matrix(c!(1,2,3,4,5,6), 3, 2, Col);
+//!
+//!     // Construct DataFrame
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x", Series::new(a.col(0)));
+//!     df.push("y", Series::new(a.col(1)));
+//!
+//!     // Write nc file (`nc` feature should be required)
+//!     # #[cfg(feature="nc")]
+//!     # {
+//!     df.write_nc("data.nc").expect("Can't write data.nc");
+//!
+//!     // Read nc file (`nc` feature should be required)
+//!     let dg = DataFrame::read_nc("data.nc").expect("Can't read data.nc");
+//!     let x: Vec<f64> = dg["x"].to_vec();
+//!     let y: Vec<f64> = dg["y"].to_vec();
+//!
+//!     assert_eq!(a.col(0), x);
+//!     assert_eq!(a.col(1), y);
+//!     # }
+//! }
+//! ```
 //!
 //! ## Concatenation
 //!
@@ -294,6 +333,7 @@
 //!     fn main() {
 //!         let a = matrix!(1;4;1, 2, 2, Row);
 //!         a.row(0).print(); // [1, 2]
+//!         assert_eq!(a.row(0), vec![1f64, 2f64]);
 //!     }
 //!     ```
 //!
@@ -423,6 +463,23 @@
 //!         // r[1]  1.5 -0.5
 //!     }
 //!     ```
+//!
+//! ## Tips for LU, Det, Inverse
+//!
+//! * If you save `self.lu()` rather than the direct use of `self.det()` or `self.lu()` then you
+//! can get better performance (via memoization)
+//!
+//! ```rust
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let pqlu = a.lu();  // Memoization of LU
+//!     pqlu.det().print(); // Same as a.det() but do not need an additional LU
+//!     pqlu.inv().print(); // Same as a.inv() but do not need an additional LU
+//! }
+//! ```
 //!
 //! ## QR Decomposition (`O3` feature only)
 //!
@@ -633,6 +690,7 @@ pub struct Matrix {
 ///
 /// fn main() {
 ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
+///     a.print(); // Print matrix
 /// }
 /// ```
 pub fn matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
