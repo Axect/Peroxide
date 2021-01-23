@@ -8,8 +8,8 @@
 //!     * [Matrix](structure/matrix/index.html) operations
 //!         * `+,-,*,/`
 //!         * LU, Determinant, Inverse
-//!         * QR Decomposition
-//!         * Singular Value Decomposition
+//!         * QR Decomposition (`O3` feature needed)
+//!         * Singular Value Decomposition (`O3` feature needed)
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
@@ -80,7 +80,7 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.30.0`
+//! * Current document version is corresponding to `0.30.2`
 //!
 //! 1. Default
 //!     ```toml
