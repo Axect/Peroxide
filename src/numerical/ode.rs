@@ -68,6 +68,8 @@
 //!     ```
 //!
 //!     * `T` can be `f64` or `AD`
+//!         * `f64` for `ExplicitODE`
+//!         * `AD` for `ImplicitODE`
 //!     * `param` is parameter for ODE. Usually it is represented by time.
 //!     * `value` is value of each node.
 //!     * `deriv` is value of derivative of each node.

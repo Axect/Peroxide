@@ -126,8 +126,8 @@ Peroxide can do many things.
     * Effective Matrix structure
     * Transpose, Determinant, Diagonal
     * LU Decomposition, Inverse matrix, Block partitioning
-    * QR Decomposition
-    * Singular Value Decomposition (SVD)
+    * QR Decomposition (`O3` feature)
+    * Singular Value Decomposition (SVD) (`O3` feature)
     * Reduced Row Echelon form
     * Column, Row operations
     * Eigenvalue, Eigenvector
@@ -138,24 +138,25 @@ Peroxide can do many things.
         * `col_map` : map for column vectors
         * `row_map` : map for row vectors
 * Automatic Differentiation
-    * Taylor mode Forward AD - for nth order AD 
+    * Taylor mode Forward AD - for nth order AD
     * Exact jacobian
     * `Real` trait to constrain for `f64` and `AD` (for ODE)
-    * Above strokes will be updated soon
 * Numerical Analysis
     * Lagrange interpolation
     * Cubic spline
     * Non-linear regression
         * Gradient Descent
-        * Gauss Newton
         * Levenberg Marquardt
     * Ordinary Differential Equation
         * Euler
         * Runge Kutta 4th order
-        * Backward Euler
-        * Gauss Legendre 4th order
+        * Backward Euler (Implicit)
+        * Gauss Legendre 4th order (Implicit)
     * Numerical Integration
-        * Gauss-Legendre Quadrature
+        * Newton-Cotes Quadrature
+        * Gauss-Legendre Quadrature (up to 30 order)
+        * Gauss-Kronrod Quadrature (Adaptive)
+            * G7K15, G10K21, G15K31, G20K41, G25K51, G30K61
     * Root Finding
         * Bisection
         * False Position (Regula Falsi)
@@ -209,7 +210,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.30.0`
+Corresponding to `0.30.2`
 
 ## Pre-requisite
 
@@ -288,6 +289,7 @@ Corresponding to `0.30.0`
     - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula (deprecated)
     - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
     - [interp.rs](src/numerical/interp.rs) : Interpolation
+    - [integral.rs](src/numerical/integral.rs) : Numerical integration
     - [mod.rs](src/numerical/mod.rs)
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
     - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
@@ -308,10 +310,9 @@ Corresponding to `0.30.0`
     - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
-    - [ad.rs](src/structure/ad.rs) : Automatic derivatives
+    - [ad.rs](src/structure/ad.rs) : Automatic Differentation
     - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
     - [matrix.rs](src/structure/matrix.rs) : Matrix
-    - [multinomial.rs](src/structure/multinomial.rs) : For multinomial (*Beta*)
     - [mod.rs](src/structure/mod.rs)
     - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
     - [sparse.rs](src/structure/sparse.rs) : For sparse structure (*Beta*)
