@@ -124,6 +124,12 @@ pub enum AD {
     AD2(f64, f64, f64),
 }
 
+impl PartialOrd for AD {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.x().partial_cmp(&other.x())
+    }
+}
+
 impl std::fmt::Display for AD {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = format!("{:?}", self);
