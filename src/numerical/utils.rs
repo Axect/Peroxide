@@ -54,6 +54,43 @@ pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
     J
 }
 
+///// Hessian Matrix
+//#[allow(non_snake_case)]
+//pub fn hessian<F: Fn(&Vec<AD>) -> AD>(f: F, x: &Vec<f64>) -> Matrix {
+//    let l = x.len();
+//    let mut x_ad: Vec<AD> = x.iter().map(|&x| AD2(x, 0f64, 0f64)).collect();
+//
+//    let mut H = zeros(l, l);
+//
+//    for i in 0 .. l {
+//        for j in 0 .. l {
+//        }
+//    }
+//
+//    unimplemented!()
+//}
+
+//#[allow(non_snake_case)]
+//pub fn jacobian_ad<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<AD>) -> Vec<Vec<AD>> {
+//    let l = x.len();
+//    let mut x_ad: Vec<AD> = x.clone().into_iter().map(|mut t| {
+//        t.iter_mut().skip(1).for_each(|k| *k = 0f64);
+//        t
+//    }).collect();
+//    let l2 = f(&x_ad).len();
+//
+//    let mut JT: Vec<Vec<AD>> = vec![vec![AD0(0f64); l2]; l];
+//
+//    for i in 0 .. l {
+//        x_ad[i][1] = 1f64;
+//        let ads = f(&x_ad);
+//        JT[i] = ads;
+//        x_ad[i][1] = 0f64;
+//    }
+//    JT
+//}
+
+
 /// TriDiagonal Matrix Algorithm (TDMA)
 ///
 /// # Description
