@@ -117,11 +117,17 @@ use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 use self::AD::{AD0, AD1, AD2};
 
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum AD {
     AD0(f64),
     AD1(f64, f64),
     AD2(f64, f64, f64),
+}
+
+impl PartialOrd for AD {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.x().partial_cmp(&other.x())
+    }
 }
 
 impl std::fmt::Display for AD {
@@ -1173,6 +1179,20 @@ impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<f64>> for ADFn<F> {
 impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<AD>> for ADFn<F> {
     type Output = Vec<AD>;
     fn call_stable(&self, target: Vec<AD>) -> Self::Output {
+        (self.f)(target)
+    }
+}
+
+impl<'a, F: Fn(&Vec<AD>) -> Vec<AD>> StableFn<&'a Vec<f64>> for ADFn<F> {
+    type Output = Vec<f64>;
+    fn call_stable(&self, target: &'a Vec<f64>) -> Self::Output {
+        ((self.f)(&target.iter().map(|&t| AD::from(t)).collect())).iter().map(|&t| t.x()).collect()
+    }
+}
+
+impl<'a, F: Fn(&Vec<AD>) -> Vec<AD>> StableFn<&'a Vec<AD>> for ADFn<F> {
+    type Output = Vec<AD>;
+    fn call_stable(&self, target: &'a Vec<AD>) -> Self::Output {
         (self.f)(target)
     }
 }

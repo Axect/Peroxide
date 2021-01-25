@@ -103,6 +103,8 @@
 #[allow(unused_imports)]
 pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 
+pub use peroxide_ad::{ad_function, ad_closure};
+
 pub mod simpler;
 
 pub use crate::traits::{

@@ -191,6 +191,8 @@ extern crate matrixmultiply;
 #[cfg(feature = "nc")]
 extern crate netcdf;
 
+extern crate peroxide_ad;
+
 #[macro_use]
 pub mod macros;
 

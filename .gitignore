@@ -13,5 +13,6 @@ Cargo.lock
 *.json
 example_data/*.csv
 example_data/*.nc
+*.mm_profdata
 
 src/bin/*
