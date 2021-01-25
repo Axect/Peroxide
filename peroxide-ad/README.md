@@ -18,8 +18,6 @@ peroxide = "0.30"
     * `{}_hess` : hessian of function `{}`
 
 ```rust
-#[macro_use]
-extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() {
