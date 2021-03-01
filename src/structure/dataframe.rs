@@ -795,6 +795,7 @@ fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
         netcdf::types::BasicType::Int64 => I64,
         netcdf::types::BasicType::Float => F32,
         netcdf::types::BasicType::Double => F64,
+        netcdf::types::BasicType::Char => Char,
     }
 }
 

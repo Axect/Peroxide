@@ -11,7 +11,7 @@
 //!     fn main() {
 //!         let mut rng = thread_rng();
 //!
-//!         let a = rng.gen_range(0f64, 1f64); // Generate random f64 number ranges from 0 to 1
+//!         let a = rng.gen_range(0f64..=1f64); // Generate random f64 number ranges from 0 to 1
 //!     }
 //!     ```
 //!
@@ -40,7 +40,7 @@ pub fn rand_num<T>(rng: &mut ThreadRng, start: T, end: T) -> T
 where
     T: PartialOrd + SampleUniform + Copy,
 {
-    rng.gen_range(start, end)
+    rng.gen_range(start..=end)
 }
 
 // =============================================================================
@@ -55,8 +55,8 @@ pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let mut w = 0f64;
 
     while w == 0. || w >= 1. {
-        x1 = 2.0 * rng.gen_range(0f64, 1f64) - 1.0;
-        x2 = 2.0 * rng.gen_range(0f64, 1f64) - 1.0;
+        x1 = 2.0 * rng.gen_range(0f64..=1f64) - 1.0;
+        x2 = 2.0 * rng.gen_range(0f64..=1f64) - 1.0;
         w = x1 * x1 + x2 * x2;
     }
 

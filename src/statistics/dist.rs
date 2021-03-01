@@ -229,7 +229,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
-                    let uniform = rng.gen_range(0f64, 1f64);
+                    let uniform = rng.gen_range(0f64..=1f64);
                     if uniform <= (*prob).into() {
                         v[i] = 1f64;
                     } else {
@@ -305,7 +305,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
-                    v[i] = rng.gen_range(*start, *end).into();
+                    v[i] = rng.gen_range(*start..=*end).into();
                 }
                 v
             }

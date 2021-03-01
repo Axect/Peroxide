@@ -183,7 +183,7 @@ pub fn rand(r: usize, c: usize) -> Matrix {
     let mut rng = thread_rng();
     for i in 0..r {
         for j in 0..c {
-            m[(i, j)] = rng.gen_range(0f64, 1f64);
+            m[(i, j)] = rng.gen_range(0f64..=1f64);
         }
     }
     m

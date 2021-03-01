@@ -1,3 +1,14 @@
+# Release 0.30.4 (2021-03-01)
+
+* Update dependencies
+    * `rand` : 0.7 -> 0.8
+    * `rand_distr` : 0.3 -> 0.4
+    * `matrixmultiply` : 0.2 -> 0.3
+    * `netcdf` : 0.5 -> 0.6
+    * `blas` : 0.20 -> 0.21
+    * `lapack` : 0.16 -> 0.17
+    * `pyo3` : 0.12 -> 0.13
+
 # Release 0.30.3 (2021-01-26)
 
 * Automatic generated gradient & hessian via `proc_macro`
