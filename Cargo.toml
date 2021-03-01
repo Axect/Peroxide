@@ -21,17 +21,17 @@ float-cmp = "0.8"
 
 [dependencies]
 csv = { version = "1.1", optional = true, default_features = false }
-rand = "0.7"
-rand_distr = "0.3"
+rand = "0.8"
+rand_distr = "0.4"
 order-stat = "0.1"
 puruspe = "0.1"
-matrixmultiply = "0.2"
+matrixmultiply = "0.3"
 peroxide-ad = "0.3"
 #num-complex = "0.3"
-netcdf = { version = "0.5", optional = true, default_features = false }
-pyo3 = { version = "0.12", optional = true }
-blas = { version = "0.20", optional = true }
-lapack = { version = "0.16", optional = true }
+netcdf = { version = "0.6", optional = true, default_features = false }
+pyo3 = { version = "0.13", optional = true }
+blas = { version = "0.21", optional = true }
+lapack = { version = "0.17", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
 

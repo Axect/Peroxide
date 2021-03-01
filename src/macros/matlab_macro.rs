@@ -46,7 +46,7 @@ macro_rules! zeros {
 macro_rules! rand {
     () => {{
         let mut rng = thread_rng();
-        rng.gen_range(0f64, 1f64)
+        rng.gen_range(0f64..=1f64)
     }};
 
     ( $m:expr, $n:expr ) => {{
@@ -56,7 +56,7 @@ macro_rules! rand {
         let mut m = matrix(vec![0f64; r * c], r, c, Row);
         for i in 0..r {
             for j in 0..c {
-                m[(i, j)] = rng.gen_range(0f64, 1f64);
+                m[(i, j)] = rng.gen_range(0f64..=1f64);
             }
         }
         m

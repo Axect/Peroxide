@@ -281,7 +281,7 @@ macro_rules! runif {
         let mut rng = thread_rng();
 
         for i in 0..n {
-            v[i] = rng.gen_range($start as f64, $end as f64);
+            v[i] = rng.gen_range($start as f64..=$end as f64);
         }
         v
     }};
