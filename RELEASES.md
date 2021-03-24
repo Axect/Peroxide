@@ -1,3 +1,8 @@
+# Release 0.30.5 (2021-03-24)
+
+* Update docs
+    * `prelude/mod.rs` : Update default numerical integration method
+
 # Release 0.30.4 (2021-03-01)
 
 * Update dependencies
