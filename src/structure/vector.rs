@@ -627,10 +627,8 @@ impl Normed for Vec<f64> {
             Norm::Lp(p) => {
                 assert!(
                     p >= 1f64,
-                    format!(
-                        "lp norm is only defined for p>=1, the given value was p={}",
-                        p
-                    )
+                    "lp norm is only defined for p>=1, the given value was p={}",
+                     p
                 );
                 self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
             }

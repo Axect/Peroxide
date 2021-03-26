@@ -56,7 +56,7 @@
 //! fn main() {
 //!     let sin = |x: f64| x.sin();
 //!     integrate(sin, (0f64, PI)).print();
-//!     // Default integration = GaussLegendre(15)
+//!     // Default integration = G7K15(1e-15)
 //! }
 //! ```
 //!
@@ -68,7 +68,7 @@
 //!
 //! fn main() {
 //!     let sin = |x: f64| x.sin();
-//!     integrate(sin, (0f64, PI), GaussLegendre(15)).print();
+//!     integrate(sin, (0f64, PI), G7K15(1e-15)).print();
 //! }
 //! ```
 //!
