@@ -1,7 +1,9 @@
-# Release 0.30.5 (2021-03-24)
+# Release 0.30.5 (2021-03-26)
 
 * Update docs
     * `prelude/mod.rs` : Update default numerical integration method
+* Update `matrixmultiply` dependency
+    * Add `threading` feature
 
 # Release 0.30.4 (2021-03-01)
 
