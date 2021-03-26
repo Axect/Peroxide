@@ -4,6 +4,7 @@
     * `prelude/mod.rs` : Update default numerical integration method
 * Update `matrixmultiply` dependency
     * Add `threading` feature
+    * Enhance matrix multiplication performance : See [matmul](https://github.com/Axect/Scientific_Bench/tree/master/Linear_Algebra/matmul)
 
 # Release 0.30.4 (2021-03-01)
 
