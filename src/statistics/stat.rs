@@ -109,7 +109,6 @@
 //! ```
 
 use self::QType::*;
-#[cfg(feature = "dataframe")]
 use crate::structure::dataframe::*;
 use crate::structure::matrix::*;
 use crate::traits::fp::FPVector;
@@ -323,44 +322,43 @@ impl Statistics for Matrix {
     }
 }
 
-#[cfg(feature = "dataframe")]
-impl Statistics for DataFrame {
-    type Array = Matrix;
-    type Value = Self;
-
-    fn mean(&self) -> Self::Value {
-        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
-        for k in self.headers() {
-            df[k] = vec![self[k].mean()];
-        }
-        df
-    }
-
-    fn var(&self) -> Self::Value {
-        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
-        for k in self.headers() {
-            df[k] = vec![self[k].var()];
-        }
-        df
-    }
-
-    fn sd(&self) -> Self::Value {
-        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
-        for k in self.headers() {
-            df[k] = vec![self[k].sd()];
-        }
-        df
-    }
-
-    fn cov(&self) -> Self::Array {
-        let m: Matrix = self.into();
-        m.cov()
-    }
-
-    fn cor(&self) -> Self::Array {
-        self.to_matrix().cor()
-    }
-}
+//impl Statistics for DataFrame {
+//    type Array = Matrix;
+//    type Value = Self;
+//
+//    fn mean(&self) -> Self::Value {
+//        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+//        for k in self.headers() {
+//            df[k] = vec![self[k].mean()];
+//        }
+//        df
+//    }
+//
+//    fn var(&self) -> Self::Value {
+//        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+//        for k in self.headers() {
+//            df[k] = vec![self[k].var()];
+//        }
+//        df
+//    }
+//
+//    fn sd(&self) -> Self::Value {
+//        let mut df = DataFrame::with_header(self.headers().map(|x| x.as_str()).collect());
+//        for k in self.headers() {
+//            df[k] = vec![self[k].sd()];
+//        }
+//        df
+//    }
+//
+//    fn cov(&self) -> Self::Array {
+//        let m: Matrix = self.into();
+//        m.cov()
+//    }
+//
+//    fn cor(&self) -> Self::Array {
+//        self.to_matrix().cor()
+//    }
+//}
 
 /// Covariance (to Value)
 ///
@@ -496,6 +494,8 @@ fn quantile_mut(v: &mut [f64], q: f64, t: QType) -> f64 {
         Type1 => {
             let k = if q == 0f64 {
                 0
+            } else if q == 1f64 {
+                l - 1
             } else if q - (k as f64) * p > 0f64 {
                 k
             } else {
@@ -504,13 +504,13 @@ fn quantile_mut(v: &mut [f64], q: f64, t: QType) -> f64 {
             *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
         }
         Type2 => {
-            if q - (k as f64) * p > 0f64 {
-                *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
-            } else if q == 0f64 {
+            if q == 0f64 {
                 let k = 0;
                 *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
             } else if q == 1f64 {
                 let k = l - 1;
+                *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
+            } else if q - (k as f64) * p > 0f64 {
                 *kth_by(v, k, |x, y| x.partial_cmp(y).unwrap())
             } else {
                 let prev = *kth_by(v, k - 1, |x, y| x.partial_cmp(y).unwrap());

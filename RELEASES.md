@@ -1,9 +1,14 @@
+# Release 0.30.6 (2021-03-31)
+
+* Fix a bug in quantile of `statistics/stat.rs`
+
 # Release 0.30.5 (2021-03-26)
 
 * Update docs
     * `prelude/mod.rs` : Update default numerical integration method
 * Update `matrixmultiply` dependency
     * Add `threading` feature
+    * Enhance matrix multiplication performance : See [matmul](https://github.com/Axect/Scientific_Bench/tree/master/Linear_Algebra/matmul)
 
 # Release 0.30.4 (2021-03-01)
 
