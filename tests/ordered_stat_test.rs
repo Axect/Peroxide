@@ -68,3 +68,12 @@ fn quantile_test() {
         }
     }
 }
+
+#[test]
+fn quantile_length_test() {
+    let data = vec![0f64; 7592];
+    let q1 = quantile(&data, QType::Type1);
+    let q2 = quantile(&data, QType::Type2);
+    
+    assert!(q1.iter().zip(q2.iter()).all(|(x, y)| *x == *y));
+}
