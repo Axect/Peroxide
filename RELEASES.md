@@ -1,3 +1,7 @@
+# Release 0.30.6 (2021-03-31)
+
+* Fix a bug in quantile of `statistics/stat.rs`
+
 # Release 0.30.5 (2021-03-26)
 
 * Update docs
