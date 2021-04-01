@@ -73,12 +73,10 @@
 //!     p.print();                  // Optimized parameter
 //!     opt.get_error().print();    // Optimized RMSE
 //!
-//!     // To prepare plotting
-//!     let z = quad(&x, p.to_ad_vec()).unwrap().to_f64_vec();
-//!
 //!     // Plot
 //!     //#[cfg(feature = "plot")]
 //!     //{
+//!     //    let z = quad(&x, p.to_ad_vec()).unwrap().to_f64_vec();
 //!     //    let mut plt = Plot2D::new();
 //!     //    plt.set_domain(x)
 //!     //        .insert_image(y)    // plot data
@@ -94,7 +92,7 @@
 //! fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
 //!     Some(
 //!         x.clone().into_iter()
-//!             .map(|t| AD::from(t))
+//!             .map(|t| AD1(t, 0f64))
 //!             .map(|t| t.pow(n[0]))
 //!             .collect()
 //!     )
