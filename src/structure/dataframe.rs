@@ -239,6 +239,7 @@ use netcdf::{
     variable::{VariableMut, Variable},
     Numeric,
 };
+use crate::traits::fp::FPVector;
 
 // =============================================================================
 // Enums
@@ -394,6 +395,13 @@ pub trait TypedVector<T> {
     fn push(&mut self, elem: T);
     fn map<F: Fn(T) -> T>(&self, f: F) -> Self;
     fn mut_map<F: Fn(&mut T)>(&mut self, f: F);
+    fn fold<F: Fn(T,T) -> T>(&self, init: T, f: F) -> T;
+    fn filter<F: Fn(&T) -> bool>(&self, f: F) -> Self;
+    fn take(&self, n: usize) -> Self;
+    fn skip(&self, n: usize) -> Self;
+    fn take_while<F: Fn(&T) -> bool>(&self, f: F) -> Self;
+    fn skip_while<F: Fn(&T) -> bool>(&self, f: F) -> Self;
+    fn zip_with<F: Fn(T,T) -> T>(&self, f: F, other: &Self) -> Self;
 }
 
 // =============================================================================
@@ -468,6 +476,46 @@ macro_rules! impl_typed_vector {
             fn mut_map<F: Fn(&mut $type)>(&mut self, f: F) {
                 let v = self.as_slice_mut();
                 v.iter_mut().for_each(f);
+            }
+
+            fn fold<F: Fn($type, $type) -> $type>(&self, init: $type, f: F) -> $type {
+                let v: Vec<$type> = self.to_vec();
+                v.into_iter().fold(init, f)
+            }
+
+            fn filter<F: Fn(&$type) -> bool>(&self, f: F) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().filter(|x| f(x)).collect::<Vec<$type>>())
+            }
+
+            fn take(&self, n: usize) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().take(n).collect::<Vec<$type>>())
+            }
+
+            fn skip(&self, n: usize) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().skip(n).collect::<Vec<$type>>())
+            }
+
+            fn take_while<F: Fn(&$type) -> bool>(&self, f: F) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().take_while(|x| f(x)).collect::<Vec<$type>>())
+            }
+
+            fn skip_while<F: Fn(&$type) -> bool>(&self, f: F) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                Series::new(v.into_iter().skip_while(|x| f(x)).collect::<Vec<$type>>())
+            }
+
+            fn zip_with<F: Fn($type, $type) -> $type>(&self, f: F, other: &Self) -> Self {
+                let v: Vec<$type> = self.to_vec();
+                let w: Vec<$type> = other.to_vec();
+                Series::new(
+                    v.into_iter().zip(w.into_iter())
+                        .map(|(x, y)| f(x, y))
+                        .collect::<Vec<$type>>()
+                )
             }
         }
     }
@@ -827,6 +875,48 @@ where Series: TypedVector<T> {
     Series::new(v.into_iter().map(|x| x * s).collect::<Vec<T>>())
 }
 
+// fn map<T, F>(v: Vec<T>, f: F) -> Series
+// where Series: TypedVector<T>, F: Fn(Scalar) -> Scalar, Scalar: TypedScalar<T> {
+//     Series::new(v.into_iter().map(|x| f(Scalar::new(x)).unwrap()).collect::<Vec<T>>())
+// }
+//
+// fn reduce<T, F>(v: Vec<T>, f: F) -> Scalar
+// where Scalar: TypedScalar<T>, F: Fn(Scalar, Scalar) -> Scalar, T: Default {
+//     v.into_iter().fold(Scalar::new(T::default()), |x, y| f(x, Scalar::new(y)))
+// }
+//
+// fn zip_with<T, F>(v: Vec<T>, w: Vec<T>, f: F) -> Series
+// where Series: TypedVector<T>, F: Fn(Scalar, Scalar) -> Scalar, Scalar: TypedScalar<T> {
+//     Series::new(
+//         v.into_iter().zip(w.into_iter())
+//             .map(|(x, y)| f(Scalar::new(x), Scalar::new(y)).unwrap())
+//             .collect::<Vec<T>>()
+//     )
+// }
+//
+// fn filter<T, F>(v: Vec<T>, f: F) -> Series
+// where Series: TypedVector<T>, F: Fn(Scalar) -> bool, Scalar: TypedScalar<T>, T: Clone {
+//     Series::new(
+//         v.into_iter()
+//             .filter(|x| f(Scalar::new(x.clone())))
+//             .collect::<Vec<T>>()
+//     )
+// }
+//
+// fn take<T>(v: Vec<T>, n: usize) -> Series
+// where Series: TypedVector<T> {
+//     Series::new(
+//         v.into_iter().take(n).collect::<Vec<T>>()
+//     )
+// }
+//
+// fn skip<T>(v: Vec<T>, n: usize) -> Series
+//     where Series: TypedVector<T> {
+//     Series::new(
+//         v.into_iter().skip(n).collect::<Vec<T>>()
+//     )
+// }
+
 // =============================================================================
 // Implementations of DType variables
 // =============================================================================
@@ -1016,7 +1106,7 @@ impl Vector for Series {
         assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;
-            self.dtype, 
+            self.dtype,
             self.to_vec(),
             |x| sub_vec(x, rhs.to_vec());
             Vec
@@ -1089,6 +1179,77 @@ impl fmt::Display for Scalar {
         write!(f, "{}", st)
     }
 }
+
+// impl FPVector for Series {
+//     type Scalar = Scalar;
+//
+//     fn fmap<F>(&self, f: F) -> Self where
+//         F: Fn(Self::Scalar) -> Self::Scalar {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| map(x, f);
+//             Vec
+//         )
+//     }
+//
+//     fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar where
+//         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+//         T: Into<Self::Scalar> {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| reduce(x, f);
+//             Vec
+//         )
+//     }
+//
+//     fn zip_with<F>(&self, f: F, other: &Self) -> Self where
+//         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| zip_with(x, other.to_vec(), f);
+//             Vec
+//         )
+//     }
+//
+//     fn filter<F>(&self, f: F) -> Self where
+//         F: Fn(Self::Scalar) -> bool {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| filter(x, f);
+//             Vec
+//         )
+//     }
+//
+//     fn take(&self, n: usize) -> Self {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| take(x, n);
+//             Vec
+//         )
+//     }
+//
+//     fn skip(&self, n: usize) -> Self {
+//         dtype_match!(
+//             self.dtype,
+//             self.to_vec(),
+//             |x| skip(x, n);
+//             Vec
+//         )
+//     }
+//
+//     fn sum(&self) -> Self::Scalar {
+//         todo!()
+//     }
+//
+//     fn prod(&self) -> Self::Scalar {
+//         todo!()
+//     }
+// }
 
 // =============================================================================
 // Implementation for DataFrame
