@@ -239,7 +239,6 @@ use netcdf::{
     variable::{VariableMut, Variable},
     Numeric,
 };
-use crate::traits::fp::FPVector;
 
 // =============================================================================
 // Enums
