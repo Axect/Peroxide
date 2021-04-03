@@ -32,8 +32,12 @@ fn main() {
 fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
     Some(
         x.clone().into_iter()
-            .map(|t| AD1(t, 0f64))
-            .map(|t| t.pow(n[0]))
+            .map(|t| pow_temp(t, n[0]))
             .collect()
     )
+}
+
+#[inline]
+fn pow_temp(x: f64, y: AD) -> AD {
+    AD1(x.powf(y.x()), x.powf(y.x()) * x.ln() * y.dx())
 }
