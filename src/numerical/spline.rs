@@ -17,10 +17,10 @@ use std::ops::{Index, Range};
 ///
 /// # Description
 ///
-/// Implement traits of Natural cubic splines, Arne Morten Kvarving.
+/// Implement traits of Natural cubic splines, by Arne Morten Kvarving.
 ///
 /// # Type
-/// (Vec<f64>, Vec<f64>) -> Vec<Polynomial>
+/// (&Vec<f64>, &Vec<f64>) -> Cubic Spline
 ///
 /// # Examples
 /// ```
@@ -32,10 +32,10 @@ use std::ops::{Index, Range};
 ///     let x = c!(0.9, 1.3, 1.9, 2.1);
 ///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
-///     let s = cubic_spline(x, y);
+///     let s = cubic_spline(&x, &y);
 ///
 ///     for i in 0 .. s.len() {
-///         s[i].print();
+///         s.polynomial(i).print();
 ///     }
 ///
 ///     // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
@@ -43,12 +43,40 @@ use std::ops::{Index, Range};
 ///     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
 /// }
 /// ```
-pub fn cubic_spline(node_x: Vec<f64>, node_y: Vec<f64>) -> Vec<Polynomial> {
-    let spline = CubicSpline::from_nodes(node_x, node_y);
-    spline.into()
+pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
+    CubicSpline::from_nodes(node_x, node_y)
 }
 
 /// Cubic Spline (Natural)
+///
+/// # Description
+///
+/// Implement traits of Natural cubic splines, by Arne Morten Kvarving.
+///
+/// # Type
+/// (&Vec<f64>, &Vec<f64>) -> Cubic Spline
+///
+/// # Examples
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let x = c!(0.9, 1.3, 1.9, 2.1);
+///     let y = c!(1.3, 1.5, 1.85, 2.1);
+///
+///     let s = CubicSpline::from_nodes(x, y);
+///
+///     for i in 0 .. s.len() {
+///         s.polynomial(i).print();
+///     }
+///
+///     // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
+///     // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
+///     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
+/// }
+/// ```
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicSpline {
