@@ -1,3 +1,9 @@
+# Release 0.30.7 (Candidates)
+
+* Change signature of `cubic_spline`
+    * Originally, `(Vec<f64>, Vec<f64>) -> Vec<Polynomial>`
+    * Now, `(&Vec<f64>, &Vec<f64>) -> CubicSpline` 
+
 # Release 0.30.6 (2021-03-31)
 
 * Fix a bug in quantile of `statistics/stat.rs`
