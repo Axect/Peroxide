@@ -34,17 +34,24 @@ use std::ops::{Index, Range};
 ///
 ///     let s = cubic_spline(&x, &y);
 ///
-///     for i in 0 .. s.len() {
-///         s.polynomial(i).print();
-///     }
+///     let new_x = c!(1, 1.5, 2.0);
 ///
+///     // Generate Cubic polynomial
+///     for t in new_x.iter() {
+///         s.polynomial(*t).print();
+///     }
 ///     // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
 ///     // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
 ///     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
+///
+///     // Evaluation
+///     for t in new_x.iter() {
+///         s.eval(*t).print();
+///     }
 /// }
 /// ```
 pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
-    CubicSpline::from_nodes(node_x, node_y)
+    CubicSpline::from_nodes(node_x.clone(), node_y.clone())
 }
 
 /// Cubic Spline (Natural)
@@ -68,13 +75,20 @@ pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
 ///
 ///     let s = CubicSpline::from_nodes(x, y);
 ///
-///     for i in 0 .. s.len() {
-///         s.polynomial(i).print();
-///     }
+///     let new_x = c!(1, 1.5, 2.0);
 ///
+///     // Generate Cubic polynomial
+///     for t in new_x.iter() {
+///         s.polynomial(*t).print();
+///     }
 ///     // -0.2347x^3 + 0.6338x^2 - 0.0329x + 0.9873
 ///     // 0.9096x^3 - 3.8292x^2 + 5.7691x - 1.5268
 ///     // -2.2594x^3 + 14.2342x^2 - 28.5513x + 20.2094
+///
+///     // Evaluation
+///     for t in new_x.iter() {
+///         s.eval(*t).print();
+///     }
 /// }
 /// ```
 #[derive(Debug, Clone, Default)]
