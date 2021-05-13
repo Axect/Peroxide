@@ -549,8 +549,13 @@
 //!         let a = ml_matrix("3 2 2;2 3 -2");
 //!         #[cfg(feature="O3")]
 //!         {
+//!             // Full SVD
 //!             let svd = a.svd();
 //!             assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
+//!
+//!             // Or Truncated SVD
+//!             let svd2 = svd.truncated();
+//!             assert!(eq_vec(&vec![5f64, 3f64], &svd2.s, 1e-7));
 //!         }
 //!         a.print();
 //!     }
@@ -612,6 +617,7 @@ use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
+use crate::traits::sugar::{Scalable, ScalableMut};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -2877,6 +2883,50 @@ impl SVD {
             mat[(i, i)] = self.s[i];
         }
         mat
+    }
+
+    /// Generated Truncated SVD
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let x = ml_matrix("1 2 3;4 5 6");
+    /// # #[cfg(feature = "O3")] {
+    ///     // Full SVD
+    ///     let svd = x.svd();
+    ///     svd.u().print();        // m x m matrix
+    ///     svd.s_mat().print();    // m x n matrix
+    ///     svd.vt().print();       // n x n matrix
+    ///
+    ///     // Truncated SVD
+    ///     let svd2 = svd.truncated();
+    ///     svd2.u().print();       // m x p matrix
+    ///     svd2.s_mat().print();   // p x p matrix
+    ///     svd2.vt().print();      // p x n matrix
+    /// # }
+    /// }
+    /// ```
+    pub fn truncated(&self) -> Self {
+        let mut s: Vec<f64> = vec![];
+        let mut u = matrix::<f64>(vec![], self.u.row, 0, Col);
+        let mut vt = matrix::<f64>(vec![], 0, self.vt.col, Row);
+        for (i, sig) in self.s.iter().enumerate() {
+            if *sig == 0f64 {
+                continue;
+            } else {
+                s.push(*sig);
+                u.add_col_mut(&self.u.col(i));
+                vt.add_row_mut(&self.vt.row(i));
+            }
+        }
+
+        SVD {
+            s,
+            u,
+            vt,
+        }
     }
 }
 
