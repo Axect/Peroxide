@@ -1,8 +1,10 @@
-# Release 0.30.7 (Candidates)
+# Release 0.30.7 (2021-05-14)
 
 * Change signature of `cubic_spline`
     * Originally, `(Vec<f64>, Vec<f64>) -> Vec<Polynomial>`
     * Now, `(&Vec<f64>, &Vec<f64>) -> CubicSpline` 
+* Add Truncated SVD
+    * Add `truncated(&self)` method for `SVD`
 
 # Release 0.30.6 (2021-03-31)
 
