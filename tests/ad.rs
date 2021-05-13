@@ -3,7 +3,7 @@ extern crate peroxide;
 use peroxide::prelude::*;
 
 #[test]
-fn add_test() {
+fn ad_test() {
     let a = AD2(4f64, 4f64, 2f64);
     let b = AD1(2f64, 1f64);
     let c = AD2(0.25f64, 1f64, 2f64);
@@ -19,6 +19,7 @@ fn add_test() {
     println!("ln(a)  : {:?}", a.ln());
     println!("a^2    : {:?}", a.powi(2));
     println!("a^0.5  : {:?}", a.powf(0.5));
+    println!("a^b    : {:?}", a.pow(b));
     println!("a.sin  : {:?}", a.sin());
     println!("a.cos  : {:?}", a.cos());
     println!("a.tan  : {:?}", a.tan());

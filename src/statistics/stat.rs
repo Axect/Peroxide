@@ -109,7 +109,7 @@
 //! ```
 
 use self::QType::*;
-use crate::structure::dataframe::*;
+//use crate::structure::dataframe::*;
 use crate::structure::matrix::*;
 use crate::traits::fp::FPVector;
 use order_stat::kth_by;
