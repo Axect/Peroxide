@@ -1,3 +1,7 @@
+# Release 0.30.8 (2021-05-21)
+
+* Fix errata in `col_map`, `row_map`
+
 # Release 0.30.7 (2021-05-14)
 
 * Change signature of `cubic_spline`
