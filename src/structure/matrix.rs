@@ -2627,26 +2627,52 @@ impl FPMatrix for Matrix {
         matrix(result, self.row, self.col, self.shape)
     }
 
+    /// Column map
+    ///
+    /// # Example
+    /// ```rust
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let x = ml_matrix("1 2;3 4;5 6");
+    ///     let y = x.col_map(|c| c.fmap(|t| t - c.mean()));
+    ///
+    ///     assert_eq!(y, ml_matrix("-2 -2;0 0;2 2"));
+    /// }
+    /// ```
     fn col_map<F>(&self, f: F) -> Matrix
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Col);
 
-        for i in 0..self.row {
+        for i in 0..self.col {
             result.subs_col(i, &f(self.col(i)));
         }
 
         result
     }
 
+    /// Row map
+    ///
+    /// # Example
+    /// ```rust
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let x = ml_matrix("1 2 3;4 5 6");
+    ///     let y = x.row_map(|r| r.fmap(|t| t - r.mean()));
+    ///
+    ///     assert_eq!(y, ml_matrix("-1 0 1;-1 0 1"));
+    /// }
+    /// ```
     fn row_map<F>(&self, f: F) -> Matrix
     where
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
 
-        for i in 0..self.col {
+        for i in 0..self.row {
             result.subs_row(i, &f(self.row(i)));
         }
 
