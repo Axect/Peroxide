@@ -38,7 +38,6 @@ pub trait PowOps: Sized {
 
 pub trait TrigOps: Sized + Div<Output = Self> {
     fn sin_cos(&self) -> (Self, Self);
-    fn sinh_cosh(&self) -> (Self, Self);
     fn sin(&self) -> Self {
         let (s, _) = self.sin_cos();
         s
@@ -51,9 +50,7 @@ pub trait TrigOps: Sized + Div<Output = Self> {
         let (s, c) = self.sin_cos();
         s / c
     }
-    fn asin(&self) -> Self;
-    fn acos(&self) -> Self;
-    fn atan(&self) -> Self;
+    fn sinh_cosh(&self) -> (Self, Self);
     fn sinh(&self) -> Self {
         let (s, _) = self.sinh_cosh();
         s
@@ -66,9 +63,18 @@ pub trait TrigOps: Sized + Div<Output = Self> {
         let (s, c) = self.sinh_cosh();
         s / c
     }
+    fn asin(&self) -> Self;
+    fn acos(&self) -> Self;
+    fn atan(&self) -> Self;
+    fn asin_acos(&self) -> (Self, Self) {
+        (self.asin(), self.acos())
+    }
     fn asinh(&self) -> Self;
     fn acosh(&self) -> Self;
     fn atanh(&self) -> Self;
+    fn asinh_acosh(&self) -> (Self, Self) {
+        (self.asinh(), self.acosh())
+    }
 }
 
 pub trait ExpLogOps: Sized {
