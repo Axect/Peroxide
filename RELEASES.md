@@ -1,3 +1,12 @@
+# Release 0.30.9 (2021-05-26)
+
+* Add more trigonometric ops
+    * `asin_acos(&self) -> (Self, Self)`
+    * `asinh_acosh(&self) -> (Self, Self)`
+* Update dependencies
+    * `blas` : `0.21.0` -> `0.22.0`
+    * `lapack` : `0.17.0` -> `0.19.0`
+
 # Release 0.30.8 (2021-05-21)
 
 * Fix errata in `col_map`, `row_map`
