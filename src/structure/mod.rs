@@ -7,8 +7,8 @@
 //! * DataFrame
 //! * Multinomial (not yet implemented)
 
-//pub mod complex;
 pub mod ad;
+pub mod complex;
 pub mod dataframe;
 pub mod matrix;
 pub mod multinomial;
