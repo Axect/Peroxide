@@ -1,3 +1,10 @@
+# Release 0.30.10 (2022-02-05)
+
+* Update `netcdf` dependency to `0.7`
+    * Fix `nc` feature issue - not compatible with hdf5 version 1.12.0
+* Update `pyo3` dependency to `1.15`
+* Update `float-cmp` dev dependency to `0.9`
+
 # Release 0.30.9 (2021-05-26)
 
 * Add more trigonometric ops
