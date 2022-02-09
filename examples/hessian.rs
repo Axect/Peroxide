@@ -8,6 +8,9 @@ fn main() {
 
     let dy = f(x, y);
     dy.print();
+
+    let dy0 = f(x0, y0);
+    dy0.print();
 }
 
 fn f(x: AD, y: AD) -> AD {
