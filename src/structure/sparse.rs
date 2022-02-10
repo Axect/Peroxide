@@ -7,6 +7,7 @@ use crate::traits::math::LinearOp;
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
+use crate::fuga::UPLO;
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -186,6 +187,14 @@ impl LinearAlgebra for SPMatrix {
     }
 
     fn svd(&self) -> SVD {
+        unimplemented!()
+    }
+
+    fn cholesky(&self, uplo: UPLO) -> Matrix {
+        unimplemented!()
+    }
+
+    fn is_symmetric(&self) -> bool {
         unimplemented!()
     }
 }

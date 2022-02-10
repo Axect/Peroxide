@@ -128,6 +128,7 @@ Peroxide can do many things.
     * LU Decomposition, Inverse matrix, Block partitioning
     * QR Decomposition (`O3` feature)
     * Singular Value Decomposition (SVD) (`O3` feature)
+    * Cholesky Decomposition (`O3` feature)
     * Reduced Row Echelon form
     * Column, Row operations
     * Eigenvalue, Eigenvector
@@ -210,7 +211,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.30.2`
+Corresponding to `0.30.11`
 
 ## Pre-requisite
 
@@ -265,7 +266,7 @@ Corresponding to `0.30.2`
 
 ## Useful tips for features
 
-* If you want to use `QR` or `SVD` then should use `O3` feature (there are no implementations for these decompositions in `default`)
+* If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
 * If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
 * To plot, use `nc` feature to export data as netcdf format and use python to draw plot.
     * `plot` feature has limited plot abilities.

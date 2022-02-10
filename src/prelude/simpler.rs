@@ -27,6 +27,7 @@ pub trait SimplerLinearAlgebra {
     fn waz_diag(&self) -> Option<matrix::WAZD>;
     fn waz(&self) -> Option<matrix::WAZD>;
     fn qr(&self) -> matrix::QR;
+    fn cholesky(&self) -> Matrix;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
@@ -34,6 +35,7 @@ pub trait SimplerLinearAlgebra {
     fn pseudo_inv(&self) -> Matrix;
     fn solve(&self, b: &Vec<f64>) -> Vec<f64>;
     fn solve_mat(&self, m: &Matrix) -> Matrix;
+    fn is_symmetric(&self) -> bool;
 }
 
 /// Simple Eigenpair
@@ -114,6 +116,14 @@ impl SimplerLinearAlgebra for Matrix {
 
     fn solve_mat(&self, m: &Matrix) -> Matrix {
         matrix::LinearAlgebra::solve_mat(self, m, matrix::SolveKind::LU)
+    }
+
+    fn cholesky(&self) -> Matrix {
+        matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
+    }
+
+    fn is_symmetric(&self) -> bool {
+        matrix::LinearAlgebra::is_symmetric(self)
     }
 }
 
