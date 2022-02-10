@@ -1,3 +1,8 @@
+# Release 0.30.11 (2022-02-10)
+
+* Implement Cholesky decomposition in `O3` feature.
+* Implement symmetricity check method - `is_symmetric` for Matrix. 
+
 # Release 0.30.10 (2022-02-05)
 
 * Update `netcdf` dependency to `0.7`

@@ -170,6 +170,7 @@ pub use crate::statistics::stat::QType::{
 pub use crate::structure::matrix::{
     Form::{Diagonal, Identity},
     SolveKind::{LU, WAZ},
+    UPLO::{Upper, Lower}
 };
 pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::ad::AD::*;
