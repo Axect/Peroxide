@@ -7,9 +7,10 @@
 //! * Linear Algebra (with BLAS & LAPACK)
 //!     * [Matrix](structure/matrix/index.html) operations
 //!         * `+,-,*,/`
-//!         * LU, Determinant, Inverse
+//!         * LU Decomposition, Determinant, Inverse
 //!         * QR Decomposition (`O3` feature needed)
 //!         * Singular Value Decomposition (`O3` feature needed)
+//!         * Cholesky Decomposition (`O3` feature needed)
 //!         * Reduced Row Echelon Form
 //!     * [Vector](structure/vector/index.html) operations
 //!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
@@ -80,7 +81,7 @@
 //! ### Cargo.toml
 //!
 //! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.30.2`
+//! * Current document version is corresponding to `0.30.11`
 //!
 //! 1. Default
 //!     ```toml
@@ -159,7 +160,7 @@
 //! ## Useful tips for features
 //!
 //! * After `0.28.0`, `dataframe` feature is replaced by `nc` feature.
-//! * If you want to use `QR` or `SVD` then should use `O3` feature (there are no implementations for these decompositions in `default`)
+//! * If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
 //! * If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
 //! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
 //! * To plot, use `nc` feature to export data as netcdf format and use python to draw plot.

@@ -561,6 +561,30 @@
 //!     }
 //!     ```
 //!
+//! ## Cholesky Decomposition
+//!
+//! * Use `dpotrf` of LAPACK
+//! * Return Matrix (But there can be panic! - Not symmetric or Not positive definite)
+//! * Example
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         let a = ml_matrix("1 2;2 5");
+//!         #[cfg(feature = "O3")]
+//!         {
+//!             let u = a.cholesky(Upper);
+//!             assert_eq!(u, ml_matrix("1 2;0 1"));
+//!
+//!             let l = a.cholesky(Lower);
+//!             assert_eq!(l, ml_matrix("1 0;2 1"));
+//!         }
+//!         a.print();
+//!     }
+//!     ```
+//!
 //! ## Moore-Penrose Pseudo Inverse
 //!
 //! * $ X^\dagger = \left(X^T X\right)^{-1} X^T $
