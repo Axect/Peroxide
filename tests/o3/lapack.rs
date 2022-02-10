@@ -1,6 +1,5 @@
 extern crate peroxide;
 use peroxide::fuga::*;
-use peroxide::structure::matrix::{DPOTRF, UPLO, lapack_dpotrf};
 
 #[test]
 pub fn test_apply() {
