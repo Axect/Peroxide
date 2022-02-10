@@ -1,4 +1,4 @@
 //! BLAS tests
 
-pub mod level2;
+pub mod lapack;
 
