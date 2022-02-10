@@ -4,6 +4,7 @@
 Cargo.lock
 .idea
 .idea/*
+true/
 *.csv
 *.m
 *.pickle
