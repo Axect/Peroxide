@@ -1,3 +1,9 @@
+# Release 0.30.12 (2022-02-21)
+
+* More flexible root finding
+    * Add getter methods for `RootFinder`
+    * Add getter methods for `RootState`
+
 # Release 0.30.11 (2022-02-10)
 
 * Implement Cholesky decomposition in `O3` feature.
