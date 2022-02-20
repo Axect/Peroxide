@@ -14,6 +14,8 @@
 //! * `RootState`
 //!     * `P(f64)` : For point-like initial guess
 //!     * `I(f64, f64)` : For interval-like initial guess
+//!     * `fn get_point(&self) -> Option<f64>` : Returns the point
+//!     * `fn get_interval(&self) -> Option<(f64, f64)>` : Returns the interval
 //! * `RootFind` : Algorithms for root finding
 //!     * `Bisection`
 //!     * `FalsePosition`
@@ -24,10 +26,15 @@
 //!     * `TimesUp` : No root until `self.times`
 //!     * `NaNRoot` : NaN
 //! * `RootFinder` : Main structure for root finding
-//!     * `fn new(RootState, RootFind, f)` : Creat RootFinder (times: 100, tol: 1e-10)
+//!     * `fn new(RootState, RootFind, f)` : Create RootFinder (times: 100, tol: 1e-10)
 //!     * `fn condition_number(&self) -> f64` : Compute condition number
 //!     * `fn set_tol(&mut self, f64) -> &mut Self` : Set tolerance
 //!     * `fn set_times(&mut self, usize) -> &mut Self` : Set max iteration times
+//!     * `fn get_tol(&self) -> f64` : Get tolerance
+//!     * `fn get_times(&self) -> usize` : Get max iteration times
+//!     * `fn get_method(&self) -> RootFind` : Get method
+//!     * `fn get_curr(&self) -> &RootState` : Get current state
+//!     * `fn check_find(&self) -> RootBool` : Check if find root
 //!     * `fn update(&mut self)` : Update one step
 //!     * `fn find_root(&mut self) -> Result<f64, RootError>` : Find root
 //!
@@ -109,7 +116,7 @@ pub enum RootFind {
 #[derive(Debug, Clone)]
 pub struct RootFinder<F: Fn(AD) -> AD> {
     init: RootState,
-    pub curr: RootState,
+    curr: RootState,
     method: RootFind,
     f: Box<F>,
     find: RootBool,
@@ -143,6 +150,22 @@ impl Display for RootError {
 }
 
 impl std::error::Error for RootError {}
+
+impl RootState {
+    pub fn get_point(&self) -> Option<f64> {
+        match self {
+            P(x) => Some(*x),
+            _ => None,
+        }
+    }
+
+    pub fn get_interval(&self) -> Option<(f64, f64)> {
+        match self {
+            I(x, y) => Some((*x, *y)),
+            _ => None,
+        }
+    }
+}
 
 impl<F: Fn(AD) -> AD> RootFinder<F> {
     /// Create RootFinder
@@ -257,6 +280,31 @@ impl<F: Fn(AD) -> AD> RootFinder<F> {
     pub fn set_tol(&mut self, tol: f64) -> &mut Self {
         self.tol = tol;
         self
+    }
+
+    /// Get max iteration times
+    pub fn get_times(&self) -> usize {
+        self.times
+    }
+
+    /// Get tolerance
+    pub fn get_tol(&self) -> f64 {
+        self.tol
+    }
+
+    /// Get method
+    pub fn get_method(&self) -> RootFind {
+        self.method
+    }
+
+    /// Get current RootState
+    pub fn get_curr(&self) -> &RootState {
+        &self.curr
+    }
+
+    /// Check if find root
+    pub fn check_find(&self) -> RootBool {
+        self.find
     }
 
     /// Update RootFinder
