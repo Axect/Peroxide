@@ -1,3 +1,8 @@
+# Release 0.30.13 (2022-02-21)
+
+* Contol `lambda` of `LevenbergMarquardt` (#49)
+    * Add `set_lambda_init` & `set_lambda_max` (#49)
+
 # Release 0.30.12 (2022-02-21)
 
 * More flexible root finding
