@@ -19,6 +19,7 @@
 //!     error: f64,
 //!     method: OptMethod,
 //!     option: HashMap<OptOption, bool>,
+//!     hyperparams: HashMap<String, f64>,
 //! }
 //! ```
 //!
@@ -33,6 +34,10 @@
 //!
 //! * `get_domain` : Get domain
 //! * `get_error` : Root mean square error
+//! * `get_hyperparam` : Get hyperparameter
+//! * `set_lr` : Set learning rate (For `GradientDescent`)
+//! * `set_lambda_init` : Set initial value of lambda (For `LevenbergMarquardt`)
+//! * `set_lambda_max` : Set maximum value of lambda (For `LevenbergMarquardt`)
 //!
 //! ### Method (Generate result)
 //!
@@ -69,9 +74,11 @@
 //!     let p = opt.set_init_param(n_init)
 //!         .set_max_iter(50)
 //!         .set_method(LevenbergMarquardt)
+//!         .set_lambda_init(1e-3)      // Optional: Set initial value of lambda (Only for `LevenbergMarquardt`)
+//!         .set_lambda_max(1e+3)       // Optional: Set maximum bound of lambda (Only for `LevenbergMarquardt`)
 //!         .optimize();
-//!     p.print();                  // Optimized parameter
-//!     opt.get_error().print();    // Optimized RMSE
+//!     p.print();                      // Optimized parameter
+//!     opt.get_error().print();        // Optimized RMSE
 //!
 //!     // Plot
 //!     //#[cfg(feature = "plot")]
@@ -111,7 +118,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]
 pub enum OptMethod {
-    GradientDescent(f64),
+    GradientDescent,
     GaussNewton,
     LevenbergMarquardt,
 }
@@ -143,6 +150,7 @@ where
     error: f64,
     method: OptMethod,
     option: HashMap<OptOption, bool>,
+    hyperparams: HashMap<String, f64>,
 }
 
 impl<F> Optimizer<F>
@@ -163,17 +171,26 @@ where
             error: 0f64,
             method: LevenbergMarquardt,
             option: default_option,
+            hyperparams: HashMap::new(),
         }
     }
 
+    /// Get domain
     pub fn get_domain(&self) -> Vec<f64> {
         self.domain.clone()
     }
 
+    /// Get error
     pub fn get_error(&self) -> f64 {
         self.error
     }
 
+    /// Get hyperparameter (learning rate or lambda or etc.)
+    pub fn get_hyperparam(&self, key: &str) -> Option<&f64> {
+        self.hyperparams.get(key)
+    }
+
+    /// Set initial parameter
     pub fn set_init_param(&mut self, p: Vec<f64>) -> &mut Self {
         if let Some(x) = self.option.get_mut(&InitParam) {
             *x = true
@@ -183,6 +200,7 @@ where
         self
     }
 
+    /// Set maximum iteration
     pub fn set_max_iter(&mut self, n: usize) -> &mut Self {
         if let Some(x) = self.option.get_mut(&MaxIter) {
             *x = true
@@ -192,11 +210,31 @@ where
         self
     }
 
+    /// Set optimization method
     pub fn set_method(&mut self, method: OptMethod) -> &mut Self {
         self.method = method;
         self
     }
 
+    /// Set learning rate for `GradientDescent`
+    pub fn set_lr(&mut self, lr: f64) -> &mut Self {
+        self.hyperparams.insert("lr".to_string(), lr);
+        self
+    }
+
+    /// Set initial lambda for `LevenbergMarquardt`
+    pub fn set_lambda_init(&mut self, lambda_init: f64) -> &mut Self {
+        self.hyperparams.insert("lambda_init".to_string(), lambda_init);
+        self
+    }
+
+    /// Set maximum lambda for `LevenbergMarquardt`
+    pub fn set_lambda_max(&mut self, lambda_max: f64) -> &mut Self {
+        self.hyperparams.insert("lambda_max".to_string(), lambda_max);
+        self
+    }
+
+    /// Main function for optimization
     pub fn optimize(&mut self) -> Vec<f64> {
         // Receive initial data
         let (x_vec, y_vec) = (self.domain.clone(), self.observed.clone());
@@ -217,7 +255,8 @@ where
         let mut err_stack = 0usize;
 
         match self.method {
-            GradientDescent(alpha) => {
+            GradientDescent => {
+                let alpha = *self.hyperparams.get("lr").unwrap_or(&1e-3);
                 for i in 0..max_iter {
                     let h = alpha * j.t() * (&y - &y_hat);
                     let p_cand = &p + &h;
@@ -247,10 +286,17 @@ where
             LevenbergMarquardt => {
                 let mut chi2 = ((&y - &y_hat).t() * (&y - &y_hat))[(0, 0)];
                 let mut nu = 2f64;
-                let lambda_0 = 1e-3;
+                let lambda_0 = *self.hyperparams.get("lambda_init").unwrap_or(&1e-3);
+                let lambda_max = *self.hyperparams.get("lambda_max").unwrap_or(&std::f64::MAX.sqrt());
+
                 let mut lambda = lambda_0 * max(jtj.diag());
 
                 for i in 0..max_iter {
+                    if lambda > lambda_max {
+                        println!("Caution: At {}-th iter, lambda exceeds max value: {}", i+1, lambda);
+                        break;
+                    }
+
                     let h: Matrix;
 
                     let b_lu = (jtj.clone() + lambda * jtj.to_diag()).lu();
