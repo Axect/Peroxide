@@ -11,10 +11,12 @@
 //!     * Normal
 //!     * Student's t
 //!     * Uniform
+//!     * WeightedUniform
 //! * There are two enums to represent probability distribution
 //!     * `OPDist<T>` : One parameter distribution (Bernoulli)
 //!     * `TPDist<T>` : Two parameter distribution (Uniform, Normal, Beta, Gamma)
 //!         * `T: PartialOrd + SampleUniform + Copy + Into<f64>`
+//!     * `NPDist<T>` : N parameter distribution (WeightedUniform)
 //! * There are some traits for pdf
 //!     * `RNG` trait - extract sample & calculate pdf
 //!     * `Statistics` trait - already shown above
@@ -128,14 +130,19 @@
 
 extern crate rand;
 extern crate rand_distr;
+use rand_distr::WeightedAliasIndex;
+
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
 use self::rand_distr::Distribution;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
+use crate::traits::fp::FPVector;
 use crate::special::function::*;
 //use statistics::rand::ziggurat;
 use crate::statistics::{ops::C, stat::Statistics};
+use crate::util::non_macro::{linspace, seq};
+use crate::util::useful::{auto_zip, find_interval};
 use std::convert::Into;
 use std::f64::consts::E;
 
@@ -161,6 +168,152 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Normal(T, T),
     Beta(T, T),
     Gamma(T, T),
+}
+
+pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
+    weights: Vec<T>,
+    sum: T,
+    intervals: Vec<(T, T)>
+}
+
+impl WeightedUniform<f64> {
+    /// Create a new weighted uniform distribution
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let weights = vec![1f64, 3f64, 0f64, 2f64];
+    ///     let intervals = vec![0f64, 1f64, 2f64, 4f64, 5f64];
+    ///     let w = WeightedUniform::new(weights, intervals);
+    ///     assert_eq!(w.weights(), &vec![1f64, 3f64, 2f64]);
+    ///     assert_eq!(w.intervals(), &vec![(0f64, 1f64), (1f64, 2f64), (4f64, 5f64)]);
+    /// }
+    /// ```    
+    pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Self {
+        let mut weights = weights;
+        let mut intervals = auto_zip(&intervals);
+
+        // Remove zero weights & corresponding intervals
+        let mut i = 0;
+        let mut j = weights.len();
+        while i < j {
+            if weights[i] == 0f64 {
+                weights.remove(i);
+                intervals.remove(i);
+                j -= 1;
+            } else {
+                i += 1;
+            }
+        }
+
+        let sum = weights.iter().sum();
+        
+        WeightedUniform {
+            weights,
+            sum,
+            intervals
+        }
+    }
+
+    /// Create WeightedUniform from max pooling
+    /// 
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// 
+    /// fn main() {
+    ///     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-3);
+    ///     w.weights().print();
+    /// }
+    /// 
+    /// fn f(x: f64) -> f64 {
+    ///     if x.abs() < 1f64 {
+    ///         (1f64 - x.abs())
+    ///     } else {
+    ///        0f64
+    ///     }
+    /// }
+    /// ```
+    pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Self 
+    where F: Fn(f64) -> f64 + Copy {
+        // Find non-zero intervals
+        let mut a = a;
+        let mut b = b;
+        let trial = seq(a, b, eps);
+        for i in 0 .. trial.len() {
+            let x = trial[i];
+            if f(x) > 0f64 {
+                a = if i > 0 { trial[i-1] } else { x };
+                break;
+            }
+        }
+        for i in (0 .. trial.len()).rev() {
+            let x = trial[i];
+            if f(x) > 0f64 {
+                b = if i < trial.len() - 1 { trial[i+1] } else { x };
+                break;
+            }
+        }
+        assert!(a < b, "No non-zero interval found");
+        let domain = linspace(a, b, n+1);
+
+        // Find intervals
+        let intervals = auto_zip(&domain);
+
+        // Find weights
+        let weights: Vec<f64> = intervals.iter()
+            .map(
+                |(a, b)| {
+                    seq(*a, *b+eps, eps).reduce(0f64, |acc, x| acc.max(f(x)))
+                }
+            )
+            .collect();
+
+        let sum = weights.iter().sum();
+        
+        WeightedUniform {
+            weights,
+            sum,
+            intervals
+        }
+    }
+
+    pub fn weights(&self) -> &Vec<f64> {
+        &self.weights
+    }
+
+    pub fn intervals(&self) -> &Vec<(f64, f64)> {
+        &self.intervals
+    }
+
+    pub fn sum(&self) -> f64 {
+        self.sum
+    }
+
+    pub fn update_weights(&mut self, weights: Vec<f64>) {
+        assert_eq!(self.intervals.len(), weights.len());
+        self.weights = weights;
+        self.sum = self.weights.iter().sum();
+    }
+
+    pub fn update_intervals(&mut self, intervals: Vec<f64>) {
+        assert_eq!(self.weights.len()+1, intervals.len());
+        self.intervals = auto_zip(&intervals);
+    }
+
+    pub fn weight_at(&self, x: f64) -> f64 {
+        let i = find_interval(self.intervals(), x);
+        self.weights[i]
+    }
+
+    pub fn interval_at(&self, x: f64) -> (f64, f64) {
+        let i = find_interval(self.intervals(), x);
+        self.intervals[i]
+    }
 }
 
 /// Extract parameter
@@ -191,6 +344,16 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist
             Beta(a, b) => ((*a).into(), (*b).into()),
             Gamma(a, b) => ((*a).into(), (*b).into()),
         }
+    }
+}
+
+impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for WeightedUniform<T> {
+    type Parameter = (Vec<f64>, Vec<(f64, f64)>);
+
+    fn params(&self) -> Self::Parameter {
+        let weights = self.weights.iter().map(|x| (*x).into()).collect();
+        let intervals = self.intervals.iter().map(|(x, y)| ((*x).into(), (*y).into())).collect();
+        (weights, intervals)
     }
 }
 
@@ -479,6 +642,33 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
     }
 }
 
+impl RNG for WeightedUniform<f64> {
+    fn sample(&self, n: usize) -> Vec<f64> {
+        let mut rng = thread_rng();
+        let w = WeightedAliasIndex::new(self.weights.clone()).unwrap();
+        let ics: Vec<usize> = w.sample_iter(&mut rng).take(n).collect();
+
+        let mut result = vec![0f64; n];
+        for (i, idx) in ics.into_iter().enumerate() {
+            let (l, r) = self.intervals[idx];
+            result[i] = rng.gen_range(l ..=r);
+        }
+        result
+    }
+
+    fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        let x: f64 = x.into();
+        let idx = find_interval(self.intervals(), x);
+        self.weights[idx] / self.sum
+    }
+
+    fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
+        let x: f64 = x.into();
+        let idx = find_interval(self.intervals(), x);
+        self.weights[0 ..=idx].iter().sum::<f64>() / self.sum
+    }
+}
+
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for OPDist<T> {
     type Array = Vec<f64>;
     type Value = f64;
@@ -563,5 +753,32 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
 
     fn cor(&self) -> Self::Array {
         unimplemented!()
+    }
+}
+
+impl Statistics for WeightedUniform<f64> {
+    type Array = Vec<f64>;
+    type Value = f64;
+
+    fn mean(&self) -> Self::Value {
+        self.intervals().iter().zip(self.weights().iter())
+            .map(|((l, r), w)| (l+r)/2f64 * w)
+            .sum::<f64>() / self.sum
+    }
+
+    fn var(&self) -> Self::Value {
+        todo!()
+    }
+
+    fn sd(&self) -> Self::Value {
+        todo!()
+    }
+
+    fn cov(&self) -> Self::Array {
+        todo!()
+    }
+
+    fn cor(&self) -> Self::Array {
+        todo!()
     }
 }
