@@ -11,12 +11,11 @@
 //!     * Normal
 //!     * Student's t
 //!     * Uniform
-//!     * WeightedUniform
+//!     * Weighted Uniform
 //! * There are two enums to represent probability distribution
 //!     * `OPDist<T>` : One parameter distribution (Bernoulli)
 //!     * `TPDist<T>` : Two parameter distribution (Uniform, Normal, Beta, Gamma)
 //!         * `T: PartialOrd + SampleUniform + Copy + Into<f64>`
-//!     * `NPDist<T>` : N parameter distribution (WeightedUniform)
 //! * There are some traits for pdf
 //!     * `RNG` trait - extract sample & calculate pdf
 //!     * `Statistics` trait - already shown above
@@ -288,6 +287,14 @@ impl WeightedUniform<f64> {
 
     pub fn intervals(&self) -> &Vec<(f64, f64)> {
         &self.intervals
+    }
+
+    pub fn domain_linspace(&self, n: usize) -> Vec<f64> {
+        linspace(self.intervals[0].0, self.intervals[self.intervals.len()-1].1, n)
+    }
+
+    pub fn domain_seq(&self, step: f64) -> Vec<f64> {
+        seq(self.intervals[0].0, self.intervals[self.intervals.len()-1].1, step)
     }
 
     pub fn sum(&self) -> f64 {
