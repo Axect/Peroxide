@@ -1,12 +1,11 @@
-//! Simple random number generator
+//! Random number generator
 //!
-//! ## Simple Random Number Generator
+//! ## Uniform random number generator
 //!
 //! * Peroxide uses external [`rand` crate](https://crates.io/crates/rand) to generate random number
 //!
 //!     ```rust
-//!     extern crate rand;
-//!     use self::rand::prelude::*;
+//!     use rand::prelude::*;
 //!
 //!     fn main() {
 //!         let mut rng = thread_rng();
@@ -16,6 +15,10 @@
 //!     ```
 //!
 //! * To want more detailed explanation, see [`rand` crate](https://crates.io/crates/rand)
+//! 
+//! ## Piece-wise Rejection Sampling
+//! 
+//! 
 
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
@@ -24,6 +27,8 @@ use std::u32;
 
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
+
+use super::dist::{RNG, WeightedUniform};
 
 /// Simple uniform random number generator with ThreadRng
 ///
@@ -399,4 +404,46 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
     } else {
         -sigma * x
     }
+}
+
+// =============================================================================
+// Rejection Sampling
+// =============================================================================
+/// Piecewise Rejection Sampling
+pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Vec<f64> 
+where F: Fn(f64) -> f64 + Copy {
+    let mut rng = thread_rng();
+
+    let mut result = vec![0f64; n];
+
+    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps);
+    if w.weights().iter().any(|w| w <= &0f64) {
+        println!("Warning: some weights are zero");
+    }
+
+    let mut iter_num = 0usize;
+
+    let mut initial_x = w.sample(n);
+    let mut left_num = n;
+
+    while left_num > 0 {
+        for &x in initial_x.iter() {
+            let weight = w.weight_at(x);
+            if weight <= 0f64 {
+                continue;
+            } else {
+                let y = rng.gen_range(0f64 ..=weight);
+
+                if y <= f(x) {
+                    result[n - left_num] = x;
+                    left_num -= 1;
+                    if left_num == 0 {
+                        return result;
+                    }
+                }
+            }
+        }
+        initial_x = w.sample(left_num);
+    }
+    panic!("Error: failed to generate {} samples", n);
 }

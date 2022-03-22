@@ -122,3 +122,62 @@ pub fn sgn(x: usize) -> f64 {
 pub fn eq_vec(x: &Vec<f64>, y: &Vec<f64>, tol: f64) -> bool {
     x.iter().zip(y.iter()).all(|(x, y)| (x - y).abs() <= tol)
 }
+
+// =============================================================================
+// Vec of Tuples
+// =============================================================================
+/// Auto-zip
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// 
+/// let a = vec![1, 2, 3];
+/// let a_zipped = auto_zip(&a);
+/// assert_eq!(a_zipped, vec![(1, 2), (2, 3)]);
+/// ```
+pub fn auto_zip<T: Clone>(x: &Vec<T>) -> Vec<(T, T)> {
+    let x_head = x[0 .. x.len() - 1].to_vec();
+    let x_tail = x[1 .. x.len()].to_vec();
+    x_head.into_iter().zip(x_tail.into_iter()).collect()
+}
+
+/// Find the index of interval of x
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// 
+/// let x = vec![
+///     (0, 5),
+///     (5, 7),
+///     (7, 10),
+///     (10, 15),
+///     (15, 20),
+///     (20, 30)
+/// ];
+/// 
+/// assert_eq!(find_interval(&x, 11), 3);
+/// ```
+pub fn find_interval<T: PartialOrd + PartialEq>(sorted_intervals: &Vec<(T, T)>, x: T) -> usize {
+    let mut i = 0;
+    let mut j = sorted_intervals.len() - 1;
+
+    // Check range
+    assert!(x >= sorted_intervals[0].0, "x is smaller than the smallest interval");
+    assert!(x <= sorted_intervals[sorted_intervals.len() - 1].1, "x is larger than the largest interval");
+
+    while i <= j {
+        let mid = (i + j) / 2;
+        if x < sorted_intervals[mid].0 {
+            j = mid - 1;
+        } else if x > sorted_intervals[mid].1 {
+            i = mid + 1;
+        } else {
+            return mid;
+        }
+    }
+    return i;
+}

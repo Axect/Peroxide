@@ -101,6 +101,28 @@ pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
     m
 }
 
+/// MATLAB like linspace
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// 
+/// fn main() {
+///     let a = linspace(1, 10, 10);
+///     assert_eq!(a, seq(1,10,1));
+///     assert_eq!(a.len(), 10);
+/// }
+/// ```
+pub fn linspace<S, T>(start: S, end: T, length: usize) -> Vec<f64>
+where
+    S: Into<f64> + Copy,
+    T: Into<f64> + Copy,
+{
+    let step: f64 = (end.into() - start.into()) / (length as f64 - 1f64);
+    seq(start, end, step)
+}
+
 /// R like cbind - concatenate two matrix by column direction
 ///
 /// # Examples
