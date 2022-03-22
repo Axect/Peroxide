@@ -1,3 +1,9 @@
+# Release 0.30.14 (2022-03-22)
+
+* New distribution : `WeightedUniform`
+* New sampling method : `PRS` (Piecewise Rejection Sampling)
+* Documentation for these new methods will be added later.
+
 # Release 0.30.13 (2022-02-21)
 
 * Contol `lambda` of `LevenbergMarquardt` (#49)

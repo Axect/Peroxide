@@ -1,12 +1,11 @@
-//! Simple random number generator
+//! Random number generator
 //!
-//! ## Simple Random Number Generator
+//! ## Uniform random number generator
 //!
 //! * Peroxide uses external [`rand` crate](https://crates.io/crates/rand) to generate random number
 //!
 //!     ```rust
-//!     extern crate rand;
-//!     use self::rand::prelude::*;
+//!     use rand::prelude::*;
 //!
 //!     fn main() {
 //!         let mut rng = thread_rng();
@@ -16,6 +15,10 @@
 //!     ```
 //!
 //! * To want more detailed explanation, see [`rand` crate](https://crates.io/crates/rand)
+//! 
+//! ## Piece-wise Rejection Sampling
+//! 
+//! 
 
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
@@ -404,10 +407,10 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 }
 
 // =============================================================================
-// Acceptance-Rejection
+// Rejection Sampling
 // =============================================================================
-/// Piecewise Acceptance Rejection Sampling
-pub fn pars<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Vec<f64> 
+/// Piecewise Rejection Sampling
+pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Vec<f64> 
 where F: Fn(f64) -> f64 + Copy {
     let mut rng = thread_rng();
 
