@@ -1,3 +1,7 @@
+# Release 0.30.15 (2022-05-02)
+
+* Update `puruspe` to `0.2.0` (Fix a bug in gamma function)
+
 # Release 0.30.14 (2022-03-22)
 
 * New distribution : `WeightedUniform`
@@ -6,7 +10,7 @@
 
 # Release 0.30.13 (2022-02-21)
 
-* Contol `lambda` of `LevenbergMarquardt` (#49)
+* Control `lambda` of `LevenbergMarquardt` (#49)
     * Add `set_lambda_init` & `set_lambda_max` (#49)
 
 # Release 0.30.12 (2022-02-21)
