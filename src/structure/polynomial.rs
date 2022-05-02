@@ -251,6 +251,26 @@ impl Polynomial {
     }
 }
 
+fn polynomial_fft_mul(poly1: &Polynomial, poly2: &Polynomial) -> Polynomial {
+    use crate::numerical::fft;
+    let target_length = Some(2 * usize::max(poly1.coef.len(), poly2.coef.len()));
+
+    let prod_length = poly1.coef.len() + poly2.coef.len() - 1;
+
+    let mut poly1_transform = fft::fft(&poly1.coef, target_length);
+    let poly2_transform = fft::fft(&poly2.coef, target_length);
+
+    for (val1, val2) in poly1_transform.iter_mut().zip(poly2_transform.iter()) {
+        *val1 *= val2;
+    }
+
+    let mut res = fft::inverse_fft(&poly1_transform);
+
+    res.resize(prod_length, 0.);
+
+    poly(res)
+}
+
 /// Convenient to declare polynomial
 pub fn poly(coef: Vec<f64>) -> Polynomial {
     Polynomial::new(coef)
@@ -338,30 +358,36 @@ where
     }
 }
 
+const SWITCH_T0_FFT_FOR_MUL: usize = 1000;
+
 impl Mul<Polynomial> for Polynomial {
     type Output = Self;
     fn mul(self, other: Self) -> Self {
-        let (l1, l2) = (self.coef.len(), other.coef.len());
-        let (n1, n2) = (l1 - 1, l2 - 1);
-        let n = n1 + n2;
-        let mut result = vec![0f64; n + 1];
+        if usize::max(self.coef.len(), other.coef.len()) < SWITCH_T0_FFT_FOR_MUL {
+            let (l1, l2) = (self.coef.len(), other.coef.len());
+            let (n1, n2) = (l1 - 1, l2 - 1);
+            let n = n1 + n2;
+            let mut result = vec![0f64; n + 1];
 
-        for i in 0..l1 {
-            let fixed_val = self.coef[i];
-            let fixed_exp = n1 - i;
+            for i in 0..l1 {
+                let fixed_val = self.coef[i];
+                let fixed_exp = n1 - i;
 
-            for j in 0..l2 {
-                let target_val = other.coef[j];
-                let target_exp = n2 - j;
+                for j in 0..l2 {
+                    let target_val = other.coef[j];
+                    let target_exp = n2 - j;
 
-                let result_val = fixed_val * target_val;
-                let result_exp = fixed_exp + target_exp;
+                    let result_val = fixed_val * target_val;
+                    let result_exp = fixed_exp + target_exp;
 
-                result[n - result_exp] += result_val;
+                    result[n - result_exp] += result_val;
+                }
             }
-        }
 
-        Self::new(result)
+            Self::new(result)
+        } else {
+            polynomial_fft_mul(&self, &other)
+        }
     }
 }
 
@@ -585,7 +611,10 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
 
 #[cfg(test)]
 mod tests {
+    use std::task::Poll;
+
     use super::*;
+    use float_cmp::approx_eq;
 
     #[test]
     fn test_honor_division() {
@@ -604,6 +633,63 @@ mod tests {
 
         for i in -10..10 {
             assert_eq!(a.eval(i), b.eval(i - 6));
+        }
+    }
+
+    #[test]
+    fn test_low_degree_mul() {
+        let a = Polynomial::new(vec![1., 1.]);
+        let b = Polynomial::new(vec![-1., 1.]);
+
+        let target = Polynomial::new(vec![-1., 0., 1.]);
+        let prod = a * b;
+
+        for (prod_coef, target_coef) in target.coef.iter().zip(prod.coef.iter()) {
+            assert!(approx_eq!(f64, *prod_coef, *target_coef));
+        }
+    }
+
+    #[test]
+    fn test_constant_poly_mul() {
+        let a = Polynomial::new(vec![3.]);
+        let b = Polynomial::new(vec![1., 2., 3., 4., 5.]);
+
+        let prod = a * b.clone();
+
+        for (prod_coef, orig_coef) in prod.coef.iter().zip(b.coef.iter()) {
+            assert!(approx_eq!(f64, *prod_coef, 3. * *orig_coef));
+        }
+    }
+
+    #[test]
+    fn test_large_poly_mul() {
+        let a = Polynomial::new(
+            (1..=SWITCH_T0_FFT_FOR_MUL)
+                .into_iter()
+                .map(|i| i as f64)
+                .collect(),
+        );
+        let b = Polynomial::new(vec![1.; SWITCH_T0_FFT_FOR_MUL]);
+
+        let target_coefs = (1..2 * (SWITCH_T0_FFT_FOR_MUL - 1))
+            .into_iter()
+            .map(|i| {
+                if i <= 1000 {
+                    (i * (i + 1) / 2) as f64
+                } else {
+                    (1000 * 1001 / 2 - (i - 1000) * (i - 999) / 2) as f64
+                }
+            })
+            .collect::<Vec<f64>>();
+
+        for (i, (coef, target_coef)) in (a * b).coef.iter().zip(target_coefs.iter()).enumerate() {
+            println!("{} {} {}", i, coef, target_coef);
+            assert!(approx_eq!(
+                f64,
+                *coef,
+                *target_coef,
+                epsilon = (10.).powi(-8)
+            ));
         }
     }
 }
