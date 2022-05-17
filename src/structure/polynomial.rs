@@ -217,7 +217,7 @@ impl Polynomial {
 
         let mut coef = vec![0f64; self.coef.len()];
 
-        let (mut p, ri) = self.honor_division(&d);
+        let (mut p, ri) = self.horner_division(&d);
         coef[self.coef.len() - 1] = ri;
 
         for i in (0..(self.coef.len() - 1)).rev() {
@@ -226,7 +226,7 @@ impl Polynomial {
                 break;
             }
 
-            let t = p.honor_division(&d);
+            let t = p.horner_division(&d);
             coef[i] = t.1;
             p = t.0;
         }
@@ -234,7 +234,7 @@ impl Polynomial {
         Self::new(coef)
     }
 
-    fn honor_division(&self, other: &Self) -> (Self, f64) {
+    fn horner_division(&self, other: &Self) -> (Self, f64) {
         assert_eq!(other.coef.len(), 2usize);
         assert_eq!(other.coef[0], 1.0f64);
 
@@ -592,7 +592,7 @@ mod tests {
         let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
         let b = Polynomial::new(vec![1f64, -2f64]);
 
-        let (c, remainder) = a.honor_division(&b);
+        let (c, remainder) = a.horner_division(&b);
         assert_eq!(c.coef, vec![1f64, -2f64, 0f64, 3f64, -2f64]);
         assert_eq!(remainder, 0f64);
     }
