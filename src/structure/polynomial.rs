@@ -234,7 +234,7 @@ impl Polynomial {
         Self::new(coef)
     }
 
-    fn horner_division(&self, other: &Self) -> (Self, f64) {
+    pub fn horner_division(&self, other: &Self) -> (Self, f64) {
         assert_eq!(other.coef.len(), 2usize);
         assert_eq!(other.coef[0], 1.0f64);
 
@@ -482,12 +482,12 @@ impl PowOps for Polynomial {
 // Calculus for Polynomial
 // =============================================================================
 pub trait Calculus {
-    fn diff(&self) -> Self;
+    fn derivative(&self) -> Self;
     fn integral(&self) -> Self;
 }
 
 impl Calculus for Polynomial {
-    fn diff(&self) -> Self {
+    fn derivative(&self) -> Self {
         let l = self.coef.len() - 1;
         let mut result = vec![0f64; l];
 
@@ -579,31 +579,6 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
                 curr = poly(vec![2f64, 0f64]) * prev.clone() - curr;
             }
             curr
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_honor_division() {
-        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
-        let b = Polynomial::new(vec![1f64, -2f64]);
-
-        let (c, remainder) = a.horner_division(&b);
-        assert_eq!(c.coef, vec![1f64, -2f64, 0f64, 3f64, -2f64]);
-        assert_eq!(remainder, 0f64);
-    }
-
-    #[test]
-    fn test_translate_x() {
-        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
-        let b = a.translate_x(-6);
-
-        for i in -10..10 {
-            assert_eq!(a.eval(i), b.eval(i - 6));
         }
     }
 }
