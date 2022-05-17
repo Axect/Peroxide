@@ -515,25 +515,48 @@ impl Calculus for Polynomial {
 pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
-    let mut result = Polynomial::new(vec![0f64; l]);
 
-    for i in 0..l {
-        let fixed_val = node_x[i];
-        let prod = node_y[i];
-        let mut id = poly(vec![1f64]);
+    if l <= 1 {
+        panic!("Lagrange Polynomial needs at least 2 nodes");
+    } else if l == 2 {
+        let p0 = poly(vec![1f64, -node_x[0]]);
+        let p1 = poly(vec![1f64, -node_x[1]]);
 
-        for j in 0..l {
-            if j == i {
-                continue;
-            } else {
-                let target_val = node_x[j];
-                let denom = fixed_val - target_val;
-                id = id * (poly(vec![1f64, -target_val]) / denom);
+        let a = node_y[1] / (node_x[1] - node_x[0]);
+        let b = -node_y[0] / (node_x[1] - node_x[0]);
+
+        p0 * a + p1 * b
+    } else if l == 3 {
+        let p0 = poly(vec![1f64, -(node_x[0] + node_x[1]), node_x[0] * node_x[1]]);
+        let p1 = poly(vec![1f64, -(node_x[0] + node_x[2]), node_x[0] * node_x[2]]);
+        let p2 = poly(vec![1f64, -(node_x[1] + node_x[2]), node_x[1] * node_x[2]]);
+
+        let a = node_y[2] / ((node_x[2] - node_x[0]) * (node_x[2] - node_x[1]));
+        let b = node_y[1] / ((node_x[1] - node_x[0]) * (node_x[1] - node_x[2]));
+        let c = node_y[0] / ((node_x[0] - node_x[1]) * (node_x[0] - node_x[2]));
+
+        p0 * a + p1 * b + p2 * c
+    } else {
+        let mut result = Polynomial::new(vec![0f64; l]);
+
+        for i in 0..l {
+            let fixed_val = node_x[i];
+            let prod = node_y[i];
+            let mut id = poly(vec![1f64]);
+    
+            for j in 0..l {
+                if j == i {
+                    continue;
+                } else {
+                    let target_val = node_x[j];
+                    let denom = fixed_val - target_val;
+                    id = id * (poly(vec![1f64, -target_val]) / denom);
+                }
             }
+            result = result + (id * prod);
         }
-        result = result + (id * prod);
+        result
     }
-    result
 }
 
 /// Legendre Polynomial
