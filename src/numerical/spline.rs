@@ -369,12 +369,12 @@ impl Index<usize> for CubicSpline {
 }
 
 impl Calculus for CubicSpline {
-    fn diff(&self) -> Self {
+    fn derivative(&self) -> Self {
         let mut polynomials: Vec<(Range<f64>, Polynomial)> = self.clone().into();
 
         polynomials = polynomials
             .into_iter()
-            .map(|(r, poly)| (r, poly.diff()))
+            .map(|(r, poly)| (r, poly.derivative()))
             .collect();
 
         Self::from(polynomials)
