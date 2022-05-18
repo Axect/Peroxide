@@ -2,6 +2,7 @@
 
 use std::convert;
 use std::f64::MAX;
+use std::ops::Range;
 
 // =============================================================================
 // Fundamental Utils
@@ -180,4 +181,34 @@ pub fn find_interval<T: PartialOrd + PartialEq>(sorted_intervals: &Vec<(T, T)>, 
         }
     }
     return i;
+}
+
+/// Generate Range of Intervals
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use std::ops::Range;
+/// 
+/// let x = vec![1, 2, 3, 4];
+/// let r = gen_range(&x);
+/// 
+/// let answer = vec![
+///     Range { start: 1, end: 2 },
+///     Range { start: 2, end: 3 },
+///     Range { start: 3, end: 4 },
+/// ];
+/// 
+/// assert_eq!(r, answer);
+/// ```
+pub fn gen_range<T: Clone + PartialOrd>(x: &[T]) -> Vec<Range<T>> {
+    let mut r = Vec::new();
+    for i in 0..x.len() - 1 {
+        r.push(Range {
+            start: x[i].clone(),
+            end: x[i + 1].clone(),
+        });
+    }
+    r
 }
