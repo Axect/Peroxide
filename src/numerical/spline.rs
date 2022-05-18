@@ -54,6 +54,12 @@ pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
     CubicSpline::from_nodes(node_x.clone(), node_y.clone())
 }
 
+pub trait Spline {
+    fn eval<T: std::convert::Into<f64> + Copy>(&self, x: T) -> f64;
+    fn eval_vec<T: std::convert::Into<f64> + Copy>(&self, v: &Vec<T>) -> Vec<f64>;
+    fn polynomial<T: std::convert::Into<f64> + Copy>(&self, x: T) -> &Polynomial;
+}
+
 /// Cubic Spline (Natural)
 ///
 /// # Description
@@ -95,6 +101,84 @@ pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
+}
+
+impl Spline for CubicSpline {
+    /// Evaluate cubic spline with value
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
+    ///
+    ///     let s = CubicSpline::from_nodes(x, y);
+    ///
+    ///     s.eval(2.0);
+    /// }
+    /// ```
+    fn eval<T: std::convert::Into<f64> + Copy>(&self, x: T) -> f64 {
+        let x = x.into();
+
+        self.polynomial(x).eval(x)
+    }
+
+    fn eval_vec<T: std::convert::Into<f64> + Copy>(&self, v: &Vec<T>) -> Vec<f64> {
+        let mut result = vec![0f64; v.len()];
+
+        for (i, x) in v.iter().enumerate() {
+            result[i] = self.eval(*x);
+        }
+
+        result
+    }
+
+    /// Returns a reference the `Polynomial` at the given point `x`.
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
+    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
+    ///
+    ///     let s = CubicSpline::from_nodes(x, y);
+    ///
+    ///     let p = s.polynomial(2.0);
+    ///     let v = p.eval(1.9);
+    ///
+    ///     assert_eq!((v * 100.0).round() / 100.0, 1.85)
+    /// }
+    /// ```
+    ///
+    /// If `x` is outside of the range of polynomials, the first or last polynomial will be
+    /// returned, depending if `x` is lower of the first interpolation point or higher of the last
+    /// interpolation point.
+    fn polynomial<T: std::convert::Into<f64> + Copy>(&self, x: T) -> &Polynomial {
+        let x = x.into();
+
+        let index = match self.polynomials.binary_search_by(|(range, _)| {
+            if range.contains(&x) {
+                core::cmp::Ordering::Equal
+            } else if x < range.start {
+                core::cmp::Ordering::Greater
+            } else {
+                core::cmp::Ordering::Less
+            }
+        }) {
+            Ok(index) => index,
+            Err(index) => max(0, min(index, self.polynomials.len() - 1)),
+        };
+
+        &self.polynomials[index].1
+    }
 }
 
 impl CubicSpline {
@@ -208,78 +292,6 @@ impl CubicSpline {
             s.push(term1 + term2 + term3 + term4);
         }
         return s;
-    }
-
-    /// Evaluate cubic spline with value
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
-    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
-    ///
-    ///     let s = CubicSpline::from_nodes(x, y);
-    ///
-    ///     s.eval(2.0);
-    /// }
-    /// ```
-    pub fn eval<T>(&self, x: T) -> f64
-    where
-        T: std::convert::Into<f64> + Copy,
-    {
-        let x = x.into();
-
-        self.polynomial(x).eval(x)
-    }
-
-    /// Returns a reference the `Polynomial` at the given point `x`.
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let x = c!(0.9, 1.3, 1.9, 2.1);
-    ///     let y = c!(1.3, 1.5, 1.85, 2.1);
-    ///
-    ///     let s = CubicSpline::from_nodes(x, y);
-    ///
-    ///     let p = s.polynomial(2.0);
-    ///     let v = p.eval(1.9);
-    ///
-    ///     assert_eq!((v * 100.0).round() / 100.0, 1.85)
-    /// }
-    /// ```
-    ///
-    /// If `x` is outside of the range of polynomials, the first or last polynomial will be
-    /// returned, depending if `x` is lower of the first interpolation point or higher of the last
-    /// interpolation point.
-    pub fn polynomial<T>(&self, x: T) -> &Polynomial
-    where
-        T: std::convert::Into<f64> + Copy,
-    {
-        let x = x.into();
-
-        let index = match self.polynomials.binary_search_by(|(range, _)| {
-            if range.contains(&x) {
-                core::cmp::Ordering::Equal
-            } else if x < range.start {
-                core::cmp::Ordering::Greater
-            } else {
-                core::cmp::Ordering::Less
-            }
-        }) {
-            Ok(index) => index,
-            Err(index) => max(0, min(index, self.polynomials.len() - 1)),
-        };
-
-        &self.polynomials[index].1
     }
 
     /// Extends the spline with the given nodes.
