@@ -302,7 +302,9 @@ where
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
-        Self::new(self.coef.fmap(|x| x + other.into()))
+        let mut new_coef = self.coef.clone();
+        new_coef[self.coef.len()-1] += other.into();
+        Self::new(new_coef)
     }
 }
 
@@ -319,7 +321,9 @@ where
 {
     type Output = Self;
     fn sub(self, other: T) -> Self {
-        Self::new(self.coef.fmap(|x| x - other.into()))
+        let mut new_coef = self.coef.clone();
+        new_coef[self.coef.len()-1] -= other.into();
+        Self::new(new_coef)
     }
 }
 
