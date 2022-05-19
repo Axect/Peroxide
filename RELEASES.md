@@ -1,3 +1,35 @@
+# Release 0.31.0 (2022-05-19)
+
+## Significant changes
+
+### Splines
+
+* New trait `Spline`
+    * Move `CubicSpline::eval` to `Spline::eval`
+    * Move `CubicSpline::polynomial` to `Spline::polynomial_at`
+    * Move `CubicSpline::number_of_polynomials` to `Spline::number_of_polynomials`
+    * Add `Spline::eval_vec`
+    * Add `Spline::get_ranged_polynomials`
+* Implement Cubic Hermite spline
+    * Add struct `CubicHermiteSpline`
+    * Implement slope estimation algorithms
+        * `SlopeMethod::Akima`
+        * `SlopeMethod::Quadratic`
+* Modify `CubicSpline` **(Important!)** 
+    * Change argument type
+        * `from_nodes(node_x: &[f64], node_y: &[f64]) -> Self`
+    * (For developer) Remove `CubicSpline::ranged` (use `util::useful::zip_range` instead)
+* Add docs for `numeric/spline.rs`
+
+### Calculus
+
+* Rename `Calculus::diff` to `Calculus::derivative` **(Important!)**
+
+## Minor updates
+
+* Add `util::useful::{gen_range, zip_range}`
+* Add `structure::poly::Calculus::integrate`
+
 # Release 0.30.15 (2022-05-02)
 
 * Update `puruspe` to `0.2.0` (Fix a bug in gamma function)

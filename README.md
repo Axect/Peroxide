@@ -144,7 +144,11 @@ Peroxide can do many things.
     * `Real` trait to constrain for `f64` and `AD` (for ODE)
 * Numerical Analysis
     * Lagrange interpolation
-    * Cubic spline
+    * Splines
+        * Cubic Spline
+        * Cubic Hermite Spline
+            * Estimate slope via Akima
+            * Estimate slope via Quadratic interpolation
     * Non-linear regression
         * Gradient Descent
         * Levenberg Marquardt

@@ -151,8 +151,8 @@ pub use crate::numerical::{
     ode::*,
     optimize::*,
     root::{bisection, false_position, newton, secant},
-    spline::*,
+    spline::{cubic_spline, CubicSpline, CubicHermiteSpline, Spline},
     utils::*,
 };
 
-pub use simpler::{eigen, integrate, chebyshev_polynomial};
+pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline};
