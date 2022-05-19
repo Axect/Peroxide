@@ -174,3 +174,4 @@ pub use crate::structure::matrix::{
 };
 pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::ad::AD::*;
+pub use crate::numerical::spline::SlopeMethod::{Akima, Quadratic};

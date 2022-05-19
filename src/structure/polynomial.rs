@@ -217,7 +217,7 @@ impl Polynomial {
 
         let mut coef = vec![0f64; self.coef.len()];
 
-        let (mut p, ri) = self.honor_division(&d);
+        let (mut p, ri) = self.horner_division(&d);
         coef[self.coef.len() - 1] = ri;
 
         for i in (0..(self.coef.len() - 1)).rev() {
@@ -226,7 +226,7 @@ impl Polynomial {
                 break;
             }
 
-            let t = p.honor_division(&d);
+            let t = p.horner_division(&d);
             coef[i] = t.1;
             p = t.0;
         }
@@ -234,7 +234,7 @@ impl Polynomial {
         Self::new(coef)
     }
 
-    fn honor_division(&self, other: &Self) -> (Self, f64) {
+    pub fn horner_division(&self, other: &Self) -> (Self, f64) {
         assert_eq!(other.coef.len(), 2usize);
         assert_eq!(other.coef[0], 1.0f64);
 
@@ -302,7 +302,9 @@ where
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
-        Self::new(self.coef.fmap(|x| x + other.into()))
+        let mut new_coef = self.coef.clone();
+        new_coef[self.coef.len()-1] += other.into();
+        Self::new(new_coef)
     }
 }
 
@@ -319,7 +321,9 @@ where
 {
     type Output = Self;
     fn sub(self, other: T) -> Self {
-        Self::new(self.coef.fmap(|x| x - other.into()))
+        let mut new_coef = self.coef.clone();
+        new_coef[self.coef.len()-1] -= other.into();
+        Self::new(new_coef)
     }
 }
 
@@ -482,12 +486,13 @@ impl PowOps for Polynomial {
 // Calculus for Polynomial
 // =============================================================================
 pub trait Calculus {
-    fn diff(&self) -> Self;
+    fn derivative(&self) -> Self;
     fn integral(&self) -> Self;
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64;
 }
 
 impl Calculus for Polynomial {
-    fn diff(&self) -> Self {
+    fn derivative(&self) -> Self {
         let l = self.coef.len() - 1;
         let mut result = vec![0f64; l];
 
@@ -506,6 +511,12 @@ impl Calculus for Polynomial {
         }
         Self::new(result)
     }
+
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64 {
+        let (a, b) = (interval.0.into(), interval.1.into());
+        let integral = self.integral();
+        integral.eval(b) - integral.eval(a)
+    }
 }
 
 // =============================================================================
@@ -515,25 +526,48 @@ impl Calculus for Polynomial {
 pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
     assert_eq!(node_x.len(), node_y.len());
     let l = node_x.len();
-    let mut result = Polynomial::new(vec![0f64; l]);
 
-    for i in 0..l {
-        let fixed_val = node_x[i];
-        let prod = node_y[i];
-        let mut id = poly(vec![1f64]);
+    if l <= 1 {
+        panic!("Lagrange Polynomial needs at least 2 nodes");
+    } else if l == 2 {
+        let p0 = poly(vec![1f64, -node_x[0]]);
+        let p1 = poly(vec![1f64, -node_x[1]]);
 
-        for j in 0..l {
-            if j == i {
-                continue;
-            } else {
-                let target_val = node_x[j];
-                let denom = fixed_val - target_val;
-                id = id * (poly(vec![1f64, -target_val]) / denom);
+        let a = node_y[1] / (node_x[1] - node_x[0]);
+        let b = -node_y[0] / (node_x[1] - node_x[0]);
+
+        p0 * a + p1 * b
+    } else if l == 3 {
+        let p0 = poly(vec![1f64, -(node_x[0] + node_x[1]), node_x[0] * node_x[1]]);
+        let p1 = poly(vec![1f64, -(node_x[0] + node_x[2]), node_x[0] * node_x[2]]);
+        let p2 = poly(vec![1f64, -(node_x[1] + node_x[2]), node_x[1] * node_x[2]]);
+
+        let a = node_y[2] / ((node_x[2] - node_x[0]) * (node_x[2] - node_x[1]));
+        let b = node_y[1] / ((node_x[1] - node_x[0]) * (node_x[1] - node_x[2]));
+        let c = node_y[0] / ((node_x[0] - node_x[1]) * (node_x[0] - node_x[2]));
+
+        p0 * a + p1 * b + p2 * c
+    } else {
+        let mut result = Polynomial::new(vec![0f64; l]);
+
+        for i in 0..l {
+            let fixed_val = node_x[i];
+            let prod = node_y[i];
+            let mut id = poly(vec![1f64]);
+    
+            for j in 0..l {
+                if j == i {
+                    continue;
+                } else {
+                    let target_val = node_x[j];
+                    let denom = fixed_val - target_val;
+                    id = id * (poly(vec![1f64, -target_val]) / denom);
+                }
             }
+            result = result + (id * prod);
         }
-        result = result + (id * prod);
+        result
     }
-    result
 }
 
 /// Legendre Polynomial
@@ -579,31 +613,6 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
                 curr = poly(vec![2f64, 0f64]) * prev.clone() - curr;
             }
             curr
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_honor_division() {
-        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
-        let b = Polynomial::new(vec![1f64, -2f64]);
-
-        let (c, remainder) = a.honor_division(&b);
-        assert_eq!(c.coef, vec![1f64, -2f64, 0f64, 3f64, -2f64]);
-        assert_eq!(remainder, 0f64);
-    }
-
-    #[test]
-    fn test_translate_x() {
-        let a = Polynomial::new(vec![1f64, -4f64, 4f64, 3f64, -8f64, 4f64]);
-        let b = a.translate_x(-6);
-
-        for i in -10..10 {
-            assert_eq!(a.eval(i), b.eval(i - 6));
         }
     }
 }
