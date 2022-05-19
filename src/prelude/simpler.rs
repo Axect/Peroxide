@@ -3,6 +3,8 @@ use crate::numerical::{
     eigen::{Eigen, EigenMethod::Jacobi},
     integral,
     integral::Integral::G7K15,
+    spline,
+    spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
@@ -136,4 +138,8 @@ pub fn solve(A: &Matrix, m: &Matrix) -> Matrix {
 /// Simple Chebyshev Polynomial (First Kind)
 pub fn chebyshev_polynomial(n: usize) -> polynomial::Polynomial {
     polynomial::chebyshev_polynomial(n, polynomial::SpecialKind::First)
+}
+
+pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> CubicHermiteSpline {
+    spline::cubic_hermite_spline(node_x, node_y, Quadratic)
 }
