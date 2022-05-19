@@ -212,3 +212,33 @@ pub fn gen_range<T: Clone + PartialOrd>(x: &[T]) -> Vec<Range<T>> {
     }
     r
 }
+
+/// Generate and Zip Range of Intervals
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use std::ops::Range;
+/// 
+/// let x: Vec<i32> = vec![1, 2, 3, 4];
+/// let y: Vec<i32> = x.iter().map(|&t| t.pow(2)).collect();
+/// let r = zip_range(&x, &y);
+/// 
+/// let answer = vec![
+///     (Range { start: 1, end: 2 }, 1),
+///     (Range { start: 2, end: 3 }, 4),
+///     (Range { start: 3, end: 4 }, 9),
+/// ];
+/// 
+/// assert_eq!(r, answer);
+/// ```
+pub fn zip_range<T: Clone + PartialOrd, U: Clone>(x: &[T], y: &[U]) -> Vec<(Range<T>, U)> {
+    y[0 .. x.len() - 1].into_iter()
+        .enumerate()
+        .map(|(i, yi)| (Range {
+            start: x[i].clone(),
+            end: x[i + 1].clone(),
+        }, yi.clone()))
+        .collect()
+}
