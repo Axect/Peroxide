@@ -133,6 +133,7 @@
 //! 
 //! ```rust
 //! use peroxide::fuga::*;
+//! use std::f64::consts::PI;
 //! 
 //! fn main() {
 //!     let x = seq(0, 10, 1);
@@ -160,6 +161,12 @@
 //!     cs_akima.integral().polynomial_at(0f64).print();
 //!     cs_quad.integral().polynomial_at(0f64).print();
 //! 
+//!     println!("============ Integrate from x=0 to x=pi ============");
+//! 
+//!     cs.integrate((0f64, PI)).print();
+//!     cs_akima.integrate((0f64, PI)).print();
+//!     cs_quad.integrate((0f64, PI)).print();
+//! 
 //!     // ============ Polynomial at x=0 ============
 //!     // -0.1523x^3 + 0.9937x
 //!     // 0.1259x^3 - 0.5127x^2 + 1.2283x
@@ -172,6 +179,10 @@
 //!     // -0.0381x^4 + 0.4969x^2
 //!     // 0.0315x^4 - 0.1709x^3 + 0.6141x^2
 //!     // -0.0000x^4 - 0.1289x^3 + 0.6141x^2
+//!     // ============ Integrate from x=0 to x=pi ============
+//!     // 1.9961861265456702
+//!     // 2.0049920614062775
+//!     // 2.004327391790717
 //! }
 //! ```
 //! 
