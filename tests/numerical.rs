@@ -21,7 +21,7 @@ fn test_cubic_spline_initialization() {
         vy.push(f(x));
     }
 
-    let spline = CubicSpline::from_nodes(vx, vy);
+    let spline = CubicSpline::from_nodes(&vx, &vy);
 
     for i in 0..11 {
         let x = i as f64;
@@ -41,7 +41,7 @@ fn test_cubic_spline_extension() {
         vy.push(f(x));
     }
 
-    let mut spline = CubicSpline::from_nodes(vx, vy);
+    let mut spline = CubicSpline::from_nodes(&vx, &vy);
 
     vx = Vec::new();
     vy = Vec::new();

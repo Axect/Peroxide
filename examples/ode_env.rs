@@ -11,7 +11,7 @@ fn main() {
         .map(|(i, &t)| t.powi(5 - i as i32))
         .collect::<Vec<f64>>();
 
-    let c = CubicSpline::from_nodes(x, y);
+    let c = CubicSpline::from_nodes(&x, &y);
 
     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
 

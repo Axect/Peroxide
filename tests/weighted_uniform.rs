@@ -19,7 +19,7 @@ fn test_max_pool_1d() {
 
 fn f(x: f64) -> f64 {
     if x.abs() < 1f64 {
-        (1f64 - x.abs())
+        1f64 - x.abs()
     } else {
        0f64
     }
