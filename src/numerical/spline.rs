@@ -7,11 +7,25 @@ use crate::structure::vector::*;
 use crate::traits::num::PowOps;
 #[allow(unused_imports)]
 use crate::util::non_macro::*;
+use crate::util::useful::zip_range;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::convert::{From, Into};
 use std::ops::{Index, Range};
+
+/// Trait for spline interpolation
+/// 
+/// # Available Splines
+/// 
+/// - `CubicSpline`
+/// - `CubicHermiteSpline`
+pub trait Spline {
+    fn eval<T: std::convert::Into<f64> + Copy>(&self, x: T) -> f64;
+    fn eval_vec<T: std::convert::Into<f64> + Copy>(&self, v: &Vec<T>) -> Vec<f64>;
+    fn polynomial<T: std::convert::Into<f64> + Copy>(&self, x: T) -> &Polynomial;
+    fn get_range(&self) -> Vec<Range<f64>>;
+}
 
 /// Cubic Spline (Natural)
 ///
@@ -52,12 +66,6 @@ use std::ops::{Index, Range};
 /// ```
 pub fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> CubicSpline {
     CubicSpline::from_nodes(node_x.clone(), node_y.clone())
-}
-
-pub trait Spline {
-    fn eval<T: std::convert::Into<f64> + Copy>(&self, x: T) -> f64;
-    fn eval_vec<T: std::convert::Into<f64> + Copy>(&self, v: &Vec<T>) -> Vec<f64>;
-    fn polynomial<T: std::convert::Into<f64> + Copy>(&self, x: T) -> &Polynomial;
 }
 
 /// Cubic Spline (Natural)
@@ -179,6 +187,10 @@ impl Spline for CubicSpline {
 
         &self.polynomials[index].1
     }
+
+    fn get_range(&self) -> Vec<Range<f64>> {
+        self.polynomials.iter().map(|(r, _)| r.clone()).collect()
+    }
 }
 
 impl CubicSpline {
@@ -202,26 +214,8 @@ impl CubicSpline {
     pub fn from_nodes(node_x: Vec<f64>, node_y: Vec<f64>) -> Self {
         let polynomials = CubicSpline::cubic_spline(&node_x, &node_y);
         CubicSpline {
-            polynomials: CubicSpline::ranged(&node_x, polynomials),
+            polynomials: zip_range(&node_x, &polynomials),
         }
-    }
-
-    fn ranged(node_x: &Vec<f64>, polynomials: Vec<Polynomial>) -> Vec<(Range<f64>, Polynomial)> {
-        let len = node_x.len();
-        polynomials
-            .into_iter()
-            .enumerate()
-            .filter(|(i, _)| i + 1 < len)
-            .map(|(i, polynomial)| {
-                (
-                    Range {
-                        start: node_x[i],
-                        end: node_x[i + 1],
-                    },
-                    polynomial,
-                )
-            })
-            .collect()
     }
 
     fn cubic_spline(node_x: &Vec<f64>, node_y: &Vec<f64>) -> Vec<Polynomial> {
@@ -296,6 +290,8 @@ impl CubicSpline {
 
     /// Extends the spline with the given nodes.
     ///
+    /// # Description
+    /// 
     /// The method ensures that the transition between each polynomial is smooth and that the spline
     /// interpolation of the new nodes is calculated around `x = 0` in order to avoid that
     /// successive spline extensions with large x values become inaccurate.
@@ -312,9 +308,9 @@ impl CubicSpline {
         ext_node_x.extend(node_x.into_iter().map(|x| x - tx));
         ext_node_y.extend(node_y);
 
-        let polynomials = CubicSpline::ranged(
+        let polynomials = zip_range(
             &ext_node_x,
-            CubicSpline::cubic_spline(&ext_node_x, &ext_node_y),
+            &CubicSpline::cubic_spline(&ext_node_x, &ext_node_y),
         );
 
         self.polynomials
@@ -329,7 +325,7 @@ impl CubicSpline {
             }));
     }
 
-    /// Returns the number of polynimials that describe the `CubicSpline`
+    /// Returns the number of polynomials that describe the `CubicSpline`
     ///
     /// # Examples
     /// ```
