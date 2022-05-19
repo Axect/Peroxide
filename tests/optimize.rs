@@ -2,6 +2,7 @@ extern crate peroxide;
 use peroxide::{fuga::*, hstack};
 
 #[test]
+#[allow(non_snake_case)]
 fn test_LM() {
     let x = seq(0, 10, 0.1);
     let p_true = vec![1.0, 2.0, 3.0];
@@ -22,6 +23,7 @@ fn test_LM() {
 }
 
 #[test]
+#[allow(non_snake_case)]
 fn test_GD() {
     let x = seq(0, 10, 0.1);
     let p_true = vec![1.0, 2.0, 3.0];
