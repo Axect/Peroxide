@@ -488,6 +488,7 @@ impl PowOps for Polynomial {
 pub trait Calculus {
     fn derivative(&self) -> Self;
     fn integral(&self) -> Self;
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64;
 }
 
 impl Calculus for Polynomial {
@@ -509,6 +510,12 @@ impl Calculus for Polynomial {
             result[i] = self.coef[i] / (l - i) as f64;
         }
         Self::new(result)
+    }
+
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64 {
+        let (a, b) = (interval.0.into(), interval.1.into());
+        let integral = self.integral();
+        integral.eval(b) - integral.eval(a)
     }
 }
 

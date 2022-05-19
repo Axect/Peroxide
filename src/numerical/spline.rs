@@ -530,6 +530,27 @@ impl Calculus for CubicSpline {
 
         Self::from(polynomials)
     }
+
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64 {
+        let (a, b) = interval;
+        let a = a.into();
+        let b = b.into();
+
+        let mut s = 0f64;
+        for (r, p) in self.polynomials.iter() {
+            if r.start > b {
+                break;
+            } else if r.end < a {
+                continue;
+            } else {
+                // r.start <= b, r.end >= a
+                let x = r.start.max(a);
+                let y = r.end.min(b);
+                s += p.integrate((x, y));
+            }
+        }
+        s
+    }
 }
 
 // =============================================================================
@@ -634,6 +655,27 @@ impl Calculus for CubicHermiteSpline {
             .collect();
 
         Self::from(polynomials)
+    }
+
+    fn integrate<T: Into<f64> + Copy>(&self, interval: (T, T)) -> f64 {
+        let (a, b) = interval;
+        let a = a.into();
+        let b = b.into();
+
+        let mut s = 0f64;
+        for (r, p) in self.polynomials.iter() {
+            if r.start > b {
+                break;
+            } else if r.end < a {
+                continue;
+            } else {
+                // r.start <= b, r.end >= a
+                let x = r.start.max(a);
+                let y = r.end.min(b);
+                s += p.integrate((x, y));
+            }
+        }
+        s
     }
 }
 
