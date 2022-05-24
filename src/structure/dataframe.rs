@@ -1313,7 +1313,7 @@ impl DataFrame {
             for i in 0 .. self.data.len() {
                 let v = &self[i];
                 let mut space = 0usize;
-                for j in 0 .. 5 {
+                for j in 0 .. v.len().min(5) {
                     let elem = v.at(j);
                     set_space!(elem, space);
                 }
