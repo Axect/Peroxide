@@ -1,3 +1,7 @@
+# Release 0.31.1 (2022-05-24)
+
+* Fix a bug in `spread` of DataFrame
+
 # Release 0.31.0 (2022-05-19)
 
 ## Significant changes
