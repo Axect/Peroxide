@@ -1,4 +1,10 @@
-# Release 0.31.2 (2022-05-29)
+# Release 0.31.3 (2022-05-29)
+
+* Fix bug in `linspace` and `logspace`
+    * Now `linspace(0, 0, 1)` returns `[0f64]` instead of `[NaN]`
+    * Now `logspace(0, 0, 1, 10)` returns `[1f64]` instead of `[NaN]`
+
+# Release 0.31.2 (2022-05-29) (Yanked)
 
 * Fix assertion of `util::non_macro::seq`
 * Implement numpy like `logspace`
