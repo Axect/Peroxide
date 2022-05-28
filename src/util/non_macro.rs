@@ -18,6 +18,9 @@ use std::convert::Into;
 ///
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
+/// 
+/// let b = seq(1, 1, 1);
+/// assert_eq!(b, vec![1f64]);
 /// ```
 pub fn seq<S, T, U>(start: S, end: T, step: U) -> Vec<f64>
 where
@@ -29,14 +32,14 @@ where
     let e = end.into();
     let step = step.into();
 
-    assert!(e > s);
+    assert!(e >= s);
 
     let factor: f64 = (e - s) / step;
     let l: usize = factor as usize + 1;
-    let mut v: Vec<f64> = Vec::new();
+    let mut v: Vec<f64> = vec![0f64; l];
 
     for i in 0..l {
-        v.push(s + step * (i as f64));
+        v[i] = s + step * (i as f64);
     }
     v
 }
@@ -121,6 +124,41 @@ where
 {
     let step: f64 = (end.into() - start.into()) / (length as f64 - 1f64);
     seq(start, end, step)
+}
+
+/// Numpy like logspace
+/// 
+/// # Examples
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// 
+/// fn main() {
+///     let a = logspace(0, 10, 11, 2);
+///     let b = vec![1f64, 2f64, 4f64, 8f64, 16f64, 32f64, 64f64, 128f64, 256f64, 512f64, 1024f64];
+///     assert_eq!(a, b);
+/// }
+/// ```
+pub fn logspace<S, T, U>(start: S, end: T, length: usize, base: U) -> Vec<f64>
+where
+    S: Into<f64> + Copy,
+    T: Into<f64> + Copy,
+    U: Into<f64> + Copy,
+{
+    let s: f64 = start.into();
+    let e: f64 = end.into();
+    let b: f64 = base.into();
+
+    assert!(e >= s);
+
+    let step: f64 = (e - s) / (length as f64 - 1f64);
+
+    let mut v: Vec<f64> = vec![0f64; length];
+
+    for i in 0..length {
+        v[i] = b.powf(s + step * (i as f64));
+    }
+    v
 }
 
 /// R like cbind - concatenate two matrix by column direction
