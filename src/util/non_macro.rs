@@ -126,7 +126,7 @@ where
     seq(start, end, step)
 }
 
-/// MATLAB like logspace
+/// Numpy like logspace
 /// 
 /// # Examples
 /// ```
@@ -134,7 +134,7 @@ where
 /// use peroxide::fuga::*;
 /// 
 /// fn main() {
-///     let a = logspace(1, 1024, 11, 2);
+///     let a = logspace(0, 10, 11, 2);
 ///     let b = vec![1f64, 2f64, 4f64, 8f64, 16f64, 32f64, 64f64, 128f64, 256f64, 512f64, 1024f64];
 ///     assert_eq!(a, b);
 /// }
@@ -151,12 +151,12 @@ where
 
     assert!(e >= s);
 
-    let step: f64 = (e.log(b) - s.log(b)) / (length as f64 - 1f64);
+    let step: f64 = (e - s) / (length as f64 - 1f64);
 
     let mut v: Vec<f64> = vec![0f64; length];
 
     for i in 0..length {
-        v[i] = s * b.powf(step * (i as f64));
+        v[i] = b.powf(s + step * (i as f64));
     }
     v
 }
