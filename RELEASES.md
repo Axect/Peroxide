@@ -1,3 +1,8 @@
+# Release 0.31.2 (2022-05-29)
+
+* Fix assertion of `util::non_macro::seq`
+* Implement numpy like `logspace`
+
 # Release 0.31.1 (2022-05-24)
 
 * Fix a bug in `spread` of DataFrame
