@@ -122,7 +122,11 @@ where
     S: Into<f64> + Copy,
     T: Into<f64> + Copy,
 {
-    let step: f64 = (end.into() - start.into()) / (length as f64 - 1f64);
+    let step: f64 = if length > 1 {
+        (end.into() - start.into()) / (length as f64 - 1f64)
+    } else {
+        0f64
+    };
     seq(start, end, step)
 }
 
@@ -137,6 +141,9 @@ where
 ///     let a = logspace(0, 10, 11, 2);
 ///     let b = vec![1f64, 2f64, 4f64, 8f64, 16f64, 32f64, 64f64, 128f64, 256f64, 512f64, 1024f64];
 ///     assert_eq!(a, b);
+/// 
+///     let single = logspace(0f64, 0f64, 1, 10);
+///     assert_eq!(single, vec![1f64]);
 /// }
 /// ```
 pub fn logspace<S, T, U>(start: S, end: T, length: usize, base: U) -> Vec<f64>
@@ -151,7 +158,11 @@ where
 
     assert!(e >= s);
 
-    let step: f64 = (e - s) / (length as f64 - 1f64);
+    let step: f64 = if length > 1 { 
+        (e - s) / (length as f64 - 1f64)
+    } else {
+        0f64
+    };
 
     let mut v: Vec<f64> = vec![0f64; length];
 
