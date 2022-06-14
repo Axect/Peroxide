@@ -1,3 +1,7 @@
+# Release 0.31.4 (2022-06-15)
+
+* Fix bug in `rref` ([#50](https://github.com/Axect/Peroxide/pull/50))
+
 # Release 0.31.3 (2022-05-29)
 
 * Fix bug in `linspace` and `logspace`
