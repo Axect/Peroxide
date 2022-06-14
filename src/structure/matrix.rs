@@ -3302,7 +3302,7 @@ impl LinearAlgebra for Matrix {
     fn rref(&self) -> Matrix {
         let mut lead = 0usize;
         let mut result = self.clone();
-        for r in 0..self.row {
+        'outer: for r in 0..self.row {
             if self.col <= lead {
                 break;
             }
@@ -3313,7 +3313,7 @@ impl LinearAlgebra for Matrix {
                     i = r;
                     lead += 1;
                     if self.col == lead {
-                        break;
+                        break 'outer;
                     }
                 }
             }
