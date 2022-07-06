@@ -223,7 +223,10 @@ use std::ops::{Index, IndexMut};
 use std::cmp::{max, min};
 #[cfg(any(feature="csv", feature="nc"))]
 use std::error::Error;
-use crate::util::useful::tab;
+use crate::util::{
+    useful::tab,
+    print::LowerExpWithPlus,
+};
 use crate::traits::math::Vector;
 use DType::{
     USIZE,U8,U16,U32,U64,
@@ -606,7 +609,7 @@ macro_rules! set_space {
         match $elem.dtype {
             F32 => {
                 let elem: f32 = $elem.unwrap();
-                let st1 = format!("{:.2e}", elem);
+                let st1 = elem.fmt_lower_exp(2);
                 let st2 = elem.to_string();
 
                 if st1.len() < st2.len() {
@@ -617,7 +620,7 @@ macro_rules! set_space {
             }
             F64 => {
                 let elem: f64 = $elem.unwrap();
-                let st1 = format!("{:.2e}", elem);
+                let st1 = elem.fmt_lower_exp(2);
                 let st2 = elem.to_string();
 
                 if st1.len() < st2.len() {
@@ -636,14 +639,14 @@ macro_rules! set_space {
                 let elem: f32 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(format!("{:.2e}", elem).len(), elem.to_string().len())
+                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len())
                 );
             }
             F64 => {
                 let elem: f64 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(format!("{:.2e}", elem).len(), elem.to_string().len())
+                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len())
                 );
             }
             _ => {
@@ -658,7 +661,7 @@ macro_rules! format_float_vec {
         let mut result = String::new();
         result.push_str("[");
         for i in 0 .. $self.len() {
-            let st1 = format!("{:.2e}", $self[i]);
+            let st1 = $self[i].fmt_lower_exp(2);
             let st2 = $self[i].to_string();
             let st = if st1.len() < st2.len() {
                 st1
