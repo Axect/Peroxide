@@ -10,7 +10,7 @@ use crate::structure::{
     dataframe::{DataFrame, DTypeArray, Series, Scalar, DType},
 };
 use rand::distributions::uniform::SampleUniform;
-use std::fmt::Debug;
+use std::fmt::{Debug, LowerExp, UpperExp};
 
 pub trait Printable {
     fn print(&self);
@@ -417,6 +417,64 @@ impl Printable for AD {
         println!("{}", self)
     }
 }
+
+/// Format float number into lower exponent notation with '+' sign
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let x = 123.456;
+///     assert_eq!(x.fmt_lower_exp(2), "1.23e+2");
+/// }
+/// ```
+pub trait LowerExpWithPlus: LowerExp {
+    fn fmt_lower_exp(&self, precision: usize) -> String {
+        let mut s = format!("{:.p$e}", self, p=precision);
+        let s_old = s.clone();
+        let mut e = s.split_off(s.find('e').unwrap());
+        if e.starts_with("e-") {
+            s_old
+        } else {
+            e.insert(1, '+');
+            format!("{}{}", s, e)
+        }
+    }
+}
+
+impl LowerExpWithPlus for f32 {}
+impl LowerExpWithPlus for f64 {}
+
+/// Format float number into upper exponent notation with '+' sign
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let x = 123.456;
+///     assert_eq!(x.fmt_upper_exp(2), "1.23E+2");
+/// }
+/// ```
+pub trait UpperExpWithPlus: UpperExp {
+    fn fmt_upper_exp(&self, precision: usize) -> String {
+        let mut s = format!("{:.p$E}", self, p=precision);
+        let s_old = s.clone();
+        let mut e = s.split_off(s.find('E').unwrap());
+        if e.starts_with("E-") {
+            s_old
+        } else {
+            e.insert(1, '+');
+            format!("{}{}", s, e)
+        }
+    }
+}
+
+impl UpperExpWithPlus for f32 {}
+impl UpperExpWithPlus for f64 {}
 
 //impl<A: Array<Item=f64>> Printable for AD<A> {
 //    fn print(&self) {

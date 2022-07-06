@@ -1,3 +1,11 @@
+# Release 0.31.5 (2022-07-06)
+
+* New trait - `LowerExpWithPlus`, `UpperExpWithPlus`
+    * Now, we can print `132.45` as `1.3245e+2` via `132.45.fmt_lower_exp(4)`
+    * Now, we can print `132.45` as `1.3245E+2` via `132.45.fmt_upper_exp(4)`
+* Change print scheme of `DataFrame`
+    * Now, floating number in DataFrame is printed by `fmt_lower_exp(2)`
+
 # Release 0.31.4 (2022-06-15)
 
 * Fix bug in `rref` ([#50](https://github.com/Axect/Peroxide/pull/50))
