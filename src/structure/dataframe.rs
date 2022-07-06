@@ -606,7 +606,7 @@ macro_rules! set_space {
         match $elem.dtype {
             F32 => {
                 let elem: f32 = $elem.unwrap();
-                let st1 = format!("{:.4}", elem);
+                let st1 = format!("{:.2e}", elem);
                 let st2 = elem.to_string();
 
                 if st1.len() < st2.len() {
@@ -617,7 +617,7 @@ macro_rules! set_space {
             }
             F64 => {
                 let elem: f64 = $elem.unwrap();
-                let st1 = format!("{:.4}", elem);
+                let st1 = format!("{:.2e}", elem);
                 let st2 = elem.to_string();
 
                 if st1.len() < st2.len() {
@@ -636,14 +636,14 @@ macro_rules! set_space {
                 let elem: f32 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                    min(format!("{:.2e}", elem).len(), elem.to_string().len())
                 );
             }
             F64 => {
                 let elem: f64 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(format!("{:.4}", elem).len(), elem.to_string().len())
+                    min(format!("{:.2e}", elem).len(), elem.to_string().len())
                 );
             }
             _ => {
@@ -658,7 +658,7 @@ macro_rules! format_float_vec {
         let mut result = String::new();
         result.push_str("[");
         for i in 0 .. $self.len() {
-            let st1 = format!("{:.4}", $self[i]);
+            let st1 = format!("{:.2e}", $self[i]);
             let st2 = $self[i].to_string();
             let st = if st1.len() < st2.len() {
                 st1
