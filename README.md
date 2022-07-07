@@ -300,7 +300,7 @@ Corresponding to `0.30.11`
     - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
     - [root.rs](src/numerical/root.rs) : Root finding
-    - [spline.rs](src/numerical/spline.rs) : Natural Spline
+    - [spline.rs](src/numerical/spline.rs) : Cubic spline & Cubic Hermite spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
   - __prelude__ : Prelude for using simple
     - [mod.rs](src/prelude/mod.rs)
@@ -364,3 +364,7 @@ See [CONTRIBUTES.md](./CONTRIBUTES.md)
 ## TODO
 
 To see [TODO.md](./TODO.md)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Axect/Peroxide&type=Date)](https://star-history.com/#Axect/Peroxide&Date)
