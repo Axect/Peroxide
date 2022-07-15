@@ -15,6 +15,8 @@
 //! * `fn polynomial_at<T>(&self, x: T) -> &Polynomial` : Get the polynomial at x
 //! * `fn number_of_polynomials(&self) -> usize` : Get the number of polynomials
 //! * `fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)>` : Get the polynomials
+//! * `fn eval_with_cond<F>(&self, x: f64, cond: F) -> f64` : Evaluate the spline at x, with a condition
+//! * `fn eval_vec_with_cond<F>(&self, v: &[f64], cond: F) -> Vec<f64>` : Evaluate spline values for an array v, with a condition
 //! 
 //! # Low-level interface
 //! 
@@ -255,6 +257,14 @@ pub trait Spline {
     }
 
     fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)>;
+
+    fn eval_with_cond<F: Fn(f64) -> f64>(&self, x: f64, cond: F) -> f64 {
+        cond(self.eval(x))
+    }
+
+    fn eval_vec_with_cond<F: Fn(f64) -> f64 + Copy>(&self, x: &[f64], cond: F) -> Vec<f64> {
+        x.iter().map(|&x| self.eval_with_cond(x, cond)).collect()
+    }
 }
 
 // =============================================================================
