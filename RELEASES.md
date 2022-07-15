@@ -1,3 +1,9 @@
+# Release 0.31.6 (2022-07-15)
+
+* Add `*_with_cond` for `Spline` trait (See [Truncated Cubic - Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery/tree/master/Numeric/truncated_cubic) for an example)
+    * `eval_with_cond<F: Fn(f64) -> f64>(&self, x: f64, cond: F) -> f64` : Evaluate with custom condition
+    * `eval_vec_with_cond<F: Fn(f64) -> f64 + Copy>(&self, v: [&f64], cond: F) -> f64` : Evaluate vector with custom condition
+
 # Release 0.31.5 (2022-07-06)
 
 * New trait - `LowerExpWithPlus`, `UpperExpWithPlus`
