@@ -189,7 +189,7 @@ macro_rules! format_float_vec {
         let mut result = String::new();
         result.push_str("[");
         for i in 0 .. $self.len() {
-            let st1 = format!("{:.4}", $self[i]);
+            let st1 = $self[i].fmt_lower_exp(2);
             let st2 = $self[i].to_string();
             let st = if st1.len() < st2.len() {
                 st1
