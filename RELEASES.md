@@ -1,3 +1,9 @@
+# Release 0.31.7 (2022-09-21)
+
+* Fix bug in `linspace` ([#51](https://github.com/Axect/Peroxide/issues/51))
+* Change print scheme of `Vec<float>`
+    * Now, floating number in `Vec` is printed by `fmt_lower_exp(2)`
+
 # Release 0.31.6 (2022-07-15)
 
 * Add `*_with_cond` for `Spline` trait (See [Truncated Cubic - Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery/tree/master/Numeric/truncated_cubic) for an example)
