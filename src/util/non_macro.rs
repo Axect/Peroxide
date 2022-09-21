@@ -127,7 +127,15 @@ where
     } else {
         0f64
     };
-    seq(start, end, step)
+
+    let mut v = vec![0f64; length];
+    v[0] = start.into();
+    v[length - 1] = end.into();
+
+    for i in 1..length - 1 {
+        v[i] = v[i - 1] + step;
+    }
+    v
 }
 
 /// Numpy like logspace
