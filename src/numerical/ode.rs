@@ -30,6 +30,7 @@
 //!         fn set_step_size(&mut self, dt: f64) -> &mut Self;
 //!         fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self;
 //!         fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
+//!         fn has_stopped(&self) -> bool;
 //!         fn set_times(&mut self, n: usize) -> &mut Self;
 //!         fn check_enough(&self) -> bool;
 //!         fn set_env(&mut self, env: E) -> &mut Self;
@@ -153,6 +154,7 @@
 //!     bound_cond1: (State<f64>, BoundaryCondition),
 //!     bound_cond2: (State<f64>, BoundaryCondition),
 //!     stop_cond: fn(&Self) -> bool,
+//!     has_stopped: bool,
 //!     times: usize,
 //!     to_use: HashMap<ODEOptions, bool>,
 //!     env: E,
@@ -165,6 +167,7 @@
 //! * `bound_cond1` : If boundary problem, then first boundary condition
 //! * `bound_cond2` : second boundary condition
 //! * `stop_cond` : Stop condition (stop before `times`)
+//! * `has_stopped`: Has the stop condition been reached
 //! * `times` : How many times do you want to update?
 //! * `to_use` : Just check whether information is enough
 //! * `env` : Environment
@@ -188,6 +191,7 @@
 //!     bound_cond1: (State<AD>, BoundaryCondition),
 //!     bound_cond2: (State<AD>, BoundaryCondition),
 //!     stop_cond: fn(&Self) -> bool,
+//!     has_stopped: bool,
 //!     times: usize,
 //!     to_use: HashMap<ODEOptions, bool>,
 //!     env: E,
@@ -284,14 +288,6 @@
 //! }
 //! ```
 //!
-//! If plotting pickle data with python, then
-//!
-//! ![Lorenz with Euler](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_euler.png)
-//!
-//! ![Lorenz with RK4](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_rk4.png)
-//!
-//! ![Lorenz with GL4](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/lorenz_gl4.png)
-//!
 //! ### Simple 1D Runge-Kutta
 //!
 //! $$\begin{gathered} \frac{dy}{dx} = \frac{5x^2 - y}{e^{x+y}} \\\ y(0) = 1 \end{gathered}$$
@@ -321,7 +317,49 @@
 //!     let x = st.param;
 //!     let y = &st.value;
 //!     let dy = &mut st.deriv;
-//!     dy[0] = (5f64*x.powi(2) - y[0]) / (x + y[0]).exp();
+//!     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+//! }
+//! ```
+//!
+//! ### With stop condition
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! 
+//! fn main() {
+//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+//! 
+//!     let mut ode_solver = ExplicitODE::new(test_fn);
+//! 
+//!     ode_solver
+//!         .set_method(ExMethod::RK4)
+//!         .set_initial_condition(init_state)
+//!         .set_step_size(0.01)
+//!         .set_stop_condition(stop)        // Add stop condition
+//!         .set_times(1000);
+//! 
+//!     let result = ode_solver.integrate();
+//!     if ode_solver.has_stopped() {
+//!         println!("It reached to stop condition");
+//!     } else {
+//!         println!("It didn't reach to stop condition");
+//!     }
+//! 
+//!     // Plot or Extract..
+//! }
+//! 
+//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
+//!     let x = st.param;
+//!     let y = &st.value;
+//!     let dy = &mut st.deriv;
+//!     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+//! }
+//! 
+//! fn stop<E: Environment>(st: &ExplicitODE<E>) -> bool {
+//!     let y = &st.get_state().value[0];
+//!     (*y - 2.4).abs() < 0.01
 //! }
 //! ```
 
@@ -331,7 +369,7 @@ use self::ImMethod::{BDF1, GL4};
 use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
 use crate::numerical::{spline::CubicSpline, utils::jacobian};
 use crate::structure::{
-    ad::{AD, ADVec, AD::*},
+    ad::{ADVec, AD, AD::*},
     matrix::{LinearAlgebra, Matrix},
     polynomial::Polynomial,
 };
@@ -475,6 +513,7 @@ pub trait ODE<E: Environment> {
     fn set_step_size(&mut self, dt: f64) -> &mut Self;
     fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self;
     fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
+    fn has_stopped(&self) -> bool;
     fn set_times(&mut self, n: usize) -> &mut Self;
     fn check_enough(&self) -> bool;
     fn set_env(&mut self, env: E) -> &mut Self;
@@ -490,6 +529,7 @@ pub struct ExplicitODE<E: Environment> {
     bound_cond1: (State<f64>, BoundaryCondition),
     bound_cond2: (State<f64>, BoundaryCondition),
     stop_cond: fn(&Self) -> bool,
+    has_stopped: bool,
     times: usize,
     options: HashMap<ODEOptions, bool>,
     env: E,
@@ -514,6 +554,7 @@ impl<E: Environment> ExplicitODE<E> {
             bound_cond1: (Default::default(), Dirichlet),
             bound_cond2: (Default::default(), Dirichlet),
             stop_cond: |_x| false,
+            has_stopped: false,
             times: 0,
             options: default_to_use,
             env: E::default(),
@@ -547,9 +588,9 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
                 //        blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
                 //    }
                 //    _ => {
-                        self.state
-                            .value
-                            .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
+                self.state
+                    .value
+                    .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
                 //    }
                 //}
                 self.state.param += dt;
@@ -604,9 +645,7 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
                     result.subs_row(i, &cat(self.state.param, &self.state.value));
                     key += 1;
                     if (self.stop_cond)(&self) {
-                        println!("Reach the stop condition!");
-                        print!("Current values are: ");
-                        cat(self.state.param, &self.state.value).print();
+                        self.has_stopped = true;
                         break;
                     }
                 }
@@ -666,6 +705,10 @@ impl<E: Environment> ODE<E> for ExplicitODE<E> {
         }
         self.stop_cond = f;
         self
+    }
+
+    fn has_stopped(&self) -> bool {
+        self.has_stopped
     }
 
     fn set_times(&mut self, n: usize) -> &mut Self {
@@ -749,6 +792,7 @@ pub struct ImplicitODE<E: Environment> {
     bound_cond1: (State<f64>, BoundaryCondition),
     bound_cond2: (State<f64>, BoundaryCondition),
     stop_cond: fn(&Self) -> bool,
+    has_stopped: bool,
     times: usize,
     options: HashMap<ODEOptions, bool>,
     env: E,
@@ -774,6 +818,7 @@ impl<E: Environment> ImplicitODE<E> {
             bound_cond1: (Default::default(), Dirichlet),
             bound_cond2: (Default::default(), Dirichlet),
             stop_cond: |_x| false,
+            has_stopped: false,
             times: 0,
             options: default_to_use,
             env: E::default(),
@@ -911,9 +956,7 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
                     );
                     key += 1;
                     if (self.stop_cond)(&self) {
-                        println!("Reach the stop condition!");
-                        print!("Current values are: ");
-                        cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()).print();
+                        self.has_stopped = true;
                         break;
                     }
                 }
@@ -976,6 +1019,10 @@ impl<E: Environment> ODE<E> for ImplicitODE<E> {
         }
         self.stop_cond = f;
         self
+    }
+
+    fn has_stopped(&self) -> bool {
+        self.has_stopped
     }
 
     fn set_times(&mut self, n: usize) -> &mut Self {
