@@ -1,3 +1,8 @@
+# Release 0.31.8 (2022-10-11)
+
+* Change debug procedure for stop condition of `ODE` ([#52](https://github.com/Axect/Peroxide/issues/52)) (Thanks to [@tchamelot](https://github.com/tchamelot))
+    * Add `fn has_stopped(&self) -> bool` for `ODE` struct
+
 # Release 0.31.7 (2022-09-21)
 
 * Fix bug in `linspace` ([#51](https://github.com/Axect/Peroxide/issues/51))
