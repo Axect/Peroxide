@@ -22,6 +22,7 @@ Peroxide provides various features.
 * `plot` - With matplotlib of python, we can draw any plots.
 * `nc` - To handle netcdf file format with DataFrame
 * `csv` - To handle csv file format with Matrix or DataFrame
+* `parquet` - To handle parquet file format with DataFrame
 * `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation and more linear algebra, then choose openblas feature.
@@ -198,6 +199,7 @@ Peroxide can do many things.
     * Support various types simultaneously
     * Read & Write `csv` files (`csv` feature)
     * Read & Write `netcdf` files (`nc` feature)
+    * Read & Write `parquet` files (`parquet` feature)
 
 ### 6. Compatible with Mathematics
 
@@ -215,7 +217,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.30.11`
+Corresponding to `0.32.0`
 
 ## Pre-requisite
 
@@ -225,56 +227,46 @@ Corresponding to `0.30.11`
 
 ## Install
 
-* Add next block to your `cargo.toml`
+* Run below commands in your project directory
 
 1. Default
-    ```toml
-   [dependencies]
-   peroxide = "0.30"
+    ```bash
+    cargo add peroxide
     ```
 2. OpenBLAS
-    ```toml
-   [dependencies.peroxide]
-   version = "0.30"
-   default-features = false
-   features = ["O3"] 
-   ```
+    ```bash
+    cargo add peroxide --features O3
+    ```
 3. Plot
-    ```toml
-   [dependencies.peroxide]
-   version = "0.30"
-   default-features = false
-   features = ["plot"] 
-   ```
+    ```bash
+    cargo add peroxide --features plot
+    ```
 4. NetCDF dependency for DataFrame
-    ```toml
-   [dependencies.peroxide]
-   version = "0.30"
-   default-features = false
-   features = ["nc"]
-   ```
+    ```bash
+    cargo add peroxide --features nc
+    ```
 5. CSV dependency for DataFrame
-    ```toml
-   [dependencies.peroxide]
-   version = "0.30"
-   default-features = false
-   features = ["csv"]
-   ```
-6. OpenBLAS & Plot & NetCDF
-    ```toml
-   [dependencies.peroxide]
-   version = "0.30"
-   default-features = false
-   features = ["O3", "plot", "nc", "csv"] 
-   ```
+    ```bash
+    cargo add peroxide --features csv
+    ```
+6. Parquet dependency for DataFrame
+    ```bash
+    cargo add peroxide --features parquet
+    ```
+7. All features
+    ```bash
+    cargo add peroxide --features "O3 plot nc csv parquet"
+    ```
+
 
 ## Useful tips for features
 
 * If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
-* If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
-* To plot, use `nc` feature to export data as netcdf format and use python to draw plot.
+* If you want to write your numerical results, then use `parquet` or `nc` features (corresponding to `parquet` or `netcdf` format. (It is much more effective than `csv` and `json`.)
+* To plot, use `parquet` or `nc` feature to export data as parquet or netcdf format and use python to draw plot.
     * `plot` feature has limited plot abilities.
-    * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
+    * To read parquet file in python, use `pandas` & `pyarrow` libraries.
+    * There is a template of python code for netcdf. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
 
 ## Module Structure
 
@@ -364,7 +356,3 @@ See [CONTRIBUTES.md](./CONTRIBUTES.md)
 ## TODO
 
 To see [TODO.md](./TODO.md)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Axect/Peroxide&type=Date)](https://star-history.com/#Axect/Peroxide&Date)

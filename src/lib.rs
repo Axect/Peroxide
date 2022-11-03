@@ -59,7 +59,7 @@
 //! * Communication with Python
 //!     * [Plot with `matplotlib`](util/plot/index.html)
 //! * [DataFrame](structure/dataframe/index.html)
-//!     * Read & Write with `netcdf` or `csv` format
+//!     * Read & Write with `parquet` or `netcdf` or `csv` format
 //! * Macros
 //!     * [R macros](macros/r_macro/index.html)
 //!     * [Matlab macros](macros/matlab_macro/index.html)
@@ -80,48 +80,35 @@
 //!
 //! ### Cargo.toml
 //!
-//! * To use `peroxide`, you should edit `Cargo.toml`
-//! * Current document version is corresponding to `0.30.11`
+//! * Run below commands in your project directory
 //!
 //! 1. Default
-//!     ```toml
-//!     [dependencies]
-//!     peroxide = "0.30"
+//!     ```bash
+//!     cargo add peroxide
 //!     ```
 //! 2. OpenBLAS
-//!     ```toml
-//!     [dependencies.peroxide]
-//!     version = "0.30"
-//!     default-features = false
-//!     features = ["O3"]
+//!     ```bash
+//!     cargo add peroxide --features O3
 //!     ```
 //! 3. Plot
-//!     ```toml
-//!     [dependencies.peroxide]
-//!     version = "0.30"
-//!     default-features = false
-//!     features = ["plot"]
+//!     ```bash
+//!     cargo add peroxide --features plot
 //!     ```
-//! 4. `netcdf` dependency for DataFrame
-//!     ```toml
-//!     [dependencies.peroxide]
-//!     version = "0.30"
-//!     default-features = false
-//!     features = ["nc"]
+//! 4. NetCDF dependency for DataFrame
+//!     ```bash
+//!     cargo add peroxide --features nc
 //!     ```
-//! 5. `csv` dependency for DataFrame
-//!     ```toml
-//!     [dependencies.peroxide]
-//!     version = "0.30"
-//!     default-features = false
-//!     features = ["csv"]
+//! 5. CSV dependency for DataFrame
+//!     ```bash
+//!     cargo add peroxide --features csv
 //!     ```
-//! 6. Together
-//!     ```toml
-//!     [dependencies.peroxide]
-//!     version = "0.30"
-//!     default-features = false
-//!     features = ["O3", "plot", "nc"]
+//! 6. Parquet dependency for DataFrame
+//!     ```bash
+//!     cargo add peroxide --features parquet
+//!     ```
+//! 7. All features
+//!     ```bash
+//!     cargo add peroxide --features "O3 plot nc csv parquet"
 //!     ```
 //!
 //! ## Import all at once
@@ -161,11 +148,12 @@
 //!
 //! * After `0.28.0`, `dataframe` feature is replaced by `nc` feature.
 //! * If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
-//! * If you want to write your numerical results, then use `nc` feature and `netcdf` format. (It is much more effective than `csv` and `json`.)
+//! * If you want to write your numerical results, then use `parquet` or `nc` features (corresponding to `parquet` or `netcdf` format. (It is much more effective than `csv` and `json`.)
 //! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
-//! * To plot, use `nc` feature to export data as netcdf format and use python to draw plot.
+//! * To plot, use `parquet` or `nc` feature to export data as parquet or netcdf format and use python to draw plot.
 //!     * `plot` feature has limited plot abilities.
-//!     * There is a template of python code. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
+//!     * To read parquet file in python, use `pandas` & `pyarrow` libraries.
+//!     * There is a template of python code for netcdf. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
 
 #[cfg(feature = "O3")]
 extern crate blas;

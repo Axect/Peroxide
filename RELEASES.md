@@ -1,3 +1,13 @@
+# Release 0.32.0 (2022-11-03)
+
+## DataFrame meets Parquet
+
+* Add `parquet` feature
+* Add `WithParquet` trait and implement it for `DataFrame`
+    * `fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>>`
+    * `fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>>`
+    * Update `DataFrame` docs
+
 # Release 0.31.8 (2022-10-11)
 
 * Change debug procedure for stop condition of `ODE` ([#52](https://github.com/Axect/Peroxide/issues/52)) (Thanks to [@tchamelot](https://github.com/tchamelot))

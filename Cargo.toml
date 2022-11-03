@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.31.8"
+version = "0.32.0"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -34,6 +34,7 @@ blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
+arrow2 = { version = "0.14", features = ["io_parquet", "io_parquet_compression"], optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
@@ -43,3 +44,4 @@ default = []
 O3 = ["blas", "lapack"]
 plot = ["pyo3"]
 nc = ["netcdf"]
+parquet = ["arrow2"]
