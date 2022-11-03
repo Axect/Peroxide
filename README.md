@@ -356,7 +356,3 @@ See [CONTRIBUTES.md](./CONTRIBUTES.md)
 ## TODO
 
 To see [TODO.md](./TODO.md)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Axect/Peroxide&type=Date)](https://star-history.com/#Axect/Peroxide&Date)
