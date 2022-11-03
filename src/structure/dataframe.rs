@@ -207,7 +207,46 @@
 //!
 //!         // Read netcdf
 //!         let mut dg = DataFrame::read_nc("example_data/doc_nc.nc")?;
-//!         dg[0].as_type(Char); // Char, Bool are only read/written as U8 type
+//!         dg["a"].as_type(Char); // Char, Bool are only read/written as U8 type
+//!
+//!         assert_eq!(df, dg);
+//!     #    }
+//!
+//!         Ok(())
+//!     }
+//!     ```
+//! 
+//! * `WithParquet` trait
+//! 
+//!     ```ignore
+//!     pub trait WithParquet: Sized {
+//!         fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+//!         fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>;
+//!     }
+//!     ```
+//! 
+//!     * `parquet` feature should be required
+//!     * `Char` is saved with `String` type. Thus, for reading `Char` type parquet file,
+//!     the output type is `String`.
+//!     * **Caution** : For different length `Bool` type column, missing values are filled with `false`.
+//!     ```
+//!     #[macro_use]
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!     
+//!     fn main() -> Result<(), Box<dyn Error>> {
+//!     #    #[cfg(feature = "parquet")]
+//!     #    {
+//!         // Write parquet
+//!         let mut df = DataFrame::new(vec![]);
+//!         df.push("a", Series::new(vec!['x', 'y', 'z']));
+//!         df.push("b", Series::new(vec![0, 1, 2]));
+//!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
+//!         df.write_parquet("example_data/doc_pq.parquet")?;
+//!
+//!         // Read parquet
+//!         let mut dg = DataFrame::read_parquet("example_data/doc_pq.parquet")?;
+//!         dg["a"].as_type(Char); // Char is only read/written as String type
 //!
 //!         assert_eq!(df, dg);
 //!     #    }
@@ -1802,6 +1841,7 @@ pub trait WithParquet {
 
 #[cfg(feature="parquet")]
 impl WithParquet for DataFrame {
+    /// Write DataFrame to parquet
     fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let file = std::fs::File::create(file_path)?;
 
@@ -1846,6 +1886,7 @@ impl WithParquet for DataFrame {
         Ok(())
     }
 
+    /// Read parquet to DataFrame
     fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized {
         let mut df = DataFrame::new(vec![]);
 
