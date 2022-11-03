@@ -207,7 +207,46 @@
 //!
 //!         // Read netcdf
 //!         let mut dg = DataFrame::read_nc("example_data/doc_nc.nc")?;
-//!         dg[0].as_type(Char); // Char, Bool are only read/written as U8 type
+//!         dg["a"].as_type(Char); // Char, Bool are only read/written as U8 type
+//!
+//!         assert_eq!(df, dg);
+//!     #    }
+//!
+//!         Ok(())
+//!     }
+//!     ```
+//! 
+//! * `WithParquet` trait
+//! 
+//!     ```ignore
+//!     pub trait WithParquet: Sized {
+//!         fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+//!         fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>;
+//!     }
+//!     ```
+//! 
+//!     * `parquet` feature should be required
+//!     * `Char` is saved with `String` type. Thus, for reading `Char` type parquet file,
+//!     the output type is `String`.
+//!     * **Caution** : For different length `Bool` type column, missing values are filled with `false`.
+//!     ```
+//!     #[macro_use]
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!     
+//!     fn main() -> Result<(), Box<dyn Error>> {
+//!     #    #[cfg(feature = "parquet")]
+//!     #    {
+//!         // Write parquet
+//!         let mut df = DataFrame::new(vec![]);
+//!         df.push("a", Series::new(vec!['x', 'y', 'z']));
+//!         df.push("b", Series::new(vec![0, 1, 2]));
+//!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
+//!         df.write_parquet("example_data/doc_pq.parquet")?;
+//!
+//!         // Read parquet
+//!         let mut dg = DataFrame::read_parquet("example_data/doc_pq.parquet")?;
+//!         dg["a"].as_type(Char); // Char is only read/written as String type
 //!
 //!         assert_eq!(df, dg);
 //!     #    }
@@ -221,7 +260,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
 use std::cmp::{max, min};
-#[cfg(any(feature="csv", feature="nc"))]
+#[cfg(any(feature="csv", feature="nc", feature="parquet"))]
 use std::error::Error;
 use crate::util::{
     useful::tab,
@@ -241,6 +280,31 @@ use netcdf::{
     types::VariableType,
     variable::{VariableMut, Variable},
     Numeric,
+};
+#[cfg(feature="parquet")]
+use arrow2::{
+    array::{
+        PrimitiveArray,
+        BooleanArray,
+        Utf8Array,
+        Array
+    },
+    chunk::Chunk,
+    datatypes::{Field, DataType, Schema},
+    types::NativeType,
+    io::parquet::write::{
+        WriteOptions,
+        CompressionOptions,
+        RowGroupIterator,
+        Version,
+        FileWriter,
+        Encoding
+    },
+    io::parquet::read::{
+        read_metadata,
+        infer_schema,
+        FileReader,
+    }
 };
 
 // =============================================================================
@@ -862,6 +926,98 @@ fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>
     Ok(Series::new(v.clone()))
 }
 
+#[cfg(feature="parquet")]
+fn dtype_to_arrow(dt: DType) -> DataType {
+    match dt {
+        USIZE => DataType::UInt64,
+        U8 => DataType::UInt8,
+        U16 => DataType::UInt16,
+        U32 => DataType::UInt32,
+        U64 => DataType::UInt64,
+        ISIZE => DataType::Int64,
+        I8 => DataType::Int8,
+        I16 => DataType::Int16,
+        I32 => DataType::Int32,
+        I64 => DataType::Int64,
+        F32 => DataType::Float32,
+        F64 => DataType::Float64,
+        Bool => DataType::Boolean,
+        Str => DataType::Utf8,
+        Char => DataType::Utf8,
+    }
+}
+
+#[cfg(feature="parquet")]
+fn arrow_to_dtype(dt: DataType) -> DType {
+    match dt {
+        DataType::Boolean => DType::Bool,
+        DataType::Int8 => DType::I8,
+        DataType::Int16 => DType::I16,
+        DataType::Int32 => DType::I32,
+        DataType::Int64 => DType::I64,
+        DataType::UInt8 => DType::U8,
+        DataType::UInt16 => DType::U16,
+        DataType::UInt32 => DType::U32,
+        DataType::UInt64 => DType::U64,
+        // DataType::Float16 => DType::F16,
+        DataType::Float32 => DType::F32,
+        DataType::Float64 => DType::F64,
+        DataType::Utf8 => DType::Str,
+        _ => unimplemented!()
+    }
+}
+
+#[cfg(feature="parquet")]
+macro_rules! dtype_case_to_arrow {
+    ($ty:ty, $to_arr:expr, $value:expr, $chunk_vec:expr; $length:expr) => {{
+        let v: Vec<$ty> = $value;
+        let v_wrap = (0usize..$length).map(|i| {
+            if i < v.len() {
+                Some(v[i].clone())
+            } else {
+                None
+            }
+        }).collect::<Vec<_>>();
+        let arr = $to_arr(v_wrap);
+        $chunk_vec.push(arr.boxed())
+    }}
+}
+
+#[cfg(feature="parquet")]
+macro_rules! dtype_match_to_arrow {
+    ($dtype:expr, $value:expr, $chunk_vec:expr; $length:expr) => {{
+        match $dtype {
+            Bool => dtype_case_to_arrow!(bool, BooleanArray::from, $value, $chunk_vec; $length),
+            Str => dtype_case_to_arrow!(String, Utf8Array::<i32>::from, $value, $chunk_vec; $length),
+            Char => {
+                let v: Vec<char> = $value;
+                let v = v.into_iter().map(|t| t.to_string()).collect::<Vec<_>>();
+                dtype_case_to_arrow!(String, Utf8Array::<i32>::from, v, $chunk_vec; $length)
+            }
+            USIZE => dtype_case_to_arrow!(u64, PrimitiveArray::from, $value, $chunk_vec; $length),
+            U8 => dtype_case_to_arrow!(u8, PrimitiveArray::from, $value, $chunk_vec; $length),
+            U16 => dtype_case_to_arrow!(u16, PrimitiveArray::from, $value, $chunk_vec; $length),
+            U32 => dtype_case_to_arrow!(u32, PrimitiveArray::from, $value, $chunk_vec; $length),
+            U64 => dtype_case_to_arrow!(u64, PrimitiveArray::from, $value, $chunk_vec; $length),
+            ISIZE => dtype_case_to_arrow!(i64, PrimitiveArray::from, $value, $chunk_vec; $length),
+            I8 => dtype_case_to_arrow!(i8, PrimitiveArray::from, $value, $chunk_vec; $length),
+            I16 => dtype_case_to_arrow!(i16, PrimitiveArray::from, $value, $chunk_vec; $length),
+            I32 => dtype_case_to_arrow!(i32, PrimitiveArray::from, $value, $chunk_vec; $length),
+            I64 => dtype_case_to_arrow!(i64, PrimitiveArray::from, $value, $chunk_vec; $length),
+            F32 => dtype_case_to_arrow!(f32, PrimitiveArray::from, $value, $chunk_vec; $length),
+            F64 => dtype_case_to_arrow!(f64, PrimitiveArray::from, $value, $chunk_vec; $length),
+        }
+    }};
+}
+
+#[cfg(feature= "parquet")]
+fn parquet_read_value<'f, T: Default + Clone + NativeType>(arr: &Box<dyn Array>, v: Vec<T>) -> Result<Series, arrow2::error::Error> where Series: TypedVector<T> {
+    let x = arr.as_any().downcast_ref::<PrimitiveArray<T>>().unwrap();
+    let x = x.values_iter().cloned().collect::<Vec<_>>();
+
+    Ok(Series::new(x))
+}
+
 fn add_vec<T: std::ops::Add<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
 where Series: TypedVector<T> {
     Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x + y).collect::<Vec<T>>())
@@ -876,48 +1032,6 @@ fn mul_scalar<T: std::ops::Mul<T, Output=T> + Clone + Copy>(v: Vec<T>, s: T) -> 
 where Series: TypedVector<T> {
     Series::new(v.into_iter().map(|x| x * s).collect::<Vec<T>>())
 }
-
-// fn map<T, F>(v: Vec<T>, f: F) -> Series
-// where Series: TypedVector<T>, F: Fn(Scalar) -> Scalar, Scalar: TypedScalar<T> {
-//     Series::new(v.into_iter().map(|x| f(Scalar::new(x)).unwrap()).collect::<Vec<T>>())
-// }
-//
-// fn reduce<T, F>(v: Vec<T>, f: F) -> Scalar
-// where Scalar: TypedScalar<T>, F: Fn(Scalar, Scalar) -> Scalar, T: Default {
-//     v.into_iter().fold(Scalar::new(T::default()), |x, y| f(x, Scalar::new(y)))
-// }
-//
-// fn zip_with<T, F>(v: Vec<T>, w: Vec<T>, f: F) -> Series
-// where Series: TypedVector<T>, F: Fn(Scalar, Scalar) -> Scalar, Scalar: TypedScalar<T> {
-//     Series::new(
-//         v.into_iter().zip(w.into_iter())
-//             .map(|(x, y)| f(Scalar::new(x), Scalar::new(y)).unwrap())
-//             .collect::<Vec<T>>()
-//     )
-// }
-//
-// fn filter<T, F>(v: Vec<T>, f: F) -> Series
-// where Series: TypedVector<T>, F: Fn(Scalar) -> bool, Scalar: TypedScalar<T>, T: Clone {
-//     Series::new(
-//         v.into_iter()
-//             .filter(|x| f(Scalar::new(x.clone())))
-//             .collect::<Vec<T>>()
-//     )
-// }
-//
-// fn take<T>(v: Vec<T>, n: usize) -> Series
-// where Series: TypedVector<T> {
-//     Series::new(
-//         v.into_iter().take(n).collect::<Vec<T>>()
-//     )
-// }
-//
-// fn skip<T>(v: Vec<T>, n: usize) -> Series
-//     where Series: TypedVector<T> {
-//     Series::new(
-//         v.into_iter().skip(n).collect::<Vec<T>>()
-//     )
-// }
 
 // =============================================================================
 // Implementations of DType variables
@@ -1716,4 +1830,110 @@ impl WithNetCDF for DataFrame {
         }
         Ok(df)
     }
+}
+
+#[cfg(feature="parquet")]
+pub trait WithParquet {
+    fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized;
+    // fn read_parquet_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> where Self: Sized;
+}
+
+#[cfg(feature="parquet")]
+impl WithParquet for DataFrame {
+    /// Write DataFrame to parquet
+    fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+        let file = std::fs::File::create(file_path)?;
+
+        let mut schema_vec = vec![];
+        let mut arr_vec = vec![];
+
+        let max_length = self.data.iter().fold(0usize, |acc, x| acc.max(x.len()));
+
+        for h in self.header().iter() {
+            let v = &self[h.as_str()];
+            let field = Field::new(h.as_str(), dtype_to_arrow(v.dtype), false);
+
+            dtype_match_to_arrow!(v.dtype, v.to_vec(), arr_vec; max_length);
+            schema_vec.push(field);
+        }
+
+        let schema = Schema::from(schema_vec);
+        let l = arr_vec.len();
+        let chunk = Chunk::new(arr_vec);
+        let encodings = (0 .. l).map(|_| vec![Encoding::Plain]).collect::<Vec<_>>();
+        let options = WriteOptions {
+            write_statistics: true,
+            compression: CompressionOptions::Snappy,
+            version: Version::V2,
+        };
+
+        let row_groups = RowGroupIterator::try_new(
+            vec![Ok(chunk)].into_iter(),
+            &schema,
+            options,
+            encodings,
+        )?;
+
+        let mut writer = FileWriter::try_new(file, schema, options)?;
+
+        for row_group in row_groups {
+            writer.write(row_group?)?;
+        }
+
+        let _ = writer.end(None)?;
+
+        Ok(())
+    }
+
+    /// Read parquet to DataFrame
+    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized {
+        let mut df = DataFrame::new(vec![]);
+
+        let mut reader = std::fs::File::open(file_path)?;
+        let metadata = read_metadata(&mut reader)?;
+        let schema = infer_schema(&metadata)?;
+        let fields = schema.fields.clone();
+
+        let row_groups = metadata.row_groups;
+        let chunks = FileReader::new(reader, row_groups, schema, None, None, None);
+
+        for may_chunk in chunks {
+            let chunk = may_chunk?;
+            let arrs = chunk.into_arrays();
+
+            for (field, arr) in fields.iter().zip(arrs.iter()) {
+                let h = &field.name;
+                let dt = field.data_type();
+                let at = arrow_to_dtype(dt.clone());
+                match at {
+                    dtype if dtype.is_numeric() => {
+                        let series = dtype_match!(N; dtype, vec![], |vec| parquet_read_value(arr, vec); Vec)?;
+                        df.push(h, series);
+                    }
+                    Bool => {
+                        let data = arr.as_any().downcast_ref::<BooleanArray>().unwrap();
+                        let data = data.values_iter().collect::<Vec<_>>();
+                        df.push(h, Series::new(data));
+                    }
+                    Char => {
+                        let data = arr.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
+                        let data = data.values_iter().map(|t| t.chars().next().unwrap()).collect::<Vec<_>>();
+                        df.push(&h, Series::new(data))
+                    }
+                    Str => {
+                        let data = arr.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
+                        let data = data.values_iter().map(|t| t.to_string()).collect::<Vec<_>>();
+                        df.push(&h, Series::new(data))
+                    }
+                    _ => unreachable!()
+                }
+            }
+        }
+        Ok(df)
+    }
+
+    // fn read_parquet_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> where Self: Sized {
+    //     todo!()
+    // }
 }

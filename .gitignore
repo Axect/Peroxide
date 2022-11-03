@@ -12,6 +12,7 @@ true/
 *.vs
 *.cdf
 *.json
+*.parquet
 example_data/*.csv
 example_data/*.nc
 *.mm_profdata
