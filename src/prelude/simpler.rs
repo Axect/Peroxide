@@ -1,5 +1,4 @@
 use std::error::Error;
-use arrow2::io::parquet::write::CompressionOptions;
 use crate::numerical::{
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
@@ -8,12 +7,13 @@ use crate::numerical::{
     spline,
     spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
-use crate::prelude::DataFrame;
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
 #[cfg(feature="parquet")]
-use crate::structure::dataframe::WithParquet;
+use crate::structure::dataframe::{DataFrame, WithParquet};
+#[cfg(feature="parquet")]
+use arrow2::io::parquet::write::CompressionOptions;
 
 /// Simple Norm
 pub trait SimpleNorm: Normed {
