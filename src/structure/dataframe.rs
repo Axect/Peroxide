@@ -242,7 +242,7 @@
 //!         df.push("a", Series::new(vec!['x', 'y', 'z']));
 //!         df.push("b", Series::new(vec![0, 1, 2]));
 //!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
-//!         df.write_parquet("example_data/doc_pq.parquet")?;
+//!         df.write_parquet("example_data/doc_pq.parquet", CompressionOptions::Uncompressed)?;
 //!
 //!         // Read parquet
 //!         let mut dg = DataFrame::read_parquet("example_data/doc_pq.parquet")?;
@@ -1832,6 +1832,7 @@ impl WithNetCDF for DataFrame {
     }
 }
 
+/// To handle parquet format
 #[cfg(feature="parquet")]
 pub trait WithParquet {
     fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>>;
