@@ -1,3 +1,5 @@
+use std::error::Error;
+use arrow2::io::parquet::write::CompressionOptions;
 use crate::numerical::{
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
@@ -6,9 +8,12 @@ use crate::numerical::{
     spline,
     spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
+use crate::prelude::DataFrame;
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
+#[cfg(feature="parquet")]
+use crate::structure::dataframe::WithParquet;
 
 /// Simple Norm
 pub trait SimpleNorm: Normed {
@@ -142,4 +147,22 @@ pub fn chebyshev_polynomial(n: usize) -> polynomial::Polynomial {
 
 pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> CubicHermiteSpline {
     spline::cubic_hermite_spline(node_x, node_y, Quadratic)
+}
+
+/// Simple handle parquet
+#[cfg(feature="parquet")]
+pub trait SimpleParquet: Sized {
+    fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>>;
+    fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>>;
+}
+
+#[cfg(feature="parquet")]
+impl SimpleParquet for DataFrame {
+    fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>> {
+        WithParquet::write_parquet(self, path, CompressionOptions::Uncompressed)
+    }
+
+    fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>> {
+        WithParquet::read_parquet(path)
+    }
 }

@@ -1834,7 +1834,7 @@ impl WithNetCDF for DataFrame {
 
 #[cfg(feature="parquet")]
 pub trait WithParquet {
-    fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+    fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>>;
     fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized;
     // fn read_parquet_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> where Self: Sized;
 }
@@ -1842,7 +1842,7 @@ pub trait WithParquet {
 #[cfg(feature="parquet")]
 impl WithParquet for DataFrame {
     /// Write DataFrame to parquet
-    fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
+    fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>> {
         let file = std::fs::File::create(file_path)?;
 
         let mut schema_vec = vec![];
@@ -1864,7 +1864,7 @@ impl WithParquet for DataFrame {
         let encodings = (0 .. l).map(|_| vec![Encoding::Plain]).collect::<Vec<_>>();
         let options = WriteOptions {
             write_statistics: true,
-            compression: CompressionOptions::Snappy,
+            compression,
             version: Version::V2,
         };
 
