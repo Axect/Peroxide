@@ -129,9 +129,16 @@ pub use crate::structure::{
     },
     polynomial::{Polynomial,poly,Calculus,lagrange_polynomial,legendre_polynomial},
     vector::*,
-    dataframe::*,
+    dataframe::{
+        DataFrame, DType, DTypeArray, DTypeValue, Series, Scalar, TypedScalar, TypedVector
+    },
     //complex::C64,
 };
+#[cfg(feature="csv")]
+pub use crate::structure::dataframe::WithCSV;
+
+#[cfg(feature="nc")]
+pub use crate::structure::dataframe::WithNetCDF;
 
 pub use simpler::{solve, SimplerLinearAlgebra};
 
@@ -156,3 +163,6 @@ pub use crate::numerical::{
 };
 
 pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline};
+
+#[cfg(feature="parquet")]
+pub use simpler::SimpleParquet;
