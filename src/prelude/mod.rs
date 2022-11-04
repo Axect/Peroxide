@@ -99,6 +99,48 @@
 //!     a.solve(&b).print();    // [1, 1]
 //! }
 //! ```
+//!
+//! * DataFrame with Parquet
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let x = seq(0, 1, 0.1);
+//!     let y = x.fmap(|t| t.powi(2));
+//!
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x", Series::new(x));
+//!     df.push("y", Series::new(y));
+//!
+//!     df.print();
+//!
+//!     # #[cfg(feature="parquet")] {
+//!     df.write_parquet("example_data/test.parquet", CompressionOptions::Uncompressed).unwrap();
+//!     # }
+//! }
+//! ```
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//!
+//! fn main() {
+//!     let x = seq(0, 1, 0.1);
+//!     let y = x.fmap(|t| t.powi(2));
+//!
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x", Series::new(x));
+//!     df.push("y", Series::new(y));
+//!
+//!     df.print();
+//!
+//!     # #[cfg(feature="parquet")] {
+//!     df.write_parquet("example_data/test.parquet").unwrap();
+//!     # }
+//! }
+//! ```
 
 #[allow(unused_imports)]
 pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
@@ -129,9 +171,16 @@ pub use crate::structure::{
     },
     polynomial::{Polynomial,poly,Calculus,lagrange_polynomial,legendre_polynomial},
     vector::*,
-    dataframe::*,
+    dataframe::{
+        DataFrame, DType, DTypeArray, DTypeValue, Series, Scalar, TypedScalar, TypedVector
+    },
     //complex::C64,
 };
+#[cfg(feature="csv")]
+pub use crate::structure::dataframe::WithCSV;
+
+#[cfg(feature="nc")]
+pub use crate::structure::dataframe::WithNetCDF;
 
 pub use simpler::{solve, SimplerLinearAlgebra};
 
@@ -156,3 +205,6 @@ pub use crate::numerical::{
 };
 
 pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline};
+
+#[cfg(feature="parquet")]
+pub use simpler::SimpleParquet;
