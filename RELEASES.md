@@ -1,3 +1,9 @@
+# Release 0.32.1 (2022-11-04)
+
+* Make an option for choosing compression method for parquet
+    * At `fuga` : `fn write_parquet(&self, path: &str, compression: CompressionOptions)`
+    * At `prelude` : `fn write_parquet(&self, path:&str)` (Default: `CompressionOptions::Uncompressed`)
+
 # Release 0.32.0 (2022-11-03)
 
 ## DataFrame meets Parquet

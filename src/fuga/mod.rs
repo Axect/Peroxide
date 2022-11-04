@@ -13,7 +13,7 @@
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
-//! // Then you can use everyting in peroxide.
+//! // Then you can use everything in peroxide.
 //! ```
 //!
 //! # Compare with `prelude`
@@ -101,6 +101,48 @@
 //!     let b = c!(3, 7);
 //!     // Prelude can only solve with LU
 //!     a.solve(&b).print();    // [1, 1]
+//! }
+//! ```
+//!
+//! * DataFrame with Parquet
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let x = seq(0, 1, 0.1);
+//!     let y = x.fmap(|t| t.powi(2));
+//!
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x", Series::new(x));
+//!     df.push("y", Series::new(y));
+//!
+//!     df.print();
+//!
+//!     # #[cfg(feature="parquet")] {
+//!     df.write_parquet("example_data/test.parquet", CompressionOptions::Uncompressed).unwrap();
+//!     # }
+//! }
+//! ```
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::prelude::*;
+//!
+//! fn main() {
+//!     let x = seq(0, 1, 0.1);
+//!     let y = x.fmap(|t| t.powi(2));
+//!
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("x", Series::new(x));
+//!     df.push("y", Series::new(y));
+//!
+//!     df.print();
+//!
+//!     # #[cfg(feature="parquet")] {
+//!     df.write_parquet("example_data/test.parquet").unwrap();
+//!     # }
 //! }
 //! ```
 

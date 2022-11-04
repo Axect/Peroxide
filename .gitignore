@@ -15,6 +15,7 @@ true/
 *.parquet
 example_data/*.csv
 example_data/*.nc
+example_data/*.parquet
 *.mm_profdata
 
 src/bin/*
