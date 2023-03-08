@@ -1,3 +1,7 @@
+# Release 0.33.0 (2023-03-08)
+
+* Delete `build.rs` to remove any explicit linkages to specific BLAS implementations ([#54](https://github.com/Axect/Peroxide/issues/54)) (Thanks to [@gfaster](https://github.com/gfaster))
+
 # Release 0.32.1 (2022-11-04)
 
 * Make an option for choosing compression method for parquet
