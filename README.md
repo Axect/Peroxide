@@ -18,16 +18,16 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 Peroxide provides various features.
 
 * `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* `O3` - OpenBLAS (Perfect performance but little bit hard to set-up - Strongly recommend to read [OpenBLAS for Rust](https://github.com/Axect/Issues/tree/master/Rust))
+* `O3` - BLAS & LAPACK (Perfect performance but little bit hard to set-up - Strongly recommend to look [Peroxide with BLAS](https://github.com/Axect/Peroxide_BLAS))
 * `plot` - With matplotlib of python, we can draw any plots.
 * `nc` - To handle netcdf file format with DataFrame
 * `csv` - To handle csv file format with Matrix or DataFrame
 * `parquet` - To handle parquet file format with DataFrame
 * `serde` - serialization with [Serde](https://serde.rs/).
 
-If you want to do high performance computation and more linear algebra, then choose openblas feature.
-If you don't want to depend C/C++ or Fortran libraries, then choose default feature.
-If you want to draw plot with some great templates, then choose plot feature.
+If you want to do high performance computation and more linear algebra, then choose `O3` feature.
+If you don't want to depend C/C++ or Fortran libraries, then choose `default` feature.
+If you want to draw plot with some great templates, then choose `plot` feature.
 
 You can choose any features simultaneously.
  
