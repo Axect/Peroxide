@@ -18,6 +18,7 @@
 //!     * [Statistical operations](statistics/stat/index.html)
 //!         * `mean, var, sd`
 //!         * `factorial, P, C, H`
+//!         * Confusion Matrix & metrics
 //!     * [Distributions](statistics/dist/index.html)
 //!         * Bernoulli
 //!         * Uniform
