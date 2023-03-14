@@ -107,6 +107,46 @@
 //!     }
 //! }
 //! ```
+//!
+//! ## Confusion Matrix
+//!
+//! * `ConfusionMatrix` is a struct to calculate confusion matrix
+//! * The reference is [here](https://en.wikipedia.org/wiki/Confusion_matrix)
+//!
+//! ### Example
+//!
+//! ```rust
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let y     = vec![1usize, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0];
+//!     let y_hat = vec![0usize, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0];
+//!     let true_val = 1usize;
+//!
+//!     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+//!     cm.print();
+//!     //         c[0]    c[1]
+//!     // r[0]       6       2
+//!     // r[1]       1       3
+//!
+//!     // to matrix
+//!     let cm_mat = cm.to_matrix();
+//!     
+//!     // Calculate accuracy
+//!     cm.ACC().print(); // 0.75
+//!
+//!     // Calculate TPR (Sensitivity or Recall)
+//!     cm.TPR().print(); // 0.6666....
+//!
+//!     // Calculate some metrics
+//!     let metrics = cm.calc_metrics(&[ACC, TPR, TNR, F1]);
+//!
+//!     // Print some metrics
+//!     cm.summary(&[ACC, TPR, TNR, F1]);
+//! }
+//! ```
+
+use std::fmt;
 
 use self::QType::*;
 //use crate::structure::dataframe::*;
@@ -434,7 +474,7 @@ pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {
 }
 
 // =============================================================================
-// Ordered Statistics (Use `order-stat`
+// Ordered Statistics (Use `order-stat`)
 // =============================================================================
 /// Trait for Ordered Statistics
 ///
@@ -525,4 +565,357 @@ fn quantile_mut(v: &mut [f64], q: f64, t: QType) -> f64 {
 pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
     let q_vec = vec![0.0, 0.25, 0.5, 0.75, 1.0];
     v.quantiles(q_vec, qtype)
+}
+
+// =============================================================================
+// Confusion Matrix
+// =============================================================================
+/// Confusion Matrix
+/// 
+/// * `TP` : True Positive
+/// * `TN` : True Negative
+/// * `FP` : False Positive
+/// * `FN` : False Negative
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let y           = vec![1usize, 1, 1, 0, 0, 0];
+///     let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
+///     let true_val    = 1usize;
+///
+///     // Create Confusion Matrix
+///     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+///
+///     // Print
+///     cm.print();
+///     //        c[0]  c[1]
+///     // r[0]  2.0000  1.0000
+///     // r[1]  1.0000  2.0000
+///
+///     // To Matrix
+///     let cm_mat = cm.to_matrix();
+///
+///     // Calculate Accuracy
+///     let acc = cm.ACC();
+///
+///     // Calculate for some metrics
+///     let metrics = cm.calc_metrics(&[ACC, TPR, FPR, F1]);
+///
+///     // Print summary for some metrics
+///     cm.summary(&[ACC, TPR, FPR, F1]);
+/// }
+/// ```
+#[allow(non_snake_case)]
+pub struct ConfusionMatrix {
+    pub TP: usize,
+    pub TN: usize,
+    pub FP: usize,
+    pub FN: usize,
+}
+
+impl ConfusionMatrix {
+    /// Create Confusion Matrix
+    /// 
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let y           = vec![1usize, 1, 1, 0, 0, 0];
+    ///     let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
+    ///     let true_val    = 1usize;
+    ///
+    ///     let true_val = 1usize;
+    ///     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+    ///     cm.print();
+    ///     //        c[0]  c[1]
+    ///     // r[0]  2.0000  1.0000
+    ///     // r[1]  1.0000  2.0000
+    /// }
+    /// ```
+    #[allow(non_snake_case)]
+    pub fn new<T: PartialEq + Clone + Copy>(y: &Vec<T>, y_hat: &Vec<T>, true_val: T) -> Self {
+        let mut TP = 0;
+        let mut TN = 0;
+        let mut FP = 0;
+        let mut FN = 0;
+
+        for (&y, &y_hat) in y.iter().zip(y_hat.iter()) {
+            if y == true_val && y_hat == true_val {
+                TP += 1;
+            } else if y != true_val && y_hat != true_val {
+                TN += 1;
+            } else if y != true_val && y_hat == true_val {
+                FP += 1;
+            } else if y == true_val && y_hat != true_val {
+                FN += 1;
+            }
+        }
+
+        Self {
+            TP,
+            TN,
+            FP,
+            FN,
+        }
+    }
+
+    /// Condition Positive
+    #[allow(non_snake_case)]
+    pub fn P(&self) -> usize {
+        self.TP + self.FN
+    }
+
+    /// Condition Negative
+    #[allow(non_snake_case)]
+    pub fn N(&self) -> usize {
+        self.TN + self.FP
+    }
+
+    /// True Positive Rate (Sensitivity, Recall, Hit-rate)
+    #[allow(non_snake_case)]
+    pub fn TPR(&self) -> f64 {
+        self.TP as f64 / (self.TP + self.FN) as f64
+    }
+
+    /// True Negative Rate (Specificity, Selectivity)
+    #[allow(non_snake_case)]
+    pub fn TNR(&self) -> f64 {
+        self.TN as f64 / (self.TN + self.FP) as f64
+    }
+
+    /// Positive Predictive Value (Precision)
+    #[allow(non_snake_case)]
+    pub fn PPV(&self) -> f64 {
+        self.TP as f64 / (self.TP + self.FP) as f64
+    }
+
+    /// Negative Predictive Value
+    #[allow(non_snake_case)]
+    pub fn NPV(&self) -> f64 {
+        self.TN as f64 / (self.TN + self.FN) as f64
+    }
+
+    /// False Negative Rate (Miss-rate)
+    #[allow(non_snake_case)]
+    pub fn FNR(&self) -> f64 {
+        self.FN as f64 / (self.FN + self.TP) as f64
+    }
+
+    /// False Positive Rate (Fall-out)
+    #[allow(non_snake_case)]
+    pub fn FPR(&self) -> f64 {
+        self.FP as f64 / (self.FP + self.TN) as f64
+    }
+
+    /// False Discovery Rate
+    #[allow(non_snake_case)]
+    pub fn FDR(&self) -> f64 {
+        self.FP as f64 / (self.FP + self.TP) as f64
+    }
+
+    /// False Omission Rate
+    #[allow(non_snake_case)]
+    pub fn FOR(&self) -> f64 {
+        self.FN as f64 / (self.FN + self.TN) as f64
+    }
+
+    /// Positive Likelihood Ratio
+    #[allow(non_snake_case)]
+    pub fn LR_plus(&self) -> f64 {
+        self.TPR() / self.FPR()
+    }
+
+    /// Negative Likelihood Ratio
+    #[allow(non_snake_case)]
+    pub fn LR_minus(&self) -> f64 {
+        self.FNR() / self.TNR()
+    }
+
+    /// Prevalence Threshold
+    #[allow(non_snake_case)]
+    pub fn PT(&self) -> f64 {
+        self.FPR().sqrt() / (self.TPR().sqrt() + self.FPR().sqrt())
+    }
+
+    /// Threat Score (Critical Success Index)
+    #[allow(non_snake_case)]
+    pub fn TS(&self) -> f64 {
+        self.TP as f64 / (self.TP + self.FP + self.FN) as f64
+    }
+
+    /// Prevalence
+    #[allow(non_snake_case)]
+    pub fn prevalence(&self) -> f64 {
+        self.P() as f64 / (self.P() + self.N()) as f64
+    }
+
+    /// Accuracy
+    #[allow(non_snake_case)]
+    pub fn ACC(&self) -> f64 {
+        (self.TP + self.TN) as f64 / (self.P() + self.N()) as f64
+    }
+
+    /// Balanced Accuracy
+    #[allow(non_snake_case)]
+    pub fn BA(&self) -> f64 {
+        (self.TPR() + self.TNR()) / 2f64
+    }
+
+    /// F1 Score
+    #[allow(non_snake_case)]
+    pub fn F1(&self) -> f64 {
+        2f64 * self.TP as f64 / (2f64 * self.TP as f64 + self.FP as f64 + self.FN as f64)
+    }
+
+    /// Matthews Correlation Coefficient (Phi Coefficient)
+    #[allow(non_snake_case)]
+    pub fn MCC(&self) -> f64 {
+        let a = self.TP as f64;
+        let b = self.FP as f64;
+        let c = self.FN as f64;
+        let d = self.TN as f64;
+        (a * d - b * c) / ((a + b) * (a + c) * (d + b) * (d + c)).sqrt()
+    }
+
+    /// Fowlkes-Mallows Index
+    #[allow(non_snake_case)]
+    pub fn FM(&self) -> f64 {
+        (self.PPV() * self.TPR()).sqrt()
+    }
+
+    /// Bookmaker Informedness (Informedness)
+    #[allow(non_snake_case)]
+    pub fn BM(&self) -> f64 {
+        self.TPR() + self.TNR() - 1f64
+    }
+
+    /// Markedness (deltaP)
+    #[allow(non_snake_case)]
+    pub fn MK(&self) -> f64 {
+        self.PPV() + self.NPV() - 1f64
+    }
+
+    /// Diagnostic Odds Ratio
+    #[allow(non_snake_case)]
+    pub fn DOR(&self) -> f64 {
+        self.LR_plus() / self.LR_minus()
+    }
+
+    /// To Matrix
+    pub fn to_matrix(&self) -> Matrix {
+        let mut m = matrix(vec![0f64; 4], 2, 2, Row);
+        m[(0,0)] = self.TP as f64;
+        m[(0,1)] = self.FP as f64;
+        m[(1,0)] = self.FN as f64;
+        m[(1,1)] = self.TN as f64;
+        m
+    }
+
+    /// Calculate a specific metric
+    pub fn calc_metric(&self, metric: Metric) -> f64 {
+        match metric {
+            Metric::TPR => self.TPR(),
+            Metric::TNR => self.TNR(),
+            Metric::PPV => self.PPV(),
+            Metric::NPV => self.NPV(),
+            Metric::FNR => self.FNR(),
+            Metric::FPR => self.FPR(),
+            Metric::FDR => self.FDR(),
+            Metric::FOR => self.FOR(),
+            Metric::LR_plus => self.LR_plus(),
+            Metric::LR_minus => self.LR_minus(),
+            Metric::PT => self.PT(),
+            Metric::TS => self.TS(),
+            Metric::prevalence => self.prevalence(),
+            Metric::ACC => self.ACC(),
+            Metric::BA => self.BA(),
+            Metric::F1 => self.F1(),
+            Metric::MCC => self.MCC(),
+            Metric::FM => self.FM(),
+            Metric::BM => self.BM(),
+            Metric::MK => self.MK(),
+            Metric::DOR => self.DOR(),
+        }
+    }
+
+    /// Calculate for some metrics
+    pub fn calc_metrics(&self, metrics: &[Metric]) -> Vec<f64> {
+        metrics.iter().map(|m| self.calc_metric(*m)).collect()
+    }
+
+    /// Summarize some metrics
+    pub fn summary(&self, metrics: &[Metric]) {
+        let width = metrics.iter().fold(0, |acc, m| {
+            if m.to_string().len() > acc {
+                m.to_string().len()
+            } else {
+                acc
+            }
+        });
+        println!("============================================================");
+        println!("Summary of metrics");
+        println!("============================================================");
+        for m in metrics {
+            println!("{:width$}:\t{:.4}", m.to_string(), self.calc_metric(*m));
+        }
+        println!("============================================================");
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Copy)]
+pub enum Metric {
+    TPR,
+    TNR,
+    PPV,
+    NPV,
+    FNR,
+    FPR,
+    FDR,
+    FOR,
+    LR_plus,
+    LR_minus,
+    PT,
+    TS,
+    prevalence,
+    ACC,
+    BA,
+    F1,
+    MCC,
+    FM,
+    BM,
+    MK,
+    DOR,
+}
+
+impl fmt::Display for Metric {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Metric::TPR => write!(f, "TPR"),
+            Metric::TNR => write!(f, "TNR"),
+            Metric::PPV => write!(f, "PPV"),
+            Metric::NPV => write!(f, "NPV"),
+            Metric::FNR => write!(f, "FNR"),
+            Metric::FPR => write!(f, "FPR"),
+            Metric::FDR => write!(f, "FDR"),
+            Metric::FOR => write!(f, "FOR"),
+            Metric::LR_plus => write!(f, "LR+"),
+            Metric::LR_minus => write!(f, "LR-"),
+            Metric::PT => write!(f, "PT"),
+            Metric::TS => write!(f, "TS"),
+            Metric::prevalence => write!(f, "prevalence"),
+            Metric::ACC => write!(f, "ACC"),
+            Metric::BA => write!(f, "BA"),
+            Metric::F1 => write!(f, "F1"),
+            Metric::MCC => write!(f, "MCC"),
+            Metric::FM => write!(f, "FM"),
+            Metric::BM => write!(f, "BM"),
+            Metric::MK => write!(f, "MK"),
+            Metric::DOR => write!(f, "DOR"),
+        }
+    }
 }

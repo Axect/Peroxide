@@ -1,3 +1,8 @@
+# Release 0.33.1 (2023-03-14)
+
+* Implement `ConfusionMatrix` in `statistics::stat`
+    * Implement all metrics in [wikipedia](https://en.wikipedia.org/wiki/Confusion_matrix)
+
 # Release 0.33.0 (2023-03-08)
 
 * Delete `build.rs` to remove any explicit linkages to specific BLAS implementations ([#54](https://github.com/Axect/Peroxide/issues/54)) (Thanks to [@gfaster](https://github.com/gfaster))
