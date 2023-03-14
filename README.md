@@ -186,6 +186,7 @@ Peroxide can do many things.
         * Marsaglia Polar
         * Ziggurat
         * Wrapper for `rand-dist` crate
+    * Confusion Matrix & Metrics
 * Special functions
     * Wrapper for `puruspe` crate (pure rust)
 * Utils
