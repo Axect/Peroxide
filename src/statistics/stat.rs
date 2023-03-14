@@ -849,12 +849,18 @@ impl ConfusionMatrix {
 
     /// Summarize some metrics
     pub fn summary(&self, metrics: &[Metric]) {
-        let max_str_len = metrics.iter().map(|m| m.to_string().len()).max().unwrap();
+        let width = metrics.iter().fold(0, |acc, m| {
+            if m.to_string().len() > acc {
+                m.to_string().len()
+            } else {
+                acc
+            }
+        });
         println!("============================================================");
         println!("Summary of metrics");
         println!("============================================================");
         for m in metrics {
-            println!("{:width$}: {:.4}", m, self.calc_metric(*m), width=max_str_len);
+            println!("{:width$}:\t{:.4}", m.to_string(), self.calc_metric(*m));
         }
         println!("============================================================");
     }

@@ -421,8 +421,6 @@ where F: Fn(f64) -> f64 + Copy {
         println!("Warning: some weights are zero");
     }
 
-    let mut iter_num = 0usize;
-
     let mut initial_x = w.sample(n);
     let mut left_num = n;
 
