@@ -206,5 +206,8 @@ pub use crate::numerical::{
 
 pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline};
 
+#[allow(unused_imports)]
+pub use crate::statistics::stat::Metric::*;
+
 #[cfg(feature="parquet")]
 pub use simpler::SimpleParquet;

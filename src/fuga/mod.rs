@@ -217,6 +217,7 @@ pub use crate::structure::matrix::{
 pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::ad::AD::*;
 pub use crate::numerical::spline::SlopeMethod::{Akima, Quadratic};
+pub use crate::statistics::stat::Metric::*;
 
 #[cfg(feature="parquet")]
 pub use arrow2::io::parquet::write::CompressionOptions;

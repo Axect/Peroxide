@@ -1,6 +1,7 @@
 //! Easy to print any structures
 
 use crate::statistics::dist::*;
+use crate::statistics::stat::ConfusionMatrix;
 #[allow(unused_imports)]
 use crate::structure::{
     ad::AD,
@@ -415,6 +416,12 @@ impl Printable for DataFrame {
 impl Printable for AD {
     fn print(&self) {
         println!("{}", self)
+    }
+}
+
+impl Printable for ConfusionMatrix {
+    fn print(&self) {
+        println!("{}", self.to_matrix())
     }
 }
 
