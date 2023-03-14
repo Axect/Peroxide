@@ -155,6 +155,7 @@
 //!     * `plot` feature has limited plot abilities.
 //!     * To read parquet file in python, use `pandas` & `pyarrow` libraries.
 //!     * There is a template of python code for netcdf. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "O3")]
 extern crate blas;
