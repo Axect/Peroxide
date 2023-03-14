@@ -107,6 +107,45 @@
 //!     }
 //! }
 //! ```
+//!
+//! ## Confusion Matrix
+//!
+//! * `ConfusionMatrix` is a struct to calculate confusion matrix
+//! * The reference is [here](https://en.wikipedia.org/wiki/Confusion_matrix)
+//!
+//! ### Example
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     let y     = c!(1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0);
+//!     let y_hat = c!(0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0);
+//!
+//!     let cm = ConfusionMatrix::new(&y, &y_hat);
+//!     cm.print();
+//!     //         c[0]    c[1]
+//!     // r[0]       6       2
+//!     // r[1]       1       3
+//!
+//!     // to matrix
+//!     let cm_mat = cm.to_matrix();
+//!     
+//!     // Calculate accuracy
+//!     cm.ACC().print(); // 0.75
+//!
+//!     // Calculate TPR (Sensitivity or Recall)
+//!     cm.TPR().print(); // 0.6666....
+//!
+//!     // Calculate some metrics
+//!     let metrics = cm.calc_metrics(&[ACC, TPR, TNR, F1]);
+//!
+//!     // Print some metrics
+//!     cm.summary(&[ACC, TPR, TNR, F1]);
+//! }
+//! ```
 
 use std::fmt;
 
@@ -548,11 +587,27 @@ pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
 /// fn main() {
 ///   let y = c!(1,1,1,0,0,0);
 ///   let y_hat = c!(1,0,1,0,0,1);
+///
+///   // Create Confusion Matrix
 ///   let cm = ConfusionMatrix::new(&y, &y_hat);
-///   cm.to_matrix.print();
+///
+///   // Print
+///   cm.print();
 ///   //        c[0]  c[1]
 ///   // r[0]  2.0000  1.0000
 ///   // r[1]  1.0000  2.0000
+///
+///   // To Matrix
+///   let cm_mat = cm.to_matrix();
+///
+///   // Calculate Accuracy
+///   let acc = cm.ACC();
+///
+///   // Calculate for some metrics
+///   let metrics = cm.calc_metrics(&[ACC, TPR, FPR, F1]);
+///
+///   // Print summary for some metrics
+///   cm.summary(&[ACC, TPR, FPR, F1]);
 /// }
 /// ```
 #[allow(non_snake_case)]
@@ -762,7 +817,7 @@ impl ConfusionMatrix {
     }
 
     /// Calculate a specific metric
-    pub fn calc_metric(&self, metric: &Metric) -> f64 {
+    pub fn calc_metric(&self, metric: Metric) -> f64 {
         match metric {
             Metric::TPR => self.TPR(),
             Metric::TNR => self.TNR(),
@@ -790,7 +845,7 @@ impl ConfusionMatrix {
 
     /// Calculate for some metrics
     pub fn calc_metrics(&self, metrics: &[Metric]) -> Vec<f64> {
-        metrics.iter().map(|m| self.calc_metric(m)).collect()
+        metrics.iter().map(|m| self.calc_metric(*m)).collect()
     }
 
     /// Summarize some metrics
@@ -800,7 +855,7 @@ impl ConfusionMatrix {
         println!("Summary of metrics");
         println!("============================================================");
         for m in metrics {
-            println!("{:width$}: {:.4}", m, self.calc_metric(m), width=max_str_len);
+            println!("{:width$}: {:.4}", m, self.calc_metric(*m), width=max_str_len);
         }
         println!("============================================================");
     }
