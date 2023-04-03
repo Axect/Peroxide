@@ -609,6 +609,7 @@ pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
 /// }
 /// ```
 #[allow(non_snake_case)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConfusionMatrix {
     pub TP: usize,
     pub TN: usize,
