@@ -1,3 +1,12 @@
+# Release 0.33.2 (2023-04-03)
+
+* Implement necessary traits for `ConfusionMatrix`
+    * `#[derive(Debug, Clone, PartialEq)]`
+* Bump up dependencies version
+    * `netcdf` : `0.7.0` -> `0.8.1`
+    * `arrow` : `0.14` -> `0.17.0`
+    * `pyo3`: `0.17` -> `0.18`
+
 # Release 0.33.1 (2023-03-14)
 
 * Implement `ConfusionMatrix` in `statistics::stat`
