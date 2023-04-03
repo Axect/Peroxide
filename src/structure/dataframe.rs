@@ -220,7 +220,7 @@
 //! 
 //!     ```ignore
 //!     pub trait WithParquet: Sized {
-//!         fn write_parquet(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
+//!         fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>>;
 //!         fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>;
 //!     }
 //!     ```
@@ -1867,6 +1867,7 @@ impl WithParquet for DataFrame {
             write_statistics: true,
             compression,
             version: Version::V2,
+            data_pagesize_limit: None,
         };
 
         let row_groups = RowGroupIterator::try_new(
