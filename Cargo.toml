@@ -37,7 +37,6 @@ json = { version = "0.12", optional = true }
 arrow2 = { version = "0.17", features = ["io_parquet", "io_parquet_compression"], optional = true }
 
 [package.metadata.docs.rs]
-all-features = true
 rustdoc-args = [ "--html-in-header", "katex-header.html", "--cfg", "docsrs"]
 
 [features]
