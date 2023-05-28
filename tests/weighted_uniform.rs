@@ -2,6 +2,15 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 #[test]
+fn test_weighted_unif() {
+    let intervals = vec![0f64, 1f64, 3f64];
+    let weights = vec![1f64, 2f64];
+    let unif = WeightedUniform::new(weights, intervals);
+    assert_eq!(unif.mean(), 1.5);
+    assert_eq!(unif.var(), 0.75);
+}
+
+#[test]
 fn test_max_pool_1d() {
     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-5);
     // w.weights().print();
