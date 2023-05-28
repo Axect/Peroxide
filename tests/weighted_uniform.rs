@@ -2,7 +2,7 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 #[test]
-fn test_weighted_unif() {
+fn test_stats() {
     let intervals = vec![0f64, 1f64, 3f64];
     let weights = vec![1f64, 2f64];
     let unif = WeightedUniform::new(weights, intervals);
