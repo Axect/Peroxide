@@ -1,3 +1,14 @@
+# Release 0.33.4 (2023-06-04)
+
+* Implement `Statistics` for `WeightedUniform` ([#55](https://github.com/Axect/Peroxide/pull/55)) (Thanks to [@samnaughtonb](https://github.com/samnaughtonb))
+* New trait: `FloatWithPrecision`
+    * `fn round_with_precision(&self, precision: usize) -> Self`
+    * `fn floor_with_precision(&self, precision: usize) -> Self`
+    * `fn ceil_with_precision(&self, precision: usize) -> Self`
+* New utils:
+    * `fn seq_with_precision(start, end, step, precision: usize) -> Vec<f64>`
+    * `fn linspace_with_precision(start, end, length, precision: usize) -> Vec<f64>`
+
 # Release 0.33.2 (2023-04-03)
 
 * Implement necessary traits for `ConfusionMatrix`
