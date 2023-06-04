@@ -6,3 +6,4 @@ pub mod num;
 pub mod pointer;
 pub mod stable;
 pub mod sugar;
+pub mod float;

@@ -774,18 +774,21 @@ impl Statistics for WeightedUniform<f64> {
     }
 
     fn var(&self) -> Self::Value {
-        todo!()
+        let mean = self.mean();
+        self.intervals().iter().zip(self.weights().iter())
+            .map(|((l, r), w)| w * (l*l + l*r + r*r) / 3f64)
+            .sum::<f64>() / self.sum - mean * mean
     }
 
     fn sd(&self) -> Self::Value {
-        todo!()
+        self.var().sqrt()
     }
 
     fn cov(&self) -> Self::Array {
-        todo!()
+        vec![self.var()]
     }
 
     fn cor(&self) -> Self::Array {
-        todo!()
+        vec![1f64]
     }
 }

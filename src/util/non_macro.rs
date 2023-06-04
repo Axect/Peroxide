@@ -6,6 +6,7 @@ use crate::structure::{
     matrix::Shape::{Col, Row},
     matrix::{matrix, Matrix, Shape},
 };
+use crate::traits::float::FloatWithPrecision;
 
 use std::convert::Into;
 
@@ -35,7 +36,7 @@ where
     assert!(e >= s);
 
     let factor: f64 = (e - s) / step;
-    let l: usize = factor as usize + 1;
+    let l: usize = factor.floor() as usize + 1;
     let mut v: Vec<f64> = vec![0f64; l];
 
     for i in 0..l {
@@ -133,7 +134,7 @@ where
     v[length - 1] = end.into();
 
     for i in 1..length - 1 {
-        v[i] = v[i - 1] + step;
+        v[i] = v[0] + step * (i as f64);
     }
     v
 }
@@ -266,4 +267,77 @@ pub fn rand(r: usize, c: usize) -> Matrix {
         }
     }
     m
+}
+
+/// Seq with Precision
+///
+/// # Example
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let x = seq(0, 1e-2, 1e-3);
+///     assert_ne!(x[9], 0.009);
+///
+///     let x = seq_with_precision(0, 1e-2, 1e-3, 3);
+///     assert_eq!(x[9], 0.009);
+/// }
+/// ```
+pub fn seq_with_precision<S, T, U>(start: S, end: T, step: U, precision: usize) -> Vec<f64>
+where
+    S: Into<f64> + Copy,
+    T: Into<f64> + Copy,
+    U: Into<f64> + Copy,
+{
+    let s = start.into();
+    let e = end.into();
+    let step = step.into();
+
+    assert!(e >= s);
+
+    let factor: f64 = (e - s) / step;
+    let l: usize = factor.floor() as usize + 1;
+    let mut v: Vec<f64> = vec![0f64; l];
+
+    for i in 0..l {
+        v[i] = (s + step * (i as f64)).round_with_precision(precision);
+    }
+    v
+}
+
+/// linspace with precision
+///
+/// # Example
+/// ```
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let x = linspace(0, 1e-2, 11);
+///     assert_ne!(x[9], 0.009);
+///
+///     let x = linspace_with_precision(0, 1e-2, 11, 3);
+///     assert_eq!(x[9], 0.009);
+/// }
+/// ```
+pub fn linspace_with_precision<S, T>(start: S, end: T, length: usize, precision: usize) -> Vec<f64>
+where
+    S: Into<f64> + Copy,
+    T: Into<f64> + Copy,
+{
+    let step: f64 = if length > 1 {
+        (end.into() - start.into()) / (length as f64 - 1f64)
+    } else {
+        0f64
+    };
+
+    let mut v = vec![0f64; length];
+    v[0] = start.into().round_with_precision(precision);
+    v[length - 1] = end.into().round_with_precision(precision);
+
+    for i in 1..length - 1 {
+        v[i] = (v[0] + step * (i as f64)).round_with_precision(precision);
+    }
+    v
 }
