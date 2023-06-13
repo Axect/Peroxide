@@ -12,6 +12,12 @@ pub enum Integral {
     G20K41(f64),
     G25K51(f64),
     G30K61(f64),
+    G7K15R(f64),
+    G10K21R(f64),
+    G15K31R(f64),
+    G20K41R(f64),
+    G25K51R(f64),
+    G30K61R(f64),
 }
 
 /// Numerical Integration
@@ -34,6 +40,13 @@ pub enum Integral {
 ///     * `G20K41`
 ///     * `G25K51`
 ///     * `G30K61`
+/// * Gauss-Kronrod Quarature with Relative Error
+///     * `G7K15R`
+///     * `G10K21R`
+///     * `G15K31R`
+///     * `G20K41R`
+///     * `G25K51R`
+///     * `G30K61R`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
     F: Fn(f64) -> f64 + Copy,
@@ -47,6 +60,12 @@ where
         Integral::G20K41(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G20K41(tol)),
         Integral::G25K51(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G25K51(tol)),
         Integral::G30K61(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G30K61(tol)),
+        Integral::G7K15R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G7K15R(tol)),
+        Integral::G10K21R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G10K21R(tol)),
+        Integral::G15K31R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G15K31R(tol)),
+        Integral::G20K41R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G20K41R(tol)),
+        Integral::G25K51R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G25K51R(tol)),
+        Integral::G30K61R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G30K61R(tol)),
     }
 }
 
@@ -111,6 +130,12 @@ where
         Integral::G20K41(tol) => (20, 41, tol),
         Integral::G25K51(tol) => (25, 51, tol),
         Integral::G30K61(tol) => (30, 61, tol),
+        Integral::G7K15R(tol) => (7, 15, tol),
+        Integral::G10K21R(tol) => (10, 21, tol),
+        Integral::G15K31R(tol) => (15, 31, tol),
+        Integral::G20K41R(tol) => (20, 41, tol),
+        Integral::G25K51R(tol) => (25, 51, tol),
+        Integral::G30K61R(tol) => (30, 61, tol),
         _ => panic!("Please input proper Gauss Kronrod order"),
     };
     loop {
@@ -119,6 +144,15 @@ where
                 let G = gauss_legendre_quadrature(f, g, (a, b));
                 let K = kronrod_quadrature(f, k, (a, b));
                 let m = (a + b) / 2f64;
+                let tol = match method {
+                    Integral::G7K15R(tol) => G.abs() * tol,
+                    Integral::G10K21R(tol) => G.abs() * tol,
+                    Integral::G15K31R(tol) => G.abs() * tol,
+                    Integral::G20K41R(tol) => G.abs() * tol,
+                    Integral::G25K51R(tol) => G.abs() * tol,
+                    Integral::G30K61R(tol) => G.abs() * tol,
+                    _ => tol,
+                };
                 if (G - K).abs() < tol || a == b {
                     I += G;
                 } else {
