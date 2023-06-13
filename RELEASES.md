@@ -1,3 +1,25 @@
+# Release 0.34.0 (2023-06-13)
+
+## Change Gauss-Kronrod quadrature 
+
+* Adapt max iteration number to Gauss-Kronrod quadrature
+    * Arguments of all methods related with Gauss-Kronrod quadrature are changed.
+    * e.g. `G7K15(1e-15)` -> `G7K15(1e-15, 20)` (20 is maximum iteration)
+
+* Example
+    ```rust
+    use peroxide::fuga::*;
+
+    fn main() {
+        let f_integral = integrate(f, (0f64, 1f64), G7K15R(1e-4, 20));
+        f_integral.print();
+    }
+
+    fn f(x: f64) -> f64 {
+        x.powi(2)
+    }
+    ```
+
 # Release 0.33.5 (2023-06-13)
 
 * Implement Gauss-Kronrod quarature with relative error
