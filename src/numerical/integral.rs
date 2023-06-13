@@ -225,25 +225,25 @@ where
     let tol = method.get_tol();
     let max_iter = method.get_max_iter();
     let mut I = 0f64;
-    let mut S: Vec<(f64, f64, u32)> = vec![];
-    S.push((a.into(), b.into(), max_iter));
+    let mut S: Vec<(f64, f64, f64, u32)> = vec![];
+    S.push((a.into(), b.into(), tol, max_iter));
 
     loop {
         match S.pop() {
-            Some((a, b, max_iter)) => {
+            Some((a, b, tol, max_iter)) => {
                 let G = gauss_legendre_quadrature(f, g as usize, (a, b));
                 let K = kronrod_quadrature(f, k as usize, (a, b));
                 let c = (a + b) / 2f64;
-                let tol = if method.is_relative() {
+                let tol_curr = if method.is_relative() {
                     tol * G
                 } else {
                     tol
                 };
-                if (G - K).abs() < tol || a == b || max_iter == 0 {
+                if (G - K).abs() < tol_curr || a == b || max_iter == 0 {
                     I += G;
                 } else {
-                    S.push((a, c, max_iter - 1));
-                    S.push((c, b, max_iter - 1));
+                    S.push((a, c, tol / 2f64, max_iter - 1));
+                    S.push((c, b, tol / 2f64, max_iter - 1));
                 }
             }
             None => break,
