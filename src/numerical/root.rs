@@ -114,6 +114,7 @@ pub enum RootFind {
 
 /// Structure for Root finding
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RootFinder<F: Fn(AD) -> AD> {
     init: RootState,
     curr: RootState,
