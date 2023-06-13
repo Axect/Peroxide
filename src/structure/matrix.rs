@@ -2794,6 +2794,7 @@ pub trait LinearAlgebra {
     fn waz(&self, d_form: Form) -> Option<WAZD>;
     fn qr(&self) -> QR;
     fn svd(&self) -> SVD;
+    #[cfg(feature = "O3")]
     fn cholesky(&self, uplo: UPLO) -> Matrix;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
@@ -3267,6 +3268,7 @@ impl LinearAlgebra for Matrix {
     ///     a.print();
     /// }
     /// ```
+    #[cfg(feature = "O3")]
     fn cholesky(&self, uplo: UPLO) -> Matrix {
         match () {
             #[cfg(feature = "O3")]

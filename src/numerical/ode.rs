@@ -379,10 +379,7 @@ use crate::traits::{
     mutable::MutFP,
     num::Real,
 };
-use crate::util::{
-    non_macro::{cat, concat, eye, zeros},
-    print::Printable,
-};
+use crate::util::non_macro::{cat, concat, eye, zeros};
 use std::collections::HashMap;
 //#[cfg(feature = "O3")]
 //use {blas_daxpy, blas_daxpy_return};

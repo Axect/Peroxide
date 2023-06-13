@@ -7,6 +7,7 @@ use crate::traits::math::LinearOp;
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
+#[cfg(feature="O3")]
 use crate::fuga::UPLO;
 
 #[derive(Debug, Clone)]
@@ -190,6 +191,7 @@ impl LinearAlgebra for SPMatrix {
         unimplemented!()
     }
 
+    #[cfg(feature="O3")]
     fn cholesky(&self, uplo: UPLO) -> Matrix {
         unimplemented!()
     }

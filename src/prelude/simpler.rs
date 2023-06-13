@@ -1,3 +1,4 @@
+#[cfg(feature="parquet")]
 use std::error::Error;
 use crate::numerical::{
     eigen,
@@ -34,6 +35,7 @@ pub trait SimplerLinearAlgebra {
     fn waz_diag(&self) -> Option<matrix::WAZD>;
     fn waz(&self) -> Option<matrix::WAZD>;
     fn qr(&self) -> matrix::QR;
+    #[cfg(feature="O3")]
     fn cholesky(&self) -> Matrix;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
@@ -125,6 +127,7 @@ impl SimplerLinearAlgebra for Matrix {
         matrix::LinearAlgebra::solve_mat(self, m, matrix::SolveKind::LU)
     }
 
+    #[cfg(feature="O3")]
     fn cholesky(&self) -> Matrix {
         matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
     }
