@@ -6,18 +6,130 @@ use crate::util::non_macro::seq;
 pub enum Integral {
     GaussLegendre(usize),
     NewtonCotes(usize),
-    G7K15(f64),
-    G10K21(f64),
-    G15K31(f64),
-    G20K41(f64),
-    G25K51(f64),
-    G30K61(f64),
-    G7K15R(f64),
-    G10K21R(f64),
-    G15K31R(f64),
-    G20K41R(f64),
-    G25K51R(f64),
-    G30K61R(f64),
+    G7K15(f64, u32),
+    G10K21(f64, u32),
+    G15K31(f64, u32),
+    G20K41(f64, u32),
+    G25K51(f64, u32),
+    G30K61(f64, u32),
+    G7K15R(f64, u32),
+    G10K21R(f64, u32),
+    G15K31R(f64, u32),
+    G20K41R(f64, u32),
+    G25K51R(f64, u32),
+    G30K61R(f64, u32),
+}
+
+impl Integral {
+    pub fn get_num_node(&self) -> usize {
+        match self {
+            Integral::GaussLegendre(n) => *n,
+            Integral::NewtonCotes(n) => *n,
+            _ => panic!("This method does not have a fixed number of nodes."),
+        }
+    }
+
+    pub fn get_tol(&self) -> f64 {
+        match self {
+            Integral::G7K15(tol, _) => *tol,
+            Integral::G10K21(tol, _) => *tol,
+            Integral::G15K31(tol, _) => *tol,
+            Integral::G20K41(tol, _) => *tol,
+            Integral::G25K51(tol, _) => *tol,
+            Integral::G30K61(tol, _) => *tol,
+            Integral::G7K15R(tol, _) => *tol,
+            Integral::G10K21R(tol, _) => *tol,
+            Integral::G15K31R(tol, _) => *tol,
+            Integral::G20K41R(tol, _) => *tol,
+            Integral::G25K51R(tol, _) => *tol,
+            Integral::G30K61R(tol, _) => *tol,
+            _ => panic!("This method does not have a tolerance."),
+        }
+    }
+
+    pub fn get_max_iter(&self) -> u32 {
+        match self {
+            Integral::G7K15(_, max_iter) => *max_iter,
+            Integral::G10K21(_, max_iter) => *max_iter,
+            Integral::G15K31(_, max_iter) => *max_iter,
+            Integral::G20K41(_, max_iter) => *max_iter,
+            Integral::G25K51(_, max_iter) => *max_iter,
+            Integral::G30K61(_, max_iter) => *max_iter,
+            Integral::G7K15R(_, max_iter) => *max_iter,
+            Integral::G10K21R(_, max_iter) => *max_iter,
+            Integral::G15K31R(_, max_iter) => *max_iter,
+            Integral::G20K41R(_, max_iter) => *max_iter,
+            Integral::G25K51R(_, max_iter) => *max_iter,
+            Integral::G30K61R(_, max_iter) => *max_iter,
+            _ => panic!("This method does not have a maximum number of iterations."),
+        }
+    }
+
+    pub fn get_gauss_kronrod_order(&self) -> (u8, u8) {
+        match self {
+            Integral::G7K15(_, _) => (7, 15),
+            Integral::G10K21(_, _) => (10, 21),
+            Integral::G15K31(_, _) => (15, 31),
+            Integral::G20K41(_, _) => (20, 41),
+            Integral::G25K51(_, _) => (25, 51),
+            Integral::G30K61(_, _) => (30, 61),
+            Integral::G7K15R(_, _) => (7, 15),
+            Integral::G10K21R(_, _) => (10, 21),
+            Integral::G15K31R(_, _) => (15, 31),
+            Integral::G20K41R(_, _) => (20, 41),
+            Integral::G25K51R(_, _) => (25, 51),
+            Integral::G30K61R(_, _) => (30, 61),
+            _ => panic!("This method does not have a Gauss-Kronrod order."),
+        }
+    }
+
+    pub fn is_relative(&self) -> bool {
+        match self {
+            Integral::G7K15R(_, _) => true,
+            Integral::G10K21R(_, _) => true,
+            Integral::G15K31R(_, _) => true,
+            Integral::G20K41R(_, _) => true,
+            Integral::G25K51R(_, _) => true,
+            Integral::G30K61R(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn change_tol(&self, tol: f64) -> Self {
+        match self {
+            Integral::G7K15(_, max_iter) => Integral::G7K15(tol, *max_iter),
+            Integral::G10K21(_, max_iter) => Integral::G10K21(tol, *max_iter),
+            Integral::G15K31(_, max_iter) => Integral::G15K31(tol, *max_iter),
+            Integral::G20K41(_, max_iter) => Integral::G20K41(tol, *max_iter),
+            Integral::G25K51(_, max_iter) => Integral::G25K51(tol, *max_iter),
+            Integral::G30K61(_, max_iter) => Integral::G30K61(tol, *max_iter),
+            Integral::G7K15R(_, max_iter) => Integral::G7K15R(tol, *max_iter),
+            Integral::G10K21R(_, max_iter) => Integral::G10K21R(tol, *max_iter),
+            Integral::G15K31R(_, max_iter) => Integral::G15K31R(tol, *max_iter),
+            Integral::G20K41R(_, max_iter) => Integral::G20K41R(tol, *max_iter),
+            Integral::G25K51R(_, max_iter) => Integral::G25K51R(tol, *max_iter),
+            Integral::G30K61R(_, max_iter) => Integral::G30K61R(tol, *max_iter),
+            _ => panic!("This method does not have a tolerance."),
+        }
+    }
+
+    pub fn change_max_iter(&self, max_iter: u32) -> Self {
+        match self {
+            Integral::G7K15(tol, _) => Integral::G7K15(*tol, max_iter),
+            Integral::G10K21(tol, _) => Integral::G10K21(*tol, max_iter),
+            Integral::G15K31(tol, _) => Integral::G15K31(*tol, max_iter),
+            Integral::G20K41(tol, _) => Integral::G20K41(*tol, max_iter),
+            Integral::G25K51(tol, _) => Integral::G25K51(*tol, max_iter),
+            Integral::G30K61(tol, _) => Integral::G30K61(*tol, max_iter),
+            Integral::G7K15R(tol, _) => Integral::G7K15R(*tol, max_iter),
+            Integral::G10K21R(tol, _) => Integral::G10K21R(*tol, max_iter),
+            Integral::G15K31R(tol, _) => Integral::G15K31R(*tol, max_iter),
+            Integral::G20K41R(tol, _) => Integral::G20K41R(*tol, max_iter),
+            Integral::G25K51R(tol, _) => Integral::G25K51R(*tol, max_iter),
+            Integral::G30K61R(tol, _) => Integral::G30K61R(*tol, max_iter),
+            _ => panic!("This method does not have a maximum number of iterations."),
+        }
+    }
 }
 
 /// Numerical Integration
@@ -34,14 +146,14 @@ pub enum Integral {
 /// * Gauss-Legendre Quadrature (up to order 30) : `GaussLegendre(usize)`
 /// * Newton-Cotes Quadrature: `NewtonCotes(usize)`
 /// * Gauss-Kronrod Quadrature
-///     * `G7K15`
+///     * `G7K15(tol, max_iter)`
 ///     * `G10K21`
 ///     * `G15K31`
 ///     * `G20K41`
 ///     * `G25K51`
 ///     * `G30K61`
 /// * Gauss-Kronrod Quarature with Relative Error
-///     * `G7K15R`
+///     * `G7K15R(rtol, max_iter)`
 ///     * `G10K21R`
 ///     * `G15K31R`
 ///     * `G20K41R`
@@ -54,18 +166,7 @@ where
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
-        Integral::G7K15(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G7K15(tol)),
-        Integral::G10K21(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G10K21(tol)),
-        Integral::G15K31(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G15K31(tol)),
-        Integral::G20K41(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G20K41(tol)),
-        Integral::G25K51(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G25K51(tol)),
-        Integral::G30K61(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G30K61(tol)),
-        Integral::G7K15R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G7K15R(tol)),
-        Integral::G10K21R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G10K21R(tol)),
-        Integral::G15K31R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G15K31R(tol)),
-        Integral::G20K41R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G20K41R(tol)),
-        Integral::G25K51R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G25K51R(tol)),
-        Integral::G30K61R(tol) => gauss_kronrod_quadrature(f, (a, b), Integral::G30K61R(tol)),
+        method => gauss_kronrod_quadrature(f, (a,b), method),
     }
 }
 
@@ -120,44 +221,29 @@ where
      T: Into<f64>,
      S: Into<f64>,
 {
+    let (g, k) = method.get_gauss_kronrod_order();
+    let tol = method.get_tol();
+    let max_iter = method.get_max_iter();
     let mut I = 0f64;
-    let mut S: Vec<(f64, f64)> = vec![];
-    S.push((a.into(), b.into()));
-    let (g, k, tol) = match method {
-        Integral::G7K15(tol) => (7, 15, tol),
-        Integral::G10K21(tol) => (10, 21, tol),
-        Integral::G15K31(tol) => (15, 31, tol),
-        Integral::G20K41(tol) => (20, 41, tol),
-        Integral::G25K51(tol) => (25, 51, tol),
-        Integral::G30K61(tol) => (30, 61, tol),
-        Integral::G7K15R(tol) => (7, 15, tol),
-        Integral::G10K21R(tol) => (10, 21, tol),
-        Integral::G15K31R(tol) => (15, 31, tol),
-        Integral::G20K41R(tol) => (20, 41, tol),
-        Integral::G25K51R(tol) => (25, 51, tol),
-        Integral::G30K61R(tol) => (30, 61, tol),
-        _ => panic!("Please input proper Gauss Kronrod order"),
-    };
+    let mut S: Vec<(f64, f64, u32)> = vec![];
+    S.push((a.into(), b.into(), max_iter));
+
     loop {
         match S.pop() {
-            Some((a, b)) => {
-                let G = gauss_legendre_quadrature(f, g, (a, b));
-                let K = kronrod_quadrature(f, k, (a, b));
-                let m = (a + b) / 2f64;
-                let tol = match method {
-                    Integral::G7K15R(tol) => G.abs() * tol,
-                    Integral::G10K21R(tol) => G.abs() * tol,
-                    Integral::G15K31R(tol) => G.abs() * tol,
-                    Integral::G20K41R(tol) => G.abs() * tol,
-                    Integral::G25K51R(tol) => G.abs() * tol,
-                    Integral::G30K61R(tol) => G.abs() * tol,
-                    _ => tol,
+            Some((a, b, max_iter)) => {
+                let G = gauss_legendre_quadrature(f, g as usize, (a, b));
+                let K = kronrod_quadrature(f, k as usize, (a, b));
+                let c = (a + b) / 2f64;
+                let tol = if method.is_relative() {
+                    tol * G
+                } else {
+                    tol
                 };
-                if (G - K).abs() < tol || a == b {
+                if (G - K).abs() < tol || a == b || max_iter == 0 {
                     I += G;
                 } else {
-                    S.push((a, m));
-                    S.push((m, b));
+                    S.push((a, c, max_iter - 1));
+                    S.push((c, b, max_iter - 1));
                 }
             }
             None => break,
