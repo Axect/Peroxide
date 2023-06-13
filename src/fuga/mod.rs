@@ -204,6 +204,12 @@ pub use crate::numerical::integral::Integral::{
     G20K41,
     G25K51,
     G30K61,
+    G7K15R,
+    G10K21R,
+    G15K31R,
+    G20K41R,
+    G25K51R,
+    G30K61R,
 };
 pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};
 pub use crate::statistics::stat::QType::{
