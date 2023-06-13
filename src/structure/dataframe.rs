@@ -255,7 +255,7 @@
 //!     }
 //!     ```
 
-#[cfg(any(feature="csv", feature="nc"))]
+#[cfg(feature="csv")]
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Index, IndexMut};
