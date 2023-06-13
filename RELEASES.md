@@ -1,3 +1,9 @@
+# Release 0.33.5 (2023-06-13)
+
+* Implement Gauss-Kronrod quarature with relative error
+    * `G7K15R`, `G10K21R`, `G15K31R`, `G20K41R`, `G25K51R`, `G30K61R` can be used.
+* Reduce warning messages
+
 # Release 0.33.4 (2023-06-04)
 
 * Implement `Statistics` for `WeightedUniform` ([#55](https://github.com/Axect/Peroxide/pull/55)) (Thanks to [@samnaughtonb](https://github.com/samnaughtonb))
