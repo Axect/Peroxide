@@ -70,7 +70,7 @@
 //! ### Uniform Distribution
 //!
 //! * Definition
-//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in [a,b]\\\ 0 & \text{otherwise} \end{cases}$$
+//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in \[a,b\]\\\ 0 & \text{otherwise} \end{cases}$$
 //! * Representative value
 //!     * Mean: $\frac{a + b}{2}$
 //!     * Var : $\frac{1}{12}(b-a)^2$
@@ -131,10 +131,10 @@
 //! ### Weighted Uniform Distribution
 //!
 //! * Definition
-//!    $$\text{WUnif}(x | \{w_i\}, \{I_i\}) = \frac{1}{\sum_{j=1}^n w_j \mu(I_i)} \sum_{i=1}^n w_i
+//!    $$\text{WUnif}(x | \mathbf{W}, \mathcal{I}) = \frac{1}{\sum_{j=1}^n w_j \mu(I_j)} \sum_{i=1}^n w_i
 //!    \mathbb{1}_{I_i}(x)$$
-//!    * $\{w_i\}$: Weights
-//!    * $\{I_i\}$: Intervals
+//!    * $\mathbf{W} = (w_i)$: Weights
+//!    * $\mathcal{I} = \\{I_i\\}$: Intervals
 //!    * $\mu(I_i)$: Measure of $I_i$
 //!    * $\mathbb{1}_{I_i}(x)$: Indicator function
 //!

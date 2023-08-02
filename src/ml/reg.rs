@@ -4,7 +4,7 @@ use crate::structure::polynomial::Polynomial;
 ///
 /// # Type
 ///
-/// (Vec<f64>, Vec<f64>) -> Polynomial
+/// `(Vec<f64>, Vec<f64>) -> Polynomial`
 ///
 /// # Examples
 /// ```

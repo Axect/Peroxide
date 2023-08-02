@@ -39,7 +39,7 @@
 //!     }
 //!     ```
 //!
-//! ## From ranges to Vec<f64>
+//! ## From ranges to `Vec<f64>`
 //!
 //! * For `R`, there is `seq` to declare sequence.
 //!
@@ -63,7 +63,7 @@
 //!     }
 //!     ```
 //!
-//! ## Vec<f64> Operation
+//! ## `Vec<f64>` Operation
 //!
 //! There are two ways to do vector operations.
 //!
@@ -113,9 +113,9 @@
 //!
 //! ## Conversion to Matrix
 //!
-//! There are two ways to convert Vec<f64> to matrix.
+//! There are two ways to convert `Vec<f64>` to `Matrix`.
 //!
-//! * `into(self) -> Matrix` : Vec<f64> to column matrix
+//! * `into(self) -> Matrix` : `Vec<f64>` to column matrix
 //!
 //!     ```rust
 //!     #[macro_use]
@@ -135,7 +135,7 @@
 //!
 //! # Functional Programming {#functional}
 //!
-//! ## FP for Vec<f64>
+//! ## FP for `Vec<f64>`
 //!
 //! * There are some functional programming tools for `Vec<f64>`
 //!
@@ -282,7 +282,7 @@ use std::convert;
 impl FPVector for Vec<f64> {
     type Scalar = f64;
 
-    /// fmap for Vec<f64>
+    /// fmap for `Vec<f64>`
     ///
     /// # Examples
     /// ```
@@ -304,7 +304,7 @@ impl FPVector for Vec<f64> {
         v
     }
 
-    /// reduce for Vec<f64>
+    /// reduce for `Vec<f64>`
     ///
     /// # Examples
     /// ```
@@ -335,7 +335,7 @@ impl FPVector for Vec<f64> {
             .collect::<Vec<f64>>()
     }
 
-    /// Filter for Vec<f64>
+    /// Filter for `Vec<f64>`
     ///
     /// # Examples
     /// ```
@@ -359,7 +359,7 @@ impl FPVector for Vec<f64> {
             .collect::<Vec<f64>>()
     }
 
-    /// Take for Vec<f64>
+    /// Take for `Vec<f64>`
     ///
     /// # Examples
     /// ```
@@ -381,7 +381,7 @@ impl FPVector for Vec<f64> {
         return v;
     }
 
-    /// Skip for Vec<f64>
+    /// Skip for `Vec<f64>`
     ///
     /// # Examples
     /// ```

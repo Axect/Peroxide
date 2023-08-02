@@ -321,7 +321,7 @@
 //!     }
 //!     ```
 //!
-//! ## Conversion to Vec<f64>
+//! ## Conversion to `Vec<f64>`
 //!
 //! * Just use `row` or `col` method (I already showed at Basic method section).
 //!
@@ -1718,21 +1718,21 @@ impl MatrixProduct for Matrix {
 // =============================================================================
 // Common Properties of Matrix & Vec<f64>
 // =============================================================================
-/// Matrix to Vec<f64>
+/// `Matrix` to `Vec<f64>`
 impl Into<Vec<f64>> for Matrix {
     fn into(self) -> Vec<f64> {
         self.data
     }
 }
 
-/// &Matrix to &Vec<f64>
+/// `&Matrix` to `&Vec<f64>`
 impl<'a> Into<&'a Vec<f64>> for &'a Matrix {
     fn into(self) -> &'a Vec<f64> {
         &self.data
     }
 }
 
-/// Vec<f64> to Matrix
+/// `Vec<f64>` to `Matrix`
 impl Into<Matrix> for Vec<f64> {
     fn into(self) -> Matrix {
         let l = self.len();
@@ -2374,7 +2374,7 @@ impl<'a, 'b> Mul<&'b Vec<f64>> for &'a Matrix {
     }
 }
 
-/// Matrix multiplication for Vec<f64> vs Matrix
+/// Matrix multiplication for `Vec<f64>` vs `Matrix`
 ///
 /// # Examples
 /// ```
