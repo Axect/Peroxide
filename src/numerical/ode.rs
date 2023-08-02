@@ -49,7 +49,7 @@
 //!         * `ImMethod` : Implicit method
 //!             * `BDF` : Backward Euler 1st order (To be fixed)
 //!             * `GL4` : Gauss Legendre 4th order
-//!     * `Environment` : External environment (CubicSpline, Vec<f64>, Matrix or Another external table)
+//!     * `Environment` : External environment (`CubicSpline`, `Vec<f64>`, `Matrix` or Another external table)
 //!
 //!
 //! ### `State<T>` structure
