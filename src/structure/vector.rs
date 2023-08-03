@@ -265,7 +265,7 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{daxpy, ddot, dnrm2, idamax};
+use blas::{daxpy, ddot, dnrm2, idamax, idamin};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
@@ -579,6 +579,93 @@ impl Algorithm for Vec<f64> {
                         }
                     })
                     .0
+            }
+        }
+    }
+
+    /// arg min
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let v = c!(1,3,2,4,3,7);
+    ///     assert_eq!(v.arg_min(),0);
+    ///
+    ///     let v2 = c!(4,3,2,5,1,6);
+    ///     assert_eq!(v2.arg_min(),4);
+    /// }
+    fn arg_min(&self) -> usize {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let idx: usize;
+                unsafe {
+                    idx = idamin(n_i32, self, 1) - 1;
+                }
+                idx
+            }
+            _ => {
+                self.into_iter()
+                    .enumerate()
+                    .fold((0usize, std::f64::MAX), |acc, (ics, &val)| {
+                        if acc.1 > val {
+                            (ics, val)
+                        } else {
+                            acc
+                        }
+                    })
+                    .0
+            }
+        }
+    }
+
+    fn max(&self) -> f64 {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let idx: usize;
+                unsafe {
+                    idx = idamax(n_i32, self, 1) - 1;
+                }
+                self[idx]
+            }
+            _ => {
+                self.into_iter().fold(std::f64::MIN, |acc, &val| {
+                    if acc < val {
+                        val
+                    } else {
+                        acc
+                    }
+                })
+            }
+        }
+    }
+
+    fn min(&self) -> f64 {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let n_i32 = self.len() as i32;
+                let idx: usize;
+                unsafe {
+                    idx = idamin(n_i32, self, 1) - 1;
+                }
+                self[idx]
+            }
+            _ => {
+                self.into_iter().fold(std::f64::MAX, |acc, &val| {
+                    if acc > val {
+                        val
+                    } else {
+                        acc
+                    }
+                })
             }
         }
     }
