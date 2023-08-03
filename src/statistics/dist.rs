@@ -805,14 +805,14 @@ impl Statistics for WeightedUniform<f64> {
 
     fn mean(&self) -> Self::Value {
         self.intervals().iter().zip(self.weights().iter())
-            .map(|((l, r), w)| (l+r)/2f64 * w)
+            .map(|((l, r), w)| (r.powi(2)-l.powi(2))/2f64 * w)
             .sum::<f64>() / self.sum
     }
 
     fn var(&self) -> Self::Value {
         let mean = self.mean();
         self.intervals().iter().zip(self.weights().iter())
-            .map(|((l, r), w)| w * (l*l + l*r + r*r) / 3f64)
+            .map(|((l, r), w)| w * (r.powi(3) - l.powi(3)) / 3f64)
             .sum::<f64>() / self.sum - mean * mean
     }
 

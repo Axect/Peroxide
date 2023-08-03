@@ -3,11 +3,11 @@ use peroxide::fuga::*;
 
 #[test]
 fn test_stats() {
-    let intervals = vec![0f64, 1f64, 3f64];
-    let weights = vec![1f64, 2f64];
+    let intervals = vec![0f64, 3f64, 6f64];
+    let weights = vec![2f64, 1f64];
     let unif = WeightedUniform::new(weights, intervals);
-    assert_eq!(unif.mean(), 1.5);
-    assert_eq!(unif.var(), 0.75);
+    assert_eq!(unif.mean(), 2.5);
+    assert_eq!(unif.var(), 2.75);
 }
 
 #[test]
