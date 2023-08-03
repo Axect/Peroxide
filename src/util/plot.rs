@@ -309,114 +309,113 @@ impl Plot for Plot2D {
         }
 
         // Plot
-        let gil = Python::acquire_gil();
-        let py = gil.python();
+        Python::with_gil(|py| {
+            // Input data
+            let x = self.domain.clone();
+            let ys = self.images.clone();
+            let pairs = self.pairs.clone();
+            let y_length = ys.len();
+            let pair_length = pairs.len();
+            let title = self.title.clone();
+            let fig_size = self.fig_size;
+            let dpi = self.dpi;
+            let grid = match self.grid {
+                On => true,
+                Off => false,
+            };
+            let xlabel = self.xlabel.clone();
+            let ylabel = self.ylabel.clone();
+            let legends = self.legends.clone();
+            let path = self.path.clone();
 
-        // Input data
-        let x = self.domain.clone();
-        let ys = self.images.clone();
-        let pairs = self.pairs.clone();
-        let y_length = ys.len();
-        let pair_length = pairs.len();
-        let title = self.title.clone();
-        let fig_size = self.fig_size;
-        let dpi = self.dpi;
-        let grid = match self.grid {
-            On => true,
-            Off => false,
-        };
-        let xlabel = self.xlabel.clone();
-        let ylabel = self.ylabel.clone();
-        let legends = self.legends.clone();
-        let path = self.path.clone();
+            // Global variables to plot
+            let globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py);
+            globals.set_item("x", x)?;
+            globals.set_item("y", ys)?;
+            globals.set_item("pair", pairs)?;
+            globals.set_item("n", y_length)?;
+            globals.set_item("p", pair_length)?;
+            globals.set_item("fs", fig_size)?;
+            globals.set_item("dp", dpi)?;
+            globals.set_item("gr", grid)?;
+            globals.set_item("pa", path)?;
 
-        // Global variables to plot
-        let globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py);
-        globals.set_item("x", x)?;
-        globals.set_item("y", ys)?;
-        globals.set_item("pair", pairs)?;
-        globals.set_item("n", y_length)?;
-        globals.set_item("p", pair_length)?;
-        globals.set_item("fs", fig_size)?;
-        globals.set_item("dp", dpi)?;
-        globals.set_item("gr", grid)?;
-        globals.set_item("pa", path)?;
+            // Plot Code
+            let mut plot_string = format!(
+                "\
+                plt.rc(\"text\", usetex=True)\n\
+                plt.rc(\"font\", family=\"serif\")\n\
+                plt.figure(figsize=fs, dpi=dp)\n\
+                plt.title(r\"{}\", fontsize=16)\n\
+                plt.xlabel(r\"{}\", fontsize=14)\n\
+                plt.ylabel(r\"{}\", fontsize=14)\n\
+                if gr:\n\
+                \tplt.grid()\n",
+                title, xlabel, ylabel
+            );
 
-        // Plot Code
-        let mut plot_string = format!(
-            "\
-             plt.rc(\"text\", usetex=True)\n\
-             plt.rc(\"font\", family=\"serif\")\n\
-             plt.figure(figsize=fs, dpi=dp)\n\
-             plt.title(r\"{}\", fontsize=16)\n\
-             plt.xlabel(r\"{}\", fontsize=14)\n\
-             plt.ylabel(r\"{}\", fontsize=14)\n\
-             if gr:\n\
-             \tplt.grid()\n",
-            title, xlabel, ylabel
-        );
-
-        if self.markers.len() == 0 {
-            for i in 0..y_length {
-                plot_string
-                    .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
-            }
-            for i in 0..pair_length {
-                plot_string.push_str(
-                    &format!(
-                        "plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n",
-                        i,
-                        i,
-                        legends[i + y_length]
-                    )[..],
-                )
-            }
-        } else {
-            for i in 0..y_length {
-                match self.markers[i] {
-                    Line => plot_string
-                        .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..]),
-                    Point => plot_string.push_str(
-                        &format!("plt.plot(x,y[{}],\".\",label=r\"{}\")\n", i, legends[i])[..],
-                    ),
-                    Circle => plot_string.push_str(
-                        &format!("plt.plot(x,y[{}],\"o\",label=r\"{}\")\n", i, legends[i])[..],
-                    ),
+            if self.markers.len() == 0 {
+                for i in 0..y_length {
+                    plot_string
+                        .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..])
                 }
-            }
-            for i in 0..pair_length {
-                match self.markers[i + y_length] {
-                    Line => plot_string.push_str(
+                for i in 0..pair_length {
+                    plot_string.push_str(
                         &format!(
                             "plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n",
                             i,
                             i,
                             legends[i + y_length]
                         )[..],
-                    ),
-                    Point => plot_string.push_str(
-                        &format!(
-                            "plt.plot(pair[{}][0],pair[{}][1],\".\",label=r\"{}\")\n",
-                            i,
-                            i,
-                            legends[i + y_length]
-                        )[..],
-                    ),
-                    Circle => plot_string.push_str(
-                        &format!(
-                            "plt.plot(pair[{}][0],pair[{}][1],\"o\",label=r\"{}\")\n",
-                            i,
-                            i,
-                            legends[i + y_length]
-                        )[..],
-                    ),
+                    )
+                }
+            } else {
+                for i in 0..y_length {
+                    match self.markers[i] {
+                        Line => plot_string
+                            .push_str(&format!("plt.plot(x,y[{}],label=r\"{}\")\n", i, legends[i])[..]),
+                        Point => plot_string.push_str(
+                            &format!("plt.plot(x,y[{}],\".\",label=r\"{}\")\n", i, legends[i])[..],
+                        ),
+                        Circle => plot_string.push_str(
+                            &format!("plt.plot(x,y[{}],\"o\",label=r\"{}\")\n", i, legends[i])[..],
+                        ),
+                    }
+                }
+                for i in 0..pair_length {
+                    match self.markers[i + y_length] {
+                        Line => plot_string.push_str(
+                            &format!(
+                                "plt.plot(pair[{}][0],pair[{}][1],label=r\"{}\")\n",
+                                i,
+                                i,
+                                legends[i + y_length]
+                            )[..],
+                        ),
+                        Point => plot_string.push_str(
+                            &format!(
+                                "plt.plot(pair[{}][0],pair[{}][1],\".\",label=r\"{}\")\n",
+                                i,
+                                i,
+                                legends[i + y_length]
+                            )[..],
+                        ),
+                        Circle => plot_string.push_str(
+                            &format!(
+                                "plt.plot(pair[{}][0],pair[{}][1],\"o\",label=r\"{}\")\n",
+                                i,
+                                i,
+                                legends[i + y_length]
+                            )[..],
+                        ),
+                    }
                 }
             }
-        }
 
-        plot_string.push_str("plt.legend(fontsize=12)\nplt.savefig(pa)");
+            plot_string.push_str("plt.legend(fontsize=12)\nplt.savefig(pa)");
 
-        py.run(&plot_string[..], Some(&globals), None)?;
-        Ok(())
+            py.run(&plot_string[..], Some(&globals), None)?;
+            Ok(())
+        })
     }
 }

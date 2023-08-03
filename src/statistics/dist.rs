@@ -70,7 +70,7 @@
 //! ### Uniform Distribution
 //!
 //! * Definition
-//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in [a,b]\\\ 0 & \text{otherwise} \end{cases}$$
+//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in \[a,b\]\\\ 0 & \text{otherwise} \end{cases}$$
 //! * Representative value
 //!     * Mean: $\frac{a + b}{2}$
 //!     * Var : $\frac{1}{12}(b-a)^2$
@@ -126,6 +126,20 @@
 //!
 //! ### Binomial Distribution
 //!
+//! ### Student's t Distribution
+//!
+//! ### Weighted Uniform Distribution
+//!
+//! * Definition
+//!    $$\text{WUnif}(x | \mathbf{W}, \mathcal{I}) = \frac{1}{\sum_{j=1}^n w_j \mu(I_j)} \sum_{i=1}^n w_i
+//!    \mathbb{1}_{I_i}(x)$$
+//!    * $\mathbf{W} = (w_i)$: Weights
+//!    * $\mathcal{I} = \\{I_i\\}$: Intervals
+//!    * $\mu(I_i)$: Measure of $I_i$
+//!    * $\mathbb{1}_{I_i}(x)$: Indicator function
+//!
+//! * Reference
+//!     * [Piecewise Rejection Sampling](https://axect.github.io/posts/006_prs/#22-weighted-uniform-distribution)
 
 extern crate rand;
 extern crate rand_distr;
@@ -208,7 +222,9 @@ impl WeightedUniform<f64> {
             }
         }
 
-        let sum = weights.iter().sum();
+        let sum = weights.iter()
+            .zip(intervals.iter())
+            .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
         
         WeightedUniform {
             weights,
@@ -272,7 +288,9 @@ impl WeightedUniform<f64> {
             )
             .collect();
 
-        let sum = weights.iter().sum();
+        let sum = weights.iter()
+            .zip(intervals.iter())
+            .fold(0f64, |acc, (w, (x, y))| acc + w * (y - x));
         
         WeightedUniform {
             weights,
@@ -304,12 +322,17 @@ impl WeightedUniform<f64> {
     pub fn update_weights(&mut self, weights: Vec<f64>) {
         assert_eq!(self.intervals.len(), weights.len());
         self.weights = weights;
-        self.sum = self.weights.iter().sum();
+        self.sum = self.weights.iter()
+            .zip(self.intervals.iter())
+            .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
     }
 
     pub fn update_intervals(&mut self, intervals: Vec<f64>) {
         assert_eq!(self.weights.len()+1, intervals.len());
         self.intervals = auto_zip(&intervals);
+        self.sum = self.weights.iter()
+            .zip(self.intervals.iter())
+            .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
     }
 
     pub fn weight_at(&self, x: f64) -> f64 {
@@ -665,14 +688,26 @@ impl RNG for WeightedUniform<f64> {
 
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
         let x: f64 = x.into();
+        if x < self.intervals[0].0 || x > self.intervals[self.intervals.len() - 1].1 {
+            return 0f64;
+        }
         let idx = find_interval(self.intervals(), x);
         self.weights[idx] / self.sum
     }
 
     fn cdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
         let x: f64 = x.into();
+        if x < self.intervals[0].0 {
+            return 0f64;
+        } else if x > self.intervals[self.intervals.len() - 1].1 {
+            return 1f64;
+        }
         let idx = find_interval(self.intervals(), x);
-        self.weights[0 ..=idx].iter().sum::<f64>() / self.sum
+        self.weights[0 ..=idx].iter()
+            .zip(self.intervals[0 ..=idx].iter())
+            .fold(0f64, |acc, (w, (a, b))| {
+                acc + w * (b - a)
+            }) / self.sum
     }
 }
 
@@ -769,14 +804,14 @@ impl Statistics for WeightedUniform<f64> {
 
     fn mean(&self) -> Self::Value {
         self.intervals().iter().zip(self.weights().iter())
-            .map(|((l, r), w)| (l+r)/2f64 * w)
+            .map(|((l, r), w)| (r.powi(2)-l.powi(2))/2f64 * w)
             .sum::<f64>() / self.sum
     }
 
     fn var(&self) -> Self::Value {
         let mean = self.mean();
         self.intervals().iter().zip(self.weights().iter())
-            .map(|((l, r), w)| w * (l*l + l*r + r*r) / 3f64)
+            .map(|((l, r), w)| w * (r.powi(3) - l.powi(3)) / 3f64)
             .sum::<f64>() / self.sum - mean * mean
     }
 

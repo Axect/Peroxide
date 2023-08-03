@@ -9,7 +9,7 @@ use crate::util::non_macro::{cat, zeros};
 /// : Exact jacobian matrix using Automatic Differenitation
 ///
 /// # Type
-/// (Vector, F) -> Matrix where F: Fn(&Vec<AD>) -> Vec<AD>
+/// `(F, &Vec<f64>) -> Matrix where F: Fn(&Vec<AD>) -> Vec<AD>`
 ///
 /// # Examples
 /// ```
