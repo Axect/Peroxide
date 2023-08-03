@@ -1,3 +1,14 @@
+# Release 0.34.1 (2023-08-03)
+
+## Modify Statistics of `WeightedUniform`
+
+* Modify `self.sum` to compatible with definition [Weighted Uniform Distribution](https://axect.github.io/posts/006_prs/#22-weighted-uniform-distribution)
+* Modify `mean` & `var` to compatible with definition
+
+## Add more `Vec<f64>` algorithms
+
+* Implement `arg_min`, `max`, `min`
+
 # Release 0.34.0 (2023-06-13)
 
 ## Change Gauss-Kronrod quadrature 

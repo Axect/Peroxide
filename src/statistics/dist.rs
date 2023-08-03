@@ -692,7 +692,6 @@ impl RNG for WeightedUniform<f64> {
             return 0f64;
         }
         let idx = find_interval(self.intervals(), x);
-        let (a, b) = self.intervals[idx];
         self.weights[idx] / self.sum
     }
 
