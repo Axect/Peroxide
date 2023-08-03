@@ -265,7 +265,7 @@
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
-use blas::{daxpy, ddot, dnrm2, idamax, idamin};
+use blas::{daxpy, ddot, dnrm2, idamax};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
@@ -600,15 +600,6 @@ impl Algorithm for Vec<f64> {
     /// }
     fn arg_min(&self) -> usize {
         match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let idx: usize;
-                unsafe {
-                    idx = idamin(n_i32, self, 1) - 1;
-                }
-                idx
-            }
             _ => {
                 self.into_iter()
                     .enumerate()
@@ -649,15 +640,6 @@ impl Algorithm for Vec<f64> {
 
     fn min(&self) -> f64 {
         match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let idx: usize;
-                unsafe {
-                    idx = idamin(n_i32, self, 1) - 1;
-                }
-                self[idx]
-            }
             _ => {
                 self.into_iter().fold(std::f64::MAX, |acc, &val| {
                     if acc > val {
