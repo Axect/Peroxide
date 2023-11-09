@@ -194,3 +194,38 @@ impl_float!(f32, f64);
 
 impl Numeric<f32> for f32 {}
 impl Numeric<f64> for f64 {}
+
+// ┌──────────────────────────────────────────────────────────┐
+//  Fundamental Traits
+// └──────────────────────────────────────────────────────────┘
+pub trait Group: Sized + Add<Self, Output = Self> {
+    fn zero() -> Self;
+}
+
+pub trait Ring: Group + Mul<Self, Output = Self> {
+    fn one() -> Self;
+}
+
+impl Group for f32 {
+    fn zero() -> Self {
+        0.0
+    }
+}
+
+impl Ring for f32 {
+    fn one() -> Self {
+        1.0
+    }
+}
+
+impl Group for f64 {
+    fn zero() -> Self {
+        0.0
+    }
+}
+
+impl Ring for f64 {
+    fn one() -> Self {
+        1.0
+    }
+}
