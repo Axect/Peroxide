@@ -14,7 +14,7 @@ This crate defines a set of traits for numeric operations, including basic arith
 - `Float`: Define own floating point type (`f32` and `f64` are implemented as default).
 - `Numeric`: A comprehensive trait that encompasses all of the above along with standard arithmetic operations.
 
-## Example: Defining a Simple Numeric Type
+## Example 1: Defining a Simple Numeric Type
 
 Below is an example of how you can define your own simple numeric type that implements the `Numeric` trait.
 
@@ -52,6 +52,10 @@ impl Numeric<f64> for SimpleNumber {}
 ```
 
 This `SimpleNumber` struct wraps a `f64` and implements the `Numeric` trait, making it capable of all the operations defined in the `Peroxide-num` crate.
+
+## Example 2: `Vec3D` (3D Vector)
+
+[examples/vec3d.rs](examples/vec3d.rs)
 
 ## Usage
 

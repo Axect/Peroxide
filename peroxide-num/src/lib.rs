@@ -83,6 +83,11 @@ pub trait Numeric<T: Float>:
     + Div<T, Output = Self>
     + Sub<T, Output = Self>
     + Clone
+where
+    T: Add<Self, Output = Self>,
+    T: Mul<Self, Output = Self>,
+    T: Div<Self, Output = Self>,
+    T: Sub<Self, Output = Self>,
 {
 }
 

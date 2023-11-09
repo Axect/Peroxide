@@ -1,6 +1,6 @@
 [package]
 name = "peroxide-num"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Axect <ax2ct@outlook.com>"]
 description = "Numerical traits for Peroxide"
@@ -9,6 +9,7 @@ license = "MIT OR Apache-2.0"
 categories = ["science"]
 readme = "README.md"
 keywords = ["numerical", "mathematics"]
+exclude = ["examples/"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
