@@ -77,7 +77,7 @@
 //!
 //!     ```R
 //!     # R
-//!     a = matrix(1:4:1, 2, 2, Row)
+//!     a = matrix(1:4, nrow = 2, ncol = 2, byrow = T)
 //!     print(a)
 //!     #      [,1] [,2]
 //!     # [1,]    1    2
