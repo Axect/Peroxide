@@ -17,7 +17,7 @@
 //! * `FromIterator<&f64>`
 //! * `Index`, `IndexMut`
 //! * `std::ops::{Neg, Add, Sub, Mul, Div}`
-//! * `peroxide::traits::num::{PowOps, ExpLogOps, TrigOps}`
+//! * `peroxide_num::{PowOps, ExpLogOps, TrigOps}`
 //! * `peroxide::util::print::Printable`
 //!
 //! ## Iterator of `AD`
@@ -105,9 +105,9 @@
 //! ```
 //!
 
+use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 use crate::statistics::ops::C;
 use crate::traits::{
-    num::{ExpLogOps, PowOps, TrigOps},
     stable::StableFn,
     fp::FPVector,
     math::Vector,
@@ -171,6 +171,10 @@ impl AD {
             AD1(_, _) => 2,
             AD2(_, _, _) => 3,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn iter(&self) -> ADIter {
@@ -309,9 +313,9 @@ impl AD {
     #[allow(dead_code)]
     unsafe fn x_ptr(&self) -> Option<*const f64> {
         match self {
-            AD0(x) => Some(&*x),
-            AD1(x,_) => Some(&*x),
-            AD2(x,_,_) => Some(&*x),
+            AD0(x) => Some(x),
+            AD1(x,_) => Some(x),
+            AD2(x,_,_) => Some(x),
         }
     }
 
@@ -319,8 +323,8 @@ impl AD {
     unsafe fn dx_ptr(&self) -> Option<*const f64> {
         match self {
             AD0(_) => None,
-            AD1(_,dx) => Some(&*dx),
-            AD2(_,dx,_) => Some(&*dx),
+            AD1(_,dx) => Some(dx),
+            AD2(_,dx,_) => Some(dx),
         }
     }
 
@@ -329,7 +333,7 @@ impl AD {
         match self {
             AD0(_) => None,
             AD1(_,_) => None,
-            AD2(_,_,ddx) => Some(&*ddx),
+            AD2(_,_,ddx) => Some(ddx),
         }
     }
 
@@ -619,7 +623,7 @@ impl Add<AD> for AD {
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
         a.into_iter()
-            .zip(b.into_iter())
+            .zip(b)
             .map(|(x, y)| x + y)
             .collect()
     }
@@ -633,7 +637,7 @@ impl Sub<AD> for AD {
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
         a.into_iter()
-            .zip(b.into_iter())
+            .zip(b)
             .map(|(x, y)| x - y)
             .collect()
     }
@@ -646,7 +650,7 @@ impl Mul<AD> for AD {
         let ord = self.order().max(rhs.order());
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
-        let mut z = a.clone();
+        let mut z = a;
         for t in 0..z.len() {
             z[t] = a
                 .into_iter()
@@ -666,7 +670,7 @@ impl Div<AD> for AD {
         let ord = self.order().max(rhs.order());
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
-        let mut z = a.clone();
+        let mut z = a;
         z[0] = a[0] / b[0];
         let y0 = 1f64 / b[0];
         for i in 1 .. z.len() {
@@ -681,6 +685,8 @@ impl Div<AD> for AD {
 }
 
 impl ExpLogOps for AD {
+    type Float = f64;
+
     fn exp(&self) -> Self {
         let mut z = self.empty();
         z[0] = self[0].exp();
@@ -711,11 +717,21 @@ impl ExpLogOps for AD {
     fn log(&self, base: f64) -> Self {
         self.ln().iter().map(|x| x / base.ln()).collect()
     }
+
+    fn log2(&self) -> Self {
+        self.log(2f64)
+    }
+
+    fn log10(&self) -> Self {
+        self.log(10f64)
+    }
 }
 
 impl PowOps for AD {
+    type Float = f64;
+
     fn powi(&self, n: i32) -> Self {
-        let mut z = self.clone();
+        let mut z = *self;
         for _i in 1 .. n {
             z = z * *self;
         }
@@ -750,6 +766,10 @@ impl PowOps for AD {
         }
         z
     }
+
+    fn sqrt(&self) -> Self {
+        self.powf(0.5f64)
+    }
 }
 
 impl TrigOps for AD {
@@ -773,7 +793,7 @@ impl TrigOps for AD {
         (u, v)
     }
 
-    fn sinh_cosh(&self) -> (Self, Self) {
+    fn sinh(&self) -> Self {
         let mut u = self.empty();
         let mut v = self.empty();
         u[0] = self[0].sinh();
@@ -790,7 +810,47 @@ impl TrigOps for AD {
                 .enumerate()
                 .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
         }
-        (u, v)
+        u
+    }
+
+    fn cosh(&self) -> Self {
+        let mut u = self.empty();
+        let mut v = self.empty();
+        u[0] = self[0].sinh();
+        v[0] = self[0].cosh();
+        for i in 1 .. u.len() {
+            u[i] = v.iter()
+                .take(i)
+                .zip(self.iter().skip(1).take(i).rev())
+                .enumerate()
+                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
+            v[i] = u.iter()
+                .take(i)
+                .zip(self.iter().skip(1).take(i).rev())
+                .enumerate()
+                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+        }
+        v
+    }
+
+    fn tanh(&self) -> Self {
+        let mut u = self.empty();
+        let mut v = self.empty();
+        u[0] = self[0].sinh();
+        v[0] = self[0].cosh();
+        for i in 1 .. u.len() {
+            u[i] = v.iter()
+                .take(i)
+                .zip(self.iter().skip(1).take(i).rev())
+                .enumerate()
+                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
+            v[i] = u.iter()
+                .take(i)
+                .zip(self.iter().skip(1).take(i).rev())
+                .enumerate()
+                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+        }
+        u / v
     }
 
     fn asin(&self) -> Self {
@@ -1216,13 +1276,13 @@ impl ADVec for Vec<f64> {
     }
 
     fn to_f64_vec(&self) -> Vec<f64> {
-        self.iter().map(|&t| t).collect()
+        self.clone()
     }
 }
 
 impl ADVec for Vec<AD> {
     fn to_ad_vec(&self) -> Vec<AD> {
-        self.iter().map(|&t| t).collect()
+        self.clone()
     }
 
     fn to_f64_vec(&self) -> Vec<f64> {
@@ -1249,7 +1309,7 @@ impl FPVector for Vec<AD> {
     fn filter<F>(&self, f: F) -> Self
     where
             F: Fn(Self::Scalar) -> bool {
-        self.iter().filter(|&x| f(*x)).map(|&t| t).collect()
+        self.iter().filter(|&x| f(*x)).cloned().collect()
     }
 
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
@@ -1259,11 +1319,11 @@ impl FPVector for Vec<AD> {
     }
 
     fn take(&self, n: usize) -> Self {
-        self.iter().take(n).map(|&t| t).collect()
+        self.iter().take(n).cloned().collect()
     }
 
     fn skip(&self, n: usize) -> Self {
-        self.iter().skip(n).map(|&t| t).collect()
+        self.iter().skip(n).cloned().collect()
     }
 
     fn sum(&self) -> Self::Scalar {
@@ -1280,11 +1340,11 @@ impl FPVector for Vec<AD> {
 impl Vector for Vec<AD> {
     type Scalar = AD;
 
-    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn add_vec(&self, rhs: &Self) -> Self {
         self.add_v(rhs)
     }
 
-    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn sub_vec(&self, rhs: &Self) -> Self {
         self.sub_v(rhs)
     }
 

@@ -27,6 +27,7 @@ order-stat = "0.1"
 puruspe = "0.2"
 matrixmultiply = { version = "0.3", features = ["threading"] }
 peroxide-ad = "0.3"
+peroxide-num = "0.1"
 #num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default_features = false }
 pyo3 = { version = "0.19", optional = true }
