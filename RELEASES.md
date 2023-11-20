@@ -1,3 +1,18 @@
+# Release 0.34.2 (2023-11-20)
+
+## New sub-crate : `peroxide-num`
+
+* Add new sub-crate : `peroxide-num`
+* Change all dependencies of `ExpLogOps, PowOps, TrigOps` to `peroxide-num`
+
+## Fix errata
+
+* R example in `structure/matrix` (#56) (Thanks to [@rdavis120](https://github.com/rdavis120))
+
+## Fix old syntax
+
+* Fix old syntax - e.g. explicit `into_iter`, `Vec::with_capacity` & `set_len`
+
 # Release 0.34.1 (2023-08-03)
 
 ## Modify Statistics of `WeightedUniform`
