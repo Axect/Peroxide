@@ -77,7 +77,7 @@
 //!
 //!     ```R
 //!     # R
-//!     a = matrix(1:4:1, 2, 2, Row)
+//!     a = matrix(1:4, nrow = 2, ncol = 2, byrow = T)
 //!     print(a)
 //!     #      [,1] [,2]
 //!     # [1,]    1    2
@@ -3655,8 +3655,7 @@ impl MutMatrix for Matrix {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
             Shape::Col => {
-                let mut v: Vec<*mut f64> = Vec::with_capacity(self.row);
-                v.set_len(self.row);
+                let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let start_idx = idx * self.row;
                 let p = self.mut_ptr();
                 for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
@@ -3665,8 +3664,7 @@ impl MutMatrix for Matrix {
                 v
             }
             Shape::Row => {
-                let mut v: Vec<*mut f64> = Vec::with_capacity(self.row);
-                v.set_len(self.row);
+                let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
                     v[i] = p.add(idx + i * self.col);
@@ -3680,8 +3678,7 @@ impl MutMatrix for Matrix {
         assert!(idx < self.row, "Index out of range");
         match self.shape {
             Shape::Row => {
-                let mut v: Vec<*mut f64> = Vec::with_capacity(self.col);
-                v.set_len(self.col);
+                let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let start_idx = idx * self.col;
                 let p = self.mut_ptr();
                 for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
@@ -3690,8 +3687,7 @@ impl MutMatrix for Matrix {
                 v
             }
             Shape::Col => {
-                let mut v: Vec<*mut f64> = Vec::with_capacity(self.col);
-                v.set_len(self.col);
+                let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
                     v[i] = p.add(idx + i * self.row);

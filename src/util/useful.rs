@@ -26,9 +26,7 @@ where
     let e = 1e-7;
     let p: f64 = x.into().abs();
     let q: f64 = y.into().abs();
-    if (p - q).abs() < e {
-        b = true;
-    } else if (p - q).abs() / (p + q).min(MAX) < e {
+    if (p - q).abs() < e || (p - q).abs() / (p + q).min(MAX) < e {
         b = true;
     }
     b
@@ -40,7 +38,7 @@ pub fn tab(s: &str, space: usize) -> String {
     let mut m: String = String::new();
     let fs = format!("{}{}", " ".repeat(space - l), s);
     m.push_str(&fs);
-    return m;
+    m
 }
 
 pub fn quot_rem(x: usize, y: usize) -> (i32, i32) {
@@ -120,7 +118,7 @@ pub fn sgn(x: usize) -> f64 {
 }
 
 /// Vector compare
-pub fn eq_vec(x: &Vec<f64>, y: &Vec<f64>, tol: f64) -> bool {
+pub fn eq_vec(x: &[f64], y: &[f64], tol: f64) -> bool {
     x.iter().zip(y.iter()).all(|(x, y)| (x - y).abs() <= tol)
 }
 
@@ -141,7 +139,7 @@ pub fn eq_vec(x: &Vec<f64>, y: &Vec<f64>, tol: f64) -> bool {
 pub fn auto_zip<T: Clone>(x: &Vec<T>) -> Vec<(T, T)> {
     let x_head = x[0 .. x.len() - 1].to_vec();
     let x_tail = x[1 .. x.len()].to_vec();
-    x_head.into_iter().zip(x_tail.into_iter()).collect()
+    x_head.into_iter().zip(x_tail).collect()
 }
 
 /// Find the index of interval of x
@@ -180,7 +178,7 @@ pub fn find_interval<T: PartialOrd + PartialEq>(sorted_intervals: &Vec<(T, T)>, 
             return mid;
         }
     }
-    return i;
+    i
 }
 
 /// Generate Range of Intervals
@@ -234,7 +232,7 @@ pub fn gen_range<T: Clone + PartialOrd>(x: &[T]) -> Vec<Range<T>> {
 /// assert_eq!(r, answer);
 /// ```
 pub fn zip_range<T: Clone + PartialOrd, U: Clone>(x: &[T], y: &[U]) -> Vec<(Range<T>, U)> {
-    y[0 .. x.len() - 1].into_iter()
+    y[0 .. x.len() - 1].iter()
         .enumerate()
         .map(|(i, yi)| (Range {
             start: x[i].clone(),

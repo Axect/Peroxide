@@ -284,8 +284,7 @@ impl MatrixPtr for Matrix {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
             Shape::Row => {
-                let mut v: Vec<*const f64> = Vec::with_capacity(self.col);
-                v.set_len(self.col);
+                let mut v: Vec<*const f64> = vec![&0f64; self.col];
                 let start_idx = idx * self.col;
                 let p = self.ptr();
                 for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
@@ -294,8 +293,7 @@ impl MatrixPtr for Matrix {
                 v
             }
             Shape::Col => {
-                let mut v: Vec<*const f64> = Vec::with_capacity(self.col);
-                v.set_len(self.col);
+                let mut v: Vec<*const f64> = vec![&0f64; self.col];
                 let p = self.ptr();
                 for (i, elem) in v.iter_mut().enumerate() {
                     *elem = p.add(idx + i * self.row);
@@ -309,8 +307,7 @@ impl MatrixPtr for Matrix {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
             Shape::Col => {
-                let mut v: Vec<*const f64> = Vec::with_capacity(self.row);
-                v.set_len(self.row);
+                let mut v: Vec<*const f64> = vec![&0f64; self.row];
                 let start_idx = idx * self.row;
                 let p = self.ptr();
                 for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
@@ -319,8 +316,7 @@ impl MatrixPtr for Matrix {
                 v
             }
             Shape::Row => {
-                let mut v: Vec<*const f64> = Vec::with_capacity(self.row);
-                v.set_len(self.row);
+                let mut v: Vec<*const f64> = vec![&0f64; self.row];
                 let p = self.ptr();
                 for (i, elem) in v.iter_mut().enumerate() {
                     *elem = p.add(idx + i * self.col);

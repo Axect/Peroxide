@@ -32,7 +32,6 @@ fn main() {
     (b - 1f64).print();
     (b * 2f64).print();
     (b / 2f64).print();
-    assert_eq!(1f64 + b, b + 1f64);
     assert_eq!(-(1f64 - b), b - 1f64);
     assert_eq!(2f64 * b, b * 2f64);
     assert_eq!(1f64 / (2f64 / b), b / 2f64);

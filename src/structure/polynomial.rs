@@ -6,7 +6,8 @@ use crate::util::useful::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::traits::{fp::FPVector, num::PowOps};
+use peroxide_num::PowOps;
+use crate::traits::fp::FPVector;
 use std::cmp::{max, min};
 use std::convert;
 use std::fmt;
@@ -461,6 +462,7 @@ impl Mul<Polynomial> for f64 {
 // Extra operations for Polynomial
 // =============================================================================
 impl PowOps for Polynomial {
+    type Float = f64;
     fn powi(&self, n: i32) -> Self {
         let mut result = self.clone();
         for _i in 0..n - 1 {

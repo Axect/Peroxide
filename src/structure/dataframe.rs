@@ -914,12 +914,12 @@ fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
 }
 
 #[cfg(feature= "nc")]
-fn nc_put_value<'f, T: Numeric>(var: &mut VariableMut<'f>, v: Vec<T>) -> Result<(), netcdf::error::Error> {
+fn nc_put_value<T: Numeric>(var: &mut VariableMut, v: Vec<T>) -> Result<(), netcdf::error::Error> {
     var.put_values(&v, None, None)
 }
 
 #[cfg(feature= "nc")]
-fn nc_read_value<'f, T: Numeric + Default + Clone>(val: &Variable<'f>, v: Vec<T>) -> Result<Series, netcdf::error::Error> where Series: TypedVector<T> {
+fn nc_read_value<T: Numeric + Default + Clone>(val: &Variable, v: Vec<T>) -> Result<Series, netcdf::error::Error> where Series: TypedVector<T> {
     let mut v = v;
     v.resize_with(val.len(), Default::default);
     val.values_to(&mut v, None, None)?;
@@ -1011,7 +1011,7 @@ macro_rules! dtype_match_to_arrow {
 }
 
 #[cfg(feature= "parquet")]
-fn parquet_read_value<'f, T: Default + Clone + NativeType>(arr: &Box<dyn Array>, v: Vec<T>) -> Result<Series, arrow2::error::Error> where Series: TypedVector<T> {
+fn parquet_read_value<T: Default + Clone + NativeType>(arr: &Box<dyn Array>, _v: Vec<T>) -> Result<Series, arrow2::error::Error> where Series: TypedVector<T> {
     let x = arr.as_any().downcast_ref::<PrimitiveArray<T>>().unwrap();
     let x = x.values_iter().cloned().collect::<Vec<_>>();
 
@@ -1020,12 +1020,12 @@ fn parquet_read_value<'f, T: Default + Clone + NativeType>(arr: &Box<dyn Array>,
 
 fn add_vec<T: std::ops::Add<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
 where Series: TypedVector<T> {
-    Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x + y).collect::<Vec<T>>())
+    Series::new(v.into_iter().zip(w).map(|(x, y)| x + y).collect::<Vec<T>>())
 }
 
 fn sub_vec<T: std::ops::Sub<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
 where Series: TypedVector<T> {
-    Series::new(v.into_iter().zip(w.into_iter()).map(|(x, y)| x - y).collect::<Vec<T>>())
+    Series::new(v.into_iter().zip(w).map(|(x, y)| x - y).collect::<Vec<T>>())
 }
 
 fn mul_scalar<T: std::ops::Mul<T, Output=T> + Clone + Copy>(v: Vec<T>, s: T) -> Series
