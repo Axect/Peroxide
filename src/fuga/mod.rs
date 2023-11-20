@@ -151,12 +151,14 @@ pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 
 pub use peroxide_ad::{ad_function, ad_closure};
 
+pub use peroxide_num::{ExpLogOps, PowOps, TrigOps};
+
 pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
-    num::{ExpLogOps, PowOps, Real, TrigOps},
+    num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
     stable::StableFn,
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},

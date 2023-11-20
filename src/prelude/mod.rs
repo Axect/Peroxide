@@ -154,10 +154,12 @@ pub use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Vector, VectorProduct},
     mutable::{MutFP, MutMatrix},
-    num::{ExpLogOps, PowOps, Real, TrigOps},
+    num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
+
+pub use peroxide_num::{ExpLogOps, TrigOps, PowOps};
 
 pub use simpler::SimpleNorm;
 
