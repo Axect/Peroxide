@@ -14,7 +14,7 @@ pub trait PowOps: Sized {
     fn sqrt(&self) -> Self;
 }
 
-pub trait TrigOps: Sized + Div<Output = Self> {
+pub trait TrigOps: Sized {
     fn sin_cos(&self) -> (Self, Self);
     fn sin(&self) -> Self {
         let (s, _) = self.sin_cos();
@@ -24,10 +24,7 @@ pub trait TrigOps: Sized + Div<Output = Self> {
         let (_, c) = self.sin_cos();
         c
     }
-    fn tan(&self) -> Self {
-        let (s, c) = self.sin_cos();
-        s / c
-    }
+    fn tan(&self) -> Self;
     fn sinh(&self) -> Self;
     fn cosh(&self) -> Self;
     fn tanh(&self) -> Self;
