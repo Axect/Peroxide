@@ -642,6 +642,7 @@ pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 use crate::traits::sugar::ScalableMut;
+use peroxide_num::{ExpLogOps, PowOps, TrigOps, Numeric};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -3710,6 +3711,131 @@ impl MutMatrix for Matrix {
         }
     }
 }
+
+// =============================================================================
+// Matrix as Numeric<f64>
+// =============================================================================
+impl Div<Matrix> for f64 {
+    type Output = Matrix;
+    fn div(self, m: Matrix) -> Matrix {
+        m.fmap(|x| self / x)
+    }
+}
+
+impl Div<Matrix> for f32 {
+    type Output = Matrix;
+    fn div(self, m: Matrix) -> Matrix {
+        m.fmap(|x| self as f64 / x)
+    }
+}
+
+impl Div<Matrix> for Matrix {
+    type Output = Matrix;
+
+    fn div(self, m: Matrix) -> Matrix {
+        self.mul(m.inv())
+    }
+}
+
+
+impl ExpLogOps for Matrix {
+    type Float = f64;
+    fn exp(&self) -> Self {
+        self.fmap(|x| x.exp())
+    }
+    fn ln(&self) -> Self {
+        self.fmap(|x| x.ln())
+    }
+    fn log(&self, base: Self::Float) -> Self {
+        self.fmap(|x| x.log(base))
+    }
+    fn log2(&self) -> Self {
+        self.fmap(|x| x.log2())
+    }
+    fn log10(&self) -> Self {
+        self.fmap(|x| x.log10())
+    }
+}
+
+impl PowOps for Matrix {
+    type Float = f64;
+
+    fn powi(&self, n: i32) -> Self {
+        self.fmap(|x| x.powi(n))
+    }
+
+    fn powf(&self, f: Self::Float) -> Self {
+        self.fmap(|x| x.powf(f))
+    }
+
+    fn pow(&self, _f: Self) -> Self {
+        unimplemented!()
+    }
+
+    fn sqrt(&self) -> Self {
+        self.fmap(|x| x.sqrt())
+    }
+}
+
+impl TrigOps for Matrix {
+    fn sin(&self) -> Self {
+        self.fmap(|x| x.sin())
+    }
+
+    fn cos(&self) -> Self {
+        self.fmap(|x| x.cos())
+    }
+
+    fn tan(&self) -> Self {
+        self.fmap(|x| x.tan())
+    }
+
+    fn sinh(&self) -> Self {
+        self.fmap(|x| x.sinh())
+    }
+
+    fn cosh(&self) -> Self {
+        self.fmap(|x| x.cosh())
+    }
+
+    fn tanh(&self) -> Self {
+        self.fmap(|x| x.tanh())
+    }
+
+    fn asin(&self) -> Self {
+        self.fmap(|x| x.asin())
+    }
+
+    fn acos(&self) -> Self {
+        self.fmap(|x| x.acos())
+    }
+
+    fn atan(&self) -> Self {
+        self.fmap(|x| x.atan())
+    }
+
+    fn sin_cos(&self) -> (Self, Self) {
+        let (sin, cos) = self.data.iter().map(|x| x.sin_cos()).unzip();
+        (
+            matrix(sin, self.row, self.col, self.shape),
+            matrix(cos, self.row, self.col, self.shape),
+        )
+    }
+
+    fn asinh(&self) -> Self {
+        self.fmap(|x| x.asinh())
+    }
+
+    fn acosh(&self) -> Self {
+        self.fmap(|x| x.acosh())
+    }
+
+    fn atanh(&self) -> Self {
+        self.fmap(|x| x.atanh())
+    }
+}
+
+impl Numeric<f64> for Matrix {}
 
 // =============================================================================
 // Back-end Utils
