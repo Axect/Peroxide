@@ -1,3 +1,8 @@
+# Ver 0.1.4 (2023-11-25)
+
+- Remove unnecessary constraint for `TrigOps`
+  - Remove `Div<Output=Self>`
+
 # Ver 0.1.3 (2023-11-09)
 
 - Add `Group` and `Ring`

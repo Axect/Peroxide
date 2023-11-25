@@ -1,3 +1,8 @@
+# Release 0.34.3 (2023-11-25)
+
+* Update `peroxide-num` to `v0.1.4`
+* Implement `ExpLogOps, PowOps, TrigOps` and `Numeric<f64>` for `Matrix`
+
 # Release 0.34.2 (2023-11-20)
 
 ## New sub-crate : `peroxide-num`
