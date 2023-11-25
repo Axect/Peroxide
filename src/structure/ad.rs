@@ -793,6 +793,11 @@ impl TrigOps for AD {
         (u, v)
     }
 
+    fn tan(&self) -> Self {
+        let (s, c) = self.sin_cos();
+        s / c
+    }
+
     fn sinh(&self) -> Self {
         let mut u = self.empty();
         let mut v = self.empty();
