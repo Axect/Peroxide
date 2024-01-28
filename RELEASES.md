@@ -1,3 +1,8 @@
+# Release 0.34.4 (2024-01-28)
+
+* Derive `Serialize` and `Deserialize` for `Matrix`
+* Remove explicit implementation for `Default` for `Shape`
+
 # Release 0.34.3 (2023-11-25)
 
 * Update `peroxide-num` to `v0.1.4`
