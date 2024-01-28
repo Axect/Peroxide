@@ -2,9 +2,7 @@
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://peroxide.surge.sh)
-
 [![builds.sr.ht status](https://builds.sr.ht/~axect/Peroxide/.build.yml.svg)](https://builds.sr.ht/~axect/Peroxide/.build.yml?)
-[![travis](https://api.travis-ci.org/Axect/Peroxide.svg?branch=master)](https://travis-ci.org/Axect/Peroxide)
 ![github](https://github.com/Axect/Peroxide/workflows/Github/badge.svg) 
 
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
@@ -218,7 +216,7 @@ then Rust become great choice.
 
 ## Latest README version
 
-Corresponding to `0.32.0`
+Corresponding to `0.34.4`
 
 ## Pre-requisite
 
@@ -254,9 +252,15 @@ Corresponding to `0.32.0`
     ```bash
     cargo add peroxide --features parquet
     ```
-7. All features
+
+7. Serialize or Deserialize with Matrix or polynomial
     ```bash
-    cargo add peroxide --features "O3 plot nc csv parquet"
+    cargo add peroxide --features serde
+    ```
+
+8. All features
+    ```bash
+    cargo add peroxide --features "O3 plot nc csv parquet serde"
     ```
 
 
