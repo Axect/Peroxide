@@ -607,13 +607,13 @@
 #[cfg(feature="csv")]
 extern crate csv;
 
+#[cfg(feature="csv")]
+use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
+
 #[cfg(feature = "O3")]
 extern crate blas;
 #[cfg(feature = "O3")]
 extern crate lapack;
-
-#[cfg(feature="csv")]
-use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 use ::matrixmultiply;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
@@ -621,6 +621,9 @@ use blas::{daxpy, dgemm, dgemv};
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd, dpotrf};
 #[cfg(feature = "O3")]
 use std::f64::NAN;
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
@@ -661,8 +664,10 @@ pub type Perms = Vec<(usize, usize)>;
 /// println!("{}", a); // Similar to [[1,2],[3,4]]
 /// println!("{}", b); // Similar to [[1,3],[2,4]]
 /// ```
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Shape {
+    #[default]
     Col,
     Row,
 }
@@ -675,12 +680,6 @@ impl fmt::Display for Shape {
             Col => "Col",
         };
         write!(f, "{}", to_display)
-    }
-}
-
-impl Default for Shape {
-    fn default() -> Self {
-        Shape::Col
     }
 }
 
@@ -700,6 +699,7 @@ impl Default for Shape {
 /// }; // [[1,2],[3,4]]
 /// ```
 #[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix {
     pub data: Vec<f64>,
     pub row: usize,
