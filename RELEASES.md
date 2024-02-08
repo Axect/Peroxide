@@ -1,3 +1,7 @@
+# Release 0.34.5 (2024-02-08)
+
+* Derive `Serialize` and `Deserialize` for `CubicHermiteSpline`
+
 # Release 0.34.4 (2024-01-28)
 
 * Derive `Serialize` and `Deserialize` for `Matrix`
