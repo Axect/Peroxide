@@ -578,6 +578,7 @@ impl Calculus for CubicSpline {
 // Cubic Hermite Spline
 // =============================================================================
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicHermiteSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
 }
