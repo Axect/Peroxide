@@ -1,3 +1,16 @@
+# Release 0.34.6 (2024-03-01)
+
+## Big updates for `plot` feature
+
+* Add `auto-initialize` flag for `pyo3`
+* Add `scienceplots` support. Here are available styles.
+  * `PlotStyle::Default` : default matplotlib style - no scienceplots required
+  * `PlotStyle::Science` : scienceplots default style - scienceplots required
+  * `PlotStyle::Nature` : nature style - scienceplots required
+  * `PlotStyle::IEEE` : IEEE style - scienceplots required
+* Implement `xscale, yscale, xlim, ylim` for `Plot2D`
+* You can check these features in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery/tree/master/Plot/plot_feature)
+
 # Release 0.34.5 (2024-02-08)
 
 * Derive `Serialize` and `Deserialize` for `CubicHermiteSpline`

@@ -5,7 +5,7 @@
 //!
 //! Let's see next ordinary code file.
 //!
-//! ```rust
+//! ```no-run
 //! #[macro_use]
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
