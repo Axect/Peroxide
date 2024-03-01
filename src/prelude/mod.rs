@@ -213,3 +213,6 @@ pub use crate::statistics::stat::Metric::*;
 
 #[cfg(feature="parquet")]
 pub use simpler::SimpleParquet;
+
+#[cfg(feature="plot")]
+pub use crate::util::plot::*;
