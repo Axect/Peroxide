@@ -254,6 +254,10 @@ impl Plot for Plot2D {
         self
     }
 
+    fn set_zlabel(&mut self, _zlabel: &str) -> &mut Self {
+        unimplemented!()
+    }
+
     fn set_xscale(&mut self, xscale: PlotScale) -> &mut Self {
         self.xscale = xscale;
         self
@@ -272,10 +276,6 @@ impl Plot for Plot2D {
     fn set_ylim(&mut self, ylim: (f64, f64)) -> &mut Self {
         self.ylim = Some(ylim);
         self
-    }
-
-    fn set_zlabel(&mut self, _zlabel: &str) -> &mut Self {
-        unimplemented!()
     }
 
     fn set_legend(&mut self, legends: Vec<&str>) -> &mut Self {
