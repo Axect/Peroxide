@@ -81,14 +81,36 @@
 //!
 //! ![test_plot](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/test_plot.png)
 //!
-//! But now, the recommended way is exporting `netcdf` files. Refer to [dataframe](../../structure/dataframe/index.html)
+//! # Available Plot Options
+//! - `set_domain` : Set x data
+//! - `insert_image` : Insert y data
+//! - `insert_pair` : Insert (x, y) data
+//! - `set_title` : Set title of plot (optional)
+//! - `set_xlabel` : Set xlabel of plot (optional)
+//! - `set_ylabel` : Set ylabel of plot (optional)
+//! - `set_zlabel` : Set zlabel of plot (optional; for 3D plot)
+//! - `set_xscale` : Set xscale of plot (optional; `PlotScale::Linear` or `PlotScale::Log`)
+//! - `set_yscale` : Set yscale of plot (optional; `PlotScale::Linear` or `PlotScale::Log`)
+//! - `set_xlim` : Set xlim of plot (optional)
+//! - `set_ylim` : Set ylim of plot (optional)
+//! - `set_legend` : Set legend of plot (optional)
+//! - `set_path` : Set path of plot (with filename - e.g. "example_data/test_plot.png")
+//! - `set_fig_size` : Set figure size of plot (optional)
+//! - `set_dpi` : Set dpi of plot (optional)
+//! - `grid` : Set grid of plot (Grid::On, Grid::Off (default))
+//! - `set_marker` : Set marker of plot (optional; `Markers::{Point, Line, Circle, TriangleUp, ...}`)
+//! - `set_style` : Set style of plot (`PlotStyle::Nature`, `PlotStyle::IEEE`, `PlotStyle::Default` (default), `PlotStyle::Science`)
+//! - `tight_layout` : Set tight layout of plot (optional)
+//! - `set_line_style` : Set line style of plot (optional; `LineStyle::{Solid, Dashed, Dotted, DashDot}`)
+//! - `set_color` : Set color of plot (optional; Vec<&str>)
+//! - `set_alpha` : Set alpha of plot (optional; Vec<f64>)
+//! - `savefig` : Save plot with given path
 
 extern crate pyo3;
 use self::pyo3::types::IntoPyDict;
 use self::pyo3::{PyResult, Python};
 pub use self::Grid::{Off, On};
-pub use self::Markers::{Circle, Line, Point};
-use self::PlotOptions::{Domain, Images, Legends, Pairs, Path};
+use self::PlotOptions::{Domain, Images, Pairs, Path};
 use std::collections::HashMap;
 use std::fmt::Display;
 
@@ -515,13 +537,13 @@ impl Plot for Plot2D {
                     style
                 ),
             };
-            if let Some(fs) = fig_size {
-                plot_string.push_str(&format!("plt.figure(figsize=fs, dpi=dp)\n")[..]);
+            if fig_size.is_some() {
+                plot_string.push_str(&"plt.figure(figsize=fs, dpi=dp)\n".to_string()[..]);
             } else {
-                plot_string.push_str(&format!("plt.figure()\n")[..]);
+                plot_string.push_str(&"plt.figure()\n".to_string()[..]);
             }
             if self.tight {
-                plot_string.push_str(&format!("plt.autoscale(tight=True)\n")[..]);
+                plot_string.push_str(&"plt.autoscale(tight=True)\n".to_string()[..]);
             }
             if let Some(t) = title {
                 plot_string.push_str(&format!("plt.title(r\"{}\")\n", t)[..]);
@@ -540,10 +562,10 @@ impl Plot for Plot2D {
                 PlotScale::Linear => plot_string.push_str(&"plt.yscale(\"linear\")\n".to_string()[..]),
                 PlotScale::Log => plot_string.push_str(&"plt.yscale(\"log\")\n".to_string()[..]),
             }
-            if let Some(xl) = self.xlim {
+            if self.xlim.is_some() {
                 plot_string.push_str(&"plt.xlim(xl)\n".to_string()[..]);
             }
-            if let Some(yl) = self.ylim {
+            if self.ylim.is_some() {
                 plot_string.push_str(&"plt.ylim(yl)\n".to_string()[..]);
             }
 
