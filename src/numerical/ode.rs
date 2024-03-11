@@ -565,6 +565,38 @@ impl<E: Environment> ExplicitODE<E> {
     pub fn get_env(&self) -> &E {
         &self.env
     }
+
+    pub fn get_step_size(&self) -> f64 {
+        self.step_size
+    }
+
+    pub fn get_times(&self) -> usize {
+        self.times
+    }
+
+    pub fn get_method(&self) -> ExMethod {
+        self.method
+    }
+
+    pub fn get_stop_condition(&self) -> fn(&Self) -> bool {
+        self.stop_cond
+    }
+
+    pub fn get_has_stopped(&self) -> bool {
+        self.has_stopped
+    }
+
+    pub fn get_init_cond(&self) -> &State<f64> {
+        &self.init_cond
+    }
+
+    pub fn get_bound_cond1(&self) -> &(State<f64>, BoundaryCondition) {
+        &self.bound_cond1
+    }
+
+    pub fn get_bound_cond2(&self) -> &(State<f64>, BoundaryCondition) {
+        &self.bound_cond2
+    }
 }
 
 impl<E: Environment> ODE<E> for ExplicitODE<E> {
@@ -833,6 +865,42 @@ impl<E: Environment> ImplicitODE<E> {
 
     pub fn get_env(&self) -> &E {
         &self.env
+    }
+
+    pub fn get_step_size(&self) -> f64 {
+        self.step_size
+    }
+
+    pub fn get_times(&self) -> usize {
+        self.times
+    }
+
+    pub fn get_method(&self) -> ImMethod {
+        self.method
+    }
+
+    pub fn get_stop_condition(&self) -> fn(&Self) -> bool {
+        self.stop_cond
+    }
+
+    pub fn get_has_stopped(&self) -> bool {
+        self.has_stopped
+    }
+
+    pub fn get_init_cond(&self) -> &State<f64> {
+        &self.init_cond
+    }
+
+    pub fn get_bound_cond1(&self) -> &(State<f64>, BoundaryCondition) {
+        &self.bound_cond1
+    }
+
+    pub fn get_bound_cond2(&self) -> &(State<f64>, BoundaryCondition) {
+        &self.bound_cond2
+    }
+
+    pub fn get_rtol(&self) -> f64 {
+        self.rtol
     }
 }
 

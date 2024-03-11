@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.34.6"
+version = "0.34.7"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -20,7 +20,7 @@ maintenance = { status = "actively-developed" }
 float-cmp = "0.9"
 
 [dependencies]
-csv = { version = "1.1", optional = true, default_features = false }
+csv = { version = "1", optional = true, default_features = false }
 rand = "0.8"
 rand_distr = "0.4"
 order-stat = "0.1"

@@ -1,3 +1,21 @@
+# Release 0.34.7 (2024-03-11)
+
+## More updates for `plot` feature
+
+- Make legend optional (Now, no legend is available)
+- Implement `set_line_style`. Here are available line styles.
+  - `LineStyle::Solid`
+  - `LineStyle::Dashed`
+  - `LineStyle::Dotted`
+  - `LineStyle::DashDot`
+- Implement `set_color`
+- Implement `set_alpha`
+- More markers.
+
+## Getter for ODE
+
+- Add explicit getter for `ExplicitODE` and `ImplicitODE` for various fields.
+
 # Release 0.34.6 (2024-03-01)
 
 ## Big updates for `plot` feature
