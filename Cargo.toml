@@ -8,7 +8,7 @@ repository = "https://github.com/Axect/Peroxide"
 license = "MIT OR Apache-2.0"
 categories = ["science"]
 readme = "README.md"
-documentation = "https://peroxide.surge.sh"
+documentation = "https://axect.github.io/Peroxide_Doc"
 keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
 exclude = ["example_data/", "src/bin/", "benches/", "example/", "test_data/", "peroxide-ad2"]
 
