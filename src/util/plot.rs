@@ -3,83 +3,44 @@
 //! For Rust, there are some plot libraries but, still difficult to use.
 //! Practically, using python is best choice to plot. And there is awesome crate - [pyo3](https://crates.io/crates/pyo3).
 //!
-//! Let's see next ordinary code file.
+//! # Prerequisite
 //!
-//! ```no-run
-//! #[macro_use]
-//! extern crate peroxide;
+//! - python 3
+//! - matplotlib
+//! - scienceplots (Optional)
+//!
+//! # Usage
+//!
+//! To use this module, you should enable `plot` feature in `Cargo.toml`
+//!
+//! ```
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
-//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
+//!     let x = linspace(0, 1, 100);
+//!     let y1 = x.fmap(|t| t.powi(2));
+//!     let y2 = x.fmap(|t| t.powi(3));
 //!
-//!     let mut ode_solver = ExplicitODE::new(test_fn);
-//!
-//!     ode_solver
-//!         .set_method(ExMethod::RK4)
-//!         .set_initial_condition(init_state)
-//!         .set_step_size(0.01)
-//!         .set_times(1000);
-//!
-//!     let result = ode_solver.integrate();
-//!     result.write("example_data/test.csv");
-//! }
-//!
-//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
-//!     let x = st.param;
-//!     let y = &st.value;
-//!     let dy = &mut st.deriv;
-//!     dy[0] = (5f64*x.powi(2) - y[0]) / (x + y[0]).exp();
-//! }
-//! ```
-//!
-//! Now, let's modify this code to below. Then it works surprisingly!
-//!
-//! ```rust
-//! #[macro_use]
-//! extern crate peroxide;
-//! use peroxide::fuga::*;
-//!
-//! fn main() {
-//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
-//!
-//!     let mut ode_solver = ExplicitODE::new(test_fn);
-//!
-//!     ode_solver
-//!         .set_method(ExMethod::RK4)
-//!         .set_initial_condition(init_state)
-//!         .set_step_size(0.01)
-//!         .set_times(1000);
-//!
-//!     let result = ode_solver.integrate();
-//!
-//!     let x = result.col(0);
-//!     let y = result.col(1);
-//!
-//!     // Remove below comments to execute
-//!     //let mut plt = Plot2D::new();
-//!     //plt.set_domain(x)
-//!     //    .insert_image(y)
-//!     //    .set_title("Test Figure")
-//!     //    .set_fig_size((10, 6))
-//!     //    .set_dpi(300)
-//!     //    .set_legend(vec!["RK4"])
-//!     //    .set_path("example_data/test_plot.png");
-//!
-//!     //plt.savefig();
-//! }
-//!
-//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
-//!     let x = st.param;
-//!     let y = &st.value;
-//!     let dy = &mut st.deriv;
-//!     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
+//!     let mut plt = Plot2D::new();
+//!     plt.set_domain(x)
+//!         .insert_image(y1)
+//!         .insert_image(y2)
+//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$"])
+//!         .set_line_style(vec![(0, LineStyle::Dashed), (1, LineStyle::Dotted)])
+//!         .set_color(vec![(0, "red"), (1, "darkblue")])
+//!         .set_xlabel(r"$x$")
+//!         .set_ylabel(r"$y$")
+//!         .set_style(PlotStyle::Nature) // if you want to use scienceplots
+//!         .set_dpi(600)
+//!         .tight_layout()
+//!         .set_path("example_data/test_plot.png")
+//!         .savefig().unwrap();
 //! }
 //! ```
 //!
-//! It draws next image
+//! This code will generate below plot
 //!
-//! ![test_plot](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/test_plot.png)
+//! ![test_plot](https://github.com/Axect/Peroxide/blob/master/example_data/test_plot.png?raw=true)
 //!
 //! # Available Plot Options
 //! - `set_domain` : Set x data
