@@ -21,13 +21,20 @@
 //!     let y1 = x.fmap(|t| t.powi(2));
 //!     let y2 = x.fmap(|t| t.powi(3));
 //!
+//!     let normal = Normal(0f64, 0.1);
+//!     let eps = normal.sample(100);
+//!     let y3 = y2.add_v(&eps);
+//!
 //!     let mut plt = Plot2D::new();
 //!     plt.set_domain(x)
 //!         .insert_image(y1)
 //!         .insert_image(y2)
-//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$"])
+//!         .insert_image(y3)
+//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$", r"$y=x^2 + \epsilon$"])
 //!         .set_line_style(vec![(0, LineStyle::Dashed), (1, LineStyle::Dotted)])
-//!         .set_color(vec![(0, "red"), (1, "darkblue")])
+//!         .set_plot_type(vec![(2, PlotType::Scatter)])
+//!         .set_marker(vec![(2, Markers::Point)])
+//!         .set_color(vec![(0, "red"), (1, "darkblue"), (2, "olive")])
 //!         .set_xlabel(r"$x$")
 //!         .set_ylabel(r"$y$")
 //!         .set_style(PlotStyle::Nature) // if you want to use scienceplots
@@ -63,8 +70,9 @@
 //! - `set_style` : Set style of plot (`PlotStyle::Nature`, `PlotStyle::IEEE`, `PlotStyle::Default` (default), `PlotStyle::Science`)
 //! - `tight_layout` : Set tight layout of plot (optional)
 //! - `set_line_style` : Set line style of plot (optional; `LineStyle::{Solid, Dashed, Dotted, DashDot}`)
-//! - `set_color` : Set color of plot (optional; Vec<&str>)
-//! - `set_alpha` : Set alpha of plot (optional; Vec<f64>)
+//! - `set_color` : Set color of plot (optional; Vec<(usize, &str)>)
+//! - `set_alpha` : Set alpha of plot (optional; Vec<(usize, f64)>)
+//! - `set_plot_type` : Set plot type of plot (optional; `PlotType::{Scatter, Line, Bar}`)
 //! - `savefig` : Save plot with given path
 
 extern crate pyo3;
