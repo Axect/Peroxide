@@ -1,3 +1,10 @@
+# Release 0.35.1 (2024-03-29)
+
+- Add `PlotType` for `Plot2D`
+  - `PlotType::Scatter`
+  - `PlotType::Line` (default)
+  - `PlotType::Bar`
+
 # Release 0.35.0 (2024-03-29)
 
 ## Change some plot functions
