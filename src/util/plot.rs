@@ -128,7 +128,6 @@ pub enum PlotOptions {
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub enum Markers {
     Point,
-    Line,
     Circle,
     Pixel,
     TriangleDown,
@@ -152,7 +151,6 @@ impl Display for Markers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
             Markers::Point => ".".to_string(),
-            Markers::Line => "-".to_string(),
             Markers::Circle => "o".to_string(),
             Markers::Pixel => ",".to_string(),
             Markers::TriangleDown => "v".to_string(),
@@ -238,12 +236,12 @@ pub trait Plot {
     fn set_fig_size(&mut self, fig_size: (usize, usize)) -> &mut Self;
     fn set_dpi(&mut self, dpi: usize) -> &mut Self;
     fn grid(&mut self, grid: Grid) -> &mut Self;
-    fn set_marker(&mut self, styles: Vec<Markers>) -> &mut Self;
+    fn set_marker(&mut self, styles: Vec<(usize, Markers)>) -> &mut Self;
     fn set_style(&mut self, style: PlotStyle) -> &mut Self;
     fn tight_layout(&mut self) -> &mut Self;
-    fn set_line_style(&mut self, style: Vec<LineStyle>) -> &mut Self;
-    fn set_color(&mut self, color: Vec<&str>) -> &mut Self;
-    fn set_alpha(&mut self, alpha: Vec<f64>) -> &mut Self;
+    fn set_line_style(&mut self, style: Vec<(usize, LineStyle)>) -> &mut Self;
+    fn set_color(&mut self, color: Vec<(usize, &str)>) -> &mut Self;
+    fn set_alpha(&mut self, alpha: Vec<(usize, f64)>) -> &mut Self;
     fn savefig(&self) -> PyResult<()>;
 }
 
@@ -260,10 +258,10 @@ pub struct Plot2D {
     xlim: Option<(f64, f64)>,
     ylim: Option<(f64, f64)>,
     legends: Vec<String>,
-    markers: Vec<Markers>,
-    line_style: Vec<LineStyle>,
-    color: Vec<String>,
-    alpha: Vec<f64>,
+    markers: Vec<(usize, Markers)>,
+    line_style: Vec<(usize, LineStyle)>,
+    color: Vec<(usize, String)>,
+    alpha: Vec<(usize, f64)>,
     path: String,
     fig_size: Option<(usize, usize)>,
     dpi: usize,
@@ -403,7 +401,7 @@ impl Plot for Plot2D {
         self
     }
 
-    fn set_marker(&mut self, styles: Vec<Markers>) -> &mut Self {
+    fn set_marker(&mut self, styles: Vec<(usize, Markers)>) -> &mut Self {
         self.markers = styles;
         self
     }
@@ -418,17 +416,17 @@ impl Plot for Plot2D {
         self
     }
 
-    fn set_line_style(&mut self, style: Vec<LineStyle>) -> &mut Self {
+    fn set_line_style(&mut self, style: Vec<(usize, LineStyle)>) -> &mut Self {
         self.line_style = style;
         self
     }
 
-    fn set_color(&mut self, color: Vec<&str>) -> &mut Self {
-        self.color = color.into_iter().map(|x| x.to_owned()).collect();
+    fn set_color(&mut self, color: Vec<(usize, &str)>) -> &mut Self {
+        self.color = color.into_iter().map(|(i, x)| (i, x.to_owned())).collect();
         self
     }
 
-    fn set_alpha(&mut self, alpha: Vec<f64>) -> &mut Self {
+    fn set_alpha(&mut self, alpha: Vec<(usize, f64)>) -> &mut Self {
         self.alpha = alpha;
         self
     }
@@ -493,8 +491,8 @@ impl Plot for Plot2D {
             let ylabel = self.ylabel.clone();
             let legends = self.legends.clone();
             let path = self.path.clone();
-            let markers = self.markers.iter().map(|x| format!("{}", x)).collect::<Vec<String>>();
-            let line_style = self.line_style.iter().map(|x| format!("{}", x)).collect::<Vec<String>>();
+            let markers = self.markers.iter().map(|(i, x)| (i, format!("{}", x))).collect::<Vec<_>>();
+            let line_style = self.line_style.iter().map(|(i, x)| (i, format!("{}", x))).collect::<Vec<_>>();
             let color = self.color.clone();
             let alpha = self.alpha.clone();
 
@@ -571,39 +569,55 @@ impl Plot for Plot2D {
 
             for i in 0..y_length {
                 let mut inner_string = format!("x,y[{}]", i);
-                if !markers.is_empty() {
-                    inner_string.push_str(&format!(",marker=\"{}\"", markers[i])[..]);
+                let is_corresponding_marker = !markers.is_empty() && (markers.iter().any(|(&j, _)| j == i));
+                if is_corresponding_marker {
+                    let marker = markers.iter().find(|(&j, _)| j == i).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",marker=\"{}\"", marker)[..]);
                 }
-                if !line_style.is_empty() {
-                    inner_string.push_str(&format!(",linestyle=\"{}\"", line_style[i])[..]);
+                let is_corresponding_line_style = !line_style.is_empty() && (line_style.iter().any(|(&j, _)| j == i));
+                if is_corresponding_line_style {
+                    let style = line_style.iter().find(|(&j, _)| j == i).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",linestyle=\"{}\"", style)[..]);
                 }
-                if !color.is_empty() {
-                    inner_string.push_str(&format!(",color=\"{}\"", color[i])[..]);
+                let is_corresponding_color = !color.is_empty() && (color.iter().any(|(j, _)| j == &i));
+                if is_corresponding_color {
+                    let color = color.iter().find(|(j, _)| j == &i).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",color=\"{}\"", color)[..]);
                 }
                 if !legends.is_empty() {
                     inner_string.push_str(&format!(",label=r\"{}\"", legends[i])[..]);
                 }
-                if !alpha.is_empty() {
-                    inner_string.push_str(&format!(",alpha={}", alpha[i])[..]);
+                let is_corresponding_alpha = !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &i));
+                if is_corresponding_alpha {
+                    let alpha = alpha.iter().find(|(j, _)| j == &i).unwrap().1;
+                    inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
                 plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
             }
             for i in 0..pair_length {
                 let mut inner_string = format!("pair[{}][0],pair[{}][1]", i, i);
-                if !markers.is_empty() {
-                    inner_string.push_str(&format!(",marker=\"{}\"", markers[i + y_length])[..]);
+                let is_corresponding_marker = !markers.is_empty() && (markers.iter().any(|(&j, _)| j == (i + y_length)));
+                if is_corresponding_marker {
+                    let marker = markers.iter().find(|(&j, _)| j == (i + y_length)).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",marker=\"{}\"", marker)[..]);
                 }
-                if !line_style.is_empty() {
-                    inner_string.push_str(&format!(",linestyle=\"{}\"", line_style[i + y_length])[..]);
+                let is_corresponding_line_style = !line_style.is_empty() && (line_style.iter().any(|(&j, _)| j == (i + y_length)));
+                if is_corresponding_line_style {
+                    let style = line_style.iter().find(|(&j, _)| j == (i + y_length)).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",linestyle=\"{}\"", style)[..]);
                 }
-                if !color.is_empty() {
-                    inner_string.push_str(&format!(",color=\"{}\"", color[i + y_length])[..]);
+                let is_corresponding_color = !color.is_empty() && (color.iter().any(|(j, _)| j == &(i + y_length)));
+                if is_corresponding_color {
+                    let color = color.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1.as_str();
+                    inner_string.push_str(&format!(",color=\"{}\"", color)[..]);
                 }
                 if !legends.is_empty() {
                     inner_string.push_str(&format!(",label=r\"{}\"", legends[i + y_length])[..]);
                 }
-                if !alpha.is_empty() {
-                    inner_string.push_str(&format!(",alpha={}", alpha[i + y_length])[..]);
+                let is_corresponding_alpha = !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &(i + y_length)));
+                if is_corresponding_alpha {
+                    let alpha = alpha.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1;
+                    inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
                 plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
             }
