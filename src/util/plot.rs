@@ -21,13 +21,20 @@
 //!     let y1 = x.fmap(|t| t.powi(2));
 //!     let y2 = x.fmap(|t| t.powi(3));
 //!
+//!     let normal = Normal(0f64, 0.1);
+//!     let eps = normal.sample(100);
+//!     let y3 = y2.add_v(&eps);
+//!
 //!     let mut plt = Plot2D::new();
 //!     plt.set_domain(x)
 //!         .insert_image(y1)
 //!         .insert_image(y2)
-//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$"])
+//!         .insert_image(y3)
+//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$", r"$y=x^2 + \epsilon$"])
 //!         .set_line_style(vec![(0, LineStyle::Dashed), (1, LineStyle::Dotted)])
-//!         .set_color(vec![(0, "red"), (1, "darkblue")])
+//!         .set_plot_type(vec![(2, PlotType::Scatter)])
+//!         .set_marker(vec![(2, Markers::Point)])
+//!         .set_color(vec![(0, "red"), (1, "darkblue"), (2, "olive")])
 //!         .set_xlabel(r"$x$")
 //!         .set_ylabel(r"$y$")
 //!         .set_style(PlotStyle::Nature) // if you want to use scienceplots
@@ -63,8 +70,9 @@
 //! - `set_style` : Set style of plot (`PlotStyle::Nature`, `PlotStyle::IEEE`, `PlotStyle::Default` (default), `PlotStyle::Science`)
 //! - `tight_layout` : Set tight layout of plot (optional)
 //! - `set_line_style` : Set line style of plot (optional; `LineStyle::{Solid, Dashed, Dotted, DashDot}`)
-//! - `set_color` : Set color of plot (optional; Vec<&str>)
-//! - `set_alpha` : Set alpha of plot (optional; Vec<f64>)
+//! - `set_color` : Set color of plot (optional; Vec<(usize, &str)>)
+//! - `set_alpha` : Set alpha of plot (optional; Vec<(usize, f64)>)
+//! - `set_plot_type` : Set plot type of plot (optional; `PlotType::{Scatter, Line, Bar}`)
 //! - `savefig` : Save plot with given path
 
 extern crate pyo3;
@@ -180,6 +188,24 @@ pub enum PlotScale {
     Log,
 }
 
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
+pub enum PlotType {
+    Scatter,
+    Line,
+    Bar,
+}
+
+impl Display for PlotType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
+            PlotType::Scatter => "scatter".to_string(),
+            PlotType::Line => "line".to_string(),
+            PlotType::Bar => "bar".to_string(),
+        };
+        write!(f, "{}", str)
+    }
+}
+
 pub trait Plot {
     fn set_domain(&mut self, x: Vec<f64>) -> &mut Self;
     fn insert_image(&mut self, y: Vec<f64>) -> &mut Self;
@@ -203,6 +229,7 @@ pub trait Plot {
     fn set_line_style(&mut self, style: Vec<(usize, LineStyle)>) -> &mut Self;
     fn set_color(&mut self, color: Vec<(usize, &str)>) -> &mut Self;
     fn set_alpha(&mut self, alpha: Vec<(usize, f64)>) -> &mut Self;
+    fn set_plot_type(&mut self, plot_type: Vec<(usize, PlotType)>) -> &mut Self;
     fn savefig(&self) -> PyResult<()>;
 }
 
@@ -229,6 +256,7 @@ pub struct Plot2D {
     grid: Grid,
     style: PlotStyle,
     tight: bool,
+    plot_type: Vec<(usize, PlotType)>,
     options: HashMap<PlotOptions, bool>,
 }
 
@@ -262,6 +290,7 @@ impl Plot2D {
             grid: On,
             style: PlotStyle::Default,
             tight: false,
+            plot_type: vec![],
             options: default_options,
         }
     }
@@ -392,6 +421,11 @@ impl Plot for Plot2D {
         self
     }
 
+    fn set_plot_type(&mut self, plot_type: Vec<(usize, PlotType)>) -> &mut Self {
+        self.plot_type = plot_type;
+        self
+    }
+
     fn savefig(&self) -> PyResult<()> {
         // Check domain
         match self.options.get(&Domain) {
@@ -456,6 +490,7 @@ impl Plot for Plot2D {
             let line_style = self.line_style.iter().map(|(i, x)| (i, format!("{}", x))).collect::<Vec<_>>();
             let color = self.color.clone();
             let alpha = self.alpha.clone();
+            let plot_type = self.plot_type.clone();
 
             // Global variables to plot
             let globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py);
@@ -553,7 +588,23 @@ impl Plot for Plot2D {
                     let alpha = alpha.iter().find(|(j, _)| j == &i).unwrap().1;
                     inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
-                plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                let is_corresponding_plot_type = !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &i));
+                if is_corresponding_plot_type {
+                    let plot_type = plot_type.iter().find(|(j, _)| j == &i).unwrap().1;
+                    match plot_type {
+                        PlotType::Scatter => {
+                            plot_string.push_str(&format!("plt.scatter({})\n", inner_string)[..]);
+                        }
+                        PlotType::Line => {
+                            plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                        }
+                        PlotType::Bar => {
+                            plot_string.push_str(&format!("plt.bar({})\n", inner_string)[..]);
+                        }
+                    }
+                } else {
+                    plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                }
             }
             for i in 0..pair_length {
                 let mut inner_string = format!("pair[{}][0],pair[{}][1]", i, i);
@@ -580,7 +631,23 @@ impl Plot for Plot2D {
                     let alpha = alpha.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1;
                     inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
-                plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                let is_corresponding_plot_type = !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &(i + y_length)));
+                if is_corresponding_plot_type {
+                    let plot_type = plot_type.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1;
+                    match plot_type {
+                        PlotType::Scatter => {
+                            plot_string.push_str(&format!("plt.scatter({})\n", inner_string)[..]);
+                        }
+                        PlotType::Line => {
+                            plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                        }
+                        PlotType::Bar => {
+                            plot_string.push_str(&format!("plt.bar({})\n", inner_string)[..]);
+                        }
+                    }
+                } else {
+                    plot_string.push_str(&format!("plt.plot({})\n", inner_string)[..]);
+                }
             }
 
             if self.tight {
