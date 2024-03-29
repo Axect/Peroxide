@@ -614,7 +614,6 @@ use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 extern crate blas;
 #[cfg(feature = "O3")]
 extern crate lapack;
-use ::matrixmultiply;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
