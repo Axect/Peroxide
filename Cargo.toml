@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.35.1"
+version = "0.36.0"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -20,14 +20,15 @@ maintenance = { status = "actively-developed" }
 float-cmp = "0.9"
 
 [dependencies]
-csv = { version = "1", optional = true, default_features = false }
-rand = "0.8"
+csv = { version = "1.3", optional = true, default_features = false }
+rand = { version = "0.8", features = ["small_rng"] }
 rand_distr = "0.4"
 order-stat = "0.1"
 puruspe = "0.2"
 matrixmultiply = { version = "0.3", features = ["threading"] }
 peroxide-ad = "0.3"
 peroxide-num = "0.1"
+thiserror = "1.0"
 #num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default_features = false }
 pyo3 = { version = "0.21", optional = true, features = ["auto-initialize", "gil-refs"] }

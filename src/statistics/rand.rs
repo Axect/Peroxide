@@ -27,8 +27,39 @@ use std::u32;
 
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
+use crate::statistics::dist::{RNG, WeightedUniform, WeightedUniformError};
 
-use super::dist::{RNG, WeightedUniform};
+/// Small random number generator from seed
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let mut rng = smallrng_from_seed(42);
+///
+///     let n = Normal(0f64, 1f64);
+///     n.sample_with_rng(&mut rng, 10).print();
+/// }
+pub fn smallrng_from_seed(seed: u64) -> SmallRng {
+    SmallRng::seed_from_u64(seed)
+}
+
+/// Std random number generator from seed
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let mut rng = stdrng_from_seed(42);
+///
+///     let n = Normal(0f64, 1f64);
+///     n.sample_with_rng(&mut rng, 10).print();
+/// }
+pub fn stdrng_from_seed(seed: u64) -> StdRng {
+    StdRng::seed_from_u64(seed)
+}
 
 /// Simple uniform random number generator with ThreadRng
 ///
@@ -410,16 +441,39 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 // Rejection Sampling
 // =============================================================================
 /// Piecewise Rejection Sampling
-pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Vec<f64> 
+///
+/// # Arguments
+/// * `f` - Function to sample (unnormalized function is allowed)
+/// * `n` - Number of samples
+/// * `(a, b)` - Range of sampling
+/// * `m` - Number of pieces
+/// * `eps` - Epsilon for max pooling
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let f = |x: f64| {
+///         if (0f64..=2f64).contains(&x) {
+///             -(x - 1f64).powi(2) + 1f64
+///         } else {
+///             0f64
+///         }
+///     };
+///
+///     let samples = prs(f, 1000, (-1f64, 3f64), 200, 1e-4)?;
+///     samples.mean().print(); // near 1
+///
+///     Ok(())
+/// }
+pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Result<Vec<f64>, WeightedUniformError>
 where F: Fn(f64) -> f64 + Copy {
     let mut rng = thread_rng();
 
     let mut result = vec![0f64; n];
 
-    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps);
-    if w.weights().iter().any(|w| w <= &0f64) {
-        println!("Warning: some weights are zero");
-    }
+    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps)?;
 
     let mut initial_x = w.sample(n);
     let mut left_num = n;
@@ -436,12 +490,72 @@ where F: Fn(f64) -> f64 + Copy {
                     result[n - left_num] = x;
                     left_num -= 1;
                     if left_num == 0 {
-                        return result;
+                        return Ok(result);
                     }
                 }
             }
         }
         initial_x = w.sample(left_num);
+    }
+    panic!("Error: failed to generate {} samples", n);
+}
+
+/// Piecewise Rejection Sampling with specific Rng
+///
+/// # Arguments
+/// * `f` - Function to sample (unnormalized function is allowed)
+/// * `n` - Number of samples
+/// * `(a, b)` - Range of sampling
+/// * `m` - Number of pieces
+/// * `eps` - Epsilon for max pooling
+/// * `rng` - Random number generator
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let mut rng = smallrng_from_seed(42);
+///     let f = |x: f64| {
+///         if (0f64..=2f64).contains(&x) {
+///             -(x - 1f64).powi(2) + 1f64
+///         } else {
+///             0f64
+///         }
+///     };
+///
+///     let samples = prs_with_rng(f, 1000, (-1f64, 3f64), 200, 1e-4, &mut rng)?;
+///     assert!((samples.mean() - 1f64).abs() < 1e-1);
+///
+///     Ok(())
+/// }
+pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> Result<Vec<f64>, WeightedUniformError>
+    where F: Fn(f64) -> f64 + Copy {
+    let mut result = vec![0f64; n];
+
+    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps)?;
+
+    let mut initial_x = w.sample_with_rng(rng, n);
+    let mut left_num = n;
+
+    while left_num > 0 {
+        for &x in initial_x.iter() {
+            let weight = w.weight_at(x);
+            if weight <= 0f64 {
+                continue;
+            } else {
+                let y = rng.gen_range(0f64 ..=weight);
+
+                if y <= f(x) {
+                    result[n - left_num] = x;
+                    left_num -= 1;
+                    if left_num == 0 {
+                        return Ok(result);
+                    }
+                }
+            }
+        }
+        initial_x = w.sample_with_rng(rng, left_num);
     }
     panic!("Error: failed to generate {} samples", n);
 }

@@ -1,11 +1,14 @@
+#[macro_use]
+extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let basic_ode_solver = BasicODESolver::new(RK4);
+    let gl4 = GL4::new(ImplicitSolver::FixedPoint, 100, 1e-6);
+    let basic_ode_solver = BasicODESolver::new(gl4);
     let (t_vec, y_vec) = basic_ode_solver.solve(
         &Test,
         (0f64, 10f64),
-        1e-3,
+        0.01,
     )?;
     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
@@ -20,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .set_style(PlotStyle::Nature)
             .tight_layout()
             .set_dpi(600)
-            .set_path("example_data/rk4_test.png")
+            .set_path("example_data/gl4_test.png")
             .savefig()?;
     }
 

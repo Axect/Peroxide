@@ -6,7 +6,7 @@ use crate::numerical::{
     integral,
     integral::Integral::G7K15R,
     spline,
-    spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
+    spline::{CubicHermiteSpline, SlopeMethod::Quadratic, SplineError},
 };
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
@@ -87,16 +87,21 @@ impl SimplerLinearAlgebra for Matrix {
         matrix::LinearAlgebra::lu(self)
     }
 
-    fn waz(&self) -> Option<matrix::WAZD> {
-        matrix::LinearAlgebra::waz(self, matrix::Form::Identity)
-    }
-
     fn waz_diag(&self) -> Option<matrix::WAZD> {
         matrix::LinearAlgebra::waz(self, matrix::Form::Diagonal)
     }
 
+    fn waz(&self) -> Option<matrix::WAZD> {
+        matrix::LinearAlgebra::waz(self, matrix::Form::Identity)
+    }
+
     fn qr(&self) -> matrix::QR {
         matrix::LinearAlgebra::qr(self)
+    }
+
+    #[cfg(feature="O3")]
+    fn cholesky(&self) -> Matrix {
+        matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
     }
 
     fn rref(&self) -> Matrix {
@@ -127,11 +132,6 @@ impl SimplerLinearAlgebra for Matrix {
         matrix::LinearAlgebra::solve_mat(self, m, matrix::SolveKind::LU)
     }
 
-    #[cfg(feature="O3")]
-    fn cholesky(&self) -> Matrix {
-        matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
-    }
-
     fn is_symmetric(&self) -> bool {
         matrix::LinearAlgebra::is_symmetric(self)
     }
@@ -148,7 +148,7 @@ pub fn chebyshev_polynomial(n: usize) -> polynomial::Polynomial {
     polynomial::chebyshev_polynomial(n, polynomial::SpecialKind::First)
 }
 
-pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> CubicHermiteSpline {
+pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> Result<CubicHermiteSpline, SplineError> {
     spline::cubic_hermite_spline(node_x, node_y, Quadratic)
 }
 
