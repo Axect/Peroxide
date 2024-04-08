@@ -106,12 +106,12 @@
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
-//! fn main() {
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let x = seq(0, 10, 1);
 //!     x.print();
 //!     let y = x.iter().enumerate().map(|(i, &t)| t.powi(5-i as i32)).collect::<Vec<f64>>();
 //!
-//!     let c = CubicSpline::from_nodes(&x, &y);
+//!     let c = cubic_hermite_spline(&x, &y, Quadratic)?;
 //!
 //!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
 //!
@@ -126,9 +126,11 @@
 //!
 //!     let result = ode_solver.integrate();
 //!     result.print();
+//!
+//!     Ok(())
 //! }
 //!
-//! fn test_fn(st: &mut State<f64>, env: &CubicSpline) {
+//! fn test_fn(st: &mut State<f64>, env: &CubicHermiteSpline) {
 //!     let x = st.param;
 //!     let dy = &mut st.deriv;
 //!     dy[0] = env.eval(x);
@@ -381,6 +383,7 @@ use crate::traits::{
 };
 use crate::util::non_macro::{cat, concat, eye, zeros};
 use std::collections::HashMap;
+use crate::fuga::CubicHermiteSpline;
 //#[cfg(feature = "O3")]
 //use {blas_daxpy, blas_daxpy_return};
 
@@ -1175,3 +1178,5 @@ impl Environment for Matrix {}
 impl Environment for Vec<f64> {}
 
 impl Environment for Polynomial {}
+
+impl Environment for CubicHermiteSpline {}

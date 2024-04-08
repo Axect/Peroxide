@@ -2,7 +2,7 @@
 extern crate peroxide;
 use peroxide::fuga::*;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let x = seq(0, 10, 1);
     x.print();
     let y = x
@@ -11,7 +11,7 @@ fn main() {
         .map(|(i, &t)| t.powi(5 - i as i32))
         .collect::<Vec<f64>>();
 
-    let c = CubicSpline::from_nodes(&x, &y);
+    let c = CubicSpline::from_nodes(&x, &y)?;
 
     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
 
@@ -26,6 +26,8 @@ fn main() {
 
     let result = ode_solver.integrate();
     result.print();
+
+    Ok(())
 }
 
 fn test_fn(st: &mut State<f64>, env: &CubicSpline) {
