@@ -1,3 +1,35 @@
+# Release 0.36.0 (2024-04-08)
+
+## Huge Update - Error handling & Whole new ODE
+
+### Error handling
+
+- Add `thiserror` for error handling
+- Implement errors for cubic spline & cubic hermite spline.
+- Implement errors for weighted uniform distribution & PRS.
+
+### Seedable sampling
+
+- Now, all distribution has `sample_with_rng` method.
+- There are two wrappers for `SeedableRng`
+  - `smallrng_from_seed` : Performant but not secure
+  - `stdrng_from_seed` : Performant enough and secure enough
+
+### Whole new ODE
+
+- Remove all boilerplates.
+- Now, `ODE` is composed of traits.
+  - `ODEProblem`: Trait for defining and ODE problem.
+  - `ODEIntegrator`: Trait for integrating ODE.
+    - `RK4`: Runge-Kutta 4th order
+    - `RKF45`: Runge-Kutta-Fehlberg 4/5th order
+    - `GL4`: Gauss-Legendre 4th order
+    - You can implement your own integrator.
+  - `ODESolver`: Trait for solving ODE.
+    - `BasicODESolver`: Basic ODE solver - define range of t, initial step size and integrate it.
+    - You can implement your own solver.
+- For more information, see [docs for ode](https://axect.github.io/Peroxide_Doc/peroxide/numerical/ode/index.html).
+    
 # Release 0.35.1 (2024-03-29)
 
 - Add `PlotType` for `Plot2D`
