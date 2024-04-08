@@ -12,7 +12,7 @@ fn f(x: f64) -> f64 {
 }
 
 #[test]
-fn test_cubic_spline_initialization() {
+fn test_cubic_spline_initialization() -> Result<(), Box<dyn std::error::Error>>{
     let mut vx = Vec::new();
     let mut vy = Vec::new();
     for i in 0..11 {
@@ -21,7 +21,7 @@ fn test_cubic_spline_initialization() {
         vy.push(f(x));
     }
 
-    let spline = CubicSpline::from_nodes(&vx, &vy);
+    let spline = cubic_spline(&vx, &vy)?;
 
     for i in 0..11 {
         let x = i as f64;
@@ -29,10 +29,12 @@ fn test_cubic_spline_initialization() {
 
         assert_eq!(rnd!(y), rnd!(f(x)));
     }
+
+    Ok(())
 }
 
 #[test]
-fn test_cubic_spline_extension() {
+fn test_cubic_spline_extension() -> Result<(), Box<dyn std::error::Error>>{
     let mut vx = Vec::new();
     let mut vy = Vec::new();
     for i in 0..11 {
@@ -41,7 +43,7 @@ fn test_cubic_spline_extension() {
         vy.push(f(x));
     }
 
-    let mut spline = CubicSpline::from_nodes(&vx, &vy);
+    let mut spline = cubic_spline(&vx, &vy)?;
 
     vx = Vec::new();
     vy = Vec::new();
@@ -52,7 +54,7 @@ fn test_cubic_spline_extension() {
         vy.push(f(x));
     }
 
-    spline.extend_with_nodes(vx, vy);
+    spline.extend_with_nodes(vx, vy)?;
 
     for i in 0..21 {
         let x = (i - 10) as f64;
@@ -63,4 +65,6 @@ fn test_cubic_spline_extension() {
             format!("{} = {}", x, rnd!(f(x)))
         );
     }
+
+    Ok(())
 }

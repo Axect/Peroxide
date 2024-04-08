@@ -1,14 +1,14 @@
 //! Spline interpolations
-//! 
+//!
 //! # Available splines
-//! 
+//!
 //! * Cubic spline
 //! * Cubic Hermite spline
-//! 
+//!
 //! # `Spline` trait
-//! 
+//!
 //! ## Methods
-//! 
+//!
 //! Let `T: Into<f64> + Copy`
 //! * `fn eval<T>(&self, x: T) -> f64` : Evaluate the spline at x
 //! * `fn eval_vec<T>(&self, v: &[T]) -> Vec<f64>` : Evaluate spline values for an array v
@@ -17,11 +17,11 @@
 //! * `fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)>` : Get the polynomials
 //! * `fn eval_with_cond<F>(&self, x: f64, cond: F) -> f64` : Evaluate the spline at x, with a condition
 //! * `fn eval_vec_with_cond<F>(&self, v: &[f64], cond: F) -> Vec<f64>` : Evaluate spline values for an array v, with a condition
-//! 
+//!
 //! # Low-level interface
-//! 
+//!
 //! ## Members
-//! 
+//!
 //! * `CubicSpline`: Structure for cubic spline
 //!     * `fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Self` : Create a cubic spline from nodes
 //!     * `fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>)` : Extend the spline with nodes
@@ -31,41 +31,41 @@
 //! * `SlopeMethod`: Enum for slope estimation methods
 //!     * `Akima`: Akima's method to estimate slopes ([Akima (1970)](https://dl.acm.org/doi/abs/10.1145/321607.321609))
 //!     * `Quadratic`: Using quadratic interpolation to estimate slopes
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! ```rust
 //! use peroxide::fuga::*;
-//! 
-//! fn main() {
+//!
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
-//!     let cs = CubicSpline::from_nodes(&x, &y);
-//!     let cs_akima = CubicHermiteSpline::from_nodes(&x, &y, SlopeMethod::Akima);
-//!     let cs_quad = CubicHermiteSpline::from_nodes(&x, &y, SlopeMethod::Quadratic);
-//! 
+//!     let cs = CubicSpline::from_nodes(&x, &y)?;
+//!     let cs_akima = CubicHermiteSpline::from_nodes(&x, &y, Akima)?;
+//!     let cs_quad = CubicHermiteSpline::from_nodes(&x, &y, Quadratic)?;
+//!
 //!     cs.polynomial_at(0f64).print();
 //!     cs_akima.polynomial_at(0f64).print();
 //!     cs_quad.polynomial_at(0f64).print();
 //!     // -0.1523x^3 + 0.9937x
 //!     // 0.1259x^3 - 0.5127x^2 + 1.2283x
 //!     // -0.0000x^3 - 0.3868x^2 + 1.2283x
-//! 
+//!
 //!     let new_x = seq(4, 6, 0.1);
 //!     let new_y = new_x.fmap(|t| t.sin());
-//! 
+//!
 //!     let y_cs = cs.eval_vec(&new_x);
 //!     let y_akima = cs_akima.eval_vec(&new_x);
 //!     let y_quad = cs_quad.eval_vec(&new_x);
-//! 
+//!
 //!     let mut df = DataFrame::new(vec![]);
 //!     df.push("x", Series::new(new_x));
 //!     df.push("y", Series::new(new_y));
 //!     df.push("y_cs", Series::new(y_cs));
 //!     df.push("y_akima", Series::new(y_akima));
 //!     df.push("y_quad", Series::new(y_quad));
-//! 
+//!
 //!     df.print();
 //!     //          x       y    y_cs y_akima  y_quad
 //!     //  r[0]    5 -0.9589 -0.9589 -0.9589 -0.9589
@@ -74,50 +74,52 @@
 //!     //  r[3]  5.6 -0.6313 -0.6288 -0.5960 -0.6120
 //!     //  r[4]  5.8 -0.4646 -0.4631 -0.4424 -0.4459
 //!     //  r[5]    6 -0.2794 -0.2794 -0.2794 -0.2794
+//!
+//!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! # High-level interface
-//! 
+//!
 //! ## Functions
-//! 
+//!
 //! * `fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> CubicSpline` : Create a cubic spline from nodes
 //! * `fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64], m: &[f64]) -> CubicHermiteSpline` : Create a cubic Hermite spline from nodes with slopes
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! ```rust
 //! use peroxide::fuga::*;
-//! 
-//! fn main() {
+//!
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
-//!     let cs = cubic_spline(&x, &y);
-//!     let cs_akima = cubic_hermite_spline(&x, &y, SlopeMethod::Akima);
-//!     let cs_quad = cubic_hermite_spline(&x, &y, SlopeMethod::Quadratic);
-//! 
+//!     let cs = cubic_spline(&x, &y)?;
+//!     let cs_akima = cubic_hermite_spline(&x, &y, Akima)?;
+//!     let cs_quad = cubic_hermite_spline(&x, &y, Quadratic)?;
+//!
 //!     cs.polynomial_at(0f64).print();
 //!     cs_akima.polynomial_at(0f64).print();
 //!     cs_quad.polynomial_at(0f64).print();
 //!     // -0.1523x^3 + 0.9937x
 //!     // 0.1259x^3 - 0.5127x^2 + 1.2283x
 //!     // -0.0000x^3 - 0.3868x^2 + 1.2283x
-//! 
+//!
 //!     let new_x = seq(4, 6, 0.1);
 //!     let new_y = new_x.fmap(|t| t.sin());
-//! 
+//!
 //!     let y_cs = cs.eval_vec(&new_x);
 //!     let y_akima = cs_akima.eval_vec(&new_x);
 //!     let y_quad = cs_quad.eval_vec(&new_x);
-//! 
+//!
 //!     let mut df = DataFrame::new(vec![]);
 //!     df.push("x", Series::new(new_x));
 //!     df.push("y", Series::new(new_y));
 //!     df.push("y_cs", Series::new(y_cs));
 //!     df.push("y_akima", Series::new(y_akima));
 //!     df.push("y_quad", Series::new(y_quad));
-//! 
+//!
 //!     df.print();
 //!     //          x       y    y_cs y_akima  y_quad
 //!     //  r[0]    5 -0.9589 -0.9589 -0.9589 -0.9589
@@ -126,49 +128,51 @@
 //!     //  r[3]  5.6 -0.6313 -0.6288 -0.5960 -0.6120
 //!     //  r[4]  5.8 -0.4646 -0.4631 -0.4424 -0.4459
 //!     //  r[5]    6 -0.2794 -0.2794 -0.2794 -0.2794
+//!
+//!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! # Calculus with splines
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! ```rust
 //! use peroxide::fuga::*;
 //! use std::f64::consts::PI;
-//! 
-//! fn main() {
+//!
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
-//!     let cs = cubic_spline(&x, &y);
-//!     let cs_akima = cubic_hermite_spline(&x, &y, SlopeMethod::Akima);
-//!     let cs_quad = cubic_hermite_spline(&x, &y, SlopeMethod::Quadratic);
-//! 
+//!     let cs = cubic_spline(&x, &y)?;
+//!     let cs_akima = cubic_hermite_spline(&x, &y, Akima)?;
+//!     let cs_quad = cubic_hermite_spline(&x, &y, Quadratic)?;
+//!
 //!     println!("============ Polynomial at x=0 ============");
-//! 
+//!
 //!     cs.polynomial_at(0f64).print();
 //!     cs_akima.polynomial_at(0f64).print();
 //!     cs_quad.polynomial_at(0f64).print();
-//! 
+//!
 //!     println!("============ Derivative at x=0 ============");
-//! 
+//!
 //!     cs.derivative().polynomial_at(0f64).print();
 //!     cs_akima.derivative().polynomial_at(0f64).print();
 //!     cs_quad.derivative().polynomial_at(0f64).print();
-//! 
+//!
 //!     println!("============ Integral at x=0 ============");
-//! 
+//!
 //!     cs.integral().polynomial_at(0f64).print();
 //!     cs_akima.integral().polynomial_at(0f64).print();
 //!     cs_quad.integral().polynomial_at(0f64).print();
-//! 
+//!
 //!     println!("============ Integrate from x=0 to x=pi ============");
-//! 
+//!
 //!     cs.integrate((0f64, PI)).print();
 //!     cs_akima.integrate((0f64, PI)).print();
 //!     cs_quad.integrate((0f64, PI)).print();
-//! 
+//!
 //!     // ============ Polynomial at x=0 ============
 //!     // -0.1523x^3 + 0.9937x
 //!     // 0.1259x^3 - 0.5127x^2 + 1.2283x
@@ -185,43 +189,47 @@
 //!     // 1.9961861265456702
 //!     // 2.0049920614062775
 //!     // 2.004327391790717
+//!
+//!     Ok(())
 //! }
 //! ```
-//! 
+//!
 //! # References
-//! 
+//!
 //! * Gary D. Knott, *Interpolating Splines*, Birkhäuser Boston, MA, (2000).
 
+use self::SplineError::{NotEnoughNodes, NotEqualNodes, NotEqualSlopes, RedundantNodeX};
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
 #[allow(unused_imports)]
 use crate::structure::polynomial::*;
 #[allow(unused_imports)]
 use crate::structure::vector::*;
-use peroxide_num::PowOps;
 #[allow(unused_imports)]
 use crate::util::non_macro::*;
 use crate::util::useful::zip_range;
+use peroxide_num::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::convert::{From, Into};
 use std::ops::{Index, Range};
+use thiserror::Error;
 
 /// Trait for spline interpolation
-/// 
+///
 /// # Available Splines
-/// 
+///
 /// - `CubicSpline`
 /// - `CubicHermiteSpline`
 pub trait Spline {
-    fn eval<T: std::convert::Into<f64> + Copy>(&self, x: T) -> f64 {
+    fn eval<T: Into<f64> + Copy>(&self, x: T) -> f64 {
         let x = x.into();
 
         self.polynomial_at(x).eval(x)
     }
 
-    fn eval_vec<T: std::convert::Into<f64> + Copy>(&self, v: &[T]) -> Vec<f64> {
+    fn eval_vec<T: Into<f64> + Copy>(&self, v: &[T]) -> Vec<f64> {
         let mut result = vec![0f64; v.len()];
 
         for (i, x) in v.iter().enumerate() {
@@ -231,7 +239,7 @@ pub trait Spline {
         result
     }
 
-    fn polynomial_at<T: std::convert::Into<f64> + Copy>(&self, x: T) -> &Polynomial {
+    fn polynomial_at<T: Into<f64> + Copy>(&self, x: T) -> &Polynomial {
         let x = x.into();
 
         let poly = self.get_ranged_polynomials();
@@ -285,11 +293,11 @@ pub trait Spline {
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let x = c!(0.9, 1.3, 1.9, 2.1);
 ///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
-///     let s = cubic_spline(&x, &y);
+///     let s = cubic_spline(&x, &y)?;
 ///
 ///     let new_x = c!(1, 1.5, 2.0);
 ///
@@ -305,13 +313,19 @@ pub trait Spline {
 ///     for t in new_x.iter() {
 ///         s.eval(*t).print();
 ///     }
+///
+///     Ok(())
 /// }
 /// ```
-pub fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> CubicSpline {
+pub fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<CubicSpline, SplineError> {
     CubicSpline::from_nodes(node_x, node_y)
 }
 
-pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> CubicHermiteSpline {
+pub fn cubic_hermite_spline(
+    node_x: &[f64],
+    node_y: &[f64],
+    slope_method: SlopeMethod,
+) -> Result<CubicHermiteSpline, SplineError> {
     CubicHermiteSpline::from_nodes(node_x, node_y, slope_method)
 }
 
@@ -333,11 +347,11 @@ pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64], slope_method: SlopeM
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let x = c!(0.9, 1.3, 1.9, 2.1);
 ///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
-///     let s = CubicSpline::from_nodes(&x, &y);
+///     let s = cubic_spline(&x, &y)?;
 ///
 ///     let new_x = c!(1, 1.5, 2.0);
 ///
@@ -353,6 +367,8 @@ pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64], slope_method: SlopeM
 ///     for t in new_x.iter() {
 ///         s.eval(*t).print();
 ///     }
+///
+///     Ok(())
 /// }
 /// ```
 #[derive(Debug, Clone, Default)]
@@ -367,6 +383,18 @@ impl Spline for CubicSpline {
     }
 }
 
+#[derive(Debug, Copy, Clone, Error)]
+pub enum SplineError {
+    #[error("node_x has less than 3 elements")]
+    NotEnoughNodes,
+    #[error("node_x and node_y have different lengths")]
+    NotEqualNodes,
+    #[error("nodes and slopes have different lengths")]
+    NotEqualSlopes,
+    #[error("there are redundant nodes in node_x")]
+    RedundantNodeX,
+}
+
 impl CubicSpline {
     /// # Examples
     /// ```
@@ -374,25 +402,27 @@ impl CubicSpline {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let x = c!(0.9, 1.3, 1.9, 2.1);
     ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///
-    ///     let s = CubicSpline::from_nodes(&x, &y);
+    ///     let s = CubicSpline::from_nodes(&x, &y)?;
     ///
     ///     for i in 0 .. 4 {
     ///         println!("{}", s.eval(i as f64 / 2.0));
     ///     }
+    ///
+    ///     Ok(())
     /// }
     /// ```
-    pub fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Self {
-        let polynomials = CubicSpline::cubic_spline(node_x, node_y);
-        CubicSpline {
+    pub fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self, SplineError> {
+        let polynomials = CubicSpline::cubic_spline(node_x, node_y)?;
+        Ok(CubicSpline {
             polynomials: zip_range(node_x, &polynomials),
-        }
+        })
     }
 
-    fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Vec<Polynomial> {
+    fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<Vec<Polynomial>, SplineError> {
         //! Pre calculated variables
         //! node_x: n+1
         //! node_y: n+1
@@ -402,7 +432,12 @@ impl CubicSpline {
         //! u     : n
         //! z     : n+1
         let n = node_x.len() - 1;
-        assert_eq!(n, node_y.len() - 1);
+        if n < 2 {
+            return Err(NotEnoughNodes);
+        }
+        if n != node_y.len() - 1 {
+            return Err(NotEqualNodes);
+        }
 
         // Pre-calculations
         let mut h = vec![0f64; n];
@@ -459,17 +494,17 @@ impl CubicSpline {
 
             s.push(term1 + term2 + term3 + term4);
         }
-        return s;
+        Ok(s)
     }
 
     /// Extends the spline with the given nodes.
     ///
     /// # Description
-    /// 
+    ///
     /// The method ensures that the transition between each polynomial is smooth and that the spline
     /// interpolation of the new nodes is calculated around `x = 0` in order to avoid that
     /// successive spline extensions with large x values become inaccurate.
-    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) {
+    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<(), SplineError> {
         let mut ext_node_x = Vec::with_capacity(node_x.len() + 1);
         let mut ext_node_y = Vec::with_capacity(node_x.len() + 1);
 
@@ -484,7 +519,7 @@ impl CubicSpline {
 
         let polynomials = zip_range(
             &ext_node_x,
-            &CubicSpline::cubic_spline(&ext_node_x, &ext_node_y),
+            &CubicSpline::cubic_spline(&ext_node_x, &ext_node_y)?,
         );
 
         self.polynomials
@@ -497,10 +532,12 @@ impl CubicSpline {
                     p.translate_x(tx),
                 )
             }));
+
+        Ok(())
     }
 }
 
-impl std::convert::Into<Vec<Polynomial>> for CubicSpline {
+impl Into<Vec<Polynomial>> for CubicSpline {
     fn into(self) -> Vec<Polynomial> {
         self.polynomials
             .into_iter()
@@ -577,7 +614,7 @@ impl Calculus for CubicSpline {
 // =============================================================================
 // Cubic Hermite Spline
 // =============================================================================
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicHermiteSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
@@ -590,43 +627,69 @@ impl Spline for CubicHermiteSpline {
 }
 
 impl CubicHermiteSpline {
-    pub fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Self {
-        let mut r = vec![Range::default(); node_x.len()-1];
-        let mut u = vec![Polynomial::default(); node_x.len()-1];
-        
-        for i in 0 .. node_x.len()-1 {
+    pub fn from_nodes_with_slopes(
+        node_x: &[f64],
+        node_y: &[f64],
+        m: &[f64],
+    ) -> Result<Self, SplineError> {
+        let n = node_x.len();
+        if n < 3 {
+            return Err(NotEnoughNodes);
+        }
+        if n != node_y.len() {
+            return Err(NotEqualNodes);
+        }
+        if n != m.len() {
+            return Err(NotEqualSlopes);
+        }
+
+        let mut r = vec![Range::default(); node_x.len() - 1];
+        let mut u = vec![Polynomial::default(); node_x.len() - 1];
+
+        for i in 0..node_x.len() - 1 {
             let a_i = node_y[i];
             let b_i = m[i];
-            let dx = node_x[i+1] - node_x[i];
-            let dy = node_y[i+1] - node_y[i];
-            let c_i = (3f64 * dy/dx - 2f64*m[i] - m[i+1]) / dx;
-            let d_i = (m[i] + m[i+1] - 2f64 * dy/dx) / dx.powi(2);
-            
+            let dx = node_x[i + 1] - node_x[i];
+            let dy = node_y[i + 1] - node_y[i];
+            let c_i = (3f64 * dy / dx - 2f64 * m[i] - m[i + 1]) / dx;
+            let d_i = (m[i] + m[i + 1] - 2f64 * dy / dx) / dx.powi(2);
+
             let p = Polynomial::new(vec![1f64, -node_x[i]]);
-    
-            r[i] = Range { start: node_x[i], end: node_x[i+1] };
+
+            r[i] = Range {
+                start: node_x[i],
+                end: node_x[i + 1],
+            };
             u[i] = p.powi(3) * d_i + p.powi(2) * c_i + p.clone() * b_i;
             u[i].coef[3] += a_i;
         }
 
-        CubicHermiteSpline {
+        Ok(CubicHermiteSpline {
             polynomials: r.into_iter().zip(u).collect(),
-        }
+        })
     }
 
-    pub fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Self {
+    pub fn from_nodes(
+        node_x: &[f64],
+        node_y: &[f64],
+        slope_method: SlopeMethod,
+    ) -> Result<Self, SplineError> {
         match slope_method {
-            SlopeMethod::Akima => {
-                CubicHermiteSpline::from_nodes_with_slopes(node_x, node_y, &akima_slopes(node_x, node_y))
-            },
-            SlopeMethod::Quadratic => {
-                CubicHermiteSpline::from_nodes_with_slopes(node_x, node_y, &quadratic_slopes(node_x, node_y))
-            },
+            SlopeMethod::Akima => CubicHermiteSpline::from_nodes_with_slopes(
+                node_x,
+                node_y,
+                &akima_slopes(node_x, node_y)?,
+            ),
+            SlopeMethod::Quadratic => CubicHermiteSpline::from_nodes_with_slopes(
+                node_x,
+                node_y,
+                &quadratic_slopes(node_x, node_y)?,
+            ),
         }
     }
 }
 
-impl std::convert::Into<Vec<Polynomial>> for CubicHermiteSpline {
+impl Into<Vec<Polynomial>> for CubicHermiteSpline {
     fn into(self) -> Vec<Polynomial> {
         self.polynomials
             .into_iter()
@@ -654,7 +717,6 @@ impl Index<usize> for CubicHermiteSpline {
         &self.polynomials[index]
     }
 }
-
 
 impl Calculus for CubicHermiteSpline {
     fn derivative(&self) -> Self {
@@ -710,21 +772,21 @@ pub enum SlopeMethod {
     Quadratic,
 }
 
-fn akima_slopes(x: &[f64], y: &[f64]) -> Vec<f64> {
+fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
     if x.len() < 3 {
-        panic!("Cubic spline need at least 3 nodes");
+        return Err(NotEnoughNodes);
     }
 
     let mut m = vec![0f64; x.len()];
-    let mut s = vec![0f64; x.len()+3]; // -2, -1, 0, ..., x.len()-1, x.len()
+    let mut s = vec![0f64; x.len() + 3]; // -2, -1, 0, ..., x.len()-1, x.len()
 
     let l_i = lagrange_polynomial(x[0..3].to_vec(), y[0..3].to_vec());
-    let l_f = lagrange_polynomial(x[x.len()-3..].to_vec(), y[y.len()-3..].to_vec());
+    let l_f = lagrange_polynomial(x[x.len() - 3..].to_vec(), y[y.len() - 3..].to_vec());
 
     let x_i = x[0] - (x[1] - x[0]) / 10f64;
     let x_ii = x_i - (x[1] - x[0]) / 10f64;
-    let x_f = x[x.len()-1] + (x[x.len()-1] - x[x.len()-2]) / 10f64;
-    let x_ff = x_f + (x[x.len()-1] - x[x.len()-2]) / 10f64;
+    let x_f = x[x.len() - 1] + (x[x.len() - 1] - x[x.len() - 2]) / 10f64;
+    let x_ff = x_f + (x[x.len() - 1] - x[x.len() - 2]) / 10f64;
 
     let y_i = l_i.eval(x_i);
     let y_ii = l_i.eval(x_ii);
@@ -734,40 +796,43 @@ fn akima_slopes(x: &[f64], y: &[f64]) -> Vec<f64> {
     let new_x = concat(&concat(&vec![x_ii, x_i], &x.to_vec()), &vec![x_f, x_ff]);
     let new_y = concat(&concat(&vec![y_ii, y_i], &y.to_vec()), &vec![y_f, y_ff]);
 
-    for i in 0 .. new_x.len()-1 {
-        let dx = new_x[i+1] - new_x[i];
+    for i in 0..new_x.len() - 1 {
+        let dx = new_x[i + 1] - new_x[i];
         if dx == 0f64 {
-            panic!("x nodes should be different!");
+            return Err(RedundantNodeX);
         }
-        s[i] = (new_y[i+1] - new_y[i]) / dx;
+        s[i] = (new_y[i + 1] - new_y[i]) / dx;
     }
-    
-    for i in 0 .. x.len() {
-        let j = i+2;
-        let ds_f = (s[j+1] - s[j]).abs();
-        let ds_i = (s[j-1] - s[j-2]).abs();
+
+    for i in 0..x.len() {
+        let j = i + 2;
+        let ds_f = (s[j + 1] - s[j]).abs();
+        let ds_i = (s[j - 1] - s[j - 2]).abs();
 
         m[i] = if ds_f == 0f64 && ds_i == 0f64 {
-            (s[j-1] + s[j]) / 2f64
+            (s[j - 1] + s[j]) / 2f64
         } else {
-            (ds_f * s[j-1] + ds_i * s[j]) / (ds_f + ds_i)
+            (ds_f * s[j - 1] + ds_i * s[j]) / (ds_f + ds_i)
         };
     }
-    m
+    Ok(m)
 }
 
-fn quadratic_slopes(x: &[f64], y: &[f64]) -> Vec<f64> {
+fn quadratic_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
+    if x.len() < 3 {
+        return Err(NotEnoughNodes);
+    }
     let mut m = vec![0f64; x.len()];
     let q_i = lagrange_polynomial(x[0..3].to_vec(), y[0..3].to_vec());
-    let q_f = lagrange_polynomial(x[x.len()-3..].to_vec(), y[y.len()-3..].to_vec());
+    let q_f = lagrange_polynomial(x[x.len() - 3..].to_vec(), y[y.len() - 3..].to_vec());
 
     m[0] = q_i.derivative().eval(x[0]);
-    m[x.len()-1] = q_f.derivative().eval(x[x.len()-1]);
+    m[x.len() - 1] = q_f.derivative().eval(x[x.len() - 1]);
 
-    for i in 1 .. x.len()-1 {
-        let q = lagrange_polynomial(x[i-1..i+2].to_vec(), y[i-1..i+2].to_vec());
+    for i in 1..x.len() - 1 {
+        let q = lagrange_polynomial(x[i - 1..i + 2].to_vec(), y[i - 1..i + 2].to_vec());
         m[i] = q.derivative().eval(x[i]);
     }
 
-    m
+    Ok(m)
 }
