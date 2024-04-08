@@ -250,6 +250,8 @@ use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
 use std::convert::Into;
 use std::f64::consts::E;
+use thiserror::Error;
+use self::WeightedUniformError::*;
 
 /// One parameter distribution
 ///
@@ -281,6 +283,18 @@ pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     intervals: Vec<(T, T)>
 }
 
+#[derive(Debug, Clone, Copy, Error)]
+pub enum WeightedUniformError {
+    #[error("all weights are zero")]
+    AllZeroWeightError,
+    #[error("weights and intervals have different length")]
+    LengthMismatchError,
+    #[error("no non-zero interval found")]
+    NoNonZeroIntervalError,
+    #[error("weights are empty")]
+    EmptyWeightError,
+}
+
 impl WeightedUniform<f64> {
     /// Create a new weighted uniform distribution
     /// 
@@ -289,17 +303,28 @@ impl WeightedUniform<f64> {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let weights = vec![1f64, 3f64, 0f64, 2f64];
     ///     let intervals = vec![0f64, 1f64, 2f64, 4f64, 5f64];
-    ///     let w = WeightedUniform::new(weights, intervals);
+    ///     let w = WeightedUniform::new(weights, intervals)?;
     ///     assert_eq!(w.weights(), &vec![1f64, 3f64, 2f64]);
     ///     assert_eq!(w.intervals(), &vec![(0f64, 1f64), (1f64, 2f64), (4f64, 5f64)]);
+    ///
+    ///     Ok(())
     /// }
     /// ```    
-    pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Self {
+    pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Result<Self, WeightedUniformError> {
         let mut weights = weights;
+        if weights.len() == 0 {
+            return Err(EmptyWeightError);
+        }
+        if weights.iter().all(|&x| x == 0f64) {
+            return Err(AllZeroWeightError);
+        }
         let mut intervals = auto_zip(&intervals);
+        if weights.len() != intervals.len() {
+            return Err(LengthMismatchError);
+        }
 
         // Remove zero weights & corresponding intervals
         let mut i = 0;
@@ -317,12 +342,14 @@ impl WeightedUniform<f64> {
         let sum = weights.iter()
             .zip(intervals.iter())
             .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
-        
-        WeightedUniform {
-            weights,
-            sum,
-            intervals
-        }
+
+        Ok(
+            WeightedUniform {
+                weights,
+                sum,
+                intervals
+            }
+        )
     }
 
     /// Create WeightedUniform from max pooling
@@ -332,9 +359,11 @@ impl WeightedUniform<f64> {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
-    /// fn main() {
-    ///     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-3);
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-3)?;
     ///     w.weights().print();
+    ///
+    ///     Ok(())
     /// }
     /// 
     /// fn f(x: f64) -> f64 {
@@ -345,7 +374,7 @@ impl WeightedUniform<f64> {
     ///     }
     /// }
     /// ```
-    pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Self 
+    pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Result<Self, WeightedUniformError>
     where F: Fn(f64) -> f64 + Copy {
         // Find non-zero intervals
         let mut a = a;
@@ -365,7 +394,9 @@ impl WeightedUniform<f64> {
                 break;
             }
         }
-        assert!(a < b, "No non-zero interval found");
+        if a >= b {
+            return Err(NoNonZeroIntervalError);
+        }
         let domain = linspace(a, b, n+1);
 
         // Find intervals
@@ -380,15 +411,7 @@ impl WeightedUniform<f64> {
             )
             .collect();
 
-        let sum = weights.iter()
-            .zip(intervals.iter())
-            .fold(0f64, |acc, (w, (x, y))| acc + w * (y - x));
-        
-        WeightedUniform {
-            weights,
-            sum,
-            intervals
-        }
+        Self::new(weights, domain)
     }
 
     pub fn weights(&self) -> &Vec<f64> {
