@@ -1,17 +1,95 @@
+//! # Ordinary Differential Equation (ODE) Solvers
+//!
+//! This module provides traits and structs for solving ordinary differential equations (ODEs).
+//!
+//! ## Example
+//!
+//! ```rust
+//! use peroxide::fuga::*;
+//!
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+//!     let basic_ode_solver = BasicODESolver::new(rkf);
+//!     let (t_vec, y_vec) = basic_ode_solver.solve(
+//!         &Test,
+//!         (0f64, 10f64),
+//!         0.01,
+//!     )?;
+//!     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
+//!     println!("{}", y_vec.len());
+//!
+//! #   #[cfg(feature = "plot")]
+//! #   {
+//!     let mut plt = Plot2D::new();
+//!     plt
+//!         .set_domain(t_vec)
+//!         .insert_image(y_vec)
+//!         .set_xlabel(r"$t$")
+//!         .set_ylabel(r"$y$")
+//!         .set_style(PlotStyle::Nature)
+//!         .tight_layout()
+//!         .set_dpi(600)
+//!         .set_path("example_data/rkf45_test.png")
+//!         .savefig()?;
+//! #   }
+//!     Ok(())
+//! }
+//!
+//! struct Test;
+//!
+//! impl ODEProblem for Test {
+//!     fn initial_conditions(&self) -> Vec<f64> {
+//!         vec![1f64]
+//!     }
+//!
+//!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+//!         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
+//!     }
+//! }
+//! ```
+
 use thiserror::Error;
 use ODEError::*;
 
-use crate::{util::non_macro::eye, traits::math::LinearOp, traits::fp::FPVector};
-
+/// Trait for defining an ODE problem.
+///
+/// Implement this trait to define your own ODE problem.
+///
+/// # Example
+///
+/// ```
+/// use peroxide::fuga::*;
+///
+/// struct MyODEProblem;
+///
+/// impl ODEProblem for MyODEProblem {
+///     fn initial_conditions(&self) -> Vec<f64> {
+///         vec![1.0, 2.0]
+///     }
+///
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///         dy[0] = -0.5 * y[0];
+///         dy[1] = y[0] - y[1];
+///         Ok(())
+///     }
+/// }
+/// ```
 pub trait ODEProblem {
     fn initial_conditions(&self) -> Vec<f64>;
     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError>;
 }
 
 
+/// Trait for ODE integrators.
+///
+/// Implement this trait to define your own ODE integrator.
 pub trait ODEIntegrator {
     fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError>;
 }
+
+
+/// Enum for ODE errors.
+
 
 #[derive(Debug, Clone, Copy, Error)]
 pub enum ODEError {
@@ -21,10 +99,45 @@ pub enum ODEError {
     ReachedMaxStepIter,
 }
 
+/// Trait for ODE solvers.
+///
+/// Implement this trait to define your own ODE solver.
 pub trait ODESolver {
     fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError>;
 }
 
+/// A basic ODE solver using a specified integrator.
+///
+/// # Example
+///
+/// ```
+/// use peroxide::fuga::*;
+///
+/// fn main() -> Result<(), Box<dyn Error>> {
+///     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+///     let basic_ode_solver = BasicODESolver::new(rkf);
+///     let (t_vec, y_vec) = basic_ode_solver.solve(
+///         &Test,
+///         (0f64, 10f64),
+///         0.01,
+///     )?;
+///     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
+///
+///     Ok(())
+/// }
+///
+/// struct Test;
+///
+/// impl ODEProblem for Test {
+///     fn initial_conditions(&self) -> Vec<f64> {
+///         vec![1f64]
+///     }
+///
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
+///     }
+/// }
+/// ```
 pub struct BasicODESolver<I: ODEIntegrator> {
     integrator: I,
 }
@@ -38,15 +151,17 @@ impl<I: ODEIntegrator> BasicODESolver<I> {
 impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
     fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError> {
         let mut t = t_span.0;
+        let mut dt = dt;
         let mut y = problem.initial_conditions();
         let mut t_vec = vec![t];
         let mut y_vec = vec![y.clone()];
 
         while t < t_span.1 {
             let dt_step = self.integrator.step(problem, t, &mut y, dt)?;
-            t += dt_step;
+            t += dt;
             t_vec.push(t);
             y_vec.push(y.clone());
+            dt = dt_step;
         }
 
         Ok((t_vec, y_vec))
@@ -56,7 +171,10 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
 // ┌─────────────────────────────────────────────────────────┐
 //  Runge-Kutta
 // └─────────────────────────────────────────────────────────┘
-/// Runge-Kutta 4th order
+/// Runge-Kutta 4th order integrator.
+///
+/// This integrator uses the classical 4th order Runge-Kutta method to numerically integrate the ODE system.
+/// It calculates four intermediate values (k1, k2, k3, k4) to estimate the next step solution.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RK4;
@@ -97,7 +215,11 @@ impl ODEIntegrator for RK4 {
 // ┌─────────────────────────────────────────────────────────┐
 //  Runge-Kutta-Fehlberg
 // └─────────────────────────────────────────────────────────┘
-/// Runge-Kutta-Fehlberg 4/5th order
+/// Runge-Kutta-Fehlberg 4/5th order integrator.
+///
+/// This integrator uses the Runge-Kutta-Fehlberg method, which is an adaptive step size integrator.
+/// It calculates six intermediate values (k1, k2, k3, k4, k5, k6) to estimate the next step solution and the error.
+/// The step size is automatically adjusted based on the estimated error to maintain the desired tolerance.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RKF45 {
@@ -244,20 +366,39 @@ impl ODEIntegrator for RKF45 {
 // ┌─────────────────────────────────────────────────────────┐
 //  Gauss-Legendre 4th order
 // └─────────────────────────────────────────────────────────┘
+/// Enum for implicit solvers.
+///
+/// This enum defines the available implicit solvers for the Gauss-Legendre 4th order integrator.
+/// Currently, only the fixed-point iteration method is implemented.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ImplicitSolver {
     FixedPoint,
-    Broyden,
-    TrustRegion(f64, f64),
+    //Broyden,
+    //TrustRegion(f64, f64),
 }
 
+/// Gauss-Legendre 4th order integrator.
+///
+/// This integrator uses the 4th order Gauss-Legendre Runge-Kutta method, which is an implicit integrator.
+/// It requires solving a system of nonlinear equations at each step, which is done using the specified implicit solver (e.g., fixed-point iteration).
+/// The Gauss-Legendre method has better stability properties compared to explicit methods, especially for stiff ODEs.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GL4 {
     solver: ImplicitSolver,
     max_iter: usize,
     tol: f64,
+}
+
+impl Default for GL4 {
+    fn default() -> Self {
+        GL4 {
+            solver: ImplicitSolver::FixedPoint,
+            max_iter: 100,
+            tol: 1e-6,
+        }
+    }
 }
 
 impl GL4 {
@@ -302,171 +443,6 @@ impl ODEIntegrator for GL4 {
 
                     if max_diff < self.tol {
                         break;
-                    }
-                }
-            }
-            ImplicitSolver::Broyden => {
-                // Broyden's method
-                let mut b = eye(n);
-
-                for _ in 0..self.max_iter {
-                    problem.rhs(t + c * dt, &y1, &mut k1)?;
-                    problem.rhs(t + d * dt, &y2, &mut k2)?;
-
-                    let mut f1 = vec![0.0; n];
-                    let mut f2 = vec![0.0; n];
-                    for i in 0..n {
-                        f1[i] = y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
-                        f2[i] = y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
-                    }
-
-                    let neg_dy1 = b.apply(&f1);
-                    let neg_dy2 = b.apply(&f2);
-
-                    for i in 0..n {
-                        y1[i] -= neg_dy1[i];
-                        y2[i] -= neg_dy2[i];
-                    }
-
-                    let mut max_diff = 0f64;
-                    for i in 0..n {
-                        max_diff = max_diff.max(neg_dy1[i].abs()).max(neg_dy2[i].abs());
-                    }
-
-                    if max_diff < self.tol {
-                        break;
-                    }
-
-                    let mut df1 = vec![0.0; n];
-                    let mut df2 = vec![0.0; n];
-                    for i in 0..n {
-                        df1[i] = f1[i] + dt * (c * neg_dy1[i] + d * neg_dy2[i] - sqrt3 * (neg_dy2[i] - neg_dy1[i]) / 2.0);
-                        df2[i] = f2[i] + dt * (c * neg_dy1[i] + d * neg_dy2[i] + sqrt3 * (neg_dy2[i] - neg_dy1[i]) / 2.0);
-                    }
-
-                    for i in 0..n {
-                        for j in 0..n {
-                            b[(i, j)] -= (df1[i] * neg_dy1[j] + df2[i] * neg_dy2[j]) / (neg_dy1[j].powi(2) + neg_dy2[j].powi(2));
-                        }
-                    }
-                }
-            }
-            ImplicitSolver::TrustRegion(eta, rho) => {
-                // Trust-region method
-                let mut r = self.tol;
-                let mut d1 = vec![0.0; n];
-                let mut d2 = vec![0.0; n];
-                let mut g1 = vec![0.0; n];
-                let mut g2 = vec![0.0; n];
-                let mut b1 = eye(n);
-                let mut b2 = eye(n);
-
-                for _ in 0..self.max_iter {
-                    problem.rhs(t + c * dt, &y1, &mut k1)?;
-                    problem.rhs(t + d * dt, &y2, &mut k2)?;
-
-                    let mut f1 = vec![0.0; n];
-                    let mut f2 = vec![0.0; n];
-                    for i in 0..n {
-                        f1[i] = y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
-                        f2[i] = y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
-                    }
-
-                    let mut norm_f1 = 0.0;
-                    let mut norm_f2 = 0.0;
-                    for i in 0..n {
-                        norm_f1 += f1[i] * f1[i];
-                        norm_f2 += f2[i] * f2[i];
-                        g1[i] = f1[i];
-                        g2[i] = f2[i];
-                    }
-                    norm_f1 = norm_f1.sqrt();
-                    norm_f2 = norm_f2.sqrt();
-
-                    let mut inner_iter_count = 0;
-                    while norm_f1 > self.tol || norm_f2 > self.tol {
-                        let h1 = b1.apply(&g1).fmap(|x| -x);
-                        let h2 = b2.apply(&g2).fmap(|x| -x);
-
-                        let mut norm_h1 = 0.0;
-                        let mut norm_h2 = 0.0;
-                        for i in 0..n {
-                            norm_h1 += h1[i] * h1[i];
-                            norm_h2 += h2[i] * h2[i];
-                        }
-                        norm_h1 = norm_h1.sqrt();
-                        norm_h2 = norm_h2.sqrt();
-
-                        if norm_h1 <= r || norm_h2 <= r {
-                            d1.copy_from_slice(&h1[..]);
-                            d2.copy_from_slice(&h2[..]);
-                        } else {
-                            let sigma1 = (r / norm_h1).powf(2.0);
-                            let sigma2 = (r / norm_h2).powf(2.0);
-                            for i in 0..n {
-                                d1[i] = sigma1 * h1[i];
-                                d2[i] = sigma2 * h2[i];
-                            }
-                        }
-
-                        let mut y1_new = vec![0.0; n];
-                        let mut y2_new = vec![0.0; n];
-                        for i in 0..n {
-                            y1_new[i] = y1[i] + d1[i];
-                            y2_new[i] = y2[i] + d2[i];
-                        }
-
-                        problem.rhs(t + c * dt, &y1_new, &mut k1)?;
-                        problem.rhs(t + d * dt, &y2_new, &mut k2)?;
-
-                        let mut f1_new = vec![0.0; n];
-                        let mut f2_new = vec![0.0; n];
-                        for i in 0..n {
-                            f1_new[i] = y1_new[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
-                            f2_new[i] = y2_new[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
-                        }
-
-                        let mut norm_f1_new = 0.0;
-                        let mut norm_f2_new = 0.0;
-                        for i in 0..n {
-                            norm_f1_new += f1_new[i] * f1_new[i];
-                            norm_f2_new += f2_new[i] * f2_new[i];
-                        }
-                        norm_f1_new = norm_f1_new.sqrt();
-                        norm_f2_new = norm_f2_new.sqrt();
-
-                        let rho1 = (norm_f1 * norm_f1 - norm_f1_new * norm_f1_new) / (norm_f1 * norm_f1 - (g1.iter().zip(&d1).map(|(g, d)| g * d).sum::<f64>()).abs());
-                        let rho2 = (norm_f2 * norm_f2 - norm_f2_new * norm_f2_new) / (norm_f2 * norm_f2 - (g2.iter().zip(&d2).map(|(g, d)| g * d).sum::<f64>()).abs());
-
-                        if rho1 > eta && rho2 > eta {
-                            y1.copy_from_slice(&y1_new[..]);
-                            y2.copy_from_slice(&y2_new[..]);
-                            f1.copy_from_slice(&f1_new[..]);
-                            f2.copy_from_slice(&f2_new[..]);
-                            g1.copy_from_slice(&f1_new[..]);
-                            g2.copy_from_slice(&f2_new[..]);
-                            norm_f1 = norm_f1_new;
-                            norm_f2 = norm_f2_new;
-                            r = r.max(rho * r);
-                        } else {
-                            r *= rho;
-                        }
-
-                        if r < self.tol {
-                            break;
-                        }
-
-                        for i in 0..n {
-                            for j in 0..n {
-                                b1[(i, j)] += (f1[i] - g1[i]) * d1[j] / (d1.iter().map(|d| d * d).sum::<f64>());
-                                b2[(i, j)] += (f2[i] - g2[i]) * d2[j] / (d2.iter().map(|d| d * d).sum::<f64>());
-                            }
-                        }
-
-                        inner_iter_count += 1;
-                        if inner_iter_count >= self.max_iter {
-                            break;
-                        }
                     }
                 }
             }

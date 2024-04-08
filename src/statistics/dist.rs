@@ -239,7 +239,6 @@ use rand_distr::WeightedAliasIndex;
 
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
-use self::rand_distr::Distribution;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::traits::fp::FPVector;
@@ -248,7 +247,6 @@ use crate::special::function::*;
 use crate::statistics::{ops::C, stat::Statistics};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
-use std::convert::Into;
 use std::f64::consts::E;
 use thiserror::Error;
 use self::WeightedUniformError::*;

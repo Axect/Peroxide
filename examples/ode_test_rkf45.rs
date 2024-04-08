@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -10,19 +8,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         (0f64, 10f64),
         0.01,
     )?;
-    let y_vec = y_vec.into_iter().flatten().collect();
+    let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
-    let mut plt = Plot2D::new();
-    plt
-        .set_domain(t_vec)
-        .insert_image(y_vec)
-        .set_xlabel(r"$t$")
-        .set_ylabel(r"$y$")
-        .set_style(PlotStyle::Nature)
-        .tight_layout()
-        .set_dpi(600)
-        .set_path("example_data/rkf45_test.png")
-        .savefig()?;
+    #[cfg(feature = "plot")]
+    {
+        let mut plt = Plot2D::new();
+        plt
+            .set_domain(t_vec)
+            .insert_image(y_vec)
+            .set_xlabel(r"$t$")
+            .set_ylabel(r"$y$")
+            .set_style(PlotStyle::Nature)
+            .tight_layout()
+            .set_dpi(600)
+            .set_path("example_data/rkf45_test.png")
+            .savefig()?;
+    }
 
     Ok(())
 }
