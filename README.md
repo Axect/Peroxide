@@ -288,7 +288,6 @@ Corresponding to `0.34.4`
       - [mod.rs](src/ml/mod.rs)
       - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
-    - [bdf.rs](src/numerical/bdf.rs) : Backward Differentiation Formula (deprecated)
     - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
     - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [integral.rs](src/numerical/integral.rs) : Numerical integration
