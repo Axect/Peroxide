@@ -9,6 +9,28 @@
 
 Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
 
+## Table of Contents
+
+- [Why Peroxide?](#why-peroxide)
+    - [1. Customize features](#1-customize-features)
+    - [2. Easy to optimize](#2-easy-to-optimize)
+    - [3. Friendly syntax](#3-friendly-syntax)
+    - [4. Can choose two different coding styles](#4-can-choose-two-different-coding-styles)
+    - [5. Batteries included](#5-batteries-included)
+    - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
+    - [7. Written in Rust](#7-written-in-rust)
+- [Latest README version](#latest-readme-version)
+- [Pre-requisite](#pre-requisite)
+- [Install](#install)
+- [Useful tips for features](#useful-tips-for-features)
+- [Module Structure](#module-structure)
+- [Documentation](#documentation)
+- [Examples](#examples)
+- [Version Info](#version-info)
+- [Contributes Guide](#contributes-guide)
+- [LICENSE](#license)
+- [TODO](#todo)
+
 ## Why Peroxide?
 
 ### 1. Customize features
@@ -28,16 +50,19 @@ If you don't want to depend C/C++ or Fortran libraries, then choose `default` fe
 If you want to draw plot with some great templates, then choose `plot` feature.
 
 You can choose any features simultaneously.
- 
+
 ### 2. Easy to optimize
 
-Peroxide uses 1D data structure to describe matrix. So, it's too easy to integrate BLAS.
-It means peroxide guarantees perfect performance for linear algebraic computations.
+Peroxide uses a 1D data structure to represent matrices, making it straightforward to integrate with BLAS (Basic Linear Algebra Subprograms).
+This means that Peroxide can guarantee excellent performance for linear algebraic computations by leveraging the optimized routines provided by BLAS.
 
 ### 3. Friendly syntax
 
-Rust is so strange for Numpy, MATLAB, R users. Thus, it's harder to learn the more rusty libraries.
-With peroxide, you can do heavy computations with R, Numpy, MATLAB like syntax.
+For users familiar with numerical computing libraries like NumPy, MATLAB, or R, Rust's syntax might seem unfamiliar at first.
+This can make it more challenging to learn and use Rust libraries that heavily rely on Rust's unique features and syntax.
+
+However, Peroxide aims to bridge this gap by providing a syntax that resembles the style of popular numerical computing environments.
+With Peroxide, you can perform complex computations using a syntax similar to that of R, NumPy, or MATLAB, making it easier for users from these backgrounds to adapt to Rust and take advantage of its performance benefits.
 
 For example,
 
@@ -100,7 +125,7 @@ fn main() {
 }
 ```
 
-In `fuga`, use various norms. But you should write longer than `prelude`.
+In `fuga`, use various norms. But you should write a little bit longer than `prelude`.
 ```rust
 #[macro_use]
 extern crate peroxide;
@@ -132,7 +157,7 @@ Peroxide can do many things.
     * Column, Row operations
     * Eigenvalue, Eigenvector
 * Functional Programming
-    * More easy functional programming with `Vec<f64>`
+    * Easier functional programming with `Vec<f64>`
     * For matrix, there are three maps
         * `fmap` : map for all elements
         * `col_map` : map for column vectors
@@ -152,15 +177,16 @@ Peroxide can do many things.
         * Gradient Descent
         * Levenberg Marquardt
     * Ordinary Differential Equation
-        * Euler
-        * Runge Kutta 4th order
-        * Backward Euler (Implicit)
-        * Gauss Legendre 4th order (Implicit)
+        * Runge-Kutta 4th order (`RK4`)
+        * Runge-Kutta-Fehlberg 4/5th order (`RKF45`)
+        * Gauss-Legendre 4th order (`GL4`; Implicit)
     * Numerical Integration
         * Newton-Cotes Quadrature
         * Gauss-Legendre Quadrature (up to 30 order)
         * Gauss-Kronrod Quadrature (Adaptive)
             * G7K15, G10K21, G15K31, G20K41, G25K51, G30K61
+        * Gauss-Kronrod Quadrature (Relative tolerance)
+            * G7K15R, G10K21R, G15K31R, G20K41R, G25K51R, G30K61R
     * Root Finding
         * Bisection
         * False Position (Regula Falsi)
@@ -179,6 +205,7 @@ Peroxide can do many things.
         * Gamma
         * Beta
         * Student's-t
+        * Weighted Uniform
     * RNG algorithms
         * Acceptance Rejection
         * Marsaglia Polar
@@ -209,19 +236,73 @@ For future, peroxide will include more & more mathematical concepts. (But still 
 
 ### 7. Written in Rust
 
-Rust & Cargo are awesome for scientific computations. 
-You can use any external packages easily with Cargo, not make.
-And default runtime performance of Rust is also great. If you use many iterations for computations,
-then Rust become great choice.
+Rust provides a strong type system, ownership concepts, borrowing rules, and other features that enable developers to write safe and efficient code. It also offers modern programming techniques like trait-based abstraction and convenient error handling. Peroxide is developed to take full advantage of these strengths of Rust.
+
+The example code demonstrates how Peroxide can be used to simulate the Lorenz attractor and visualize the results. It showcases some of the powerful features provided by Rust, such as the `?` operator for streamlined error handling and the `ODEProblem` trait for abstracting ODE problems.
+
+```rust
+use peroxide::fuga::*;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let rkf45 = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+    let basic_ode_solver = BasicODESolver::new(rkf45);
+    let (_, y_vec) = basic_ode_solver.solve(
+        &Lorenz,
+        (0f64, 100f64),
+        1e-2,
+    )?; // Error handling with `?` - can check constraint violation and etc.
+    let y_mat = py_matrix(y_vec);
+    let y0 = y_mat.col(0);
+    let y2 = y_mat.col(2);
+
+    // Simple but effective plotting
+    let mut plt = Plot2D::new();
+    plt
+        .set_domain(y0)
+        .insert_image(y2)
+        .set_xlabel(r"$y_0$")
+        .set_ylabel(r"$y_2$")
+        .set_style(PlotStyle::Nature)
+        .tight_layout()
+        .set_dpi(600)
+        .set_path("example_data/lorenz_rkf45.png")
+        .savefig()?;
+
+    Ok(())
+}
+
+struct Lorenz;
+
+impl ODEProblem for Lorenz {
+    fn initial_conditions(&self) -> Vec<f64> {
+        vec![10f64, 1f64, 1f64]
+    }
+
+    fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+        dy[0] = 10f64 * (y[1] - y[0]);
+        dy[1] = 28f64 * y[0] - y[1] - y[0] * y[2];
+        dy[2] = -8f64 / 3f64 * y[2] + y[0] * y[1];
+        Ok(())
+    }
+}
+```
+
+Running the code produces the following visualization of the Lorenz attractor:
+
+![lorenz_rkf45.png](example_data/lorenz_rkf45.png)
+
+Peroxide strives to leverage the benefits of the Rust language while providing a user-friendly interface for numerical computing and scientific simulations.
+
+How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.34.4`
+Corresponding to `0.36.0`
 
 ## Pre-requisite
 
 * For `O3` feature - Need `OpenBLAS`
-* For `plot` feature - Need `matplotlib` of python
+* For `plot` feature - Need `matplotlib` and optional `scienceplots` (for publication quality)
 * For `nc` feature - Need `netcdf`
 
 ## Install
@@ -263,15 +344,18 @@ Corresponding to `0.34.4`
     cargo add peroxide --features "O3 plot nc csv parquet serde"
     ```
 
-
 ## Useful tips for features
 
-* If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
-* If you want to write your numerical results, then use `parquet` or `nc` features (corresponding to `parquet` or `netcdf` format. (It is much more effective than `csv` and `json`.)
-* To plot, use `parquet` or `nc` feature to export data as parquet or netcdf format and use python to draw plot.
-    * `plot` feature has limited plot abilities.
-    * To read parquet file in python, use `pandas` & `pyarrow` libraries.
-    * There is a template of python code for netcdf. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
+* If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
+
+* If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
+
+* For plotting, it is recommended to use the `plot` feature. However, if you require more customization, you can use the `parquet` or `nc` feature to export your data in the parquet or netcdf format and then use Python to create the plots.
+
+    * To read parquet files in Python, you can use the `pandas` and `pyarrow` libraries.
+
+    * A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
+
 
 ## Module Structure
 
@@ -285,13 +369,13 @@ Corresponding to `0.34.4`
     - [mod.rs](src/macros/mod.rs)
     - [r_macro.rs](src/macros/r_macro.rs) : R like macro
   - __ml__ : For machine learning (*Beta*)
-      - [mod.rs](src/ml/mod.rs)
-      - [reg.rs](src/ml/reg.rs) : Regression tools
+    - [mod.rs](src/ml/mod.rs)
+    - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
-    - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
-    - [interp.rs](src/numerical/interp.rs) : Interpolation
-    - [integral.rs](src/numerical/integral.rs) : Numerical integration
     - [mod.rs](src/numerical/mod.rs)
+    - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
+    - [integral.rs](src/numerical/integral.rs) : Numerical integration
+    - [interp.rs](src/numerical/interp.rs) : Interpolation
     - [newton.rs](src/numerical/newton.rs) : Newton's Method
     - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
@@ -308,21 +392,21 @@ Corresponding to `0.34.4`
     - [mod.rs](src/statistics/mod.rs)
     - [dist.rs](src/statistics/dist.rs) : Probability distributions
     - [ops.rs](src/statistics/ops.rs) : Some probabilistic operations
-    - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate
+    - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate & Piecewise Rejection Sampling
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
+    - [mod.rs](src/structure/mod.rs)
     - [ad.rs](src/structure/ad.rs) : Automatic Differentation
     - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
     - [matrix.rs](src/structure/matrix.rs) : Matrix
-    - [mod.rs](src/structure/mod.rs)
     - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
     - [sparse.rs](src/structure/sparse.rs) : For sparse structure (*Beta*)
     - [vector.rs](src/structure/vector.rs) : Extra tools for `Vec<f64>`
   - __traits__
+    - [mod.rs](src/traits/mod.rs)
     - [fp.rs](src/traits/fp.rs) : Functional programming toolbox
     - [general.rs](src/traits/general.rs) : General algorithms
     - [math.rs](src/traits/math.rs) : Mathematics
-    - [mod.rs](src/traits/mod.rs)
     - [mutable.rs](src/traits/mutable.rs) : Mutable toolbox
     - [num.rs](src/traits/num.rs) : Number, Real and more operations
     - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience
@@ -332,7 +416,6 @@ Corresponding to `0.34.4`
     - [mod.rs](src/util/mod.rs)
     - [api.rs](src/util/api.rs) : Matrix constructor for various language style
     - [low_level.rs](src/util/low_level.rs) : Low-level tools
-    - [mod.rs](src/util/mod.rs)
     - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
     - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
     - [print.rs](src/util/print.rs) : To print conveniently
@@ -340,14 +423,15 @@ Corresponding to `0.34.4`
     - [wrapper.rs](src/util/wrapper.rs) : Wrapper for other crates (e.g. rand)
     - [writer.rs](src/util/writer.rs) : More convenient write system
 
-
 ## Documentation
 
 * [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
 
-## Example
+## Examples
 
-[Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery)
+- In [examples](./examples) directory, there are some examples.
+
+- More examples are in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery).
 
 ## Version Info
 
@@ -356,6 +440,10 @@ To see [RELEASES.md](./RELEASES.md)
 ## Contributes Guide
 
 See [CONTRIBUTES.md](./CONTRIBUTES.md)
+
+## LICENSE
+
+Peroxide is licensed under dual licenses - Apache License 2.0 and MIT License.
 
 ## TODO
 
