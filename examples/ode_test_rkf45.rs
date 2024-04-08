@@ -1,11 +1,12 @@
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let basic_ode_solver = BasicODESolver::new(RK4);
+    let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+    let basic_ode_solver = BasicODESolver::new(rkf);
     let (t_vec, y_vec) = basic_ode_solver.solve(
         &Test,
         (0f64, 10f64),
-        1e-3,
+        0.01,
     )?;
     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
@@ -20,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .set_style(PlotStyle::Nature)
             .tight_layout()
             .set_dpi(600)
-            .set_path("example_data/rk4_test.png")
+            .set_path("example_data/rkf45_test.png")
             .savefig()?;
     }
 

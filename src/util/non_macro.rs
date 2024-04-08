@@ -8,8 +8,6 @@ use crate::structure::{
 };
 use crate::traits::float::FloatWithPrecision;
 
-use std::convert::Into;
-
 /// R like seq function
 ///
 /// # Example

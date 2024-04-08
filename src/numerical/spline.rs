@@ -212,7 +212,7 @@ use peroxide_num::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
-use std::convert::{From, Into};
+use std::convert::From;
 use std::ops::{Index, Range};
 use thiserror::Error;
 
