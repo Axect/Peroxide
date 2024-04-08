@@ -1,1182 +1,481 @@
-//! Solver for ordinary differential equations
-//!
-//! ## Introduce `ODE` Trait & Structure
-//!
-//! ### `ODE` Trait
-//!
-//! * `ODE` structures are divided by two kinds
-//!     * `ExplicitODE`
-//!     * `ImplicitODE`
-//! * `ODE` trait is given as
-//!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::fuga::{Real, State, BoundaryCondition, Environment};
-//!
-//!     pub trait ODE<E: Environment> {
-//!         type Records;
-//!         type Vector;
-//!         type Param;
-//!         type ODEMethod;
-//!
-//!         fn mut_update(&mut self);
-//!         fn integrate(&mut self) -> Self::Records;
-//!         fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self;
-//!         fn set_boundary_condition<T: Real>(
-//!             &mut self,
-//!             bound1: (State<T>, BoundaryCondition),
-//!             bound2: (State<T>, BoundaryCondition),
-//!         ) -> &mut Self;
-//!         fn set_step_size(&mut self, dt: f64) -> &mut Self;
-//!         fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self;
-//!         fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
-//!         fn has_stopped(&self) -> bool;
-//!         fn set_times(&mut self, n: usize) -> &mut Self;
-//!         fn check_enough(&self) -> bool;
-//!         fn set_env(&mut self, env: E) -> &mut Self;
-//!     }
-//!     ```
-//!
-//!     * `Records` : The type to save results of ODE. Usually `Matrix` is used.
-//!     * `Vector` : Vector can be below things.
-//!         * `Vec<f64>` : Used for `ExplicitODE`
-//!         * `Vec<AD>` : Used for `ImplicitODE`
-//!     * `Param` : Also it can be `f64` or `AD`
-//!     * `ODEMethod` : Method for solving ODE
-//!         * `ExMethod` : Explicit method
-//!             * `Euler` : Euler first order
-//!             * `RK4` : Runge Kutta 4th order
-//!         * `ImMethod` : Implicit method
-//!             * `BDF` : Backward Euler 1st order (To be fixed)
-//!             * `GL4` : Gauss Legendre 4th order
-//!     * `Environment` : External environment (`CubicSpline`, `Vec<f64>`, `Matrix` or Another external table)
-//!
-//!
-//! ### `State<T>` structure
-//!
-//! * To use `ODE` trait, you should understand `State<T>` first.
-//!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::fuga::Real;
-//!
-//!     #[derive(Debug, Clone, Default)]
-//!     pub struct State<T: Real> {
-//!         pub param: T,
-//!         pub value: Vec<T>,
-//!         pub deriv: Vec<T>,
-//!     }
-//!     ```
-//!
-//!     * `T` can be `f64` or `AD`
-//!         * `f64` for `ExplicitODE`
-//!         * `AD` for `ImplicitODE`
-//!     * `param` is parameter for ODE. Usually it is represented by time.
-//!     * `value` is value of each node.
-//!     * `deriv` is value of derivative of each node.
-//!
-//! For example,
-//!
-//! $$ \frac{dy_n}{dt} = f(t, y_n) $$
-//!
-//! * $t$ is `param`
-//! * $y_n$ is `value`
-//! * $f(t,y_n)$ is `deriv`
-//!
-//! Methods for `State<T>` are as follows.
-//!
-//! * `to_f64(&self) -> State<f64>`
-//! * `to_ad(&self) -> State<AD>`
-//! * `new(T, Vec<T>, Vec<T>) -> Self`
-//!
-//! ### `Environment`
-//!
-//! * `Environment` needs just `Default`
-//! * To use custom `Environment`, just type follows : `impl Environment for CustomType {}`
-//! * If you don't want to use `Environment`, then use `NoEnv`
-//! * Implemented Data Types
-//!     * `Vec<f64>`
-//!     * `Polynomial`
-//!     * `Matrix`
-//!     * `CubicSpline`
-//!     * `NoEnv`
-//!
-//! ```
-//! #[macro_use]
-//! extern crate peroxide;
-//! use peroxide::fuga::*;
-//!
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let x = seq(0, 10, 1);
-//!     x.print();
-//!     let y = x.iter().enumerate().map(|(i, &t)| t.powi(5-i as i32)).collect::<Vec<f64>>();
-//!
-//!     let c = cubic_hermite_spline(&x, &y, Quadratic)?;
-//!
-//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
-//!
-//!     let mut ode_solver = ExplicitODE::new(test_fn);
-//!
-//!     ode_solver
-//!         .set_method(ExMethod::RK4)
-//!         .set_initial_condition(init_state)
-//!         .set_step_size(0.01)
-//!         .set_times(1000)
-//!         .set_env(c);
-//!
-//!     let result = ode_solver.integrate();
-//!     result.print();
-//!
-//!     Ok(())
-//! }
-//!
-//! fn test_fn(st: &mut State<f64>, env: &CubicHermiteSpline) {
-//!     let x = st.param;
-//!     let dy = &mut st.deriv;
-//!     dy[0] = env.eval(x);
-//! }
-//! ```
-//!
-//! ### `ExplicitODE` struct
-//!
-//! `ExplicitODE` is given as follow :
-//!
-//! ```rust
-//! extern crate peroxide;
-//! use std::collections::HashMap;
-//! use peroxide::fuga::{State, ExMethod, BoundaryCondition, ODEOptions, Environment};
-//!
-//! #[derive(Clone)]
-//! pub struct ExplicitODE<E: Environment> {
-//!     state: State<f64>,
-//!     func: fn(&mut State<f64>, &E),
-//!     step_size: f64,
-//!     method: ExMethod,
-//!     init_cond: State<f64>,
-//!     bound_cond1: (State<f64>, BoundaryCondition),
-//!     bound_cond2: (State<f64>, BoundaryCondition),
-//!     stop_cond: fn(&Self) -> bool,
-//!     has_stopped: bool,
-//!     times: usize,
-//!     to_use: HashMap<ODEOptions, bool>,
-//!     env: E,
-//! }
-//! ```
-//!
-//! * `state` : Current param, value, derivative
-//! * `func` : Function to update `state`
-//! * `init_cond` : Initial condition
-//! * `bound_cond1` : If boundary problem, then first boundary condition
-//! * `bound_cond2` : second boundary condition
-//! * `stop_cond` : Stop condition (stop before `times`)
-//! * `has_stopped`: Has the stop condition been reached
-//! * `times` : How many times do you want to update?
-//! * `to_use` : Just check whether information is enough
-//! * `env` : Environment
-//!
-//! # `ImplicitODE` struct
-//!
-//! `ImplicitODE` is struct to solve stiff ODE with implicit methods.
-//!
-//! ```no_run
-//! extern crate peroxide;
-//! use std::collections::HashMap;
-//! use peroxide::fuga::{State, ImMethod, BoundaryCondition, ODEOptions, Environment, AD};
-//!
-//! #[derive(Clone)]
-//! pub struct ImplicitODE<E: Environment> {
-//!     state: State<AD>,
-//!     func: fn(&mut State<AD>, &E),
-//!     step_size: f64,
-//!     method: ImMethod,
-//!     init_cond: State<AD>,
-//!     bound_cond1: (State<AD>, BoundaryCondition),
-//!     bound_cond2: (State<AD>, BoundaryCondition),
-//!     stop_cond: fn(&Self) -> bool,
-//!     has_stopped: bool,
-//!     times: usize,
-//!     to_use: HashMap<ODEOptions, bool>,
-//!     env: E,
-//! }
-//! ```
-//!
-//! ## Example
-//!
-//! ### Lorenz Butterfly
-//!
-//! ```rust
-//! extern crate peroxide;
-//! use peroxide::fuga::*;
-//!
-//! fn main() {
-//!     // =========================================
-//!     //  Declare ODE (Euler)
-//!     // =========================================
-//!     let mut ex_test = ExplicitODE::new(f);
-//!
-//!     let init_state: State<f64> = State::new(
-//!         0.0,
-//!         vec![10.0, 1.0, 1.0],
-//!         vec![0.0, 0.0, 0.0],
-//!     );
-//!
-//!     ex_test
-//!         .set_initial_condition(init_state)
-//!         .set_method(ExMethod::Euler)
-//!         .set_step_size(0.01f64)
-//!         .set_times(10000);
-//!
-//!     // =========================================
-//!     //  Declare ODE (RK4)
-//!     // =========================================
-//!     let mut ex_test2 = ex_test.clone();
-//!     ex_test2.set_method(ExMethod::RK4);
-//!
-//!     // =========================================
-//!     //  Declare ODE (GL4)
-//!     // =========================================
-//!     let mut im_test = ImplicitODE::new(g);
-//!
-//!     let init_state: State<AD> = State::new(
-//!         AD0(0.0),
-//!         vec![AD0(10f64), AD0(1f64), AD0(1f64)],
-//!         vec![AD0(0.0), AD0(0.0), AD0(0.0)],
-//!     );
-//!
-//!     im_test
-//!         .set_initial_condition(init_state)
-//!         .set_method(ImMethod::GL4)
-//!         .set_step_size(0.01f64)
-//!         .set_times(10000);
-//!
-//!     // =========================================
-//!     //  Save results
-//!     // =========================================
-//!     let results = ex_test.integrate();
-//!     let results2 = ex_test2.integrate();
-//!     let results3 = im_test.integrate();
-//!
-//!     // Extract data
-//!     let mut df = DataFrame::new(vec![]);
-//!     df.push("x_euler", Series::new(results.col(1)));
-//!     df.push("z_euler", Series::new(results.col(3)));
-//!     df.push("x_rk4", Series::new(results2.col(1)));
-//!     df.push("z_rk4", Series::new(results2.col(3)));
-//!     df.push("x_gl4", Series::new(results3.col(1)));
-//!     df.push("z_gl4", Series::new(results3.col(3)));
-//!
-//!     # #[cfg(feature="nc")]
-//!     # {
-//!     // Write netcdf file (`nc` feature required)
-//!     df.write_nc("example_data/lorenz.nc")
-//!         .expect("Can't write lorenz.nc");
-//!     # }
-//! }
-//!
-//! fn f(st: &mut State<f64>, _: &NoEnv) {
-//!     let x = &st.value;
-//!     let dx = &mut st.deriv;
-//!     dx[0] = 10f64 * (x[1] - x[0]);
-//!     dx[1] = 28f64 * x[0] - x[1] - x[0] * x[2];
-//!     dx[2] = -8f64/3f64 * x[2] + x[0] * x[1];
-//! }
-//!
-//! fn g(st: &mut State<AD>, _: &NoEnv) {
-//!     let x = &st.value;
-//!     let dx = &mut st.deriv;
-//!     dx[0] = 10f64 * (x[1] - x[0]);
-//!     dx[1] = 28f64 * x[0] - x[1] - x[0] * x[2];
-//!     dx[2] = -8f64/3f64 * x[2] + x[0] * x[1];
-//! }
-//! ```
-//!
-//! ### Simple 1D Runge-Kutta
-//!
-//! $$\begin{gathered} \frac{dy}{dx} = \frac{5x^2 - y}{e^{x+y}} \\\ y(0) = 1 \end{gathered}$$
-//!
-//! ```rust
-//! #[macro_use]
-//! extern crate peroxide;
-//! use peroxide::fuga::*;
-//!
-//! fn main() {
-//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
-//!
-//!     let mut ode_solver = ExplicitODE::new(test_fn);
-//!
-//!     ode_solver
-//!         .set_method(ExMethod::RK4)
-//!         .set_initial_condition(init_state)
-//!         .set_step_size(0.01)
-//!         .set_times(1000);
-//!
-//!     let result = ode_solver.integrate();
-//!
-//!     // Plot or Extract..
-//! }
-//!
-//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
-//!     let x = st.param;
-//!     let y = &st.value;
-//!     let dy = &mut st.deriv;
-//!     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
-//! }
-//! ```
-//!
-//! ### With stop condition
-//!
-//! ```rust
-//! #[macro_use]
-//! extern crate peroxide;
-//! use peroxide::fuga::*;
-//! 
-//! fn main() {
-//!     let init_state = State::<f64>::new(0f64, c!(1), c!(0));
-//! 
-//!     let mut ode_solver = ExplicitODE::new(test_fn);
-//! 
-//!     ode_solver
-//!         .set_method(ExMethod::RK4)
-//!         .set_initial_condition(init_state)
-//!         .set_step_size(0.01)
-//!         .set_stop_condition(stop)        // Add stop condition
-//!         .set_times(1000);
-//! 
-//!     let result = ode_solver.integrate();
-//!     if ode_solver.has_stopped() {
-//!         println!("It reached to stop condition");
-//!     } else {
-//!         println!("It didn't reach to stop condition");
-//!     }
-//! 
-//!     // Plot or Extract..
-//! }
-//! 
-//! fn test_fn(st: &mut State<f64>, _: &NoEnv) {
-//!     let x = st.param;
-//!     let y = &st.value;
-//!     let dy = &mut st.deriv;
-//!     dy[0] = (5f64 * x.powi(2) - y[0]) / (x + y[0]).exp();
-//! }
-//! 
-//! fn stop<E: Environment>(st: &ExplicitODE<E>) -> bool {
-//!     let y = &st.get_state().value[0];
-//!     (*y - 2.4).abs() < 0.01
-//! }
-//! ```
+use thiserror::Error;
+use ODEError::*;
 
-use self::BoundaryCondition::Dirichlet;
-use self::ExMethod::{Euler, RK4};
-use self::ImMethod::{BDF1, GL4};
-use self::ODEOptions::{BoundCond, InitCond, Method, StepSize, StopCond, Times};
-use crate::numerical::{spline::CubicSpline, utils::jacobian};
-use crate::structure::{
-    ad::{ADVec, AD, AD::*},
-    matrix::{LinearAlgebra, Matrix},
-    polynomial::Polynomial,
-};
-use crate::traits::{
-    fp::{FPMatrix, FPVector},
-    math::{Norm, Normed, Vector},
-    mutable::MutFP,
-    num::Real,
-};
-use crate::util::non_macro::{cat, concat, eye, zeros};
-use std::collections::HashMap;
-use crate::fuga::CubicHermiteSpline;
-//#[cfg(feature = "O3")]
-//use {blas_daxpy, blas_daxpy_return};
+use crate::{util::non_macro::eye, traits::math::LinearOp, traits::fp::FPVector};
 
-/// Explicit ODE Methods
-///
-/// * Euler : Euler 1st Order
-/// * RK4 : Runge-Kutta 4th Order
-#[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
-pub enum ExMethod {
-    Euler,
-    RK4,
+pub trait ODEProblem {
+    fn initial_conditions(&self) -> Vec<f64>;
+    fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError>;
 }
 
-#[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
-pub enum ImMethod {
-    BDF1,
-    GL4,
+
+pub trait ODEIntegrator {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError>;
 }
 
-/// Kinds of Boundary Conditions
-///
-/// * Dirichlet
-/// * Neumann
-#[derive(Debug, Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
-pub enum BoundaryCondition {
-    Dirichlet,
-    Neumann,
+#[derive(Debug, Clone, Copy, Error)]
+pub enum ODEError {
+    #[error("constraint violation")]
+    ConstraintViolation,
+    #[error("reached maximum number of iterations per step")]
+    ReachedMaxStepIter,
 }
 
-/// Options for ODE
-///
-/// * `InitCond` : Initial condition
-/// * `BoundCond` : Boundary condition
-/// * `Method` : methods of `ExMethod` or `ImMethod`
-/// * `StopCond` : Stop condition
-/// * `StepSize` : Step size
-/// * `Times` : A number of times to integrate with specific step size
-#[derive(Debug, Clone, Copy, Hash, PartialOrd, PartialEq, Eq)]
-pub enum ODEOptions {
-    InitCond,
-    BoundCond,
-    Method,
-    StopCond,
-    StepSize,
-    Times,
+pub trait ODESolver {
+    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError>;
 }
 
-pub trait Environment: Default {}
-
-/// State for ODE
-///
-/// * `param` : Parameter of ODE (ex) time)
-/// * `value` : Current value of ODE
-/// * `deriv` : Current differential of values
-#[derive(Debug, Clone, Default)]
-pub struct State<T: Real> {
-    pub param: T,
-    pub value: Vec<T>,
-    pub deriv: Vec<T>,
+pub struct BasicODESolver<I: ODEIntegrator> {
+    integrator: I,
 }
 
-impl<T: Real> State<T> {
-    pub fn to_f64(&self) -> State<f64> {
-        State {
-            param: self.param.to_f64(),
-            value: self
-                .value
-                .clone()
-                .into_iter()
-                .map(|x| x.to_f64())
-                .collect::<Vec<f64>>(),
-            deriv: self
-                .deriv
-                .clone()
-                .into_iter()
-                .map(|x| x.to_f64())
-                .collect::<Vec<f64>>(),
-        }
+impl<I: ODEIntegrator> BasicODESolver<I> {
+    pub fn new(integrator: I) -> Self {
+        Self { integrator }
     }
+}
 
-    pub fn to_ad(&self) -> State<AD> {
-        State {
-            param: self.param.to_ad(),
-            value: self
-                .value
-                .clone()
-                .into_iter()
-                .map(|x| x.to_ad())
-                .collect::<Vec<AD>>(),
-            deriv: self
-                .deriv
-                .clone()
-                .into_iter()
-                .map(|x| x.to_ad())
-                .collect::<Vec<AD>>(),
+impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
+    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError> {
+        let mut t = t_span.0;
+        let mut y = problem.initial_conditions();
+        let mut t_vec = vec![t];
+        let mut y_vec = vec![y.clone()];
+
+        while t < t_span.1 {
+            let dt_step = self.integrator.step(problem, t, &mut y, dt)?;
+            t += dt_step;
+            t_vec.push(t);
+            y_vec.push(y.clone());
         }
-    }
 
-    pub fn new(param: T, state: Vec<T>, deriv: Vec<T>) -> Self {
-        State {
-            param,
-            value: state,
-            deriv,
+        Ok((t_vec, y_vec))
+    }
+}
+
+// ┌─────────────────────────────────────────────────────────┐
+//  Runge-Kutta
+// └─────────────────────────────────────────────────────────┘
+/// Runge-Kutta 4th order
+#[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RK4;
+
+impl ODEIntegrator for RK4 {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+        let n = y.len();
+        let mut k1 = vec![0.0; n];
+        let mut k2 = vec![0.0; n];
+        let mut k3 = vec![0.0; n];
+        let mut k4 = vec![0.0; n];
+
+        problem.rhs(t, y, &mut k1)?;
+        k1.iter_mut().for_each(|k| *k *= dt);
+
+        let mut y_temp = y.to_vec();
+        y_temp.iter_mut().zip(&k1).for_each(|(y, k)| *y += 0.5 * k);
+        problem.rhs(t + 0.5 * dt, &y_temp, &mut k2)?;
+        k2.iter_mut().for_each(|k| *k *= dt);
+
+        y_temp.iter_mut().zip(&k2).for_each(|(y, k)| *y = y.to_owned() + 0.5 * k);
+        problem.rhs(t + 0.5 * dt, &y_temp, &mut k3)?;
+        k3.iter_mut().for_each(|k| *k *= dt);
+
+        y_temp.iter_mut().zip(&k3).for_each(|(y, k)| *y = y.to_owned() + k);
+        problem.rhs(t + dt, &y_temp, &mut k4)?;
+        k4.iter_mut().for_each(|k| *k *= dt);
+
+        y.iter_mut().zip(&k1).zip(&k2).zip(&k3).zip(&k4)
+            .for_each(|((((y, k1), k2), k3), k4)| {
+                *y += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+            });
+
+        Ok(dt)
+    }
+}
+
+// ┌─────────────────────────────────────────────────────────┐
+//  Runge-Kutta-Fehlberg
+// └─────────────────────────────────────────────────────────┘
+/// Runge-Kutta-Fehlberg 4/5th order
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RKF45 {
+    tol: f64,
+    safety_factor: f64,
+    min_step_size: f64,
+    max_step_size: f64,
+    max_step_iter: usize,
+}
+
+impl Default for RKF45 {
+    fn default() -> Self {
+        Self {
+            tol: 1e-6,
+            safety_factor: 0.9,
+            min_step_size: 1e-6,
+            max_step_size: 1e-1,
+            max_step_iter: 100,
         }
     }
 }
 
-/// ODE solver
-///
-/// * `Records` : Type of container to contain results
-/// * `Param` : Type of parameter
-/// * `ODEMethod` : Explicit or Implicit
-pub trait ODE<E: Environment> {
-    type Records;
-    type Param;
-    type ODEMethod;
-
-    fn mut_update(&mut self);
-    //fn mut_integrate(&mut self, rec: &mut Self::Records);
-    fn integrate(&mut self) -> Self::Records;
-    fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self;
-    fn set_boundary_condition<T: Real>(
-        &mut self,
-        bound1: (State<T>, BoundaryCondition),
-        bound2: (State<T>, BoundaryCondition),
-    ) -> &mut Self;
-    fn set_step_size(&mut self, dt: f64) -> &mut Self;
-    fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self;
-    fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self;
-    fn has_stopped(&self) -> bool;
-    fn set_times(&mut self, n: usize) -> &mut Self;
-    fn check_enough(&self) -> bool;
-    fn set_env(&mut self, env: E) -> &mut Self;
-}
-
-#[derive(Clone)]
-pub struct ExplicitODE<E: Environment> {
-    state: State<f64>,
-    func: fn(&mut State<f64>, &E),
-    step_size: f64,
-    method: ExMethod,
-    init_cond: State<f64>,
-    bound_cond1: (State<f64>, BoundaryCondition),
-    bound_cond2: (State<f64>, BoundaryCondition),
-    stop_cond: fn(&Self) -> bool,
-    has_stopped: bool,
-    times: usize,
-    options: HashMap<ODEOptions, bool>,
-    env: E,
-}
-
-impl<E: Environment> ExplicitODE<E> {
-    pub fn new(f: fn(&mut State<f64>, &E)) -> Self {
-        let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
-        default_to_use.insert(InitCond, false);
-        default_to_use.insert(StepSize, false);
-        default_to_use.insert(BoundCond, false);
-        default_to_use.insert(Method, false);
-        default_to_use.insert(StopCond, false);
-        default_to_use.insert(Times, false);
-
-        ExplicitODE {
-            state: Default::default(),
-            func: f,
-            step_size: 0.0,
-            method: Euler,
-            init_cond: Default::default(),
-            bound_cond1: (Default::default(), Dirichlet),
-            bound_cond2: (Default::default(), Dirichlet),
-            stop_cond: |_x| false,
-            has_stopped: false,
-            times: 0,
-            options: default_to_use,
-            env: E::default(),
+impl RKF45 {
+    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+        Self {
+            tol,
+            safety_factor,
+            min_step_size,
+            max_step_size,
+            max_step_iter,
         }
     }
 
-    pub fn get_state(&self) -> &State<f64> {
-        &self.state
+    pub fn set_tol(&mut self, tol: f64) {
+        self.tol = tol;
     }
 
-    pub fn get_env(&self) -> &E {
-        &self.env
+    pub fn set_safety_factor(&mut self, safety_factor: f64) {
+        self.safety_factor = safety_factor;
     }
 
-    pub fn get_step_size(&self) -> f64 {
-        self.step_size
+    pub fn set_min_step_size(&mut self, min_step_size: f64) {
+        self.min_step_size = min_step_size;
     }
 
-    pub fn get_times(&self) -> usize {
-        self.times
+    pub fn set_max_step_size(&mut self, max_step_size: f64) {
+        self.max_step_size = max_step_size;
     }
 
-    pub fn get_method(&self) -> ExMethod {
-        self.method
+    pub fn set_max_step_iter(&mut self, max_step_iter: usize) {
+        self.max_step_iter = max_step_iter;
     }
 
-    pub fn get_stop_condition(&self) -> fn(&Self) -> bool {
-        self.stop_cond
+    pub fn get_tol(&self) -> f64 {
+        self.tol
     }
 
-    pub fn get_has_stopped(&self) -> bool {
-        self.has_stopped
+    pub fn get_safety_factor(&self) -> f64 {
+        self.safety_factor
     }
 
-    pub fn get_init_cond(&self) -> &State<f64> {
-        &self.init_cond
+    pub fn get_min_step_size(&self) -> f64 {
+        self.min_step_size
     }
 
-    pub fn get_bound_cond1(&self) -> &(State<f64>, BoundaryCondition) {
-        &self.bound_cond1
+    pub fn get_max_step_size(&self) -> f64 {
+        self.max_step_size
     }
 
-    pub fn get_bound_cond2(&self) -> &(State<f64>, BoundaryCondition) {
-        &self.bound_cond2
+    pub fn get_max_step_iter(&self) -> usize {
+        self.max_step_iter
     }
 }
 
-impl<E: Environment> ODE<E> for ExplicitODE<E> {
-    type Records = Matrix;
-    type Param = f64;
-    type ODEMethod = ExMethod;
+impl ODEIntegrator for RKF45 {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+        let mut iter_count = 0usize;
+        let mut dt = dt;
+        let n = y.len();
 
-    fn mut_update(&mut self) {
-        match self.method {
-            Euler => {
-                // Set Derivative from state
-                (self.func)(&mut self.state, &self.env);
-                let dt = self.step_size;
+        loop {
+            let mut k1 = vec![0.0; n];
+            let mut k2 = vec![0.0; n];
+            let mut k3 = vec![0.0; n];
+            let mut k4 = vec![0.0; n];
+            let mut k5 = vec![0.0; n];
+            let mut k6 = vec![0.0; n];
 
-                //match () {
-                //    #[cfg(feature = "oxidize")]
-                //    () => {
-                //        blas_daxpy(dt, &self.state.deriv, &mut self.state.value);
-                //    }
-                //    _ => {
-                self.state
-                    .value
-                    .mut_zip_with(|x, y| x + y * dt, &self.state.deriv);
-                //    }
-                //}
-                self.state.param += dt;
+            problem.rhs(t, y, &mut k1)?;
+            let mut y_temp = y.to_vec();
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (1.0 / 4.0) * k1[i];
             }
-            RK4 => {
-                let h = self.step_size;
-                let h2 = h / 2f64;
 
-                // Set Derivative from state
-                let yn = self.state.value.clone();
-                (self.func)(&mut self.state, &self.env);
+            problem.rhs(t + dt * (1.0 / 4.0), &y_temp, &mut k2)?;
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (3.0 / 32.0 * k1[i] + 9.0 / 32.0 * k2[i]);
+            }
 
-                let k1 = self.state.deriv.clone();
-                let k1_add = k1.mul_scalar(h2);
-                self.state.param += h2;
-                self.state.value.mut_zip_with(|x, y| x + y, &k1_add);
-                (self.func)(&mut self.state, &self.env);
+            problem.rhs(t + dt * (3.0 / 8.0), &y_temp, &mut k3)?;
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (1932.0 / 2197.0 * k1[i] - 7200.0 / 2197.0 * k2[i] + 7296.0 / 2197.0 * k3[i]);
+            }
 
-                let k2 = self.state.deriv.clone();
-                let k2_add = k2.zip_with(|x, y| h2 * x - y, &k1_add);
-                self.state.value.mut_zip_with(|x, y| x + y, &k2_add);
-                (self.func)(&mut self.state, &self.env);
+            problem.rhs(t + dt * (12.0 / 13.0), &y_temp, &mut k4)?;
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (439.0 / 216.0 * k1[i] - 8.0 * k2[i] + 3680.0 / 513.0 * k3[i] - 845.0 / 4104.0 * k4[i]);
+            }
 
-                let k3 = self.state.deriv.clone();
-                let k3_add = k3.zip_with(|x, y| h * x - y, &k2_add);
-                self.state.param += h2;
-                self.state.value.mut_zip_with(|x, y| x + y, &k3_add);
-                (self.func)(&mut self.state, &self.env);
+            problem.rhs(t + dt, &y_temp, &mut k5)?;
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (-8.0 / 27.0 * k1[i] + 2.0 * k2[i] - 3544.0 / 2565.0 * k3[i] + 1859.0 / 4104.0 * k4[i] - 11.0 / 40.0 * k5[i]);
+            }
 
-                let k4 = self.state.deriv.clone();
+            problem.rhs(t + dt * 0.5, &y_temp, &mut k6)?;
 
-                for i in 0..k1.len() {
-                    self.state.value[i] =
-                        yn[i] + (k1[i] + 2f64 * k2[i] + 2f64 * k3[i] + k4[i]) * h / 6f64;
+            let mut error = 0.0;
+            for i in 0..n {
+                let y_err = dt * (1.0 / 360.0 * k1[i] - 128.0 / 4275.0 * k3[i] - 2197.0 / 75240.0 * k4[i] + 1.0 / 50.0 * k5[i] + 2.0 / 55.0 * k6[i]);
+                error += y_err * y_err;
+            }
+
+            error = error.sqrt() / (n as f64).sqrt();
+
+            let new_dt = self.safety_factor * dt * (self.tol * dt / error).powf(0.25);
+            let new_dt = new_dt.max(self.min_step_size).min(self.max_step_size);
+
+            if error <= self.tol {
+                for i in 0..n {
+                    y[i] += dt * (16.0 / 135.0 * k1[i] + 6656.0 / 12825.0 * k3[i] + 28561.0 / 56430.0 * k4[i] - 9.0 / 50.0 * k5[i] + 2.0 / 55.0 * k6[i]);
                 }
+                return Ok(new_dt);
+            } else {
+                iter_count += 1;
+                if iter_count >= self.max_step_iter {
+                    return Err(ReachedMaxStepIter);
+                }
+                dt = new_dt;
             }
         }
     }
+}
 
-    fn integrate(&mut self) -> Self::Records {
-        assert!(self.check_enough(), "Not enough fields!");
+// ┌─────────────────────────────────────────────────────────┐
+//  Gauss-Legendre 4th order
+// └─────────────────────────────────────────────────────────┘
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum ImplicitSolver {
+    FixedPoint,
+    Broyden,
+    TrustRegion(f64, f64),
+}
 
-        let mut result = zeros(self.times + 1, self.state.value.len() + 1);
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct GL4 {
+    solver: ImplicitSolver,
+    max_iter: usize,
+    tol: f64,
+}
 
-        result.subs_row(0, &cat(self.state.param, &self.state.value));
+impl GL4 {
+    pub fn new(solver: ImplicitSolver, max_iter: usize, tol: f64) -> Self {
+        GL4 {
+            solver,
+            max_iter,
+            tol,
+        }
+    }
+}
 
-        match self.options.get(&StopCond) {
-            Some(stop) if *stop => {
-                let mut key = 1usize;
-                for i in 1..self.times + 1 {
-                    self.mut_update();
-                    result.subs_row(i, &cat(self.state.param, &self.state.value));
-                    key += 1;
-                    if (self.stop_cond)(&self) {
-                        self.has_stopped = true;
+impl ODEIntegrator for GL4 {
+    #[inline]
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+        let n = y.len();
+        let sqrt3 = 3.0_f64.sqrt();
+        let c = 0.5 * (3.0 - sqrt3) / 6.0;
+        let d = 0.5 * (3.0 + sqrt3) / 6.0;
+
+        let mut k1 = vec![0.0; n];
+        let mut k2 = vec![0.0; n];
+
+        let mut y1 = vec![0.0; n];
+        let mut y2 = vec![0.0; n];
+
+        match self.solver {
+            ImplicitSolver::FixedPoint => {
+                // Fixed-point iteration
+                for _ in 0..self.max_iter {
+                    problem.rhs(t + c * dt, &y1, &mut k1)?;
+                    problem.rhs(t + d * dt, &y2, &mut k2)?;
+
+                    let mut max_diff = 0f64;
+                    for i in 0..n {
+                        let y1_new = y[i] + dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        let y2_new = y[i] + dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        max_diff = max_diff.max((y1_new - y1[i]).abs()).max((y2_new - y2[i]).abs());
+                        y1[i] = y1_new;
+                        y2[i] = y2_new;
+                    }
+
+                    if max_diff < self.tol {
                         break;
                     }
                 }
-                return result.take_row(key);
             }
-            _ => {
-                for i in 1..self.times + 1 {
-                    self.mut_update();
-                    result.subs_row(i, &cat(self.state.param, &self.state.value));
-                }
-                return result;
-            }
-        }
-    }
+            ImplicitSolver::Broyden => {
+                // Broyden's method
+                let mut b = eye(n);
 
-    fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&InitCond) {
-            *x = true
-        }
-        self.init_cond = init.to_f64();
-        self.state = init.to_f64();
-        self
-    }
+                for _ in 0..self.max_iter {
+                    problem.rhs(t + c * dt, &y1, &mut k1)?;
+                    problem.rhs(t + d * dt, &y2, &mut k2)?;
 
-    fn set_boundary_condition<T: Real>(
-        &mut self,
-        bound1: (State<T>, BoundaryCondition),
-        bound2: (State<T>, BoundaryCondition),
-    ) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&BoundCond) {
-            *x = true
-        }
-        self.bound_cond1 = (bound1.0.to_f64(), bound1.1);
-        self.bound_cond2 = (bound2.0.to_f64(), bound2.1);
-        self
-    }
-
-    fn set_step_size(&mut self, dt: f64) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&StepSize) {
-            *x = true
-        }
-        self.step_size = dt;
-        self
-    }
-
-    fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&Method) {
-            *x = true
-        }
-        self.method = method;
-        self
-    }
-
-    fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&StopCond) {
-            *x = true
-        }
-        self.stop_cond = f;
-        self
-    }
-
-    fn has_stopped(&self) -> bool {
-        self.has_stopped
-    }
-
-    fn set_times(&mut self, n: usize) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&Times) {
-            *x = true
-        }
-        self.times = n;
-        self
-    }
-
-    fn check_enough(&self) -> bool {
-        // Method
-        match self.options.get(&Method) {
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
-            None => {
-                return false;
-            }
-        }
-
-        // Step size
-        match self.options.get(&StepSize) {
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
-            None => {
-                return false;
-            }
-        }
-
-        // Initial or Boundary
-        match self.options.get(&InitCond) {
-            None => {
-                return false;
-            }
-            Some(x) => {
-                if !*x {
-                    match self.options.get(&BoundCond) {
-                        None => {
-                            return false;
-                        }
-                        Some(_) => (),
+                    let mut f1 = vec![0.0; n];
+                    let mut f2 = vec![0.0; n];
+                    for i in 0..n {
+                        f1[i] = y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        f2[i] = y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
                     }
-                }
-            }
-        }
 
-        // Set Time?
-        match self.options.get(&Times) {
-            None => {
-                return false;
-            }
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
-        }
-        true
-    }
+                    let neg_dy1 = b.apply(&f1);
+                    let neg_dy2 = b.apply(&f2);
 
-    fn set_env(&mut self, env: E) -> &mut Self {
-        self.env = env;
-        self
-    }
-}
+                    for i in 0..n {
+                        y1[i] -= neg_dy1[i];
+                        y2[i] -= neg_dy2[i];
+                    }
 
-#[derive(Clone)]
-pub struct ImplicitODE<E: Environment> {
-    state: State<AD>,
-    func: fn(&mut State<AD>, &E),
-    step_size: f64,
-    rtol: f64,
-    method: ImMethod,
-    init_cond: State<f64>,
-    bound_cond1: (State<f64>, BoundaryCondition),
-    bound_cond2: (State<f64>, BoundaryCondition),
-    stop_cond: fn(&Self) -> bool,
-    has_stopped: bool,
-    times: usize,
-    options: HashMap<ODEOptions, bool>,
-    env: E,
-}
+                    let mut max_diff = 0f64;
+                    for i in 0..n {
+                        max_diff = max_diff.max(neg_dy1[i].abs()).max(neg_dy2[i].abs());
+                    }
 
-impl<E: Environment> ImplicitODE<E> {
-    pub fn new(f: fn(&mut State<AD>, &E)) -> Self {
-        let mut default_to_use: HashMap<ODEOptions, bool> = HashMap::new();
-        default_to_use.insert(InitCond, false);
-        default_to_use.insert(StepSize, false);
-        default_to_use.insert(BoundCond, false);
-        default_to_use.insert(Method, false);
-        default_to_use.insert(StopCond, false);
-        default_to_use.insert(Times, false);
-
-        ImplicitODE {
-            state: State::new(AD0(0f64), vec![], vec![]),
-            func: f,
-            step_size: 0.0,
-            rtol: 1e-6,
-            method: GL4,
-            init_cond: Default::default(),
-            bound_cond1: (Default::default(), Dirichlet),
-            bound_cond2: (Default::default(), Dirichlet),
-            stop_cond: |_x| false,
-            has_stopped: false,
-            times: 0,
-            options: default_to_use,
-            env: E::default(),
-        }
-    }
-
-    pub fn get_state(&self) -> &State<AD> {
-        &self.state
-    }
-
-    pub fn set_rtol(&mut self, rtol: f64) -> &mut Self {
-        self.rtol = rtol;
-        self
-    }
-
-    pub fn get_env(&self) -> &E {
-        &self.env
-    }
-
-    pub fn get_step_size(&self) -> f64 {
-        self.step_size
-    }
-
-    pub fn get_times(&self) -> usize {
-        self.times
-    }
-
-    pub fn get_method(&self) -> ImMethod {
-        self.method
-    }
-
-    pub fn get_stop_condition(&self) -> fn(&Self) -> bool {
-        self.stop_cond
-    }
-
-    pub fn get_has_stopped(&self) -> bool {
-        self.has_stopped
-    }
-
-    pub fn get_init_cond(&self) -> &State<f64> {
-        &self.init_cond
-    }
-
-    pub fn get_bound_cond1(&self) -> &(State<f64>, BoundaryCondition) {
-        &self.bound_cond1
-    }
-
-    pub fn get_bound_cond2(&self) -> &(State<f64>, BoundaryCondition) {
-        &self.bound_cond2
-    }
-
-    pub fn get_rtol(&self) -> f64 {
-        self.rtol
-    }
-}
-
-/// Value of 3f64.sqrt()
-const SQRT3: f64 = 1.7320508075688772;
-
-/// Butcher tableau for Gauss_legendre 4th order
-const GL4_TAB: [[f64; 3]; 2] = [
-    [0.5 - SQRT3 / 6f64, 0.25, 0.25 - SQRT3 / 6f64],
-    [0.5 + SQRT3 / 6f64, 0.25 + SQRT3 / 6f64, 0.25],
-];
-
-#[allow(non_snake_case)]
-impl<E: Environment> ODE<E> for ImplicitODE<E> {
-    type Records = Matrix;
-    type Param = AD;
-    type ODEMethod = ImMethod;
-    fn mut_update(&mut self) {
-        match self.method {
-            BDF1 => unimplemented!(),
-            GL4 => {
-                let f = |t: AD, y: Vec<AD>| {
-                    let mut st = State::new(t, y.clone(), y);
-                    (self.func)(&mut st, &self.env);
-                    st.deriv
-                };
-
-                let h = self.step_size;
-                let t = self.state.param;
-                let t1: AD = t + GL4_TAB[0][0] * h;
-                let t2: AD = t + GL4_TAB[1][0] * h;
-                let yn = &self.state.value;
-                let n = yn.len();
-
-                // 0. Initial Guess
-                let k1_init: Vec<f64> = f(t, yn.clone()).to_f64_vec();
-                let k2_init: Vec<f64> = f(t, yn.clone()).to_f64_vec();
-                let mut k_curr: Vec<f64> = concat(&k1_init, &k2_init);
-                let mut err = 1f64;
-
-                // 1. Combine two functions to one function
-                let g = |k: &Vec<AD>| -> Vec<AD> {
-                    let k1 = k.take(n);
-                    let k2 = k.skip(n);
-                    concat(
-                        &f(
-                            t1,
-                            yn.add_vec(
-                                &k1.mul_scalar(AD::from(GL4_TAB[0][1] * h))
-                                    .add_vec(&k2.mul_scalar(AD::from(GL4_TAB[0][2] * h))),
-                            ),
-                        ),
-                        &f(
-                            t2,
-                            yn.add_vec(
-                                &k1.mul_scalar(AD::from(GL4_TAB[1][1] * h))
-                                    .add_vec(&k2.mul_scalar(AD::from(GL4_TAB[1][2] * h))),
-                            ),
-                        ),
-                    )
-                };
-
-                // 2. Obtain Jacobian
-                let I = eye(2 * n);
-
-                let mut Dg = jacobian(Box::new(g), &k_curr);
-                let mut DG = &I - &Dg;
-                let mut DG_inv = DG.inv();
-                let mut G = k_curr.sub_vec(&g(&k_curr.to_ad_vec()).to_f64_vec());
-                let mut num_iter: usize = 0;
-
-                // 3. Iteration
-                while err >= self.rtol && num_iter <= 10 {
-                    let DGG = &DG_inv * &G;
-                    let k_prev = k_curr.clone();
-                    k_curr.mut_zip_with(|x, y| x - y, &DGG);
-                    Dg = jacobian(Box::new(g), &k_curr);
-                    DG = &I - &Dg;
-                    DG_inv = DG.inv();
-                    G = k_curr.sub_vec(&g(&k_curr.to_ad_vec()).to_f64_vec());
-                    err = k_curr.sub_vec(&k_prev).norm(Norm::L2);
-                    num_iter += 1;
-                }
-
-                // 4. Find k1, k2
-                let (k1, k2) = (k_curr.take(n), k_curr.skip(n));
-
-                // Set Derivative from state
-                (self.func)(&mut self.state, &self.env);
-
-                // 5. Merge k1, k2
-                let mut y_curr = self.state.value.to_f64_vec();
-                y_curr = y_curr.add_vec(&k1.mul_scalar(0.5 * h).add_vec(&k2.mul_scalar(0.5 * h)));
-                self.state.value = y_curr.to_ad_vec();
-                self.state.param = self.state.param + h;
-            }
-        }
-    }
-
-    fn integrate(&mut self) -> Self::Records {
-        assert!(self.check_enough(), "Not enough fields!");
-
-        let mut result = zeros(self.times + 1, self.state.value.len() + 1);
-
-        result.subs_row(
-            0,
-            &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
-        );
-
-        match self.options.get(&StopCond) {
-            Some(stop) if *stop => {
-                let mut key = 1usize;
-                for i in 1..self.times + 1 {
-                    self.mut_update();
-                    result.subs_row(
-                        i,
-                        &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
-                    );
-                    key += 1;
-                    if (self.stop_cond)(&self) {
-                        self.has_stopped = true;
+                    if max_diff < self.tol {
                         break;
                     }
-                }
-                return result.take_row(key);
-            }
-            _ => {
-                for i in 1..self.times + 1 {
-                    self.mut_update();
-                    result.subs_row(
-                        i,
-                        &cat(self.state.param.to_f64(), &self.state.value.to_f64_vec()),
-                    );
-                }
-                return result;
-            }
-        }
-    }
 
-    fn set_initial_condition<T: Real>(&mut self, init: State<T>) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&InitCond) {
-            *x = true
-        }
-        self.init_cond = init.to_f64();
-        self.state = init.to_ad();
-        self
-    }
+                    let mut df1 = vec![0.0; n];
+                    let mut df2 = vec![0.0; n];
+                    for i in 0..n {
+                        df1[i] = f1[i] + dt * (c * neg_dy1[i] + d * neg_dy2[i] - sqrt3 * (neg_dy2[i] - neg_dy1[i]) / 2.0);
+                        df2[i] = f2[i] + dt * (c * neg_dy1[i] + d * neg_dy2[i] + sqrt3 * (neg_dy2[i] - neg_dy1[i]) / 2.0);
+                    }
 
-    fn set_boundary_condition<T: Real>(
-        &mut self,
-        bound1: (State<T>, BoundaryCondition),
-        bound2: (State<T>, BoundaryCondition),
-    ) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&BoundCond) {
-            *x = true
-        }
-        self.bound_cond1 = (bound1.0.to_f64(), bound1.1);
-        self.bound_cond2 = (bound2.0.to_f64(), bound2.1);
-        self
-    }
-
-    fn set_step_size(&mut self, dt: f64) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&StepSize) {
-            *x = true
-        }
-        self.step_size = dt;
-        self
-    }
-
-    fn set_method(&mut self, method: Self::ODEMethod) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&Method) {
-            *x = true
-        }
-        self.method = method;
-        self
-    }
-
-    fn set_stop_condition(&mut self, f: fn(&Self) -> bool) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&StopCond) {
-            *x = true
-        }
-        self.stop_cond = f;
-        self
-    }
-
-    fn has_stopped(&self) -> bool {
-        self.has_stopped
-    }
-
-    fn set_times(&mut self, n: usize) -> &mut Self {
-        if let Some(x) = self.options.get_mut(&Times) {
-            *x = true
-        }
-        self.times = n;
-        self
-    }
-
-    fn check_enough(&self) -> bool {
-        // Method
-        match self.options.get(&Method) {
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
-            None => {
-                return false;
-            }
-        }
-
-        // Step size
-        match self.options.get(&StepSize) {
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
-            None => {
-                return false;
-            }
-        }
-
-        // Initial or Boundary
-        match self.options.get(&InitCond) {
-            None => {
-                return false;
-            }
-            Some(x) => {
-                if !*x {
-                    match self.options.get(&BoundCond) {
-                        None => {
-                            return false;
+                    for i in 0..n {
+                        for j in 0..n {
+                            b[(i, j)] -= (df1[i] * neg_dy1[j] + df2[i] * neg_dy2[j]) / (neg_dy1[j].powi(2) + neg_dy2[j].powi(2));
                         }
-                        Some(_) => (),
+                    }
+                }
+            }
+            ImplicitSolver::TrustRegion(eta, rho) => {
+                // Trust-region method
+                let mut r = self.tol;
+                let mut d1 = vec![0.0; n];
+                let mut d2 = vec![0.0; n];
+                let mut g1 = vec![0.0; n];
+                let mut g2 = vec![0.0; n];
+                let mut b1 = eye(n);
+                let mut b2 = eye(n);
+
+                for _ in 0..self.max_iter {
+                    problem.rhs(t + c * dt, &y1, &mut k1)?;
+                    problem.rhs(t + d * dt, &y2, &mut k2)?;
+
+                    let mut f1 = vec![0.0; n];
+                    let mut f2 = vec![0.0; n];
+                    for i in 0..n {
+                        f1[i] = y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        f2[i] = y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
+                    }
+
+                    let mut norm_f1 = 0.0;
+                    let mut norm_f2 = 0.0;
+                    for i in 0..n {
+                        norm_f1 += f1[i] * f1[i];
+                        norm_f2 += f2[i] * f2[i];
+                        g1[i] = f1[i];
+                        g2[i] = f2[i];
+                    }
+                    norm_f1 = norm_f1.sqrt();
+                    norm_f2 = norm_f2.sqrt();
+
+                    let mut inner_iter_count = 0;
+                    while norm_f1 > self.tol || norm_f2 > self.tol {
+                        let h1 = b1.apply(&g1).fmap(|x| -x);
+                        let h2 = b2.apply(&g2).fmap(|x| -x);
+
+                        let mut norm_h1 = 0.0;
+                        let mut norm_h2 = 0.0;
+                        for i in 0..n {
+                            norm_h1 += h1[i] * h1[i];
+                            norm_h2 += h2[i] * h2[i];
+                        }
+                        norm_h1 = norm_h1.sqrt();
+                        norm_h2 = norm_h2.sqrt();
+
+                        if norm_h1 <= r || norm_h2 <= r {
+                            d1.copy_from_slice(&h1[..]);
+                            d2.copy_from_slice(&h2[..]);
+                        } else {
+                            let sigma1 = (r / norm_h1).powf(2.0);
+                            let sigma2 = (r / norm_h2).powf(2.0);
+                            for i in 0..n {
+                                d1[i] = sigma1 * h1[i];
+                                d2[i] = sigma2 * h2[i];
+                            }
+                        }
+
+                        let mut y1_new = vec![0.0; n];
+                        let mut y2_new = vec![0.0; n];
+                        for i in 0..n {
+                            y1_new[i] = y1[i] + d1[i];
+                            y2_new[i] = y2[i] + d2[i];
+                        }
+
+                        problem.rhs(t + c * dt, &y1_new, &mut k1)?;
+                        problem.rhs(t + d * dt, &y2_new, &mut k2)?;
+
+                        let mut f1_new = vec![0.0; n];
+                        let mut f2_new = vec![0.0; n];
+                        for i in 0..n {
+                            f1_new[i] = y1_new[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
+                            f2_new[i] = y2_new[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        }
+
+                        let mut norm_f1_new = 0.0;
+                        let mut norm_f2_new = 0.0;
+                        for i in 0..n {
+                            norm_f1_new += f1_new[i] * f1_new[i];
+                            norm_f2_new += f2_new[i] * f2_new[i];
+                        }
+                        norm_f1_new = norm_f1_new.sqrt();
+                        norm_f2_new = norm_f2_new.sqrt();
+
+                        let rho1 = (norm_f1 * norm_f1 - norm_f1_new * norm_f1_new) / (norm_f1 * norm_f1 - (g1.iter().zip(&d1).map(|(g, d)| g * d).sum::<f64>()).abs());
+                        let rho2 = (norm_f2 * norm_f2 - norm_f2_new * norm_f2_new) / (norm_f2 * norm_f2 - (g2.iter().zip(&d2).map(|(g, d)| g * d).sum::<f64>()).abs());
+
+                        if rho1 > eta && rho2 > eta {
+                            y1.copy_from_slice(&y1_new[..]);
+                            y2.copy_from_slice(&y2_new[..]);
+                            f1.copy_from_slice(&f1_new[..]);
+                            f2.copy_from_slice(&f2_new[..]);
+                            g1.copy_from_slice(&f1_new[..]);
+                            g2.copy_from_slice(&f2_new[..]);
+                            norm_f1 = norm_f1_new;
+                            norm_f2 = norm_f2_new;
+                            r = r.max(rho * r);
+                        } else {
+                            r *= rho;
+                        }
+
+                        if r < self.tol {
+                            break;
+                        }
+
+                        for i in 0..n {
+                            for j in 0..n {
+                                b1[(i, j)] += (f1[i] - g1[i]) * d1[j] / (d1.iter().map(|d| d * d).sum::<f64>());
+                                b2[(i, j)] += (f2[i] - g2[i]) * d2[j] / (d2.iter().map(|d| d * d).sum::<f64>());
+                            }
+                        }
+
+                        inner_iter_count += 1;
+                        if inner_iter_count >= self.max_iter {
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        // Set Time?
-        match self.options.get(&Times) {
-            None => {
-                return false;
-            }
-            Some(x) => {
-                if !*x {
-                    return false;
-                }
-            }
+        for i in 0..n {
+            y[i] += dt * 0.5 * (k1[i] + k2[i]);
         }
-        true
-    }
 
-    fn set_env(&mut self, env: E) -> &mut Self {
-        self.env = env;
-        self
+        Ok(dt)
     }
 }
-
-// =============================================================================
-// Some Environments
-// =============================================================================
-#[derive(Debug, Copy, Clone, Default)]
-pub struct NoEnv {}
-
-impl Environment for NoEnv {}
-
-impl Environment for CubicSpline {}
-
-impl Environment for Matrix {}
-
-impl Environment for Vec<f64> {}
-
-impl Environment for Polynomial {}
-
-impl Environment for CubicHermiteSpline {}
