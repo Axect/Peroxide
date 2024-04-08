@@ -24,14 +24,16 @@
 //!
 //! * `RNG` trait is composed of two fields
 //!     * `sample`: Extract samples
+//!     * `sample_with_rng`: Extract samples with specific rng
 //!     * `pdf` : Calculate pdf value at specific point
-//!     ```rust
-//!     extern crate rand;
-//!     use rand::distributions::uniform::SampleUniform;
-//!
+//!     ```no_run
+//!     use rand::{Rng, distributions::uniform::SampleUniform};
 //!     pub trait RNG {
 //!         /// Extract samples of distributions
 //!         fn sample(&self, n: usize) -> Vec<f64>;
+//!
+//!         /// Extract samples of distributions with rng
+//!         fn sample_with_rng<R: Rng>(&self, rng: &mut R, n: usize) -> Vec<f64>;
 //!
 //!         /// Probability Distribution Function
 //!         ///
@@ -58,12 +60,14 @@
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
-//!         let b = Bernoulli(0.1); // Bern(x | 0.1)
-//!         b.sample(100).print();  // Generate 100 samples
-//!         b.pdf(0).print();       // 0.9
-//!         b.mean().print();       // 0.1
-//!         b.var().print();        // 0.09 (approximately)
-//!         b.sd().print();         // 0.3  (approximately)
+//!         let mut rng = smallrng_from_seed(42);
+//!         let b = Bernoulli(0.1);                   // Bern(x | 0.1)
+//!         b.sample(100).print();                    // Generate 100 samples
+//!         b.sample_with_rng(&mut rng, 100).print(); // Generate 100 samples with specific rng
+//!         b.pdf(0).print();                         // 0.9
+//!         b.mean().print();                         // 0.1
+//!         b.var().print();                          // 0.09 (approximately)
+//!         b.sd().print();                           // 0.3  (approximately)
 //!     }
 //!     ```
 //!
@@ -119,14 +123,102 @@
 //!         a.sd().print();
 //!     }
 //!     ```
-//!
+
 //! ### Beta Distribution
+//!
+//! * Definition
+//!     $$\text{Beta}(x | \alpha, \beta) = \frac{1}{\text{B}(\alpha, \beta)} x^{\alpha-1} (1-x)^{\beta-1}$$
+//!     where $\text{B}(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$ is the Beta function.
+//! * Representative value
+//!     * Mean: $\frac{\alpha}{\alpha+\beta}$
+//!     * Var: $\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
+//! * To generate beta random samples, Peroxide uses the `rand_distr::Beta` distribution from the `rand_distr` crate.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         // Beta(alpha, beta)
+//!         let a = Beta(2.0, 5.0);
+//!         a.sample(100).print();
+//!         a.pdf(0.3).print();
+//!         a.mean().print();
+//!         a.var().print();
+//!     }
+//!     ```
 //!
 //! ### Gamma Distribution
 //!
+//! * Definition
+//!     $$\text{Gamma}(x | \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}$$
+//!     where $\Gamma(\alpha) = \int_0^\infty x^{\alpha-1} e^{-x} dx$ is the Gamma function.
+//! * Representative value
+//!     * Mean: $\frac{\alpha}{\beta}$
+//!     * Var: $\frac{\alpha}{\beta^2}$
+//! * To generate gamma random samples, Peroxide uses the `rand_distr::Gamma` distribution from the `rand_distr` crate.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         // Gamma(shape, scale)
+//!         let a = Gamma(2.0, 1.0);
+//!         a.sample(100).print();
+//!         a.pdf(1.5).print();
+//!         a.mean().print();
+//!         a.var().print();
+//!     }
+//!     ```
+//!
 //! ### Binomial Distribution
 //!
+//! * Definition
+//!     $$\text{Binom}(k | n, p) = \binom{n}{k} p^k (1-p)^{n-k}$$
+//!     where $\binom{n}{k} = \frac{n!}{k!(n-k)!}$ is the binomial coefficient.
+//! * Representative value
+//!     * Mean: $np$
+//!     * Var: $np(1-p)$
+//! * To generate binomial random samples, Peroxide uses the `rand_distr::Binomial` distribution from the `rand_distr` crate.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         // Binomial(n, p)
+//!         let a = Binomial(10, 0.3);
+//!         a.sample(100).print();
+//!         a.pdf(3).print();
+//!         a.mean().print();
+//!         a.var().print();
+//!     }
+//!     ```
+//!
 //! ### Student's t Distribution
+//!
+//! * Definition
+//!     $$\text{StudentT}(x | \nu) = \frac{\Gamma(\frac{\nu+1}{2})}{\sqrt{\nu\pi}\,\Gamma(\frac{\nu}{2})} \left(1+\frac{x^2}{\nu} \right)^{-\frac{\nu+1}{2}}$$
+//!     where $\nu$ is the degrees of freedom and $\Gamma$ is the Gamma function.
+//! * Representative value
+//!     * Mean: 0 (for $\nu > 1$)
+//!     * Var: $\frac{\nu}{\nu-2}$ (for $\nu > 2$)
+//! * To generate Student's t random samples, Peroxide uses the `rand_distr::StudentT` distribution from the `rand_distr` crate.
+//!
+//!     ```rust
+//!     extern crate peroxide;
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         // StudentT(nu)
+//!         let a = StudentT(5.0);
+//!         a.sample(100).print();
+//!         a.pdf(1.0).print();
+//!         a.mean().print(); // Undefined for nu <= 1
+//!         a.var().print();  // Undefined for nu <= 2
+//!     }
+//!     ```
 //!
 //! ### Weighted Uniform Distribution
 //!
@@ -393,7 +485,13 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for Weight
 /// * `sample`: extract samples
 pub trait RNG {
     /// Extract samples of distributions
-    fn sample(&self, n: usize) -> Vec<f64>;
+    fn sample(&self, n: usize) -> Vec<f64> {
+        let mut rng = thread_rng();
+        self.sample_with_rng(&mut rng, n)
+    }
+
+    /// Extract samples of distributions with rng
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<f64>;
 
     /// Probability Distribution Function
     ///
@@ -410,7 +508,7 @@ pub trait RNG {
 
 /// RNG for OPDist
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
-    fn sample(&self, n: usize) -> Vec<f64> {
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<f64> {
         match self {
             Bernoulli(prob) => {
                 assert!(
@@ -418,7 +516,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                     "Probability should be smaller than 1"
                 );
 
-                let mut rng = thread_rng();
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
@@ -432,9 +529,8 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 v
             }
             StudentT(nu) => {
-                let mut rng = thread_rng();
                 let stud = rand_distr::StudentT::<f64>::new((*nu).into()).unwrap();
-                stud.sample_iter(&mut rng).take(n).collect()
+                stud.sample_iter(rng).take(n).collect()
             }
         }
     }
@@ -491,10 +587,9 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
 
 /// RNG for TPDist
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
-    fn sample(&self, n: usize) -> Vec<f64> {
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<f64> {
         match self {
             Uniform(start, end) => {
-                let mut rng = thread_rng();
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
@@ -504,19 +599,17 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             }
 
             Binomial(num, mu) => {
-                let mut rng = thread_rng();
                 let binom = rand_distr::Binomial::new(*num as u64, (*mu).into()).unwrap();
                 binom
-                    .sample_iter(&mut rng)
+                    .sample_iter(rng)
                     .take(n)
                     .map(|t| t as f64)
                     .collect()
             }
 
             Normal(m, s) => {
-                let mut rng = thread_rng();
                 let normal = rand_distr::Normal::<f64>::new((*m).into(), (*s).into()).unwrap();
-                normal.sample_iter(&mut rng).take(n).collect()
+                normal.sample_iter(rng).take(n).collect()
             }
             //            Normal(m, s) => {
             //                let mut rng = thread_rng();
@@ -528,9 +621,8 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             //                v
             //            }
             Beta(a, b) => {
-                let mut rng = thread_rng();
                 let beta = rand_distr::Beta::<f64>::new((*a).into(), (*b).into()).unwrap();
-                beta.sample_iter(&mut rng).take(n).collect()
+                beta.sample_iter(rng).take(n).collect()
             }
             //            Beta(a, b) => {
             //                let mut rng1 = thread_rng();
@@ -558,10 +650,9 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             //                v
             //            }
             Gamma(shape, scale) => {
-                let mut rng = thread_rng();
                 let gamma =
                     rand_distr::Gamma::<f64>::new((*shape).into(), (*scale).into()).unwrap();
-                gamma.sample_iter(&mut rng).take(n).collect()
+                gamma.sample_iter(rng).take(n).collect()
             } //            Gamma(a, b) => {
               //                let a_f64 = (*a).into();
               //                let b_f64 = (*b).into();
@@ -673,17 +764,16 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
 }
 
 impl RNG for WeightedUniform<f64> {
-    fn sample(&self, n: usize) -> Vec<f64> {
-        let mut rng = thread_rng();
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<f64> {
         let w = WeightedAliasIndex::new(self.weights.clone()).unwrap();
-        let ics: Vec<usize> = w.sample_iter(&mut rng).take(n).collect();
+        let mut rng_clip = rng.clone();
+        let ics: Vec<usize> = w.sample_iter(&mut rng_clip).take(n).collect();
+        *rng = rng_clip;
 
-        let mut result = vec![0f64; n];
-        for (i, idx) in ics.into_iter().enumerate() {
+        ics.into_iter().map(|idx| {
             let (l, r) = self.intervals[idx];
-            result[i] = rng.gen_range(l ..=r);
-        }
-        result
+            rng.gen_range(l ..=r)
+        }).collect::<Vec<f64>>()
     }
 
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
