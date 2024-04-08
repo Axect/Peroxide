@@ -27,7 +27,7 @@ use std::u32;
 
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
-use super::dist::{RNG, WeightedUniform};
+use crate::statistics::dist::{RNG, WeightedUniform, WeightedUniformError};
 
 /// Small random number generator from seed
 ///
@@ -453,7 +453,7 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let f = |x: f64| {
 ///         if (0f64..=2f64).contains(&x) {
 ///             -(x - 1f64).powi(2) + 1f64
@@ -462,19 +462,18 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 ///         }
 ///     };
 ///
-///     let samples = prs(f, 1000, (-1f64, 3f64), 200, 1e-4);
+///     let samples = prs(f, 1000, (-1f64, 3f64), 200, 1e-4)?;
 ///     samples.mean().print(); // near 1
+///
+///     Ok(())
 /// }
-pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Vec<f64> 
+pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Result<Vec<f64>, WeightedUniformError>
 where F: Fn(f64) -> f64 + Copy {
     let mut rng = thread_rng();
 
     let mut result = vec![0f64; n];
 
-    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps);
-    if w.weights().iter().any(|w| w <= &0f64) {
-        println!("Warning: some weights are zero");
-    }
+    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps)?;
 
     let mut initial_x = w.sample(n);
     let mut left_num = n;
@@ -491,7 +490,7 @@ where F: Fn(f64) -> f64 + Copy {
                     result[n - left_num] = x;
                     left_num -= 1;
                     if left_num == 0 {
-                        return result;
+                        return Ok(result);
                     }
                 }
             }
@@ -515,7 +514,7 @@ where F: Fn(f64) -> f64 + Copy {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let mut rng = smallrng_from_seed(42);
 ///     let f = |x: f64| {
 ///         if (0f64..=2f64).contains(&x) {
@@ -525,17 +524,16 @@ where F: Fn(f64) -> f64 + Copy {
 ///         }
 ///     };
 ///
-///     let samples = prs_with_rng(f, 1000, (-1f64, 3f64), 200, 1e-4, &mut rng);
+///     let samples = prs_with_rng(f, 1000, (-1f64, 3f64), 200, 1e-4, &mut rng)?;
 ///     assert!((samples.mean() - 1f64).abs() < 1e-1);
+///
+///     Ok(())
 /// }
-pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> Vec<f64>
+pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> Result<Vec<f64>, WeightedUniformError>
     where F: Fn(f64) -> f64 + Copy {
     let mut result = vec![0f64; n];
 
-    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps);
-    if w.weights().iter().any(|w| w <= &0f64) {
-        println!("Warning: some weights are zero");
-    }
+    let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps)?;
 
     let mut initial_x = w.sample_with_rng(rng, n);
     let mut left_num = n;
@@ -552,7 +550,7 @@ pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: us
                     result[n - left_num] = x;
                     left_num -= 1;
                     if left_num == 0 {
-                        return result;
+                        return Ok(result);
                     }
                 }
             }
