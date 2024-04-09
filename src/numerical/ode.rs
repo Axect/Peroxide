@@ -220,6 +220,14 @@ impl ODEIntegrator for RK4 {
 /// This integrator uses the Runge-Kutta-Fehlberg method, which is an adaptive step size integrator.
 /// It calculates six intermediate values (k1, k2, k3, k4, k5, k6) to estimate the next step solution and the error.
 /// The step size is automatically adjusted based on the estimated error to maintain the desired tolerance.
+///
+/// # Member variables
+///
+/// - `tol`: The tolerance for the estimated error.
+/// - `safety_factor`: The safety factor for the step size adjustment.
+/// - `min_step_size`: The minimum step size.
+/// - `max_step_size`: The maximum step size.
+/// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RKF45 {
@@ -383,30 +391,36 @@ pub enum ImplicitSolver {
 /// This integrator uses the 4th order Gauss-Legendre Runge-Kutta method, which is an implicit integrator.
 /// It requires solving a system of nonlinear equations at each step, which is done using the specified implicit solver (e.g., fixed-point iteration).
 /// The Gauss-Legendre method has better stability properties compared to explicit methods, especially for stiff ODEs.
+///
+/// # Member variables
+///
+/// - `solver`: The implicit solver to use.
+/// - `tol`: The tolerance for the implicit solver.
+/// - `max_step_iter`: The maximum number of iterations for the implicit solver per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GL4 {
     solver: ImplicitSolver,
-    max_iter: usize,
     tol: f64,
+    max_step_iter: usize,
 }
 
 impl Default for GL4 {
     fn default() -> Self {
         GL4 {
             solver: ImplicitSolver::FixedPoint,
-            max_iter: 100,
             tol: 1e-6,
+            max_step_iter: 100,
         }
     }
 }
 
 impl GL4 {
-    pub fn new(solver: ImplicitSolver, max_iter: usize, tol: f64) -> Self {
+    pub fn new(solver: ImplicitSolver, tol: f64, max_step_iter: usize) -> Self {
         GL4 {
             solver,
-            max_iter,
             tol,
+            max_step_iter,
         }
     }
 }
@@ -428,7 +442,7 @@ impl ODEIntegrator for GL4 {
         match self.solver {
             ImplicitSolver::FixedPoint => {
                 // Fixed-point iteration
-                for _ in 0..self.max_iter {
+                for _ in 0..self.max_step_iter {
                     problem.rhs(t + c * dt, &y1, &mut k1)?;
                     problem.rhs(t + d * dt, &y2, &mut k2)?;
 
