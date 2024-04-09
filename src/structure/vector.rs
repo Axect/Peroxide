@@ -277,7 +277,6 @@ use crate::traits::{
     pointer::{Oxide, Redox, RedoxCommon},
 };
 use std::cmp::min;
-use std::convert;
 
 impl FPVector for Vec<f64> {
     type Scalar = f64;
@@ -320,7 +319,7 @@ impl FPVector for Vec<f64> {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: convert::Into<f64>,
+        T: Into<f64>,
     {
         self.iter().fold(init.into(), |x, &y| f(x, y))
     }
@@ -492,7 +491,7 @@ impl Algorithm for Vec<f64> {
     /// ```
     fn rank(&self) -> Vec<usize> {
         let l = self.len();
-        let idx = (1..(l + 1)).map(|x| x as usize).collect::<Vec<usize>>();
+        let idx = (1..(l + 1)).collect::<Vec<usize>>();
 
         let mut vec_tup = self
             .clone()
@@ -571,7 +570,7 @@ impl Algorithm for Vec<f64> {
                 //self.into_iter().enumerate().max_by(|x1, x2| x1.1.partial_cmp(&x2.1).unwrap()).unwrap().0
                 self.into_iter()
                     .enumerate()
-                    .fold((0usize, std::f64::MIN), |acc, (ics, &val)| {
+                    .fold((0usize, f64::MIN), |acc, (ics, &val)| {
                         if acc.1 < val {
                             (ics, val)
                         } else {
@@ -603,7 +602,7 @@ impl Algorithm for Vec<f64> {
             _ => {
                 self.into_iter()
                     .enumerate()
-                    .fold((0usize, std::f64::MAX), |acc, (ics, &val)| {
+                    .fold((0usize, f64::MAX), |acc, (ics, &val)| {
                         if acc.1 > val {
                             (ics, val)
                         } else {
@@ -627,7 +626,7 @@ impl Algorithm for Vec<f64> {
                 self[idx]
             }
             _ => {
-                self.into_iter().fold(std::f64::MIN, |acc, &val| {
+                self.into_iter().fold(f64::MIN, |acc, &val| {
                     if acc < val {
                         val
                     } else {
@@ -641,7 +640,7 @@ impl Algorithm for Vec<f64> {
     fn min(&self) -> f64 {
         match () {
             _ => {
-                self.into_iter().fold(std::f64::MAX, |acc, &val| {
+                self.into_iter().fold(f64::MAX, |acc, &val| {
                     if acc > val {
                         val
                     } else {

@@ -950,19 +950,19 @@ fn dtype_to_arrow(dt: DType) -> DataType {
 #[cfg(feature="parquet")]
 fn arrow_to_dtype(dt: DataType) -> DType {
     match dt {
-        DataType::Boolean => DType::Bool,
-        DataType::Int8 => DType::I8,
-        DataType::Int16 => DType::I16,
-        DataType::Int32 => DType::I32,
-        DataType::Int64 => DType::I64,
-        DataType::UInt8 => DType::U8,
-        DataType::UInt16 => DType::U16,
-        DataType::UInt32 => DType::U32,
-        DataType::UInt64 => DType::U64,
+        DataType::Boolean => Bool,
+        DataType::Int8 => I8,
+        DataType::Int16 => I16,
+        DataType::Int32 => I32,
+        DataType::Int64 => I64,
+        DataType::UInt8 => U8,
+        DataType::UInt16 => U16,
+        DataType::UInt32 => U32,
+        DataType::UInt64 => U64,
         // DataType::Float16 => DType::F16,
-        DataType::Float32 => DType::F32,
-        DataType::Float64 => DType::F64,
-        DataType::Utf8 => DType::Str,
+        DataType::Float32 => F32,
+        DataType::Float64 => F64,
+        DataType::Utf8 => Str,
         _ => unimplemented!()
     }
 }
@@ -1192,7 +1192,7 @@ impl Vector for Series {
     ///     assert_eq!(c, Series::new(vec![4,4,4]));
     /// }
     /// ```
-    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn add_vec(&self, rhs: &Self) -> Self {
         assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;
@@ -1218,7 +1218,7 @@ impl Vector for Series {
     ///     assert_eq!(c, Series::new(vec![3,3,3]));
     /// }
     /// ```
-    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn sub_vec(&self, rhs: &Self) -> Self {
         assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;

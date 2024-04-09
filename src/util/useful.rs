@@ -1,7 +1,5 @@
 //! Useful missing tools
 
-use std::convert;
-use std::f64::MAX;
 use std::ops::Range;
 
 // =============================================================================
@@ -19,14 +17,14 @@ use std::ops::Range;
 /// ```
 pub fn nearly_eq<S, T>(x: S, y: T) -> bool
 where
-    S: convert::Into<f64>,
-    T: convert::Into<f64>,
+    S: Into<f64>,
+    T: Into<f64>,
 {
     let mut b: bool = false;
     let e = 1e-7;
     let p: f64 = x.into().abs();
     let q: f64 = y.into().abs();
-    if (p - q).abs() < e || (p - q).abs() / (p + q).min(MAX) < e {
+    if (p - q).abs() < e || (p - q).abs() / (p + q).min(f64::MAX) < e {
         b = true;
     }
     b

@@ -7,8 +7,8 @@ use crate::structure::matrix::Matrix;
 /// And a space of the vector should closed for that operations.
 pub trait Vector {
     type Scalar;
-    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self;
-    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self;
+    fn add_vec(&self, rhs: &Self) -> Self;
+    fn sub_vec(&self, rhs: &Self) -> Self;
     fn mul_scalar(&self, rhs: Self::Scalar) -> Self;
 }
 
@@ -71,11 +71,11 @@ pub trait MatrixProduct {
 impl Vector for f64 {
     type Scalar = Self;
 
-    fn add_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn add_vec(&self, rhs: &Self) -> Self {
         self + rhs
     }
 
-    fn sub_vec<'a, 'b>(&'a self, rhs: &'b Self) -> Self {
+    fn sub_vec(&self, rhs: &Self) -> Self {
         self - rhs
     }
 
