@@ -2,8 +2,8 @@ use peroxide::fuga::*;
 
 #[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
-    let dp45 = DP45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
-    let basic_ode_solver = BasicODESolver::new(dp45);
+    let tsit45 = TSIT45::new(1e-2, 0.9, 1e-6, 1e-1, 100);
+    let basic_ode_solver = BasicODESolver::new(tsit45);
     let (_, y_vec) = basic_ode_solver.solve(
         &Lorenz,
         (0f64, 100f64),
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .set_style(PlotStyle::Nature)
             .tight_layout()
             .set_dpi(600)
-            .set_path("example_data/lorenz_dp45.png")
+            .set_path("example_data/lorenz_tsit45.png")
             .savefig()?;
     }
 

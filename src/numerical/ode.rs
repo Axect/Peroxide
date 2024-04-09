@@ -14,12 +14,15 @@
 //!   - Runge-Kutta 4th order (RK4)
 //!   - Runge-Kutta-Fehlberg 4/5th order (RKF45)
 //!   - Dormand-Prince 4/5th order (DP45)
+//!   - Tsitouras 4/5th order (TSIT45)
 //! - **Implicit**
 //!   - Gauss-Legendre 4th order (GL4)
 //!
 //! ## Available solvers
 //!
 //! - `BasicODESolver`: A basic ODE solver using a specified integrator.
+//!
+//! You can implement your own ODE solver by implementing the `ODESolver` trait.
 //!
 //! ## Example
 //!
@@ -108,8 +111,6 @@ pub trait ODEIntegrator {
 
 
 /// Enum for ODE errors.
-
-
 #[derive(Debug, Clone, Copy, Error)]
 pub enum ODEError {
     #[error("constraint violation")]
@@ -232,8 +233,90 @@ impl ODEIntegrator for RK4 {
 }
 
 // ┌─────────────────────────────────────────────────────────┐
-//  Runge-Kutta-Fehlberg
+//  Embedded Runge-Kutta
 // └─────────────────────────────────────────────────────────┘
+/// Trait for Butcher tableau
+///
+/// ```text
+/// C | A
+/// - - - 
+///   | BH (higher order)
+///   | BL (lower order)
+/// ```
+///
+/// # References
+///
+/// - J. R. Dormand and P. J. Prince, _A family of embedded Runge-Kutta formulae_, J. Comp. Appl. Math., 6(1), 19-26, 1980.
+/// - Wikipedia: [List of Runge-Kutta methods](https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods)
+pub trait ButcherTableau {
+    const C: &'static [f64];
+    const A: &'static [&'static [f64]];
+    const BH: &'static [f64];
+    const BL: &'static [f64];
+
+    fn tol(&self) -> f64;
+    fn safety_factor(&self) -> f64;
+    fn max_step_size(&self) -> f64;
+    fn min_step_size(&self) -> f64;
+    fn max_step_iter(&self) -> usize;
+
+}
+
+impl<BT: ButcherTableau> ODEIntegrator for BT {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+        let n = y.len();
+        let mut iter_count = 0usize;
+        let mut dt = dt;
+        let n_k = Self::C.len();
+
+        loop {
+            let mut k_vec = vec![vec![0.0; n]; n_k];
+            let mut y_temp = y.to_vec();
+
+            for i in 0 .. n_k {
+                for i in 0 .. n {
+                    let mut s = 0.0;
+                    for j in 0 .. i {
+                        s += Self::A[i][j] * k_vec[j][i];
+                    }
+                    y_temp[i] = y[i] + dt * s;
+                }
+                problem.rhs(t + dt * Self::C[i], &y_temp, &mut k_vec[i])?;
+            }
+
+            let mut error = 0f64;
+            for i in 0 .. n {
+                let mut s = 0.0;
+                for j in 0 .. n_k {
+                    s += (Self::BH[j] - Self::BL[j]) * k_vec[j][i];
+                }
+                error = error.max(dt * s.abs())
+            }
+
+            if error < self.tol() {
+                for i in 0 .. n {
+                    let mut s = 0.0;
+                    for j in 0 .. n_k {
+                        s += Self::BH[j] * k_vec[j][i];
+                    }
+                    y[i] += dt * s;
+                }
+                let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.25);
+                let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
+                return Ok(new_dt);
+            } else {
+                iter_count += 1;
+                if iter_count >= self.max_step_iter() {
+                    return Err(ReachedMaxStepIter);
+                }
+                let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.2);
+                let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
+                dt = new_dt;
+            }
+        }
+    }
+}
+
 /// Runge-Kutta-Fehlberg 4/5th order integrator.
 ///
 /// This integrator uses the Runge-Kutta-Fehlberg method, which is an adaptive step size integrator.
@@ -279,115 +362,26 @@ impl RKF45 {
             max_step_iter,
         }
     }
-
-    pub fn set_tol(&mut self, tol: f64) {
-        self.tol = tol;
-    }
-
-    pub fn set_safety_factor(&mut self, safety_factor: f64) {
-        self.safety_factor = safety_factor;
-    }
-
-    pub fn set_min_step_size(&mut self, min_step_size: f64) {
-        self.min_step_size = min_step_size;
-    }
-
-    pub fn set_max_step_size(&mut self, max_step_size: f64) {
-        self.max_step_size = max_step_size;
-    }
-
-    pub fn set_max_step_iter(&mut self, max_step_iter: usize) {
-        self.max_step_iter = max_step_iter;
-    }
-
-    pub fn get_tol(&self) -> f64 {
-        self.tol
-    }
-
-    pub fn get_safety_factor(&self) -> f64 {
-        self.safety_factor
-    }
-
-    pub fn get_min_step_size(&self) -> f64 {
-        self.min_step_size
-    }
-
-    pub fn get_max_step_size(&self) -> f64 {
-        self.max_step_size
-    }
-
-    pub fn get_max_step_iter(&self) -> usize {
-        self.max_step_iter
-    }
 }
 
-impl ODEIntegrator for RKF45 {
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
-        let mut iter_count = 0usize;
-        let mut dt = dt;
-        let n = y.len();
+impl ButcherTableau for RKF45 {
+    const C: &'static [f64] = &[0.0, 1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 1.0 / 2.0];
+    const A: &'static [&'static [f64]] = &[
+        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[0.25, 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[3.0 / 32.0, 9.0 / 32.0, 0.0, 0.0, 0.0, 0.0],
+        &[1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0, 0.0, 0.0, 0.0],
+        &[439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0, 0.0, 0.0],
+        &[-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0, 0.0],
+    ];
+    const BH: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
+    const BL: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
 
-        loop {
-            let mut k1 = vec![0.0; n];
-            let mut k2 = vec![0.0; n];
-            let mut k3 = vec![0.0; n];
-            let mut k4 = vec![0.0; n];
-            let mut k5 = vec![0.0; n];
-            let mut k6 = vec![0.0; n];
-
-            problem.rhs(t, y, &mut k1)?;
-            let mut y_temp = y.to_vec();
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (1.0 / 4.0) * k1[i];
-            }
-
-            problem.rhs(t + dt * (1.0 / 4.0), &y_temp, &mut k2)?;
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (3.0 / 32.0 * k1[i] + 9.0 / 32.0 * k2[i]);
-            }
-
-            problem.rhs(t + dt * (3.0 / 8.0), &y_temp, &mut k3)?;
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (1932.0 / 2197.0 * k1[i] - 7200.0 / 2197.0 * k2[i] + 7296.0 / 2197.0 * k3[i]);
-            }
-
-            problem.rhs(t + dt * (12.0 / 13.0), &y_temp, &mut k4)?;
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (439.0 / 216.0 * k1[i] - 8.0 * k2[i] + 3680.0 / 513.0 * k3[i] - 845.0 / 4104.0 * k4[i]);
-            }
-
-            problem.rhs(t + dt, &y_temp, &mut k5)?;
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (-8.0 / 27.0 * k1[i] + 2.0 * k2[i] - 3544.0 / 2565.0 * k3[i] + 1859.0 / 4104.0 * k4[i] - 11.0 / 40.0 * k5[i]);
-            }
-
-            problem.rhs(t + dt * 0.5, &y_temp, &mut k6)?;
-
-            let mut error = 0.0;
-            for i in 0..n {
-                let y_err = dt * (1.0 / 360.0 * k1[i] - 128.0 / 4275.0 * k3[i] - 2197.0 / 75240.0 * k4[i] + 1.0 / 50.0 * k5[i] + 2.0 / 55.0 * k6[i]);
-                error += y_err * y_err;
-            }
-
-            error = error.sqrt() / (n as f64).sqrt();
-
-            let new_dt = self.safety_factor * dt * (self.tol * dt / error).powf(0.25);
-            let new_dt = new_dt.max(self.min_step_size).min(self.max_step_size);
-
-            if error <= self.tol {
-                for i in 0..n {
-                    y[i] += dt * (16.0 / 135.0 * k1[i] + 6656.0 / 12825.0 * k3[i] + 28561.0 / 56430.0 * k4[i] - 9.0 / 50.0 * k5[i] + 2.0 / 55.0 * k6[i]);
-                }
-                return Ok(new_dt);
-            } else {
-                iter_count += 1;
-                if iter_count >= self.max_step_iter {
-                    return Err(ReachedMaxStepIter);
-                }
-                dt = new_dt;
-            }
-        }
-    }
+    fn tol(&self) -> f64 { self.tol }
+    fn safety_factor(&self) -> f64 { self.safety_factor }
+    fn min_step_size(&self) -> f64 { self.min_step_size }
+    fn max_step_size(&self) -> f64 { self.max_step_size }
+    fn max_step_iter(&self) -> usize { self.max_step_iter }
 }
 
 /// Dormand-Prince 5(4) method
@@ -436,76 +430,104 @@ impl DP45 {
     }
 }
 
-impl ODEIntegrator for DP45 {
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
-        let mut iter_count = 0usize;
-        let mut dt = dt;
-        let n = y.len();
+impl ButcherTableau for DP45 {
+    const C: &'static [f64] = &[0.0, 0.2, 0.3, 0.8, 8.0 / 9.0, 1.0, 1.0];
+    const A: &'static [&'static [f64]] = &[
+        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[0.2, 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[0.075, 0.225, 0.0, 0.0, 0.0, 0.0],
+        &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0, 0.0, 0.0, 0.0],
+        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0, 0.0, 0.0],
+        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0, 0.0],
+        &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
+    ];
+    const BH: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
+    const BL: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
 
-        loop {
-            let mut k1 = vec![0.0; n];
-            let mut k2 = vec![0.0; n];
-            let mut k3 = vec![0.0; n];
-            let mut k4 = vec![0.0; n];
-            let mut k5 = vec![0.0; n];
-            let mut k6 = vec![0.0; n];
-            let mut k7 = vec![0.0; n];
+    fn tol(&self) -> f64 { self.tol }
+    fn safety_factor(&self) -> f64 { self.safety_factor }
+    fn min_step_size(&self) -> f64 { self.min_step_size }
+    fn max_step_size(&self) -> f64 { self.max_step_size }
+    fn max_step_iter(&self) -> usize { self.max_step_iter }
+}
 
-            problem.rhs(t, y, &mut k1)?;
+/// Tsitouras 5(4) method
+///
+/// This is an adaptive step size integrator based on a 5th order Runge-Kutta method with
+/// 4th order embedded error estimation, using the coefficients from Tsitouras (2011).
+///
+/// # Member variables
+///
+/// - `tol`: The tolerance for the estimated error.
+/// - `safety_factor`: The safety factor for the step size adjustment.
+/// - `min_step_size`: The minimum step size.
+/// - `max_step_size`: The maximum step size.
+/// - `max_step_iter`: The maximum number of iterations per step.
+///
+/// # References
+///
+/// - Ch. Tsitouras, Comput. Math. Appl. 62 (2011) 770-780.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct TSIT45 {
+    tol: f64,
+    safety_factor: f64,
+    min_step_size: f64,
+    max_step_size: f64,
+    max_step_iter: usize,
+}
 
-            let mut y_temp = y.to_vec();
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (1.0 / 5.0) * k1[i];
-            }
-            problem.rhs(t + dt * (1.0 / 5.0), &y_temp, &mut k2)?;
-
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (3.0 / 40.0 * k1[i] + 9.0 / 40.0 * k2[i]);
-            }
-            problem.rhs(t + dt * (3.0 / 10.0), &y_temp, &mut k3)?;
-
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (44.0 / 45.0 * k1[i] - 56.0 / 15.0 * k2[i] + 32.0 / 9.0 * k3[i]);
-            }
-            problem.rhs(t + dt * (4.0 / 5.0), &y_temp, &mut k4)?;
-
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (19372.0 / 6561.0 * k1[i] - 25360.0 / 2187.0 * k2[i] + 64448.0 / 6561.0 * k3[i] - 212.0 / 729.0 * k4[i]);
-            }
-            problem.rhs(t + dt * (8.0 / 9.0), &y_temp, &mut k5)?;
-
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (9017.0 / 3168.0 * k1[i] - 355.0 / 33.0 * k2[i] + 46732.0 / 5247.0 * k3[i] + 49.0 / 176.0 * k4[i] - 5103.0 / 18656.0 * k5[i]);
-            }
-            problem.rhs(t + dt, &y_temp, &mut k6)?;
-
-            for i in 0..n {
-                y_temp[i] = y[i] + dt * (35.0 / 384.0 * k1[i] + 500.0 / 1113.0 * k3[i] + 125.0 / 192.0 * k4[i] - 2187.0 / 6784.0 * k5[i] + 11.0 / 84.0 * k6[i]);
-            }
-            problem.rhs(t + dt, &y_temp, &mut k7)?;
-
-            let mut error = 0.0;
-            for i in 0..n {
-                let y_err = dt * (71.0 / 57600.0 * k1[i] - 71.0 / 16695.0 * k3[i] + 71.0 / 1920.0 * k4[i] - 17253.0 / 339200.0 * k5[i] + 22.0 / 525.0 * k6[i] - 1.0 / 40.0 * k7[i]);
-                error += y_err * y_err;
-            }
-            error = (error / (n as f64)).sqrt();
-
-            let new_dt = self.safety_factor * dt * (self.tol / error).powf(0.2);
-            let new_dt = new_dt.max(self.min_step_size).min(self.max_step_size);
-
-            if error <= self.tol {
-                y.copy_from_slice(&y_temp);
-                return Ok(new_dt);
-            } else {
-                iter_count += 1;
-                if iter_count >= self.max_step_iter {
-                    return Err(ReachedMaxStepIter);
-                }
-                dt = new_dt;
-            }
+impl Default for TSIT45 {
+    fn default() -> Self {
+        Self {
+            tol: 1e-6,
+            safety_factor: 0.9,
+            min_step_size: 1e-6,
+            max_step_size: 1e-1,
+            max_step_iter: 100,
         }
     }
+}
+
+impl TSIT45 {
+    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+        Self {
+            tol,
+            safety_factor,
+            min_step_size,
+            max_step_size,
+            max_step_iter,
+        }
+    }
+}
+
+impl ButcherTableau for TSIT45 {
+    const C: &'static [f64] = &[0.0, 0.161, 0.327, 0.9, 0.9800255409045097, 1.0, 1.0];
+    const A: &'static [&'static [f64]] = &[
+        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[Self::C[1], 0.0, 0.0, 0.0, 0.0, 0.0],
+        &[Self::C[2] - 0.335480655492357, 0.335480655492357, 0.0, 0.0, 0.0, 0.0],
+        &[Self::C[3] - (-6.359448489975075 + 4.362295432869581), -6.359448489975075, 4.362295432869581, 0.0, 0.0, 0.0],
+        &[Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525), -11.74888356406283, 7.495539342889836, -0.09249506636175525, 0.0, 0.0],
+        &[Self::C[5] - (-12.92096931784711 + 8.159367898576159 - 0.0715849732814010 - 0.02826905039406838), -12.92096931784711, 8.159367898576159, -0.0715849732814010, -0.02826905039406838, 0.0],
+        &[Self::BH[0], Self::BH[1], Self::BH[2], Self::BH[3], Self::BH[4], Self::BH[5]],
+    ];
+    const BH: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
+    const BL: &'static [f64] = &[
+        0.001780011052226,
+        0.000816434459657,
+        - 0.007880878010262,
+        0.144711007173263,
+        - 0.582357165452555,
+        0.458082105929187,
+        1.0 / 66.0,
+    ];
+
+    fn tol(&self) -> f64 { self.tol }
+    fn safety_factor(&self) -> f64 { self.safety_factor }
+    fn min_step_size(&self) -> f64 { self.min_step_size }
+    fn max_step_size(&self) -> f64 { self.max_step_size }
+    fn max_step_iter(&self) -> usize { self.max_step_iter }
 }
 
 // ┌─────────────────────────────────────────────────────────┐
