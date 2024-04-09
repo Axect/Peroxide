@@ -147,14 +147,17 @@
 //!
 //! ## Useful tips for features
 //!
-//! * After `0.28.0`, `dataframe` feature is replaced by `nc` feature.
-//! * If you want to use *QR* or *SVD* or *Cholesky Decomposition* then should use `O3` feature (there are no implementations for these decompositions in `default`)
-//! * If you want to write your numerical results, then use `parquet` or `nc` features (corresponding to `parquet` or `netcdf` format. (It is much more effective than `csv` and `json`.)
-//! * After `0.23.0`, there are two options - `fuga`, `prelude`. Choose proper option for your computations.
-//! * To plot, use `parquet` or `nc` feature to export data as parquet or netcdf format and use python to draw plot.
-//!     * `plot` feature has limited plot abilities.
-//!     * To read parquet file in python, use `pandas` & `pyarrow` libraries.
-//!     * There is a template of python code for netcdf. - [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py)
+//! * If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
+//!
+//! * If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
+//!
+//! * For plotting, it is recommended to use the `plot` feature. However, if you require more customization, you can use the `parquet` or `nc` feature to export your data in the parquet or netcdf format and then use Python to create the plots.
+//!
+//!     * To read parquet files in Python, you can use the `pandas` and `pyarrow` libraries.
+//!
+//!     * A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
+
+//!
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "O3")]
