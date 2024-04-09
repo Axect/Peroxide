@@ -301,7 +301,7 @@ impl WeightedUniform<f64> {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let weights = vec![1f64, 3f64, 0f64, 2f64];
     ///     let intervals = vec![0f64, 1f64, 2f64, 4f64, 5f64];
     ///     let w = WeightedUniform::new(weights, intervals)?;
@@ -357,7 +357,7 @@ impl WeightedUniform<f64> {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-3)?;
     ///     w.weights().print();
     ///
@@ -366,7 +366,7 @@ impl WeightedUniform<f64> {
     /// 
     /// fn f(x: f64) -> f64 {
     ///     if x.abs() < 1f64 {
-    ///         (1f64 - x.abs())
+    ///         1f64 - x.abs()
     ///     } else {
     ///        0f64
     ///     }

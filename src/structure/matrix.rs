@@ -40,7 +40,6 @@
 //! * Type: `ml_matrix(&str)`
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -58,7 +57,6 @@
 //! * Type: `py_matrix(Vec<Vec<T>>) where T: std::convert::Into<f64> + Copy`
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -151,7 +149,6 @@
 //! * `write_with_header(&self, file_path, header: Vec<&str>)`: Write with header
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -174,7 +171,6 @@
 //! * Description: `read(file_path, is_header, delimiter)`
 //!
 //!     ```no_run
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -233,27 +229,28 @@
 //! * `cbind`: Concatenate two matrices by column direction.
 //! * `rbind`: Concatenate two matrices by row direction.
 //!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::fuga::*;
+//! ```rust
+//! use peroxide::fuga::*;
 //!
-//!     fn main() {
-//!         let a = ml_matrix("1 2;3 4");
-//!         let b = ml_matrix("5 6;7 8");
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = ml_matrix("5 6;7 8");
 //!
-//!         cbind(a.clone(), b.clone()).print();
-//!         //      c[0] c[1] c[2] c[3]
-//!         // r[0]    1    2    5    7
-//!         // r[1]    3    4    6    8
+//!     cbind(a.clone(), b.clone())?.print();
+//!     //      c[0] c[1] c[2] c[3]
+//!     // r[0]    1    2    5    7
+//!     // r[1]    3    4    6    8
 //!
-//!         rbind(a, b).print();
-//!         //      c[0] c[1]
-//!         // r[0]    1    2
-//!         // r[1]    3    4
-//!         // r[2]    5    6
-//!         // r[3]    7    8
-//!     }
-//!     ```
+//!     rbind(a, b)?.print();
+//!     //      c[0] c[1]
+//!     // r[0]    1    2
+//!     // r[1]    3    4
+//!     // r[2]    5    6
+//!     // r[3]    7    8
+//!
+//!     Ok(())
+//! }
+//! ```
 //!
 //! ## Matrix operations
 //!
@@ -287,8 +284,8 @@
 //! * `clone` is too annoying - We can use reference operations!
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
+//!
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
 //!         let b = ml_matrix("5 6;7 8");
@@ -342,9 +339,9 @@
 //! * `zeros(usize, usize)`: Construct matrix which elements are all zero
 //! * `eye(usize)`: Identity matrix
 //! * `rand(usize, usize)`: Construct random uniform matrix (from 0 to 1)
+//! * `rand_with_rng(usize, usize, &mut Rng)`: Construct random matrix with user-defined RNG
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -393,7 +390,6 @@
 //! * The structure of `PQLU` is as follows:
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     #[derive(Debug, Clone)]
@@ -470,7 +466,6 @@
 //! can get better performance (via memoization)
 //!
 //! ```rust
-//! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
@@ -496,7 +491,6 @@
 //! * Example
 //!     
 //!     ```ignore
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     let a = ml_matrix("
@@ -529,7 +523,6 @@
 //! * Return `SVD` structure
 //!
 //!     ```no_run
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     pub struct SVD {
@@ -542,7 +535,6 @@
 //! * Example
 //!
 //!     ```
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -618,9 +610,6 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd, dpotrf};
-#[cfg(feature = "O3")]
-use std::f64::NAN;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -639,7 +628,6 @@ use crate::util::{
 };
 use crate::structure::dataframe::{Series, TypedVector};
 use std::cmp::{max, min};
-use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -655,7 +643,6 @@ pub type Perms = Vec<(usize, usize)>;
 ///
 /// # Examples
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
@@ -687,7 +674,6 @@ impl fmt::Display for Shape {
 /// # Examples
 ///
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
 /// let a = Matrix {
@@ -725,7 +711,7 @@ pub struct Matrix {
 /// ```
 pub fn matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
-    T: convert::Into<f64>,
+    T: Into<f64>,
 {
     Matrix {
         data: v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),
@@ -738,7 +724,7 @@ where
 /// R-like matrix constructor (Explicit ver.)
 pub fn r_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
-    T: convert::Into<f64>,
+    T: Into<f64>,
 {
     matrix(v, r, c, shape)
 }
@@ -759,7 +745,7 @@ where
 /// ```
 pub fn py_matrix<T>(v: Vec<Vec<T>>) -> Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     let r = v.len();
     let c = v[0].len();
@@ -846,14 +832,13 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Col);
     /// let b = a.as_slice();
     /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
     /// ```
-    pub fn as_slice<'a>(&'a self) -> &'a [f64] {
+    pub fn as_slice(&self) -> &[f64] {
         &self.data[..]
     }
 
@@ -861,7 +846,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let mut a = matrix(vec![1,2,3,4], 2, 2, Col);
@@ -870,7 +854,7 @@ impl Matrix {
     /// assert_eq!(b, &[5f64, 2f64, 3f64, 4f64]);
     /// assert_eq!(a, matrix(vec![5,2,3,4], 2, 2, Col));
     /// ```
-    pub fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f64] {
+    pub fn as_mut_slice(&mut self) -> &mut [f64] {
         &mut self.data[..]
     }
 
@@ -880,7 +864,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -922,7 +905,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -961,7 +943,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -1118,7 +1099,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
@@ -1156,9 +1136,11 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write("example_data/test.csv");
+    ///     a.write("example_data/test.csv")?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1185,9 +1167,11 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write_round("example_data/test.csv", 0);
+    ///     a.write_round("example_data/test.csv", 0)?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1260,9 +1244,9 @@ impl Matrix {
     /// use peroxide::fuga::*;
     /// use std::process;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write_round("example_data/test.csv", 0);
+    ///     a.write_round("example_data/test.csv", 0)?;
     ///
     ///     let b = Matrix::read("example_data/test.csv", false, ','); // header = false, delimiter = ','
     ///     match b {
@@ -1272,6 +1256,8 @@ impl Matrix {
     ///             process::exit(1);
     ///         }
     ///     }
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1366,7 +1352,7 @@ impl Matrix {
     }
 
     pub fn to_diag(&self) -> Matrix {
-        assert!(self.row == self.col, "Should be square matrix");
+        assert_eq!(self.row, self.col, "Should be square matrix");
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
         let diag = self.diag();
         for i in 0..self.row {
@@ -1580,12 +1566,12 @@ impl Normed for Matrix {
                     for i in 0..self.row {
                         s_row += self[(i, j)].powi(p as i32);
                     }
-                    s += s_row.powf(q as f64 / (p as f64));
+                    s += s_row.powf(q / p);
                 }
-                s.powf(1f64 / (q as f64))
+                s.powf(1f64 / q)
             }
             Norm::L1 => {
-                let mut m = std::f64::MIN;
+                let mut m = f64::MIN;
                 match self.shape {
                     Row => self.change_shape().norm(Norm::L1),
                     Col => {
@@ -1600,7 +1586,7 @@ impl Normed for Matrix {
                 }
             }
             Norm::LInf => {
-                let mut m = std::f64::MIN;
+                let mut m = f64::MIN;
                 match self.shape {
                     Col => self.change_shape().norm(Norm::LInf),
                     Row => {
@@ -1684,16 +1670,16 @@ impl MatrixProduct for Matrix {
 
         for j in 1..c1 {
             let n = self[(0, j)] * other;
-            result = cbind(result, n);
+            result = cbind(result, n).unwrap();
         }
 
         for i in 1..r1 {
             let mut m = self[(i, 0)] * other;
             for j in 1..c1 {
                 let n = self[(i, j)] * other;
-                m = cbind(m, n);
+                m = cbind(m, n).unwrap();
             }
-            result = rbind(result, m);
+            result = rbind(result, m).unwrap();
         }
         result
     }
@@ -1814,7 +1800,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
 /// ```
 impl<T> Add<T> for Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
@@ -1837,7 +1823,7 @@ where
 /// Element-wise addition between &Matrix & f64
 impl<'a, T> Add<T> for &'a Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
@@ -1927,7 +1913,7 @@ impl<'a> Add<&'a Matrix> for i32 {
 ///
 /// fn main() {
 ///     let a = matrix!(1;4;1, 2, 2, Row);
-///     assert_eq!(1 as usize + a, matrix!(2;5;1, 2, 2, Row));
+///     assert_eq!(1usize + a, matrix!(2;5;1, 2, 2, Row));
 /// }
 /// ```
 impl Add<Matrix> for usize {
@@ -2074,7 +2060,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
 /// Subtraction between Matrix & f64
 impl<T> Sub<T> for Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
 
@@ -2098,7 +2084,7 @@ where
 /// Subtraction between &Matrix & f64
 impl<'a, T> Sub<T> for &'a Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
 
@@ -2736,7 +2722,7 @@ impl FPMatrix for Matrix {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: convert::Into<f64>,
+        T: Into<f64>,
     {
         self.data.iter().fold(init.into(), |x, y| f(x, *y))
     }
@@ -3360,7 +3346,7 @@ impl LinearAlgebra for Matrix {
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
-                    None => NAN,
+                    None => f64::NAN,
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::Singular => 0f64,
                         LAPACK_STATUS::NonSingular => {
@@ -3654,7 +3640,7 @@ impl MutMatrix for Matrix {
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
-            Shape::Col => {
+            Col => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let start_idx = idx * self.row;
                 let p = self.mut_ptr();
@@ -3663,7 +3649,7 @@ impl MutMatrix for Matrix {
                 }
                 v
             }
-            Shape::Row => {
+            Row => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
@@ -3677,7 +3663,7 @@ impl MutMatrix for Matrix {
     unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.row, "Index out of range");
         match self.shape {
-            Shape::Row => {
+            Row => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let start_idx = idx * self.col;
                 let p = self.mut_ptr();
@@ -3686,7 +3672,7 @@ impl MutMatrix for Matrix {
                 }
                 v
             }
-            Shape::Col => {
+            Col => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
@@ -3699,8 +3685,8 @@ impl MutMatrix for Matrix {
 
     unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
         match shape {
-            Shape::Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
-            Shape::Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
+            Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
+            Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
         }
     }
 
@@ -3777,6 +3763,14 @@ impl PowOps for Matrix {
 }
 
 impl TrigOps for Matrix {
+    fn sin_cos(&self) -> (Self, Self) {
+        let (sin, cos) = self.data.iter().map(|x| x.sin_cos()).unzip();
+        (
+            matrix(sin, self.row, self.col, self.shape),
+            matrix(cos, self.row, self.col, self.shape),
+        )
+    }
+
     fn sin(&self) -> Self {
         self.fmap(|x| x.sin())
     }
@@ -3811,14 +3805,6 @@ impl TrigOps for Matrix {
 
     fn atan(&self) -> Self {
         self.fmap(|x| x.atan())
-    }
-
-    fn sin_cos(&self) -> (Self, Self) {
-        let (sin, cos) = self.data.iter().map(|x| x.sin_cos()).unzip();
-        (
-            matrix(sin, self.row, self.col, self.shape),
-            matrix(cos, self.row, self.col, self.shape),
-        )
     }
 
     fn asinh(&self) -> Self {
@@ -4318,7 +4304,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     };
 
     let mut info = 0i32;
-    let mut ipiv: Vec<i32> = vec![0i32; std::cmp::min(m, n)];
+    let mut ipiv: Vec<i32> = vec![0i32; min(m, n)];
 
     unsafe {
         dgetrf(m_i32, n_i32, &mut a, m_i32, &mut ipiv, &mut info);
@@ -4515,7 +4501,7 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
 
             if info == 0 {
                 Some(DGESVD {
-                    s: s,
+                    s,
                     u: matrix(u, m as usize, m as usize, Col),
                     vt: matrix(vt, n as usize, n as usize, Col),
                     status: SVD_STATUS::Success,
@@ -4524,7 +4510,7 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
                 None
             } else {
                 Some(DGESVD {
-                    s: s,
+                    s,
                     u: matrix(u, m as usize, m as usize, Col),
                     vt: matrix(vt, n as usize, n as usize, Col),
                     status: SVD_STATUS::Diverge(info),

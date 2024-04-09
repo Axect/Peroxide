@@ -1,5 +1,6 @@
 use peroxide::fuga::*;
 
+#[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
     let t = seq(0, 10, 1);
     let y = t

@@ -159,6 +159,19 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().qr()
     }
 
+    fn svd(&self) -> SVD {
+        unimplemented!()
+    }
+
+    #[cfg(feature="O3")]
+    fn cholesky(&self, _uplo: UPLO) -> Matrix {
+        unimplemented!()
+    }
+
+    fn rref(&self) -> Matrix {
+        self.to_dense().rref()
+    }
+
     fn det(&self) -> f64 {
         self.to_dense().det()
     }
@@ -175,24 +188,11 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().pseudo_inv()
     }
 
-    fn rref(&self) -> Matrix {
-        self.to_dense().rref()
-    }
-
     fn solve(&self, _b: &Vec<f64>, _sk: SolveKind) -> Vec<f64> {
         unimplemented!()
     }
 
     fn solve_mat(&self, _m: &Matrix, _sk: SolveKind) -> Matrix {
-        unimplemented!()
-    }
-
-    fn svd(&self) -> SVD {
-        unimplemented!()
-    }
-
-    #[cfg(feature="O3")]
-    fn cholesky(&self, uplo: UPLO) -> Matrix {
         unimplemented!()
     }
 

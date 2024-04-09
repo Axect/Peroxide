@@ -1,7 +1,6 @@
 //! Choose api - MATLAB, R, Python
 
 use crate::structure::matrix::*;
-use std::convert;
 
 pub trait MATLAB {
     fn new(s: &str) -> Self;
@@ -10,13 +9,13 @@ pub trait MATLAB {
 pub trait PYTHON {
     fn new<T>(v: Vec<Vec<T>>) -> Self
     where
-        T: convert::Into<f64> + Copy;
+        T: Into<f64> + Copy;
 }
 
 pub trait R {
     fn new<T>(v: Vec<T>, x: usize, y: usize, shape: Shape) -> Self
     where
-        T: convert::Into<f64>;
+        T: Into<f64>;
 }
 
 impl MATLAB for Matrix {
@@ -47,7 +46,7 @@ impl MATLAB for Matrix {
 impl PYTHON for Matrix {
     fn new<T>(v: Vec<Vec<T>>) -> Self
     where
-        T: convert::Into<f64> + Copy,
+        T: Into<f64> + Copy,
     {
         let r = v.len();
         let c = v[0].len();
@@ -65,7 +64,7 @@ impl PYTHON for Matrix {
 impl R for Matrix {
     fn new<T>(v: Vec<T>, x: usize, y: usize, shape: Shape) -> Self
     where
-        T: convert::Into<f64>,
+        T: Into<f64>,
     {
         matrix(
             v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),

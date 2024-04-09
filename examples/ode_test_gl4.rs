@@ -1,9 +1,8 @@
-#[macro_use]
-extern crate peroxide;
 use peroxide::fuga::*;
 
+#[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
-    let gl4 = GL4::new(ImplicitSolver::FixedPoint, 100, 1e-6);
+    let gl4 = GL4::new(ImplicitSolver::FixedPoint, 1e-6, 100);
     let basic_ode_solver = BasicODESolver::new(gl4);
     let (t_vec, y_vec) = basic_ode_solver.solve(
         &Test,

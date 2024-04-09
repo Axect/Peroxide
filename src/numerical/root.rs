@@ -435,7 +435,7 @@ pub fn bisection<F: Fn(AD) -> AD>(
     tol: f64,
 ) -> Result<f64, RootError> {
     let (a, b) = interval;
-    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::Bisection, f)?;
+    let mut root_finder = RootFinder::new(I(a, b), RootFind::Bisection, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -465,7 +465,7 @@ pub fn false_position<F: Fn(AD) -> AD>(
     tol: f64,
 ) -> Result<f64, RootError> {
     let (a, b) = interval;
-    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::FalsePosition, f)?;
+    let mut root_finder = RootFinder::new(I(a, b), RootFind::FalsePosition, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -494,7 +494,7 @@ pub fn newton<F: Fn(AD) -> AD>(
     times: usize,
     tol: f64,
 ) -> Result<f64, RootError> {
-    let mut root_finder = RootFinder::new(RootState::P(initial_guess), RootFind::Newton, f)?;
+    let mut root_finder = RootFinder::new(P(initial_guess), RootFind::Newton, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()
@@ -524,7 +524,7 @@ pub fn secant<F: Fn(AD) -> AD>(
     tol: f64,
 ) -> Result<f64, RootError> {
     let (a, b) = initial_guess;
-    let mut root_finder = RootFinder::new(RootState::I(a, b), RootFind::Secant, f)?;
+    let mut root_finder = RootFinder::new(I(a, b), RootFind::Secant, f)?;
     root_finder.set_tol(tol);
     root_finder.set_times(times);
     root_finder.find_root()

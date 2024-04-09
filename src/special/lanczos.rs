@@ -49,7 +49,7 @@ pub fn gamma_approx(z: f64) -> f64 {
 
 /// Lanczos Approximation Coefficient
 pub fn tlg1(g: f64, n: usize) -> Vec<f64> {
-    (lanczos_coeff(g, n - 1).ox() * g.exp() / (2f64 * std::f64::consts::PI).sqrt()).red()
+    (lanczos_coeff(g, n - 1).ox() * g.exp() / (2f64 * PI).sqrt()).red()
 }
 
 fn lanczos_coeff(g: f64, n: usize) -> Vec<f64> {

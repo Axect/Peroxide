@@ -287,7 +287,7 @@ where
                 let mut chi2 = ((&y - &y_hat).t() * (&y - &y_hat))[(0, 0)];
                 let mut nu = 2f64;
                 let lambda_0 = *self.hyperparams.get("lambda_init").unwrap_or(&1e-3);
-                let lambda_max = *self.hyperparams.get("lambda_max").unwrap_or(&std::f64::MAX.sqrt());
+                let lambda_max = *self.hyperparams.get("lambda_max").unwrap_or(&f64::MAX.sqrt());
 
                 let mut lambda = lambda_0 * max(jtj.diag());
 

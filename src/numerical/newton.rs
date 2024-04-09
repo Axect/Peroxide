@@ -12,12 +12,12 @@ pub fn newton<F: Fn(&Vec<AD>) -> Vec<AD> + Copy>(init_cond: Vec<f64>, f: F, rtol
     let mut x_next = init_cond;
     let mut x = x_next.clone();
     update(&mut x_next, f);
-    let mut err = (x_next.sub_vec(&x)).norm(Norm::L2);
+    let mut err = x_next.sub_vec(&x).norm(Norm::L2);
 
     while err >= rtol {
         x = x_next.clone();
         update(&mut x_next, f);
-        err = (x_next.sub_vec(&x)).norm(Norm::L2);
+        err = x_next.sub_vec(&x).norm(Norm::L2);
     }
 
     x_next

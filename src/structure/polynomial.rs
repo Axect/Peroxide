@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 use peroxide_num::PowOps;
 use crate::traits::fp::FPVector;
 use std::cmp::{max, min};
-use std::convert;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
@@ -180,7 +179,7 @@ impl Polynomial {
     /// ```
     pub fn eval<T>(&self, x: T) -> f64
     where
-        T: convert::Into<f64> + Copy,
+        T: Into<f64> + Copy,
     {
         let x = x.into();
         let l = self.coef.len() - 1;
@@ -212,7 +211,7 @@ impl Polynomial {
     /// ```
     pub fn translate_x<X>(&self, x: X) -> Self
     where
-        X: convert::Into<f64> + Copy,
+        X: Into<f64> + Copy,
     {
         let d = Self::new(vec![1f64, x.into()]);
 
@@ -299,7 +298,7 @@ impl Add<Polynomial> for Polynomial {
 
 impl<T> Add<T> for Polynomial
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
@@ -318,7 +317,7 @@ impl Sub<Polynomial> for Polynomial {
 
 impl<T> Sub<T> for Polynomial
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn sub(self, other: T) -> Self {
@@ -330,7 +329,7 @@ where
 
 impl<T> Mul<T> for Polynomial
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn mul(self, other: T) -> Self {
@@ -372,7 +371,7 @@ impl Mul<Polynomial> for Polynomial {
 
 impl<T> Div<T> for Polynomial
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn div(self, other: T) -> Self {
@@ -454,7 +453,7 @@ impl Mul<Polynomial> for f64 {
     type Output = Polynomial;
 
     fn mul(self, rhs: Polynomial) -> Self::Output {
-        rhs.mul(self as f64)
+        rhs.mul(self)
     }
 }
 
