@@ -40,7 +40,6 @@
 //! * Type: `ml_matrix(&str)`
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -58,7 +57,6 @@
 //! * Type: `py_matrix(Vec<Vec<T>>) where T: std::convert::Into<f64> + Copy`
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -151,7 +149,6 @@
 //! * `write_with_header(&self, file_path, header: Vec<&str>)`: Write with header
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -174,7 +171,6 @@
 //! * Description: `read(file_path, is_header, delimiter)`
 //!
 //!     ```no_run
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -233,27 +229,28 @@
 //! * `cbind`: Concatenate two matrices by column direction.
 //! * `rbind`: Concatenate two matrices by row direction.
 //!
-//!     ```rust
-//!     extern crate peroxide;
-//!     use peroxide::fuga::*;
+//! ```rust
+//! use peroxide::fuga::*;
 //!
-//!     fn main() {
-//!         let a = ml_matrix("1 2;3 4");
-//!         let b = ml_matrix("5 6;7 8");
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let a = ml_matrix("1 2;3 4");
+//!     let b = ml_matrix("5 6;7 8");
 //!
-//!         cbind(a.clone(), b.clone()).print();
-//!         //      c[0] c[1] c[2] c[3]
-//!         // r[0]    1    2    5    7
-//!         // r[1]    3    4    6    8
+//!     cbind(a.clone(), b.clone())?.print();
+//!     //      c[0] c[1] c[2] c[3]
+//!     // r[0]    1    2    5    7
+//!     // r[1]    3    4    6    8
 //!
-//!         rbind(a, b).print();
-//!         //      c[0] c[1]
-//!         // r[0]    1    2
-//!         // r[1]    3    4
-//!         // r[2]    5    6
-//!         // r[3]    7    8
-//!     }
-//!     ```
+//!     rbind(a, b)?.print();
+//!     //      c[0] c[1]
+//!     // r[0]    1    2
+//!     // r[1]    3    4
+//!     // r[2]    5    6
+//!     // r[3]    7    8
+//!
+//!     Ok(())
+//! }
+//! ```
 //!
 //! ## Matrix operations
 //!
@@ -287,8 +284,8 @@
 //! * `clone` is too annoying - We can use reference operations!
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
+//!
 //!     fn main() {
 //!         let a = ml_matrix("1 2;3 4");
 //!         let b = ml_matrix("5 6;7 8");
@@ -342,9 +339,9 @@
 //! * `zeros(usize, usize)`: Construct matrix which elements are all zero
 //! * `eye(usize)`: Identity matrix
 //! * `rand(usize, usize)`: Construct random uniform matrix (from 0 to 1)
+//! * `rand_with_rng(usize, usize, &mut Rng)`: Construct random matrix with user-defined RNG
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -393,7 +390,6 @@
 //! * The structure of `PQLU` is as follows:
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     #[derive(Debug, Clone)]
@@ -470,7 +466,6 @@
 //! can get better performance (via memoization)
 //!
 //! ```rust
-//! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
@@ -496,7 +491,6 @@
 //! * Example
 //!     
 //!     ```ignore
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     let a = ml_matrix("
@@ -529,7 +523,6 @@
 //! * Return `SVD` structure
 //!
 //!     ```no_run
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     pub struct SVD {
@@ -542,7 +535,6 @@
 //! * Example
 //!
 //!     ```
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -618,9 +610,6 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd, dpotrf};
-#[cfg(feature = "O3")]
-use std::f64::NAN;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -655,7 +644,6 @@ pub type Perms = Vec<(usize, usize)>;
 ///
 /// # Examples
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
 /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
@@ -687,7 +675,6 @@ impl fmt::Display for Shape {
 /// # Examples
 ///
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
 /// let a = Matrix {
@@ -725,7 +712,7 @@ pub struct Matrix {
 /// ```
 pub fn matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
-    T: convert::Into<f64>,
+    T: Into<f64>,
 {
     Matrix {
         data: v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),
@@ -738,7 +725,7 @@ where
 /// R-like matrix constructor (Explicit ver.)
 pub fn r_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
-    T: convert::Into<f64>,
+    T: Into<f64>,
 {
     matrix(v, r, c, shape)
 }
@@ -759,7 +746,7 @@ where
 /// ```
 pub fn py_matrix<T>(v: Vec<Vec<T>>) -> Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     let r = v.len();
     let c = v[0].len();
@@ -846,14 +833,13 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Col);
     /// let b = a.as_slice();
     /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
     /// ```
-    pub fn as_slice<'a>(&'a self) -> &'a [f64] {
+    pub fn as_slice(&self) -> &[f64] {
         &self.data[..]
     }
 
@@ -861,7 +847,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let mut a = matrix(vec![1,2,3,4], 2, 2, Col);
@@ -870,7 +855,7 @@ impl Matrix {
     /// assert_eq!(b, &[5f64, 2f64, 3f64, 4f64]);
     /// assert_eq!(a, matrix(vec![5,2,3,4], 2, 2, Col));
     /// ```
-    pub fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f64] {
+    pub fn as_mut_slice(&mut self) -> &mut [f64] {
         &mut self.data[..]
     }
 
@@ -880,7 +865,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -922,7 +906,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -961,7 +944,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
@@ -1118,7 +1100,6 @@ impl Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
@@ -1156,9 +1137,11 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write("example_data/test.csv");
+    ///     a.write("example_data/test.csv")?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1185,9 +1168,11 @@ impl Matrix {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write_round("example_data/test.csv", 0);
+    ///     a.write_round("example_data/test.csv", 0)?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1260,9 +1245,9 @@ impl Matrix {
     /// use peroxide::fuga::*;
     /// use std::process;
     ///
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let a = matrix(c!(1,2,3,3,2,1), 3, 2, Col);
-    ///     a.write_round("example_data/test.csv", 0);
+    ///     a.write_round("example_data/test.csv", 0)?;
     ///
     ///     let b = Matrix::read("example_data/test.csv", false, ','); // header = false, delimiter = ','
     ///     match b {
@@ -1272,6 +1257,8 @@ impl Matrix {
     ///             process::exit(1);
     ///         }
     ///     }
+    ///
+    ///     Ok(())
     /// }
     /// ```
     #[cfg(feature="csv")]
@@ -1366,7 +1353,7 @@ impl Matrix {
     }
 
     pub fn to_diag(&self) -> Matrix {
-        assert!(self.row == self.col, "Should be square matrix");
+        assert_eq!(self.row, self.col, "Should be square matrix");
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
         let diag = self.diag();
         for i in 0..self.row {
@@ -1684,16 +1671,16 @@ impl MatrixProduct for Matrix {
 
         for j in 1..c1 {
             let n = self[(0, j)] * other;
-            result = cbind(result, n);
+            result = cbind(result, n).unwrap();
         }
 
         for i in 1..r1 {
             let mut m = self[(i, 0)] * other;
             for j in 1..c1 {
                 let n = self[(i, j)] * other;
-                m = cbind(m, n);
+                m = cbind(m, n).unwrap();
             }
-            result = rbind(result, m);
+            result = rbind(result, m).unwrap();
         }
         result
     }
@@ -3360,7 +3347,7 @@ impl LinearAlgebra for Matrix {
             () => {
                 let opt_dgrf = lapack_dgetrf(self);
                 match opt_dgrf {
-                    None => NAN,
+                    None => f64::NAN,
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::Singular => 0f64,
                         LAPACK_STATUS::NonSingular => {
