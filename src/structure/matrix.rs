@@ -628,7 +628,6 @@ use crate::util::{
 };
 use crate::structure::dataframe::{Series, TypedVector};
 use std::cmp::{max, min};
-use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
