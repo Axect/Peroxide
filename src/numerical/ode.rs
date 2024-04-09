@@ -259,7 +259,6 @@ pub trait ButcherTableau {
     fn max_step_size(&self) -> f64;
     fn min_step_size(&self) -> f64;
     fn max_step_iter(&self) -> usize;
-
 }
 
 impl<BT: ButcherTableau> ODEIntegrator for BT {
