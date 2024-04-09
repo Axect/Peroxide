@@ -2,6 +2,25 @@
 //!
 //! This module provides traits and structs for solving ordinary differential equations (ODEs).
 //!
+//! ## Overview
+//!
+//! - `ODEProblem`: Trait for defining an ODE problem.
+//! - `ODEIntegrator`: Trait for ODE integrators.
+//! - `ODESolver`: Trait for ODE solvers.
+//!
+//! ## Available integrators
+//!
+//! - **Explicit**
+//!   - Runge-Kutta 4th order (RK4)
+//!   - Runge-Kutta-Fehlberg 4/5th order (RKF45)
+//!   - Dormand-Prince 4/5th order (DP45)
+//! - **Implicit**
+//!   - Gauss-Legendre 4th order (GL4)
+//!
+//! ## Available solvers
+//!
+//! - `BasicODESolver`: A basic ODE solver using a specified integrator.
+//!
 //! ## Example
 //!
 //! ```rust
@@ -359,6 +378,124 @@ impl ODEIntegrator for RKF45 {
                 for i in 0..n {
                     y[i] += dt * (16.0 / 135.0 * k1[i] + 6656.0 / 12825.0 * k3[i] + 28561.0 / 56430.0 * k4[i] - 9.0 / 50.0 * k5[i] + 2.0 / 55.0 * k6[i]);
                 }
+                return Ok(new_dt);
+            } else {
+                iter_count += 1;
+                if iter_count >= self.max_step_iter {
+                    return Err(ReachedMaxStepIter);
+                }
+                dt = new_dt;
+            }
+        }
+    }
+}
+
+/// Dormand-Prince 5(4) method
+///
+/// This is an adaptive step size integrator based on a 5th order Runge-Kutta method with
+/// 4th order embedded error estimation.
+///
+/// # Member variables
+///
+/// - `tol`: The tolerance for the estimated error.
+/// - `safety_factor`: The safety factor for the step size adjustment.
+/// - `min_step_size`: The minimum step size.
+/// - `max_step_size`: The maximum step size.
+/// - `max_step_iter`: The maximum number of iterations per step.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct DP45 {
+    tol: f64,
+    safety_factor: f64,
+    min_step_size: f64,
+    max_step_size: f64,
+    max_step_iter: usize,
+}
+
+impl Default for DP45 {
+    fn default() -> Self {
+        Self {
+            tol: 1e-6,
+            safety_factor: 0.9,
+            min_step_size: 1e-6,
+            max_step_size: 1e-1,
+            max_step_iter: 100,
+        }
+    }
+}
+
+impl DP45 {
+    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+        Self {
+            tol,
+            safety_factor,
+            min_step_size,
+            max_step_size,
+            max_step_iter,
+        }
+    }
+}
+
+impl ODEIntegrator for DP45 {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+        let mut iter_count = 0usize;
+        let mut dt = dt;
+        let n = y.len();
+
+        loop {
+            let mut k1 = vec![0.0; n];
+            let mut k2 = vec![0.0; n];
+            let mut k3 = vec![0.0; n];
+            let mut k4 = vec![0.0; n];
+            let mut k5 = vec![0.0; n];
+            let mut k6 = vec![0.0; n];
+            let mut k7 = vec![0.0; n];
+
+            problem.rhs(t, y, &mut k1)?;
+
+            let mut y_temp = y.to_vec();
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (1.0 / 5.0) * k1[i];
+            }
+            problem.rhs(t + dt * (1.0 / 5.0), &y_temp, &mut k2)?;
+
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (3.0 / 40.0 * k1[i] + 9.0 / 40.0 * k2[i]);
+            }
+            problem.rhs(t + dt * (3.0 / 10.0), &y_temp, &mut k3)?;
+
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (44.0 / 45.0 * k1[i] - 56.0 / 15.0 * k2[i] + 32.0 / 9.0 * k3[i]);
+            }
+            problem.rhs(t + dt * (4.0 / 5.0), &y_temp, &mut k4)?;
+
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (19372.0 / 6561.0 * k1[i] - 25360.0 / 2187.0 * k2[i] + 64448.0 / 6561.0 * k3[i] - 212.0 / 729.0 * k4[i]);
+            }
+            problem.rhs(t + dt * (8.0 / 9.0), &y_temp, &mut k5)?;
+
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (9017.0 / 3168.0 * k1[i] - 355.0 / 33.0 * k2[i] + 46732.0 / 5247.0 * k3[i] + 49.0 / 176.0 * k4[i] - 5103.0 / 18656.0 * k5[i]);
+            }
+            problem.rhs(t + dt, &y_temp, &mut k6)?;
+
+            for i in 0..n {
+                y_temp[i] = y[i] + dt * (35.0 / 384.0 * k1[i] + 500.0 / 1113.0 * k3[i] + 125.0 / 192.0 * k4[i] - 2187.0 / 6784.0 * k5[i] + 11.0 / 84.0 * k6[i]);
+            }
+            problem.rhs(t + dt, &y_temp, &mut k7)?;
+
+            let mut error = 0.0;
+            for i in 0..n {
+                let y_err = dt * (71.0 / 57600.0 * k1[i] - 71.0 / 16695.0 * k3[i] + 71.0 / 1920.0 * k4[i] - 17253.0 / 339200.0 * k5[i] + 22.0 / 525.0 * k6[i] - 1.0 / 40.0 * k7[i]);
+                error += y_err * y_err;
+            }
+            error = (error / (n as f64)).sqrt();
+
+            let new_dt = self.safety_factor * dt * (self.tol / error).powf(0.2);
+            let new_dt = new_dt.max(self.min_step_size).min(self.max_step_size);
+
+            if error <= self.tol {
+                y.copy_from_slice(&y_temp);
                 return Ok(new_dt);
             } else {
                 iter_count += 1;
