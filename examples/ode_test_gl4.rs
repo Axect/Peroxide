@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
