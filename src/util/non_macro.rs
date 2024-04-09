@@ -320,12 +320,12 @@ pub fn rand(r: usize, c: usize) -> Matrix {
     m
 }
 
-/// Rand matrix from specific rng
+/// Rand matrix with specific rng
 ///
 /// # Description
 ///
 /// Range = from 0 to 1
-pub fn rand_from_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
+pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
     let mut m = zeros(r, c);
     for i in 0..r {
         for j in 0..c {
