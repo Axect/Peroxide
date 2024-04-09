@@ -40,14 +40,14 @@ where Self::Scalar: Copy + Clone
 
 pub trait Scalable {
     type Vec;
-    fn resize(&self, size: (usize, usize), shape: Shape) -> Matrix;
+    fn reshape(&self, size: (usize, usize), shape: Shape) -> Matrix;
     fn add_col(&self, v: &Self::Vec) -> Matrix;
     fn add_row(&self, v: &Self::Vec) -> Matrix;
 }
 
 pub trait ScalableMut {
     type Vec;
-    fn resize_mut(&mut self, size: (usize, usize), shape: Shape);
+    fn reshape_mut(&mut self, size: (usize, usize), shape: Shape);
     fn add_col_mut(&mut self, v: &Self::Vec);
     fn add_row_mut(&mut self, v: &Self::Vec);
 }
@@ -210,13 +210,13 @@ impl Scalable for Vec<f64> {
     ///
     /// fn main() {
     ///     let a = c!(1,2,3,4,5,6);
-    ///     let b1 = a.resize((3,2), Row);
-    ///     let b2 = a.resize((3,2), Col);
+    ///     let b1 = a.reshape((3,2), Row);
+    ///     let b2 = a.reshape((3,2), Col);
     ///     assert_eq!(b1, ml_matrix("1 2;3 4;5 6"));
     ///     assert_eq!(b2, ml_matrix("1 4;2 5;3 6"));
     /// }
     /// ```
-    fn resize(&self, (r, c): (usize, usize), shape: Shape) -> Matrix {
+    fn reshape(&self, (r, c): (usize, usize), shape: Shape) -> Matrix {
         assert_eq!(self.len(), r * c);
         let mut m = zeros_shape(r, c, shape);
         m.data = self[..].to_vec();
@@ -239,11 +239,11 @@ impl Scalable for Vec<f64> {
     ///     assert_eq!(c2, ml_matrix("1 4;2 5;3 6"));
     /// }
     /// ```
-    fn add_row(&self, v: &Self::Vec) -> Matrix {
+    fn add_col(&self, v: &Self::Vec) -> Matrix {
         assert_eq!(self.len(), v.len());
         let mut x = self[..].to_vec();
         x.extend_from_slice(&v[..]);
-        x.resize((2, self.len()), Shape::Row)
+        x.reshape((self.len(), 2), Shape::Col)
     }
 
     /// Vector + Vector = Matrix
@@ -262,11 +262,11 @@ impl Scalable for Vec<f64> {
     ///     assert_eq!(c2, ml_matrix("1 4;2 5;3 6"));
     /// }
     /// ```
-    fn add_col(&self, v: &Self::Vec) -> Matrix {
+    fn add_row(&self, v: &Self::Vec) -> Matrix {
         assert_eq!(self.len(), v.len());
         let mut x = self[..].to_vec();
         x.extend_from_slice(&v[..]);
-        x.resize((self.len(), 2), Shape::Col)
+        x.reshape((2, self.len()), Shape::Row)
     }
 }
 
@@ -283,49 +283,17 @@ impl Scalable for Matrix {
     ///
     /// fn main() {
     ///     let a = ml_matrix("1 2 3;4 5 6"); // ml_matrix has shape `Col`
-    ///     let b1 = a.resize((3, 2), Row);
-    ///     let b2 = a.resize((3, 2), Col);
+    ///     let b1 = a.reshape((3, 2), Row);
+    ///     let b2 = a.reshape((3, 2), Col);
     ///     assert_eq!(b1, ml_matrix("1 2;3 4;5 6"));
     ///     assert_eq!(b2, ml_matrix("1 4;2 5;3 6"));
     /// }
     /// ```
-    fn resize(&self, (r, c): (usize, usize), shape: Shape) -> Matrix {
+    fn reshape(&self, (r, c): (usize, usize), shape: Shape) -> Matrix {
         assert_eq!(self.row * self.col, r * c);
         let mut m = zeros_shape(r, c, shape);
         m.data = self.data[..].to_vec();
         m
-    }
-
-    /// Add row
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = ml_matrix("1 2 3;4 5 6");
-    ///     let b = c!(7,8,9);
-    ///     let c = a.add_row(&b);
-    ///     assert_eq!(c, ml_matrix("1 2 3;4 5 6;7 8 9"));
-    /// }
-    /// ```
-    fn add_row(&self, v: &Self::Vec) -> Matrix {
-        assert_eq!(self.col, v.len());
-        match self.shape {
-            Shape::Row => {
-                let mut m = self.clone();
-                m.data.extend_from_slice(&v[..]);
-                m.row += 1;
-                m
-            }
-            Shape::Col => {
-                let mut m = self.change_shape();
-                m.data.extend_from_slice(&v[..]);
-                m.row += 1;
-                m
-            }
-        }
     }
 
     /// Add column
@@ -359,6 +327,38 @@ impl Scalable for Matrix {
             }
         }
     }
+
+    /// Add row
+    ///
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("1 2 3;4 5 6");
+    ///     let b = c!(7,8,9);
+    ///     let c = a.add_row(&b);
+    ///     assert_eq!(c, ml_matrix("1 2 3;4 5 6;7 8 9"));
+    /// }
+    /// ```
+    fn add_row(&self, v: &Self::Vec) -> Matrix {
+        assert_eq!(self.col, v.len());
+        match self.shape {
+            Shape::Row => {
+                let mut m = self.clone();
+                m.data.extend_from_slice(&v[..]);
+                m.row += 1;
+                m
+            }
+            Shape::Col => {
+                let mut m = self.change_shape();
+                m.data.extend_from_slice(&v[..]);
+                m.row += 1;
+                m
+            }
+        }
+    }
 }
 
 impl ScalableMut for Matrix {
@@ -373,46 +373,17 @@ impl ScalableMut for Matrix {
     ///
     /// fn main() {
     ///     let mut a = ml_matrix("1 2 3;4 5 6"); // ml_matrix has shape `Row`
-    ///     a.resize_mut((3, 2), Row);
+    ///     a.reshape_mut((3, 2), Row);
     ///     assert_eq!(a, ml_matrix("1 2;3 4;5 6"));
-    ///     a.resize_mut((3, 2), Col);
+    ///     a.reshape_mut((3, 2), Col);
     ///     assert_eq!(a, ml_matrix("1 4;2 5;3 6"));
     /// }
     /// ```
-    fn resize_mut(&mut self, (r, c): (usize, usize), shape: Shape) {
+    fn reshape_mut(&mut self, (r, c): (usize, usize), shape: Shape) {
         assert_eq!(self.row * self.col, r * c);
         self.row = r;
         self.col = c;
         self.shape = shape;
-    }
-
-    /// Add row (Mutable)
-    ///
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let mut a = ml_matrix("1 2 3;4 5 6");
-    ///     let b = c!(7,8,9);
-    ///     a.add_row_mut(&b);
-    ///     assert_eq!(a, ml_matrix("1 2 3;4 5 6;7 8 9"));
-    /// }
-    /// ```
-    fn add_row_mut(&mut self, v: &Self::Vec) {
-        assert_eq!(self.col, v.len());
-        match self.shape {
-            Shape::Row => {
-                self.data.extend_from_slice(&v[..]);
-                self.row += 1;
-            }
-            Shape::Col => {
-                self.change_shape_mut();
-                self.data.extend_from_slice(&v[..]);
-                self.row += 1;
-            }
-        }
     }
 
     /// Add column (Mutable)
@@ -440,6 +411,35 @@ impl ScalableMut for Matrix {
                 self.change_shape_mut();
                 self.data.extend_from_slice(&v[..]);
                 self.col += 1;
+            }
+        }
+    }
+
+    /// Add row (Mutable)
+    ///
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let mut a = ml_matrix("1 2 3;4 5 6");
+    ///     let b = c!(7,8,9);
+    ///     a.add_row_mut(&b);
+    ///     assert_eq!(a, ml_matrix("1 2 3;4 5 6;7 8 9"));
+    /// }
+    /// ```
+    fn add_row_mut(&mut self, v: &Self::Vec) {
+        assert_eq!(self.col, v.len());
+        match self.shape {
+            Shape::Row => {
+                self.data.extend_from_slice(&v[..]);
+                self.row += 1;
+            }
+            Shape::Col => {
+                self.change_shape_mut();
+                self.data.extend_from_slice(&v[..]);
+                self.row += 1;
             }
         }
     }

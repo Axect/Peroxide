@@ -1,5 +1,6 @@
 use peroxide::fuga::*;
 
+#[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
     let gl4 = GL4::new(ImplicitSolver::FixedPoint, 1e-6, 100);
     let basic_ode_solver = BasicODESolver::new(gl4);

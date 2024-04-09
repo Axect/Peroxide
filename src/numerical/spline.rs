@@ -37,7 +37,7 @@
 //! ```rust
 //! use peroxide::fuga::*;
 //!
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! fn main() -> Result<(), Box<dyn Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
@@ -91,7 +91,7 @@
 //! ```rust
 //! use peroxide::fuga::*;
 //!
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! fn main() -> Result<(), Box<dyn Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
@@ -141,7 +141,7 @@
 //! use peroxide::fuga::*;
 //! use std::f64::consts::PI;
 //!
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! fn main() -> Result<(), Box<dyn Error>> {
 //!     let x = seq(0, 10, 1);
 //!     let y = x.fmap(|t| t.sin());
 //!     
@@ -293,7 +293,7 @@ pub trait Spline {
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
 ///     let x = c!(0.9, 1.3, 1.9, 2.1);
 ///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
@@ -347,7 +347,7 @@ pub fn cubic_hermite_spline(
 /// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
 ///     let x = c!(0.9, 1.3, 1.9, 2.1);
 ///     let y = c!(1.3, 1.5, 1.85, 2.1);
 ///
@@ -402,7 +402,7 @@ impl CubicSpline {
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let x = c!(0.9, 1.3, 1.9, 2.1);
     ///     let y = c!(1.3, 1.5, 1.85, 2.1);
     ///

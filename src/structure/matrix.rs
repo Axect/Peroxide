@@ -628,7 +628,6 @@ use crate::util::{
 };
 use crate::structure::dataframe::{Series, TypedVector};
 use std::cmp::{max, min};
-use std::convert;
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -1567,12 +1566,12 @@ impl Normed for Matrix {
                     for i in 0..self.row {
                         s_row += self[(i, j)].powi(p as i32);
                     }
-                    s += s_row.powf(q as f64 / (p as f64));
+                    s += s_row.powf(q / p);
                 }
-                s.powf(1f64 / (q as f64))
+                s.powf(1f64 / q)
             }
             Norm::L1 => {
-                let mut m = std::f64::MIN;
+                let mut m = f64::MIN;
                 match self.shape {
                     Row => self.change_shape().norm(Norm::L1),
                     Col => {
@@ -1587,7 +1586,7 @@ impl Normed for Matrix {
                 }
             }
             Norm::LInf => {
-                let mut m = std::f64::MIN;
+                let mut m = f64::MIN;
                 match self.shape {
                     Col => self.change_shape().norm(Norm::LInf),
                     Row => {
@@ -1801,7 +1800,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
 /// ```
 impl<T> Add<T> for Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
@@ -1824,7 +1823,7 @@ where
 /// Element-wise addition between &Matrix & f64
 impl<'a, T> Add<T> for &'a Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
@@ -1914,7 +1913,7 @@ impl<'a> Add<&'a Matrix> for i32 {
 ///
 /// fn main() {
 ///     let a = matrix!(1;4;1, 2, 2, Row);
-///     assert_eq!(1 as usize + a, matrix!(2;5;1, 2, 2, Row));
+///     assert_eq!(1usize + a, matrix!(2;5;1, 2, 2, Row));
 /// }
 /// ```
 impl Add<Matrix> for usize {
@@ -2061,7 +2060,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
 /// Subtraction between Matrix & f64
 impl<T> Sub<T> for Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
 
@@ -2085,7 +2084,7 @@ where
 /// Subtraction between &Matrix & f64
 impl<'a, T> Sub<T> for &'a Matrix
 where
-    T: convert::Into<f64> + Copy,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
 
@@ -2723,7 +2722,7 @@ impl FPMatrix for Matrix {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: convert::Into<f64>,
+        T: Into<f64>,
     {
         self.data.iter().fold(init.into(), |x, y| f(x, *y))
     }
@@ -3641,7 +3640,7 @@ impl MutMatrix for Matrix {
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
-            Shape::Col => {
+            Col => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let start_idx = idx * self.row;
                 let p = self.mut_ptr();
@@ -3650,7 +3649,7 @@ impl MutMatrix for Matrix {
                 }
                 v
             }
-            Shape::Row => {
+            Row => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
@@ -3664,7 +3663,7 @@ impl MutMatrix for Matrix {
     unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.row, "Index out of range");
         match self.shape {
-            Shape::Row => {
+            Row => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let start_idx = idx * self.col;
                 let p = self.mut_ptr();
@@ -3673,7 +3672,7 @@ impl MutMatrix for Matrix {
                 }
                 v
             }
-            Shape::Col => {
+            Col => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let p = self.mut_ptr();
                 for i in 0..v.len() {
@@ -3686,8 +3685,8 @@ impl MutMatrix for Matrix {
 
     unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
         match shape {
-            Shape::Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
-            Shape::Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
+            Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
+            Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
         }
     }
 
@@ -3764,6 +3763,14 @@ impl PowOps for Matrix {
 }
 
 impl TrigOps for Matrix {
+    fn sin_cos(&self) -> (Self, Self) {
+        let (sin, cos) = self.data.iter().map(|x| x.sin_cos()).unzip();
+        (
+            matrix(sin, self.row, self.col, self.shape),
+            matrix(cos, self.row, self.col, self.shape),
+        )
+    }
+
     fn sin(&self) -> Self {
         self.fmap(|x| x.sin())
     }
@@ -3798,14 +3805,6 @@ impl TrigOps for Matrix {
 
     fn atan(&self) -> Self {
         self.fmap(|x| x.atan())
-    }
-
-    fn sin_cos(&self) -> (Self, Self) {
-        let (sin, cos) = self.data.iter().map(|x| x.sin_cos()).unzip();
-        (
-            matrix(sin, self.row, self.col, self.shape),
-            matrix(cos, self.row, self.col, self.shape),
-        )
     }
 
     fn asinh(&self) -> Self {
@@ -4305,7 +4304,7 @@ pub fn lapack_dgetrf(mat: &Matrix) -> Option<DGETRF> {
     };
 
     let mut info = 0i32;
-    let mut ipiv: Vec<i32> = vec![0i32; std::cmp::min(m, n)];
+    let mut ipiv: Vec<i32> = vec![0i32; min(m, n)];
 
     unsafe {
         dgetrf(m_i32, n_i32, &mut a, m_i32, &mut ipiv, &mut info);
@@ -4502,7 +4501,7 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
 
             if info == 0 {
                 Some(DGESVD {
-                    s: s,
+                    s,
                     u: matrix(u, m as usize, m as usize, Col),
                     vt: matrix(vt, n as usize, n as usize, Col),
                     status: SVD_STATUS::Success,
@@ -4511,7 +4510,7 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
                 None
             } else {
                 Some(DGESVD {
-                    s: s,
+                    s,
                     u: matrix(u, m as usize, m as usize, Col),
                     vt: matrix(vt, n as usize, n as usize, Col),
                     status: SVD_STATUS::Diverge(info),

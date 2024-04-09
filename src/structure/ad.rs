@@ -1209,7 +1209,7 @@ impl<F: Clone> ADFn<F> {
     pub fn grad(&self) -> Self {
         assert!(self.grad_level < 2, "Higher order AD is not allowed");
         ADFn {
-            f: (self.f).clone(),
+            f: self.f.clone(),
             grad_level: self.grad_level + 1,
         }
     }
@@ -1311,16 +1311,16 @@ impl FPVector for Vec<AD> {
         self.iter().fold(init.into(), |x, &y| f(x,y))
     }
 
-    fn filter<F>(&self, f: F) -> Self
-    where
-            F: Fn(Self::Scalar) -> bool {
-        self.iter().filter(|&x| f(*x)).cloned().collect()
-    }
-
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
     where
             F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
         self.iter().zip(other.iter()).map(|(&x, &y)| f(x, y)).collect()
+    }
+
+    fn filter<F>(&self, f: F) -> Self
+    where
+            F: Fn(Self::Scalar) -> bool {
+        self.iter().filter(|&x| f(*x)).cloned().collect()
     }
 
     fn take(&self, n: usize) -> Self {

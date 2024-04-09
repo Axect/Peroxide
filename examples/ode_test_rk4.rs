@@ -1,5 +1,6 @@
 use peroxide::fuga::*;
 
+#[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
     let basic_ode_solver = BasicODESolver::new(RK4);
     let (t_vec, y_vec) = basic_ode_solver.solve(
