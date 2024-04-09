@@ -23,7 +23,6 @@
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
-use std::u32;
 
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
@@ -69,7 +68,7 @@ pub fn stdrng_from_seed(seed: u64) -> StdRng {
 /// use peroxide::fuga::*;
 ///
 /// let mut rng = thread_rng();
-/// println!("{}", rand_num(&mut rng, 1, 7));       // Roll a dice
+/// println!("{}", rand_num(&mut rng, 1, 7));       // Roll a die
 /// println!("{}", rand_num(&mut rng, 0f64, 1f64)); // Uniform [0,1)
 /// ```
 pub fn rand_num<T>(rng: &mut ThreadRng, start: T, end: T) -> T
@@ -453,7 +452,7 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
 ///     let f = |x: f64| {
 ///         if (0f64..=2f64).contains(&x) {
 ///             -(x - 1f64).powi(2) + 1f64
@@ -514,7 +513,7 @@ where F: Fn(f64) -> f64 + Copy {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
 ///     let mut rng = smallrng_from_seed(42);
 ///     let f = |x: f64| {
 ///         if (0f64..=2f64).contains(&x) {

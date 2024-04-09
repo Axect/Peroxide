@@ -2,13 +2,9 @@
 //!
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
-#[cfg(feature = "O3")]
-use lapack::{dorgtr, dsteqr, dsytrd};
-
 pub use self::EigenMethod::*;
 use crate::structure::matrix::Matrix;
 use crate::util::non_macro::eye_shape;
-use std::f64::EPSILON;
 
 #[derive(Debug, Copy, Clone)]
 pub enum EigenMethod {
@@ -114,11 +110,11 @@ impl JacobiTemp {
             for ip in 0..n - 1 {
                 for iq in ip + 1..n {
                     let g = 100f64 * a[(ip, iq)].abs();
-                    if i > 4 && g <= EPSILON * d[ip].abs() && g <= EPSILON * d[iq].abs() {
+                    if i > 4 && g <= f64::EPSILON * d[ip].abs() && g <= f64::EPSILON * d[iq].abs() {
                         a[(ip, iq)] = 0f64;
                     } else if a[(ip, iq)].abs() > tresh {
                         h = d[iq] - d[ip];
-                        let t = if g <= EPSILON * h.abs() {
+                        let t = if g <= f64::EPSILON * h.abs() {
                             a[(ip, iq)] / h
                         } else {
                             let theta = 0.5 * h / a[(ip, iq)];

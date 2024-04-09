@@ -1,7 +1,5 @@
 //! Differential equations & Numerical Analysis tools
 
-//pub mod bdf;
-//pub mod gauss_legendre;
 pub mod eigen;
 pub mod integral;
 pub mod interp;
