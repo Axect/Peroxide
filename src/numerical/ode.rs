@@ -124,7 +124,7 @@ pub trait ODEIntegrator {
 ///
 /// # Example
 ///
-/// ```no-run
+/// ```no_run
 /// use peroxide::fuga::*;
 ///
 /// struct ConstrainedProblem {
@@ -132,12 +132,13 @@ pub trait ODEIntegrator {
 /// }
 ///
 /// impl ODEProblem for ConstrainedProblem {
-///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] }; // y_0 = 0
+///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] } // y_0 = 0
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
 ///         if y[0] < self.y_constraint {
 ///             return Err(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
 ///         } else {
 ///             // some function
+///             Ok(())
 ///         }
 ///     }
 /// }
@@ -185,7 +186,8 @@ pub trait ODESolver {
 ///     }
 ///
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
-///         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
+///         dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp();
+///         Ok(())
 ///     }
 /// }
 /// ```
