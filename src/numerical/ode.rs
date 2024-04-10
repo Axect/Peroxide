@@ -623,10 +623,8 @@ impl ODEIntegrator for GL4 {
         let sqrt3 = 3.0_f64.sqrt();
         let c = 0.5 * (3.0 - sqrt3) / 6.0;
         let d = 0.5 * (3.0 + sqrt3) / 6.0;
-
         let mut k1 = vec![0.0; n];
         let mut k2 = vec![0.0; n];
-
         let mut y1 = vec![0.0; n];
         let mut y2 = vec![0.0; n];
 
@@ -634,16 +632,18 @@ impl ODEIntegrator for GL4 {
             ImplicitSolver::FixedPoint => {
                 // Fixed-point iteration
                 for _ in 0..self.max_step_iter {
+                    for i in 0..n {
+                        y1[i] = y[i] + dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
+                        y2[i] = y[i] + dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
+                    }
+
                     problem.rhs(t + c * dt, &y1, &mut k1)?;
                     problem.rhs(t + d * dt, &y2, &mut k2)?;
 
                     let mut max_diff = 0f64;
                     for i in 0..n {
-                        let y1_new = y[i] + dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0);
-                        let y2_new = y[i] + dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0);
-                        max_diff = max_diff.max((y1_new - y1[i]).abs()).max((y2_new - y2[i]).abs());
-                        y1[i] = y1_new;
-                        y2[i] = y2_new;
+                        max_diff = max_diff.max((y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0)).abs())
+                                            .max((y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0)).abs());
                     }
 
                     if max_diff < self.tol {
