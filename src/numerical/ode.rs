@@ -111,10 +111,10 @@ pub trait ODEIntegrator {
 
 
 /// Enum for ODE errors.
-#[derive(Debug, Clone, Copy, Error)]
+#[derive(Debug, Clone, Error)]
 pub enum ODEError {
     #[error("constraint violation")]
-    ConstraintViolation,
+    ConstraintViolation(f64, Vec<f64>, f64), // t, y, dt
     #[error("reached maximum number of iterations per step")]
     ReachedMaxStepIter,
 }
