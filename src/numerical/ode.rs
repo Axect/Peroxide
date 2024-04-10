@@ -7,6 +7,9 @@
 //! - `ODEProblem`: Trait for defining an ODE problem.
 //! - `ODEIntegrator`: Trait for ODE integrators.
 //! - `ODESolver`: Trait for ODE solvers.
+//! - `ODEError`: Enum for ODE errors.
+//!   - `ReachedMaxStepIter`: Reached maximum number of steps per step. (internal error)
+//!   - `ConstraintViolation(f64, Vec<f64>, Vec<f64>)`: Constraint violation. (user-defined error)
 //!
 //! ## Available integrators
 //!
@@ -111,10 +114,39 @@ pub trait ODEIntegrator {
 
 
 /// Enum for ODE errors.
-#[derive(Debug, Clone, Copy, Error)]
+///
+/// # Variants
+///
+/// - `ReachedMaxStepIter`: Reached maximum number of steps per step. (internal error for integrator)
+/// - `ConstraintViolation`: Constraint violation. (user-defined error)
+///
+/// If you define constraints in your problem, you can use this error to report constraint violations.
+///
+/// # Example
+///
+/// ```no_run
+/// use peroxide::fuga::*;
+///
+/// struct ConstrainedProblem {
+///     y_constraint: f64
+/// }
+///
+/// impl ODEProblem for ConstrainedProblem {
+///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] } // y_0 = 0
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///         if y[0] < self.y_constraint {
+///             return Err(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
+///         } else {
+///             // some function
+///             Ok(())
+///         }
+///     }
+/// }
+/// ```
+#[derive(Debug, Clone, Error)]
 pub enum ODEError {
     #[error("constraint violation")]
-    ConstraintViolation,
+    ConstraintViolation(f64, Vec<f64>, Vec<f64>), // t, y, dy
     #[error("reached maximum number of iterations per step")]
     ReachedMaxStepIter,
 }
@@ -154,7 +186,8 @@ pub trait ODESolver {
 ///     }
 ///
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
-///         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
+///         dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp();
+///         Ok(())
 ///     }
 /// }
 /// ```
