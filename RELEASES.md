@@ -1,3 +1,10 @@
+# Release 0.36.2 (2024-04-10)
+
+- Now, you can report current states if your constraints are violated.
+  - `ODEError::ConstraintViolation` -> `ODEError::ConstraintViolation(f64, Vec<f64>, Vec<f64>)`
+  - for detailed information, see [docs for ODEError](https://axect.github.io/Peroxide_Doc/peroxide/numerical/ode/enum.ODEError.html)
+- Add docs for `ODEError`
+
 # Release 0.36.1 (2024-04-09)
 
 - Fix all warnings in peroxide
