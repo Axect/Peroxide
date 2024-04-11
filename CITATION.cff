@@ -1,40 +1,31 @@
-# This CITATION.cff file was generated with cffinit.
-# Visit https://bit.ly/cffinit to generate yours today!
-
-cff-version: 1.2.0
-title: Peroxide
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
-type: software
+abstract: Peroxide is a comprehensive numeric library written in Rust, designed to
+  cater to the needs of scientists, engineers, mathematicians, and anyone who desires
+  high performance numerical computation. The library provides robust and efficient
+  functionality for linear algebra, numerical analysis, statistics, and more. Peroxide
+  leverages the Rust language's safety, concurrency, and performance capabilities
+  to provide an interface that is both user-friendly and highly performant. It is
+  designed with simplicity in mind, aiming to offer the ease-of-use found in high-level
+  languages without sacrificing the speed and precision demanded by complex numerical
+  tasks. Peroxide stands as an indispensable tool for those who seek a performant,
+  safe and robust numeric computation solution.
 authors:
-  - given-names: Tae-Geun
-    family-names: Kim
-    email: ax2ct@outlook.com
-    affiliation: Yonsei University
-    orcid: 'https://orcid.org/0009-0000-4229-2935'
-repository-code: 'https://github.com/Axect/Peroxide'
-url: 'https://crates.io/crates/peroxide'
-abstract: >-
-  Peroxide is a comprehensive numeric library written in
-  Rust, designed to cater to the needs of scientists,
-  engineers, mathematicians, and anyone who desires high
-  performance numerical computation. The library provides
-  robust and efficient functionality for linear algebra,
-  numerical analysis, statistics, and more. Peroxide
-  leverages the Rust language's safety, concurrency, and
-  performance capabilities to provide an interface that is
-  both user-friendly and highly performant. It is designed
-  with simplicity in mind, aiming to offer the ease-of-use
-  found in high-level languages without sacrificing the
-  speed and precision demanded by complex numerical tasks.
-  Peroxide stands as an indispensable tool for those who
-  seek a performant, safe and robust numeric computation
-  solution.
+- affiliation: Yonsei University
+  family-names: Kim
+  given-names: Tae-Geun
+  orcid: 0009-0000-4229-2935
+cff-version: 1.2.0
+date-released: '2024-04-11'
+doi: 10.5281/zenodo.10960095
 keywords:
-  - Rust
-  - Numeric
-  - Integration
-  - Linear algebra
-  - Differential equation
-license: Apache-2.0
+- Rust
+- Numeric
+- Integration
+- Linear algebra
+- Differential equation
+license:
+- apache-2.0
+- mit
+repository-code: https://github.com/Axect/Peroxide/tree/v0.36.4
+title: Peroxide
+type: software
+version: v0.36.4
