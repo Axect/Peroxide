@@ -65,6 +65,7 @@
 //!     Ok(())
 //! }
 //!
+//! // Extremely customizable struct
 //! struct Test;
 //!
 //! impl ODEProblem for Test {
@@ -234,8 +235,8 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
 /// ```text
 /// C | A
 /// - - - 
-///   | BH (higher order)
-///   | BL (lower order)
+///   | BU (Coefficient for update)
+///   | BE (Coefficient for estimate error)
 /// ```
 ///
 /// # References
@@ -245,8 +246,8 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
 pub trait ButcherTableau {
     const C: &'static [f64];
     const A: &'static [&'static [f64]];
-    const BH: &'static [f64];
-    const BL: &'static [f64];
+    const BU: &'static [f64];
+    const BE: &'static [f64];
 
     fn tol(&self) -> f64 {
         unimplemented!()
@@ -269,7 +270,7 @@ pub trait ButcherTableau {
     }
 }
 
-impl<BT: ButcherTableau> ODEIntegrator for BT {
+impl<BU: ButcherTableau> ODEIntegrator for BU {
     fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
         let n = y.len();
         let mut iter_count = 0usize;
@@ -291,12 +292,12 @@ impl<BT: ButcherTableau> ODEIntegrator for BT {
                 problem.rhs(t + dt * Self::C[i], &y_temp, &mut k_vec[i])?;
             }
 
-            if !Self::BL.is_empty() {
+            if !Self::BE.is_empty() {
                 let mut error = 0f64;
                 for i in 0 .. n {
                     let mut s = 0.0;
                     for j in 0 .. n_k {
-                        s += (Self::BH[j] - Self::BL[j]) * k_vec[j][i];
+                        s += (Self::BU[j] - Self::BE[j]) * k_vec[j][i];
                     }
                     error = error.max(dt * s.abs())
                 }
@@ -309,7 +310,7 @@ impl<BT: ButcherTableau> ODEIntegrator for BT {
                     for i in 0 .. n {
                         let mut s = 0.0;
                         for j in 0 .. n_k {
-                            s += Self::BH[j] * k_vec[j][i];
+                            s += Self::BU[j] * k_vec[j][i];
                         }
                         y[i] += dt * s;
                     }
@@ -329,7 +330,7 @@ impl<BT: ButcherTableau> ODEIntegrator for BT {
                 for i in 0 .. n {
                     let mut s = 0.0;
                     for j in 0 .. n_k {
-                        s += Self::BH[j] * k_vec[j][i];
+                        s += Self::BU[j] * k_vec[j][i];
                     }
                     y[i] += dt * s;
                 }
@@ -357,8 +358,8 @@ impl ButcherTableau for RALS3 {
         &[0.5],
         &[0.0, 0.75],
     ];
-    const BH: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0];
-    const BL: &'static [f64] = &[];
+    const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0];
+    const BE: &'static [f64] = &[];
 }
 
 /// Runge-Kutta 4th order integrator.
@@ -372,8 +373,8 @@ pub struct RK4;
 impl ButcherTableau for RK4 {
     const C: &'static [f64] = &[0.0, 0.5, 0.5, 1.0];
     const A: &'static [&'static [f64]] = &[&[], &[0.5], &[0.0, 0.5], &[0.0, 0.0, 1.0]];
-    const BH: &'static [f64] = &[1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0];
-    const BL: &'static [f64] = &[];
+    const BU: &'static [f64] = &[1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0];
+    const BE: &'static [f64] = &[];
 }
 
 /// Ralston's 4th order integrator.
@@ -391,8 +392,8 @@ impl ButcherTableau for RALS4 {
         &[0.29697761, 0.158575964],
         &[0.21810040, -3.050965616, 3.83286476],
     ];
-    const BH: &'static [f64] = &[0.17476028, -0.55148066, 1.20553560, 0.17118478];
-    const BL: &'static [f64] = &[];
+    const BU: &'static [f64] = &[0.17476028, -0.55148066, 1.20553560, 0.17118478];
+    const BE: &'static [f64] = &[];
 }
 
 /// Runge-Kutta 5th order integrator
@@ -413,8 +414,8 @@ impl ButcherTableau for RK5 {
         &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
         &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
     ];
-    const BH: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
-    const BL: &'static [f64] = &[];
+    const BU: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BE: &'static [f64] = &[];
 }
 
 // ┌─────────────────────────────────────────────────────────┐
@@ -461,8 +462,8 @@ impl ButcherTableau for BS23 {
         &[0.0, 0.75],
         &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0],
     ];
-    const BH: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0, 0.0];
-    const BL: &'static [f64] = &[7.0 / 24.0, 0.25, 1.0 / 3.0, 0.125];
+    const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0, 0.0];
+    const BE: &'static [f64] = &[7.0 / 24.0, 0.25, 1.0 / 3.0, 0.125];
 
     fn tol(&self) -> f64 { self.tol }
     fn safety_factor(&self) -> f64 { self.safety_factor }
@@ -529,8 +530,8 @@ impl ButcherTableau for RKF45 {
         &[439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0],
         &[-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
     ];
-    const BH: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
-    const BL: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
+    const BU: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
+    const BE: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
 
     fn tol(&self) -> f64 { self.tol }
     fn safety_factor(&self) -> f64 { self.safety_factor }
@@ -596,8 +597,8 @@ impl ButcherTableau for DP45 {
         &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
         &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
     ];
-    const BH: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
-    const BL: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BU: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
+    const BE: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
 
     fn tol(&self) -> f64 { self.tol }
     fn safety_factor(&self) -> f64 { self.safety_factor }
@@ -665,10 +666,10 @@ impl ButcherTableau for TSIT45 {
         &[Self::C[3] - (-6.359448489975075 + 4.362295432869581), -6.359448489975075, 4.362295432869581],
         &[Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525), -11.74888356406283, 7.495539342889836, -0.09249506636175525],
         &[Self::C[5] - (-12.92096931784711 + 8.159367898576159 - 0.0715849732814010 - 0.02826905039406838), -12.92096931784711, 8.159367898576159, -0.0715849732814010, -0.02826905039406838],
-        &[Self::BH[0], Self::BH[1], Self::BH[2], Self::BH[3], Self::BH[4], Self::BH[5]],
+        &[Self::BU[0], Self::BU[1], Self::BU[2], Self::BU[3], Self::BU[4], Self::BU[5]],
     ];
-    const BH: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
-    const BL: &'static [f64] = &[
+    const BU: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
+    const BE: &'static [f64] = &[
         0.001780011052226,
         0.000816434459657,
         - 0.007880878010262,

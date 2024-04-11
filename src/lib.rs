@@ -4,79 +4,84 @@
 //!
 //! `peroxide` has various components for scientific computation.
 //!
-//! * Linear Algebra (with BLAS & LAPACK)
-//!     * [Matrix](structure/matrix/index.html) operations
-//!         * `+,-,*,/`
-//!         * LU Decomposition, Determinant, Inverse
-//!         * QR Decomposition (`O3` feature needed)
-//!         * Singular Value Decomposition (`O3` feature needed)
-//!         * Cholesky Decomposition (`O3` feature needed)
-//!         * Reduced Row Echelon Form
-//!     * [Vector](structure/vector/index.html) operations
-//!     * [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
-//! * Statistics
-//!     * [Statistical operations](statistics/stat/index.html)
-//!         * `mean, var, sd`
-//!         * `factorial, P, C, H`
-//!         * Confusion Matrix & metrics
-//!     * [Distributions](statistics/dist/index.html)
-//!         * Bernoulli
-//!         * Uniform
-//!         * Binomial
-//!         * Normal
-//!         * Gamma
-//!         * Beta
-//!         * Student's t
-//! * [Special functions](special/function/index.html) (Using `puruspe` crate)
-//!     * Gaussian
-//!     * Gamma
-//!     * Beta
-//!     * Error
-//!     * Incomplete Gamma
-//!     * Incomplete Beta
-//! * Automatic Differentiation
-//!     * [Taylor mode forward AD](structure/ad/index.html)
-//! * Numerical Utils
-//!     * [Interpolation](numerical/interp/index.html)
-//!     * [Spline](numerical/spline/index.html)
-//!     * [Polynomial](structure/polynomial/index.html)
-//!     * [Lanczos Approximation](special/lanczos/index.html)
-//!     * [Numerical Integrations](numerical/integral/index.html)
-//! * [Optimization](numerical/optimize/index.html)
-//!     * Gradient Descent
-//!     * Levenberg-Marquardt
-//! * [Root Finding](numerical/root/index.html)
-//!     * Bisection
-//!     * False Position (Regula falsi)
-//!     * Secant
-//!     * Newton
-//! * [Differential Equations](numerical/ode/index.html)
-//!     * Explicit
-//!         * Runge-Kutta 4th order
-//!         * Euler methods
-//!     * Implicit
-//!         * Backward Euler
-//!         * Gauss-Legendre 4th order
-//! * Communication with Python
-//!     * [Plot with `matplotlib`](util/plot/index.html)
-//! * [DataFrame](structure/dataframe/index.html)
-//!     * Read & Write with `parquet` or `netcdf` or `csv` format
-//! * Macros
-//!     * [R macros](macros/r_macro/index.html)
-//!     * [Matlab macros](macros/matlab_macro/index.html)
-//!     * [Julia macros](macros/julia_macro/index.html)
+//! - Linear Algebra (with BLAS & LAPACK)
+//!   - [Matrix](structure/matrix/index.html) operations
+//!     - `+,-,*,/`
+//!     - LU Decomposition, Determinant, Inverse
+//!     - QR Decomposition (`O3` feature needed)
+//!     - Singular Value Decomposition (`O3` feature needed)
+//!     - Cholesky Decomposition (`O3` feature needed)
+//!     - Reduced Row Echelon Form
+//!   - [Vector](structure/vector/index.html) operations
+//!   - [Eigenvalue, Eigenvector](numerical/eigen/index.html) algorithms
+//! - Statistics
+//!   - [Statistical operations](statistics/stat/index.html)
+//!     - `mean, var, sd`
+//!     - `factorial, P, C, H`
+//!     - Confusion Matrix & metrics
+//!   - [Distributions](statistics/dist/index.html)
+//!     - Bernoulli
+//!     - Uniform
+//!     - Binomial
+//!     - Normal
+//!     - Gamma
+//!     - Beta
+//!     - Student's t
+//! - [Special functions](special/function/index.html) (Using `puruspe` crate)
+//!   - Gaussian
+//!   - Gamma
+//!   - Beta
+//!   - Error
+//!   - Incomplete Gamma
+//!   - Incomplete Beta
+//! - Automatic Differentiation
+//!   - [Taylor mode forward AD](structure/ad/index.html)
+//! - Numerical Utils
+//!   - [Interpolation](numerical/interp/index.html)
+//!   - [Spline](numerical/spline/index.html)
+//!   - [Polynomial](structure/polynomial/index.html)
+//!   - [Lanczos Approximation](special/lanczos/index.html)
+//!   - [Numerical Integrations](numerical/integral/index.html)
+//! - [Optimization](numerical/optimize/index.html)
+//!   - Gradient Descent
+//!   - Levenberg-Marquardt
+//! - [Root Finding](numerical/root/index.html)
+//!   - Bisection
+//!   - False Position (Regula falsi)
+//!   - Secant
+//!   - Newton
+//! - [Ordinary Differential Equations](numerical/ode/index.html)
+//!   - Explicit
+//!     - Ralston's 3rd order
+//!     - Runge-Kutta 4th order
+//!     - Ralston's 4th order
+//!     - Runge-Kutta 5th order
+//!   - Embedded
+//!     - Bogacki-Shampine 3(2)
+//!     - Runge-Kutta-Fehlberg 4(5)
+//!     - Dormand-Prince 5(4)
+//!     - Tsitouras 5(4)
+//!   - Implicit
+//!     - Gauss-Legendre 4th order
+//! - Communication with Python
+//!   - [Plot with `matplotlib`](util/plot/index.html)
+//! - [DataFrame](structure/dataframe/index.html)
+//!   - Read & Write with `parquet` or `netcdf` or `csv` format
+//! - Macros
+//!   - [R macros](macros/r_macro/index.html)
+//!   - [Matlab macros](macros/matlab_macro/index.html)
+//!   - [Julia macros](macros/julia_macro/index.html)
 //!
 //! And all these things are built on mathematical traits.
 //!
-//! * Traits
-//!     * [Functional Programming tools](traits/fp/index.html)
-//!     * [General algorithms](traits/general/index.html)
-//!     * [Mathematics](traits/math/index.html)
-//!     * [Mutable tools](traits/mutable/index.html)
-//!     * [Number & Real](traits/num/index.html)
-//!     * [Pointer](traits/pointer/index.html)
-//!     * [Stable](traits/stable/index.html)
-//!
+//! - Traits
+//!   - [Functional Programming tools](traits/fp/index.html)
+//!   - [General algorithms](traits/general/index.html)
+//!   - [Mathematics](traits/math/index.html)
+//!   - [Mutable tools](traits/mutable/index.html)
+//!   - [Number & Real](traits/num/index.html)
+//!   - [Pointer](traits/pointer/index.html)
+//!   - [Stable](traits/stable/index.html)
 //! ## Quick Start
 //!
 //! ### Cargo.toml
