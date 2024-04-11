@@ -1,3 +1,10 @@
+# Release 0.36.4 (2024-04-11)
+
+- More generic Butcher tableau
+  - Now, you can use `ButcherTableau` for non-embedded methods too
+- More ODE integrators
+  - `RALS3, RALS4, RK5, BS23`
+
 # Release 0.36.3 (2024-04-10)
 
 - Hotfix : Fix `GL4` algorithm

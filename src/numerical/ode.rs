@@ -14,7 +14,12 @@
 //! ## Available integrators
 //!
 //! - **Explicit**
+//!   - Ralston's 3rd order (RALS3)
 //!   - Runge-Kutta 4th order (RK4)
+//!   - Ralston's 4th order (RALS4)
+//!   - Runge-Kutta 5th order (RK5)
+//! - **Embedded**
+//!   - Bogacki-Shampine 2/3rd order (BS23)
 //!   - Runge-Kutta-Fehlberg 4/5th order (RKF45)
 //!   - Dormand-Prince 4/5th order (DP45)
 //!   - Tsitouras 4/5th order (TSIT45)
@@ -60,6 +65,7 @@
 //!     Ok(())
 //! }
 //!
+//! // Extremely customizable struct
 //! struct Test;
 //!
 //! impl ODEProblem for Test {
@@ -222,59 +228,15 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
 }
 
 // ┌─────────────────────────────────────────────────────────┐
-//  Runge-Kutta
-// └─────────────────────────────────────────────────────────┘
-/// Runge-Kutta 4th order integrator.
-///
-/// This integrator uses the classical 4th order Runge-Kutta method to numerically integrate the ODE system.
-/// It calculates four intermediate values (k1, k2, k3, k4) to estimate the next step solution.
-#[derive(Debug, Clone, Copy, Default)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct RK4;
-
-impl ODEIntegrator for RK4 {
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
-        let n = y.len();
-        let mut k1 = vec![0.0; n];
-        let mut k2 = vec![0.0; n];
-        let mut k3 = vec![0.0; n];
-        let mut k4 = vec![0.0; n];
-
-        problem.rhs(t, y, &mut k1)?;
-        k1.iter_mut().for_each(|k| *k *= dt);
-
-        let mut y_temp = y.to_vec();
-        y_temp.iter_mut().zip(&k1).for_each(|(y, k)| *y += 0.5 * k);
-        problem.rhs(t + 0.5 * dt, &y_temp, &mut k2)?;
-        k2.iter_mut().for_each(|k| *k *= dt);
-
-        y_temp.iter_mut().zip(&k2).for_each(|(y, k)| *y = y.to_owned() + 0.5 * k);
-        problem.rhs(t + 0.5 * dt, &y_temp, &mut k3)?;
-        k3.iter_mut().for_each(|k| *k *= dt);
-
-        y_temp.iter_mut().zip(&k3).for_each(|(y, k)| *y = y.to_owned() + k);
-        problem.rhs(t + dt, &y_temp, &mut k4)?;
-        k4.iter_mut().for_each(|k| *k *= dt);
-
-        y.iter_mut().zip(&k1).zip(&k2).zip(&k3).zip(&k4)
-            .for_each(|((((y, k1), k2), k3), k4)| {
-                *y += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
-            });
-
-        Ok(dt)
-    }
-}
-
-// ┌─────────────────────────────────────────────────────────┐
-//  Embedded Runge-Kutta
+//  Butcher Tableau
 // └─────────────────────────────────────────────────────────┘
 /// Trait for Butcher tableau
 ///
 /// ```text
 /// C | A
 /// - - - 
-///   | BH (higher order)
-///   | BL (lower order)
+///   | BU (Coefficient for update)
+///   | BE (Coefficient for estimate error)
 /// ```
 ///
 /// # References
@@ -284,17 +246,31 @@ impl ODEIntegrator for RK4 {
 pub trait ButcherTableau {
     const C: &'static [f64];
     const A: &'static [&'static [f64]];
-    const BH: &'static [f64];
-    const BL: &'static [f64];
+    const BU: &'static [f64];
+    const BE: &'static [f64];
 
-    fn tol(&self) -> f64;
-    fn safety_factor(&self) -> f64;
-    fn max_step_size(&self) -> f64;
-    fn min_step_size(&self) -> f64;
-    fn max_step_iter(&self) -> usize;
+    fn tol(&self) -> f64 {
+        unimplemented!()
+    }
+
+    fn safety_factor(&self) -> f64 {
+        unimplemented!()
+    }
+
+    fn max_step_size(&self) -> f64 {
+        unimplemented!()
+    }
+
+    fn min_step_size(&self) -> f64 {
+        unimplemented!()
+    }
+
+    fn max_step_iter(&self) -> usize {
+        unimplemented!()
+    }
 }
 
-impl<BT: ButcherTableau> ODEIntegrator for BT {
+impl<BU: ButcherTableau> ODEIntegrator for BU {
     fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
         let n = y.len();
         let mut iter_count = 0usize;
@@ -316,38 +292,186 @@ impl<BT: ButcherTableau> ODEIntegrator for BT {
                 problem.rhs(t + dt * Self::C[i], &y_temp, &mut k_vec[i])?;
             }
 
-            let mut error = 0f64;
-            for i in 0 .. n {
-                let mut s = 0.0;
-                for j in 0 .. n_k {
-                    s += (Self::BH[j] - Self::BL[j]) * k_vec[j][i];
-                }
-                error = error.max(dt * s.abs())
-            }
-
-            if error < self.tol() {
+            if !Self::BE.is_empty() {
+                let mut error = 0f64;
                 for i in 0 .. n {
                     let mut s = 0.0;
                     for j in 0 .. n_k {
-                        s += Self::BH[j] * k_vec[j][i];
+                        s += (Self::BU[j] - Self::BE[j]) * k_vec[j][i];
+                    }
+                    error = error.max(dt * s.abs())
+                }
+
+                let factor = (self.tol() * dt / error).powf(0.2);
+                let new_dt = self.safety_factor() * dt * factor;
+                let new_dt = new_dt.clamp(self.min_step_size(),self.max_step_size());
+
+                if error < self.tol() {
+                    for i in 0 .. n {
+                        let mut s = 0.0;
+                        for j in 0 .. n_k {
+                            s += Self::BU[j] * k_vec[j][i];
+                        }
+                        y[i] += dt * s;
+                    }
+                    //let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.25);
+                    //let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
+                    return Ok(new_dt);
+                } else {
+                    iter_count += 1;
+                    if iter_count >= self.max_step_iter() {
+                        return Err(ReachedMaxStepIter);
+                    }
+                    //let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.2);
+                    //let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
+                    dt = new_dt;
+                }
+            } else {
+                for i in 0 .. n {
+                    let mut s = 0.0;
+                    for j in 0 .. n_k {
+                        s += Self::BU[j] * k_vec[j][i];
                     }
                     y[i] += dt * s;
                 }
-                let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.25);
-                let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
-                return Ok(new_dt);
-            } else {
-                iter_count += 1;
-                if iter_count >= self.max_step_iter() {
-                    return Err(ReachedMaxStepIter);
-                }
-                let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.2);
-                let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
-                dt = new_dt;
+                return Ok(dt);
             }
         }
     }
 }
+
+// ┌─────────────────────────────────────────────────────────┐
+//  Runge-Kutta
+// └─────────────────────────────────────────────────────────┘
+/// Ralston's 3rd order integrator
+///
+/// This integrator uses the Ralston's 3rd order method to numerically integrate the ODE system.
+/// In MATLAB, it is called `ode3`.
+#[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RALS3;
+
+impl ButcherTableau for RALS3 {
+    const C: &'static [f64] = &[0.0, 0.5, 0.75];
+    const A: &'static [&'static [f64]] = &[
+        &[],
+        &[0.5],
+        &[0.0, 0.75],
+    ];
+    const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0];
+    const BE: &'static [f64] = &[];
+}
+
+/// Runge-Kutta 4th order integrator.
+///
+/// This integrator uses the classical 4th order Runge-Kutta method to numerically integrate the ODE system.
+/// It calculates four intermediate values (k1, k2, k3, k4) to estimate the next step solution.
+#[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RK4;
+
+impl ButcherTableau for RK4 {
+    const C: &'static [f64] = &[0.0, 0.5, 0.5, 1.0];
+    const A: &'static [&'static [f64]] = &[&[], &[0.5], &[0.0, 0.5], &[0.0, 0.0, 1.0]];
+    const BU: &'static [f64] = &[1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0];
+    const BE: &'static [f64] = &[];
+}
+
+/// Ralston's 4th order integrator.
+///
+/// This fourth order method is known as minimum truncation error RK4.
+#[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RALS4;
+
+impl ButcherTableau for RALS4 {
+    const C: &'static [f64] = &[0.0, 0.4, 0.45573725, 1.0];
+    const A: &'static [&'static [f64]] = &[
+        &[],
+        &[0.4],
+        &[0.29697761, 0.158575964],
+        &[0.21810040, -3.050965616, 3.83286476],
+    ];
+    const BU: &'static [f64] = &[0.17476028, -0.55148066, 1.20553560, 0.17118478];
+    const BE: &'static [f64] = &[];
+}
+
+/// Runge-Kutta 5th order integrator
+///
+/// This integrator uses the 5th order Runge-Kutta method to numerically integrate the ODE system.
+#[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct RK5;
+
+impl ButcherTableau for RK5 {
+    const C: &'static [f64] = &[0.0, 0.2, 0.3, 0.8, 8.0 / 9.0, 1.0, 1.0];
+    const A: &'static [&'static [f64]] = &[
+        &[],
+        &[0.2],
+        &[0.075, 0.225],
+        &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0],
+        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0],
+        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
+        &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
+    ];
+    const BU: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BE: &'static [f64] = &[];
+}
+
+// ┌─────────────────────────────────────────────────────────┐
+//  Embedded Runge-Kutta
+// └─────────────────────────────────────────────────────────┘
+/// Bogacki-Shampine 3(2) method
+///
+/// This method is known as `ode23` in MATLAB.
+///
+/// # Member variables
+///
+/// - `tol`: The tolerance for the estimated error.
+/// - `safety_factor`: The safety factor for the step size adjustment.
+/// - `min_step_size`: The minimum step size.
+/// - `max_step_size`: The maximum step size.
+/// - `max_step_iter`: The maximum number of iterations per step.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct BS23 {
+    tol: f64,
+    safety_factor: f64,
+    min_step_size: f64,
+    max_step_size: f64,
+    max_step_iter: usize,
+}
+
+impl Default for BS23 {
+    fn default() -> Self {
+        Self { tol: 1e-3, safety_factor: 0.9, min_step_size: 1e-6, max_step_size: 1e-1, max_step_iter: 100 }
+    }
+}
+
+impl BS23 {
+    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+        Self { tol, safety_factor, min_step_size, max_step_size, max_step_iter }
+    }
+}
+
+impl ButcherTableau for BS23 {
+    const C: &'static [f64] = &[0.0, 0.5, 0.75, 1.0];
+    const A: &'static [&'static [f64]] = &[
+        &[],
+        &[0.5],
+        &[0.0, 0.75],
+        &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0],
+    ];
+    const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0, 0.0];
+    const BE: &'static [f64] = &[7.0 / 24.0, 0.25, 1.0 / 3.0, 0.125];
+
+    fn tol(&self) -> f64 { self.tol }
+    fn safety_factor(&self) -> f64 { self.safety_factor }
+    fn min_step_size(&self) -> f64 { self.min_step_size }
+    fn max_step_size(&self) -> f64 { self.max_step_size }
+    fn max_step_iter(&self) -> usize { self.max_step_iter }
+}
+
 
 /// Runge-Kutta-Fehlberg 4/5th order integrator.
 ///
@@ -399,15 +523,15 @@ impl RKF45 {
 impl ButcherTableau for RKF45 {
     const C: &'static [f64] = &[0.0, 1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 1.0 / 2.0];
     const A: &'static [&'static [f64]] = &[
-        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[0.25, 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[3.0 / 32.0, 9.0 / 32.0, 0.0, 0.0, 0.0, 0.0],
-        &[1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0, 0.0, 0.0, 0.0],
-        &[439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0, 0.0, 0.0],
-        &[-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0, 0.0],
+        &[],
+        &[0.25],
+        &[3.0 / 32.0, 9.0 / 32.0],
+        &[1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0],
+        &[439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0],
+        &[-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
     ];
-    const BH: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
-    const BL: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
+    const BU: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
+    const BE: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
 
     fn tol(&self) -> f64 { self.tol }
     fn safety_factor(&self) -> f64 { self.safety_factor }
@@ -465,16 +589,16 @@ impl DP45 {
 impl ButcherTableau for DP45 {
     const C: &'static [f64] = &[0.0, 0.2, 0.3, 0.8, 8.0 / 9.0, 1.0, 1.0];
     const A: &'static [&'static [f64]] = &[
-        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[0.2, 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[0.075, 0.225, 0.0, 0.0, 0.0, 0.0],
-        &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0, 0.0, 0.0, 0.0],
-        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0, 0.0, 0.0],
-        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0, 0.0],
+        &[],
+        &[0.2],
+        &[0.075, 0.225],
+        &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0],
+        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0],
+        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
         &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
     ];
-    const BH: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
-    const BL: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BU: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
+    const BE: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
 
     fn tol(&self) -> f64 { self.tol }
     fn safety_factor(&self) -> f64 { self.safety_factor }
@@ -536,16 +660,16 @@ impl TSIT45 {
 impl ButcherTableau for TSIT45 {
     const C: &'static [f64] = &[0.0, 0.161, 0.327, 0.9, 0.9800255409045097, 1.0, 1.0];
     const A: &'static [&'static [f64]] = &[
-        &[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[Self::C[1], 0.0, 0.0, 0.0, 0.0, 0.0],
-        &[Self::C[2] - 0.335480655492357, 0.335480655492357, 0.0, 0.0, 0.0, 0.0],
-        &[Self::C[3] - (-6.359448489975075 + 4.362295432869581), -6.359448489975075, 4.362295432869581, 0.0, 0.0, 0.0],
-        &[Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525), -11.74888356406283, 7.495539342889836, -0.09249506636175525, 0.0, 0.0],
-        &[Self::C[5] - (-12.92096931784711 + 8.159367898576159 - 0.0715849732814010 - 0.02826905039406838), -12.92096931784711, 8.159367898576159, -0.0715849732814010, -0.02826905039406838, 0.0],
-        &[Self::BH[0], Self::BH[1], Self::BH[2], Self::BH[3], Self::BH[4], Self::BH[5]],
+        &[],
+        &[Self::C[1]],
+        &[Self::C[2] - 0.335480655492357, 0.335480655492357],
+        &[Self::C[3] - (-6.359448489975075 + 4.362295432869581), -6.359448489975075, 4.362295432869581],
+        &[Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525), -11.74888356406283, 7.495539342889836, -0.09249506636175525],
+        &[Self::C[5] - (-12.92096931784711 + 8.159367898576159 - 0.0715849732814010 - 0.02826905039406838), -12.92096931784711, 8.159367898576159, -0.0715849732814010, -0.02826905039406838],
+        &[Self::BU[0], Self::BU[1], Self::BU[2], Self::BU[3], Self::BU[4], Self::BU[5]],
     ];
-    const BH: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
-    const BL: &'static [f64] = &[
+    const BU: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
+    const BE: &'static [f64] = &[
         0.001780011052226,
         0.000816434459657,
         - 0.007880878010262,
