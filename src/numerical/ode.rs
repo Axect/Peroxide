@@ -73,14 +73,13 @@
 //!         vec![1f64]
 //!     }
 //!
-//!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+//!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 //!         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
 //!     }
 //! }
 //! ```
 
-use thiserror::Error;
-use ODEError::*;
+use anyhow::{Result, bail};
 
 /// Trait for defining an ODE problem.
 ///
@@ -98,7 +97,7 @@ use ODEError::*;
 ///         vec![1.0, 2.0]
 ///     }
 ///
-///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         dy[0] = -0.5 * y[0];
 ///         dy[1] = y[0] - y[1];
 ///         Ok(())
@@ -107,7 +106,7 @@ use ODEError::*;
 /// ```
 pub trait ODEProblem {
     fn initial_conditions(&self) -> Vec<f64>;
-    fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError>;
+    fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<()>;
 }
 
 
@@ -115,7 +114,7 @@ pub trait ODEProblem {
 ///
 /// Implement this trait to define your own ODE integrator.
 pub trait ODEIntegrator {
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError>;
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64>;
 }
 
 
@@ -139,9 +138,9 @@ pub trait ODEIntegrator {
 ///
 /// impl ODEProblem for ConstrainedProblem {
 ///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] } // y_0 = 0
-///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         if y[0] < self.y_constraint {
-///             return Err(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
+///             anyhow::bail!(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
 ///         } else {
 ///             // some function
 ///             Ok(())
@@ -149,19 +148,26 @@ pub trait ODEIntegrator {
 ///     }
 /// }
 /// ```
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Clone)]
 pub enum ODEError {
-    #[error("constraint violation")]
     ConstraintViolation(f64, Vec<f64>, Vec<f64>), // t, y, dy
-    #[error("reached maximum number of iterations per step")]
     ReachedMaxStepIter,
+}
+
+impl std::fmt::Display for ODEError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ODEError::ConstraintViolation(t, y, dy) => write!(f, "Constraint violation at t = {}, y = {:?}, dy = {:?}", t, y, dy),
+            ODEError::ReachedMaxStepIter => write!(f, "Reached maximum number of steps per step"),
+        }
+    }
 }
 
 /// Trait for ODE solvers.
 ///
 /// Implement this trait to define your own ODE solver.
 pub trait ODESolver {
-    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError>;
+    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>)>;
 }
 
 /// A basic ODE solver using a specified integrator.
@@ -191,7 +197,7 @@ pub trait ODESolver {
 ///         vec![1f64]
 ///     }
 ///
-///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp();
 ///         Ok(())
 ///     }
@@ -208,7 +214,7 @@ impl<I: ODEIntegrator> BasicODESolver<I> {
 }
 
 impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
-    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>), ODEError> {
+    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>)> {
         let mut t = t_span.0;
         let mut dt = dt;
         let mut y = problem.initial_conditions();
@@ -271,7 +277,7 @@ pub trait ButcherTableau {
 }
 
 impl<BU: ButcherTableau> ODEIntegrator for BU {
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64> {
         let n = y.len();
         let mut iter_count = 0usize;
         let mut dt = dt;
@@ -320,7 +326,7 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                 } else {
                     iter_count += 1;
                     if iter_count >= self.max_step_iter() {
-                        return Err(ReachedMaxStepIter);
+                        bail!(ODEError::ReachedMaxStepIter);
                     }
                     //let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.2);
                     //let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
@@ -742,7 +748,7 @@ impl GL4 {
 
 impl ODEIntegrator for GL4 {
     #[inline]
-    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64, ODEError> {
+    fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64> {
         let n = y.len();
         let sqrt3 = 3.0_f64.sqrt();
         let c = 0.5 * (3.0 - sqrt3) / 6.0;
