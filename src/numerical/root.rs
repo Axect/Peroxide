@@ -1,8 +1,12 @@
 use anyhow::{Result, bail};
 
+/// Point alias (`[f64; N]`)
 pub type Pt<const N: usize> = [f64; N];
+/// Interval alias (`([f64; N], [f64; N])`)
 pub type Intv<const N: usize> = (Pt<N>, Pt<N>);
+/// Jacobian alias (`[[f64; C]; R]`)
 pub type Jaco<const R: usize, const C: usize> = [[f64; C]; R];
+/// Hessian alias (`[[[f64; C]; C]; R]`)
 pub type Hess<const R: usize, const C: usize> = [[[f64; C]; C]; R];
 
 /// Trait to define a root finding problem
@@ -12,6 +16,13 @@ pub type Hess<const R: usize, const C: usize> = [[[f64; C]; C]; R];
 /// - `I`: Input type (e.g. `f64`, `[f64; N]`, or etc.)
 /// - `O`: Output type (e.g. `f64`, `[f64; N]`, or etc.)
 /// - `T`: State type (e.g. `f64`, `(f64, f64)`, or etc.)
+///
+/// # Methods
+///
+/// - `function`: Function
+/// - `initial_guess`: Initial guess
+/// - `derivative`: Derivative (optional)
+/// - `hessian`: Hessian (optional)
 pub trait RootFindingProblem<const I: usize, const O: usize, T> {
     fn function(&self, x: Pt<I>) -> Result<Pt<O>>;
     fn initial_guess(&self) -> T;
@@ -25,6 +36,26 @@ pub trait RootFindingProblem<const I: usize, const O: usize, T> {
     }
 }
 
+/// Trait to define a root finder
+///
+/// # Type Parameters
+///
+/// - `I`: Input type (e.g. `f64`, `[f64; N]`, or etc.)
+/// - `O`: Output type (e.g. `f64`, `[f64; N]`, or etc.)
+/// - `T`: State type (e.g. `f64`, `(f64, f64)`, or etc.)
+///
+/// # Methods
+///
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: Absolute tolerance
+/// - `find`: Find root
+///
+/// # Available root finders
+///
+/// - `BisectionMethod`: `I=1, O=1, T=(f64, f64)`
+/// - `FalsePositionMethod`: `I=1, O=1, T=(f64, f64)`
+/// - `NewtonMethod`: `I=1, O=1, T=f64`
+/// - `SecantMethod`: `I=1, O=1, T=(f64, f64)`
 pub trait RootFinder<const I: usize, const O: usize, T> {
     fn max_iter(&self) -> usize;
     fn tol(&self) -> f64;
@@ -99,6 +130,12 @@ macro_rules! single_derivative {
 // └─────────────────────────────────────────────────────────┘
 /// Bisection method
 ///
+/// # Type for `RootFinder`
+///
+/// - `I`: 1
+/// - `O`: 1
+/// - `T`: `(f64, f64)`
+///
 /// # Arguments
 ///
 /// - `max_iter`: Maximum number of iterations
@@ -165,6 +202,12 @@ impl RootFinder<1, 1, (f64, f64)> for BisectionMethod {
 // └─────────────────────────────────────────────────────────┘
 /// Newton method
 ///
+/// # Type for `RootFinder`
+///
+/// - `I`: 1
+/// - `O`: 1
+/// - `T`: `f64`
+///
 /// # Arguments
 ///
 /// - `max_iter`: Maximum number of iterations
@@ -214,6 +257,12 @@ impl RootFinder<1, 1, f64> for NewtonMethod {
 // └─────────────────────────────────────────────────────────┘
 /// Secant method
 ///
+/// # Type for `RootFinder`
+///
+/// - `I`: 1
+/// - `O`: 1
+/// - `T`: `(f64, f64)`
+///
 /// # Arguments
 ///
 /// - `max_iter`: Maximum number of iterations
@@ -222,6 +271,7 @@ impl RootFinder<1, 1, f64> for NewtonMethod {
 /// # Caution
 ///
 /// - The function should be differentiable
+/// - This method is not guaranteed to converge
 pub struct SecantMethod {
     pub max_iter: usize,
     pub tol: f64,
@@ -269,6 +319,12 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
 // └─────────────────────────────────────────────────────────┘
 /// False position method
 ///
+/// # Type for `RootFinder`
+///
+/// - `I`: 1
+/// - `O`: 1
+/// - `T`: `(f64, f64)`
+///
 /// # Arguments
 ///
 /// - `max_iter`: Maximum number of iterations
@@ -276,7 +332,7 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
 ///
 /// # Caution
 ///
-/// - The function should be differentiable
+/// - The function should be continuous
 pub struct FalsePositionMethod {
     pub max_iter: usize,
     pub tol: f64,
@@ -331,6 +387,12 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 //  Broyden method
 // └─────────────────────────────────────────────────────────┘
 /// Broyden method
+///
+/// # Type for `RootFinder`
+///
+/// - `I`: free
+/// - `O`: free
+/// - `T`: `Intv<I>` (=`([f64; I], [f64; I])`)
 ///
 /// # Arguments
 ///
