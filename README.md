@@ -256,7 +256,7 @@ The example code demonstrates how Peroxide can be used to simulate the Lorenz at
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let rkf45 = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+    let rkf45 = RKF45::new(1e-4, 0.9, 1e-6, 1e-2, 100);
     let basic_ode_solver = BasicODESolver::new(rkf45);
     let (_, y_vec) = basic_ode_solver.solve(
         &Lorenz,
