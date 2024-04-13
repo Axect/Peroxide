@@ -1,20 +1,16 @@
 # TODO
 
-## 2021.01.14
+## 2024.04.14
 
 ### Primary
+
+- [ ] Whole new Optimize (Trait based)
 
 - [ ] Pure Rust implementation of Linear Algebra
     - [x] LU (Completely Pivoting)
     - [x] LU (Partial Pivoting)
     - [ ] QR
     - [ ] SVD
-- [ ] Add more IO options for DataFrame
-    - [x] CSV (`csv` feature)
-    - [x] NetCDF (`nc` feature)
-    - [ ] JSON
-    - [ ] Arrow IPC
-    - [ ] Parquet
 
 ### Subs
 
@@ -30,30 +26,16 @@
     - [x] Student's t
     - [x] Uniform
     - [ ] Wishart
+    - [x] Weighted Uniform
 - [ ] Implement special polynomial
     - [x] Legendre
     - [ ] Bessel
     - [ ] Hermite
 - [ ] Implement convenient structure of Neural Network
-- [ ] Documentized
-    - [x] Vector
-    - [x] Matrix
-    - [x] Linear Algebra
-    - [x] Functional Programming
-    - [x] Statistics
-    - [ ] Interpolation & Spline
-    - [x] ODE
-    - [ ] Macros
-    - [ ] Machine Learning
-    - [x] Optimize
-    - [x] Automatic Differentiation
-    - [x] DataFrame
 - [ ] Add Statistical regression
     - [ ] Gaussian Kernel
     - [ ] Logistic Kernel
-- [ ] Make or Use pure Rust plot library
 - [ ] Implement more Eigenvalue algorithms
-- [ ] Implement more spline algorithms
 - [ ] Complex matrix
 
 ## Complete
@@ -75,3 +57,22 @@
   - [x] Replace `proc_macro` for `AD` with ordinary macro or Enum
 - [x] Make `csv` optional
 - [x] Remove `dual`, `hyperdual` and modify `Real`, `Number` (How to bind `f64` & `AD` effectively?)
+- [x] Add more IO options for DataFrame
+    - [x] CSV (`csv` feature)
+    - [x] NetCDF (`nc` feature)
+    - [x] Parquet
+- [x] Documentized
+    - [x] Vector
+    - [x] Matrix
+    - [x] Linear Algebra
+    - [x] Functional Programming
+    - [x] Statistics
+    - [x] Interpolation & Spline
+    - [x] ODE
+    - [x] Macros
+    - [x] Optimize
+    - [x] Automatic Differentiation
+    - [x] DataFrame
+- [x] Implement more spline algorithms
+- [x] Whole new ODE (trait based)
+- [x] Whole new root finding (trait based)
