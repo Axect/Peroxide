@@ -28,7 +28,7 @@ puruspe = "0.2"
 matrixmultiply = { version = "0.3", features = ["threading"] }
 peroxide-ad = "0.3"
 peroxide-num = "0.1"
-thiserror = "1.0"
+anyhow = "1.0"
 #num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default_features = false }
 pyo3 = { version = "0.21", optional = true, features = ["auto-initialize", "gil-refs"] }
@@ -37,7 +37,6 @@ lapack = { version = "0.19", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
 arrow2 = { version = "0.18", features = ["io_parquet", "io_parquet_compression"], optional = true }
-anyhow = "1.0.82"
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html", "--cfg", "docsrs"]

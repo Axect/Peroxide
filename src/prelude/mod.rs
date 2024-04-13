@@ -216,3 +216,5 @@ pub use simpler::SimpleParquet;
 
 #[cfg(feature="plot")]
 pub use crate::util::plot::*;
+
+pub use anyhow;
