@@ -1,3 +1,27 @@
+# Release 0.37.0 (2024-04-14)
+
+## Huge Update - Whole new Root finding & anyhow
+
+### Whole new Root finding
+
+- Remove all boilerplates
+- Now, `RootFinding` is composed of traits
+  - `RootFindingProblem<const I: usize, const O: usize, T>`: Trait for defining and root finding problem
+    - `I`: Input dimension
+    - `O`: Output dimension
+    - `T`: Type of state
+  - `RootFinder`: Trait for finding root
+    - `BisectionMethod`: Bisection Method (`I=1, O=1, T=(f64, f64)`)
+    - `FalsePositionMethod`: False Position Method (`I=1, O=1, T=(f64, f64)`)
+    - `NewtonMethod`: Newton Method (`I=1, O=1, T=f64`)
+    - `SecantMethod`: Secant Method (`I=1, O=1, T=(f64, f64)`)
+
+### Error handling with anyhow
+
+- Remove `thiserror` dependency
+- Add `anyhow` for error handling
+- Change error handling in `ODE`, `Spline`, `WeightedUniform`
+
 # Release 0.36.4 (2024-04-11)
 
 - More generic Butcher tableau
