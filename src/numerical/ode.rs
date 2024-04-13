@@ -10,6 +10,7 @@
 //! - `ODEError`: Enum for ODE errors.
 //!   - `ReachedMaxStepIter`: Reached maximum number of steps per step. (internal error)
 //!   - `ConstraintViolation(f64, Vec<f64>, Vec<f64>)`: Constraint violation. (user-defined error)
+//!   - ODE uses `anyhow` for error handling. So, you can customize your errors.
 //!
 //! ## Available integrators
 //!

@@ -1,3 +1,175 @@
+//! # Root Finding Methods
+//!
+//! This module provides a collection of root finding algorithms for solving nonlinear equations.
+//! It defines traits for representing root finding problems and root finding methods, and provides implementations of several common algorithms.
+//!
+//! ## Traits
+//!
+//! - `RootFindingProblem<const I: usize, const O: usize, T>`: Defines the interface for a root finding problem.
+//!   It requires implementing the `function` method to evaluate the function at a given point, and the `initial_guess` method to provide an initial guess for the root.
+//!   Optionally, the `derivative` and `hessian` methods can be implemented to provide the derivative and Hessian of the function, respectively.
+//!
+//!   - `I`: Input dimension
+//!   - `O`: Output dimension
+//!   - `T`: State type (e.g. `f64`, `(f64, f64)`, or etc.)
+//!
+//! - `RootFinder<const I: usize, const O: usize, T>`: Defines the interface for a root finding method.
+//!   It requires implementing the `find` method, which takes a `RootFindingProblem` and returns the root of the function.
+//!   The `max_iter` and `tol` methods provide the maximum number of iterations and the tolerance for the root finding algorithm.
+//!
+//! ## Root Finding Methods
+//!
+//! - `BisectionMethod`: Implements the bisection method for finding roots of continuous functions.
+//!   It requires an initial interval that brackets the root.
+//!
+//!  - Type Parameters: `I=1, O=1, T=(f64, f64)`
+//!
+//! - `NewtonMethod`: Implements Newton's method for finding roots of differentiable functions.
+//!   It requires an initial guess for the root and the derivative of the function.
+//!
+//!   - Type Parameters: `I=1, O=1, T=f64`
+//!
+//! - `SecantMethod`: Implements the secant method for finding roots of differentiable functions.
+//!   It requires two initial guesses for the root.
+//!
+//!   - Type Parameters: `I=1, O=1, T=f64`
+//!
+//! - `FalsePositionMethod`: Implements the false position method for finding roots of continuous functions.
+//!   It requires an initial interval that brackets the root.
+//!
+//!   - Type Parameters: `I=1, O=1, T=(f64, f64)`
+//!
+//! - `BroydenMethod` (unimplemented): Implements Broyden's method for finding roots of systems of nonlinear equations.
+//!
+//!   - Type Parameters: `I>=1, O>=1, T=([f64; I], [f64; I])`
+//!
+//! ## Convenient type aliases
+//!
+//! - `Pt<const N: usize>`: Represents a point in N-dimensional space. (`[f64; N]`)
+//! - `Intv<const N: usize>`: Represents an interval in I-dimensional space. (`([f64; N], [f64; N])`)
+//! - `Jaco<const R: usize, const C: usize>`: Represents the Jacobian matrix of a function. (`[[f64; C]; R]`)
+//! - `Hess<const R: usize, const C: usize>`: Represents the Hessian matrix of a function. (`[[[f64; C]; C]; R]`)
+//!
+//! ## Examples
+//!
+//! ### Finding the root of a cubic function
+//!
+//! ```rust
+//! use peroxide::fuga::*;
+//! use anyhow::Result;
+//!
+//! fn main() -> Result<()> {
+//!     let problem = Cubic;
+//!
+//!     let bisect = BisectionMethod { max_iter: 100, tol: 1e-6 };
+//!     let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
+//!     let false_pos = FalsePositionMethod { max_iter: 100, tol: 1e-6 };
+//!
+//!     let root_bisect = bisect.find(&problem)?;
+//!     let root_newton = newton.find(&problem)?;
+//!     let root_false_pos = false_pos.find(&problem)?;
+//!
+//!     let result_bisect = problem.eval(root_bisect)?[0];
+//!     let result_newton = problem.eval(root_newton)?[0];
+//!     let result_false_pos = problem.eval(root_false_pos)?[0];
+//!
+//!     assert!(result_bisect.abs() < 1e-6);
+//!     assert!(result_newton.abs() < 1e-6);
+//!     assert!(result_false_pos.abs() < 1e-6);
+//!
+//!     Ok(())
+//! }
+//!
+//! struct Cubic;
+//!
+//! impl Cubic {
+//!     fn eval(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+//!         Ok([(x[0] - 1f64).powi(3)])
+//!     }
+//! }
+//!
+//! impl RootFindingProblem<1, 1, (f64, f64)> for Cubic {
+//!     fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+//!         self.eval(x)
+//!     }
+//!
+//!     fn initial_guess(&self) -> (f64, f64) {
+//!         (0.0, 2.0)
+//!     }
+//! }
+//!
+//! impl RootFindingProblem<1, 1, f64> for Cubic {
+//!     fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+//!         self.eval(x)
+//!     }
+//!
+//!     fn initial_guess(&self) -> f64 {
+//!         0.0
+//!     }
+//!
+//!     fn derivative(&self, x: [f64; 1]) -> Result<Jaco<1, 1>> {
+//!         Ok([[3.0 * (x[0] - 1f64).powi(2)]])
+//!     }
+//! }
+//! ```
+//!
+//! This example demonstrates how to find the root of a cubic function `(x - 1)^3` using various root finding methods.
+//! The `Cubic` struct implements the `RootFindingProblem` trait for both `(f64, f64)` and `f64` initial guess types, allowing the use of different root finding methods.
+//!
+//! ### Finding the root of the cosine function (error handling example)
+//!
+//! ```rust
+//! use peroxide::fuga::*;
+//! use anyhow::Result;
+//!
+//! fn main() -> Result<()> {
+//!     let problem = Cosine;
+//!     let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
+//!
+//!     let root_newton = match newton.find(&problem) {
+//!         Ok(x) => x,
+//!         Err(e) => {
+//!             println!("{:?}", e);
+//!             match e.downcast::<RootError<1>>() {
+//!                 Ok(RootError::ZeroDerivative(x)) => x,
+//!                 Ok(e) => panic!("ok but {:?}", e),
+//!                 Err(e) => panic!("err {:?}", e),
+//!             }
+//!         }
+//!     };
+//!
+//!     assert_eq!(root_newton[0], 0.0);
+//!
+//!     Ok(())
+//! }
+//!
+//! struct Cosine;
+//!
+//! impl Cosine {
+//!     fn eval(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+//!         Ok([x[0].cos()])
+//!     }
+//! }
+//!
+//! impl RootFindingProblem<1, 1, f64> for Cosine {
+//!     fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+//!         self.eval(x)
+//!     }
+//!
+//!     fn initial_guess(&self) -> f64 {
+//!         0.0 // should fail in newton (derivative is 0)
+//!     }
+//!
+//!     fn derivative(&self, x: [f64; 1]) -> Result<Jaco<1, 1>> {
+//!         Ok([[-x[0].sin()]])
+//!     }
+//! }
+//! ```
+//!
+//! This example shows how to find the root of the cosine function using Newton's method.
+//! The `Cosine` struct implements the `RootFindingProblem` trait for the `f64` initial guess type.
+//! The initial guess is set to `0.0`, which is a point where the derivative of the cosine function is 0.
+//! This leads to the `NewtonMethod` returning a `RootError::ZeroDerivative` error, which is handled in the example.
 use anyhow::{Result, bail};
 
 /// Point alias (`[f64; N]`)
