@@ -256,7 +256,7 @@ The example code demonstrates how Peroxide can be used to simulate the Lorenz at
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let rkf45 = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+    let rkf45 = RKF45::new(1e-4, 0.9, 1e-6, 1e-2, 100);
     let basic_ode_solver = BasicODESolver::new(rkf45);
     let (_, y_vec) = basic_ode_solver.solve(
         &Lorenz,
@@ -309,7 +309,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.36.0`
+Corresponding to `0.37.0`
 
 ## Pre-requisite
 
@@ -456,11 +456,13 @@ Corresponding to `0.36.0`
 
 - In [examples](./examples) directory, there are some examples.
 
+- In [tests](./tests) directory, there are some useful tests.
+
 - More examples are in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery).
 
 ## Release Info
 
-To see [RELEASES.md](RELEASES.md)
+To see [RELEASES.md](./RELEASES.md)
 
 ## Contributes Guide
 
@@ -473,3 +475,18 @@ Peroxide is licensed under dual licenses - Apache License 2.0 and MIT License.
 ## TODO
 
 To see [TODO.md](./TODO.md)
+
+## Cite Peroxide
+
+Hey there!
+If you're using Peroxide in your research or project, you're not required to cite us.
+But if you do, we'd be really grateful! 😊
+
+To make citing Peroxide easy, we've created a DOI through Zenodo. Just click on this badge:
+
+[![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
+
+This will take you to the Zenodo page for Peroxide.
+At the bottom, you'll find the citation information in various formats like BibTeX, RIS, and APA.
+
+So, if you want to acknowledge the work we've put into Peroxide, citing us would be a great way to do it! Thanks for considering it, we appreciate your support! 👍
