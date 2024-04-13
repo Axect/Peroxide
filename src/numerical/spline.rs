@@ -214,7 +214,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::convert::From;
 use std::ops::{Index, Range};
-use thiserror::Error;
+use anyhow::{Result, bail};
 
 /// Trait for spline interpolation
 ///
@@ -317,7 +317,7 @@ pub trait Spline {
 ///     Ok(())
 /// }
 /// ```
-pub fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<CubicSpline, SplineError> {
+pub fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<CubicSpline> {
     CubicSpline::from_nodes(node_x, node_y)
 }
 
@@ -325,7 +325,7 @@ pub fn cubic_hermite_spline(
     node_x: &[f64],
     node_y: &[f64],
     slope_method: SlopeMethod,
-) -> Result<CubicHermiteSpline, SplineError> {
+) -> Result<CubicHermiteSpline> {
     CubicHermiteSpline::from_nodes(node_x, node_y, slope_method)
 }
 
@@ -383,16 +383,23 @@ impl Spline for CubicSpline {
     }
 }
 
-#[derive(Debug, Copy, Clone, Error)]
+#[derive(Debug, Copy, Clone)]
 pub enum SplineError {
-    #[error("node_x has less than 3 elements")]
     NotEnoughNodes,
-    #[error("node_x and node_y have different lengths")]
     NotEqualNodes,
-    #[error("nodes and slopes have different lengths")]
     NotEqualSlopes,
-    #[error("there are redundant nodes in node_x")]
     RedundantNodeX,
+}
+
+impl std::fmt::Display for SplineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SplineError::NotEnoughNodes => write!(f, "node_x has less than 3 elements"),
+            SplineError::NotEqualNodes => write!(f, "node_x and node_y have different lengths"),
+            SplineError::NotEqualSlopes => write!(f, "nodes and slopes have different lengths"),
+            SplineError::RedundantNodeX => write!(f, "there are redundant nodes in node_x"),
+        }
+    }
 }
 
 impl CubicSpline {
@@ -415,14 +422,14 @@ impl CubicSpline {
     ///     Ok(())
     /// }
     /// ```
-    pub fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self, SplineError> {
+    pub fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self> {
         let polynomials = CubicSpline::cubic_spline(node_x, node_y)?;
         Ok(CubicSpline {
             polynomials: zip_range(node_x, &polynomials),
         })
     }
 
-    fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<Vec<Polynomial>, SplineError> {
+    fn cubic_spline(node_x: &[f64], node_y: &[f64]) -> Result<Vec<Polynomial>> {
         //! Pre calculated variables
         //! node_x: n+1
         //! node_y: n+1
@@ -433,10 +440,10 @@ impl CubicSpline {
         //! z     : n+1
         let n = node_x.len() - 1;
         if n < 2 {
-            return Err(NotEnoughNodes);
+            bail!(NotEnoughNodes);
         }
         if n != node_y.len() - 1 {
-            return Err(NotEqualNodes);
+            bail!(NotEqualNodes);
         }
 
         // Pre-calculations
@@ -504,7 +511,7 @@ impl CubicSpline {
     /// The method ensures that the transition between each polynomial is smooth and that the spline
     /// interpolation of the new nodes is calculated around `x = 0` in order to avoid that
     /// successive spline extensions with large x values become inaccurate.
-    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<(), SplineError> {
+    pub fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<()> {
         let mut ext_node_x = Vec::with_capacity(node_x.len() + 1);
         let mut ext_node_y = Vec::with_capacity(node_x.len() + 1);
 
@@ -631,16 +638,16 @@ impl CubicHermiteSpline {
         node_x: &[f64],
         node_y: &[f64],
         m: &[f64],
-    ) -> Result<Self, SplineError> {
+    ) -> Result<Self> {
         let n = node_x.len();
         if n < 3 {
-            return Err(NotEnoughNodes);
+            bail!(NotEnoughNodes);
         }
         if n != node_y.len() {
-            return Err(NotEqualNodes);
+            bail!(NotEqualNodes);
         }
         if n != m.len() {
-            return Err(NotEqualSlopes);
+            bail!(NotEqualSlopes);
         }
 
         let mut r = vec![Range::default(); node_x.len() - 1];
@@ -673,7 +680,7 @@ impl CubicHermiteSpline {
         node_x: &[f64],
         node_y: &[f64],
         slope_method: SlopeMethod,
-    ) -> Result<Self, SplineError> {
+    ) -> Result<Self> {
         match slope_method {
             SlopeMethod::Akima => CubicHermiteSpline::from_nodes_with_slopes(
                 node_x,
@@ -772,9 +779,9 @@ pub enum SlopeMethod {
     Quadratic,
 }
 
-fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
+fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>> {
     if x.len() < 3 {
-        return Err(NotEnoughNodes);
+        bail!(NotEnoughNodes);
     }
 
     let mut m = vec![0f64; x.len()];
@@ -799,7 +806,7 @@ fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
     for i in 0..new_x.len() - 1 {
         let dx = new_x[i + 1] - new_x[i];
         if dx == 0f64 {
-            return Err(RedundantNodeX);
+            bail!(RedundantNodeX);
         }
         s[i] = (new_y[i + 1] - new_y[i]) / dx;
     }
@@ -818,9 +825,9 @@ fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
     Ok(m)
 }
 
-fn quadratic_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>, SplineError> {
+fn quadratic_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>> {
     if x.len() < 3 {
-        return Err(NotEnoughNodes);
+        bail!(NotEnoughNodes);
     }
     let mut m = vec![0f64; x.len()];
     let q_i = lagrange_polynomial(x[0..3].to_vec(), y[0..3].to_vec());
