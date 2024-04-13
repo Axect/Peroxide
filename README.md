@@ -2,8 +2,8 @@
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
-[![builds.sr.ht status](https://builds.sr.ht/~axect/Peroxide/.build.yml.svg)](https://builds.sr.ht/~axect/Peroxide/.build.yml?)
-![github](https://github.com/Axect/Peroxide/workflows/Github/badge.svg) 
+[![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
+![github](https://github.com/Axect/Peroxide/workflows/Github/badge.svg)
 
 ![maintenance](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
@@ -12,13 +12,13 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 ## Table of Contents
 
 - [Why Peroxide?](#why-peroxide)
-    - [1. Customize features](#1-customize-features)
-    - [2. Easy to optimize](#2-easy-to-optimize)
-    - [3. Friendly syntax](#3-friendly-syntax)
-    - [4. Can choose two different coding styles](#4-can-choose-two-different-coding-styles)
-    - [5. Batteries included](#5-batteries-included)
-    - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
-    - [7. Written in Rust](#7-written-in-rust)
+  - [1. Customize features](#1-customize-features)
+  - [2. Easy to optimize](#2-easy-to-optimize)
+  - [3. Friendly syntax](#3-friendly-syntax)
+  - [4. Can choose two different coding styles](#4-can-choose-two-different-coding-styles)
+  - [5. Batteries included](#5-batteries-included)
+  - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
+  - [7. Written in Rust](#7-written-in-rust)
 - [Latest README version](#latest-readme-version)
 - [Pre-requisite](#pre-requisite)
 - [Install](#install)
@@ -26,7 +26,7 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 - [Module Structure](#module-structure)
 - [Documentation](#documentation)
 - [Examples](#examples)
-- [Version Info](#version-info)
+- [Release Info](#release-info)
 - [Contributes Guide](#contributes-guide)
 - [LICENSE](#license)
 - [TODO](#todo)
@@ -37,13 +37,13 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 
 Peroxide provides various features.
 
-* `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-* `O3` - BLAS & LAPACK (Perfect performance but little bit hard to set-up - Strongly recommend to look [Peroxide with BLAS](https://github.com/Axect/Peroxide_BLAS))
-* `plot` - With matplotlib of python, we can draw any plots.
-* `nc` - To handle netcdf file format with DataFrame
-* `csv` - To handle csv file format with Matrix or DataFrame
-* `parquet` - To handle parquet file format with DataFrame
-* `serde` - serialization with [Serde](https://serde.rs/).
+- `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
+- `O3` - BLAS & LAPACK (Perfect performance but little bit hard to set-up - Strongly recommend to look [Peroxide with BLAS](https://github.com/Axect/Peroxide_BLAS))
+- `plot` - With matplotlib of python, we can draw any plots.
+- `nc` - To handle netcdf file format with DataFrame
+- `csv` - To handle csv file format with Matrix or DataFrame
+- `parquet` - To handle parquet file format with DataFrame
+- `serde` - serialization with [Serde](https://serde.rs/).
 
 If you want to do high performance computation and more linear algebra, then choose `O3` feature.
 If you don't want to depend C/C++ or Fortran libraries, then choose `default` feature.
@@ -84,7 +84,7 @@ fn main() {
     z[(0,1)] = 2.0;
     z[(1,0)] = 3.0;
     z[(1,1)] = 4.0;
-    
+
     // Simple but effective operations
     let c = a * b; // Matrix multiplication (BLAS integrated)
 
@@ -106,8 +106,8 @@ fn main() {
 
 In peroxide, there are two different options.
 
-* `prelude`: To simple use.
-* `fuga`: To choose numerical algorithms explicitly.
+- `prelude`: To simple use.
+- `fuga`: To choose numerical algorithms explicitly.
 
 For examples, let's see norm.
 
@@ -120,7 +120,7 @@ use peroxide::prelude::*;
 fn main() {
     let a = c!(1, 2, 3);
     let l2 = a.norm();      // L2 is default vector norm
-    
+
     assert_eq!(l2, 14f64.sqrt());
 }
 ```
@@ -130,7 +130,7 @@ In `fuga`, use various norms. But you should write a little bit longer than `pre
 #[macro_use]
 extern crate peroxide;
 use peroxide::fuga::*;
-   
+
 fn main() {
     let a = c!(1, 2, 3);
     let l1 = a.norm(Norm::L1);
@@ -146,86 +146,98 @@ fn main() {
 
 Peroxide can do many things. 
 
-* Linear Algebra
-    * Effective Matrix structure
-    * Transpose, Determinant, Diagonal
-    * LU Decomposition, Inverse matrix, Block partitioning
-    * QR Decomposition (`O3` feature)
-    * Singular Value Decomposition (SVD) (`O3` feature)
-    * Cholesky Decomposition (`O3` feature)
-    * Reduced Row Echelon form
-    * Column, Row operations
-    * Eigenvalue, Eigenvector
-* Functional Programming
-    * Easier functional programming with `Vec<f64>`
-    * For matrix, there are three maps
-        * `fmap` : map for all elements
-        * `col_map` : map for column vectors
-        * `row_map` : map for row vectors
-* Automatic Differentiation
-    * Taylor mode Forward AD - for nth order AD
-    * Exact jacobian
-    * `Real` trait to constrain for `f64` and `AD` (for ODE)
-* Numerical Analysis
-    * Lagrange interpolation
-    * Splines
-        * Cubic Spline
-        * Cubic Hermite Spline
-            * Estimate slope via Akima
-            * Estimate slope via Quadratic interpolation
-    * Non-linear regression
-        * Gradient Descent
-        * Levenberg Marquardt
-    * Ordinary Differential Equation
-        * Runge-Kutta 4th order (`RK4`)
-        * Runge-Kutta-Fehlberg 4/5th order (`RKF45`)
-        * Gauss-Legendre 4th order (`GL4`; Implicit)
-    * Numerical Integration
-        * Newton-Cotes Quadrature
-        * Gauss-Legendre Quadrature (up to 30 order)
-        * Gauss-Kronrod Quadrature (Adaptive)
-            * G7K15, G10K21, G15K31, G20K41, G25K51, G30K61
-        * Gauss-Kronrod Quadrature (Relative tolerance)
-            * G7K15R, G10K21R, G15K31R, G20K41R, G25K51R, G30K61R
-    * Root Finding
-        * Bisection
-        * False Position (Regula Falsi)
-        * Secant
-        * Newton
-* Statistics
-    * More easy random with `rand` crate
-    * Ordered Statistics
-        * Median
-        * Quantile (Matched with R quantile)
-    * Probability Distributions
-        * Bernoulli
-        * Uniform
-        * Binomial
-        * Normal
-        * Gamma
-        * Beta
-        * Student's-t
-        * Weighted Uniform
-    * RNG algorithms
-        * Acceptance Rejection
-        * Marsaglia Polar
-        * Ziggurat
-        * Wrapper for `rand-dist` crate
-    * Confusion Matrix & Metrics
-* Special functions
-    * Wrapper for `puruspe` crate (pure rust)
-* Utils
-    * R-like macro & functions
-    * Matlab-like macro & functions
-    * Numpy-like macro & functions
-    * Julia-like macro & functions
-* Plotting
-    * With `pyo3` & `matplotlib`
-* DataFrame
-    * Support various types simultaneously
-    * Read & Write `csv` files (`csv` feature)
-    * Read & Write `netcdf` files (`nc` feature)
-    * Read & Write `parquet` files (`parquet` feature)
+- Linear Algebra
+  - Effective Matrix structure
+  - Transpose, Determinant, Diagonal
+  - LU Decomposition, Inverse matrix, Block partitioning
+  - QR Decomposition (`O3` feature)
+  - Singular Value Decomposition (SVD) (`O3` feature)
+  - Cholesky Decomposition (`O3` feature)
+  - Reduced Row Echelon form
+  - Column, Row operations
+  - Eigenvalue, Eigenvector
+- Functional Programming
+  - Easier functional programming with `Vec<f64>`
+  - For matrix, there are three maps
+    - `fmap` : map for all elements
+    - `col_map` : map for column vectors
+    - `row_map` : map for row vectors
+- Automatic Differentiation
+  - Taylor mode Forward AD - for nth order AD
+  - Exact jacobian
+  - `Real` trait to constrain for `f64` and `AD` (for ODE)
+- Numerical Analysis
+  - Lagrange interpolation
+  - Splines
+    - Cubic Spline
+    - Cubic Hermite Spline
+      - Estimate slope via Akima
+      - Estimate slope via Quadratic interpolation
+  - Non-linear regression
+    - Gradient Descent
+    - Levenberg Marquardt
+  - Ordinary Differential Equation
+    - Trait based ODE solver (after `v0.36.0`)
+    - Explicit integrator
+      - Ralston's 3rd order
+      - Runge-Kutta 4th order
+      - Ralston's 4th order
+      - Runge-Kutta 5th order
+    - Embedded integrator
+      - Bogacki-Shampine 3(2)
+      - Runge-Kutta-Fehlberg 4(5)
+      - Dormand-Prince 5(4)
+      - Tsitouras 5(4)
+    - Implicit integrator
+      - Gauss-Legendre 4th order
+  - Numerical Integration
+    - Newton-Cotes Quadrature
+    - Gauss-Legendre Quadrature (up to 30 order)
+    - Gauss-Kronrod Quadrature (Adaptive)
+      - G7K15, G10K21, G15K31, G20K41, G25K51, G30K61
+    - Gauss-Kronrod Quadrature (Relative tolerance)
+      - G7K15R, G10K21R, G15K31R, G20K41R, G25K51R, G30K61R
+  - Root Finding
+    - Trait based root finding (after `v0.37.0`)
+    - Bisection
+    - False Position
+    - Secant
+    - Newton
+- Statistics
+  - More easy random with `rand` crate
+  - Ordered Statistics
+    - Median
+    - Quantile (Matched with R quantile)
+  - Probability Distributions
+    - Bernoulli
+    - Uniform
+    - Binomial
+    - Normal
+    - Gamma
+    - Beta
+    - Student's-t
+    - Weighted Uniform
+  - RNG algorithms
+    - Acceptance Rejection
+    - Marsaglia Polar
+    - Ziggurat
+    - Wrapper for `rand-dist` crate
+    - Piecewise Rejection Sampling
+  - Confusion Matrix & Metrics
+- Special functions
+  - Wrapper for `puruspe` crate (pure rust)
+- Utils
+  - R-like macro & functions
+  - Matlab-like macro & functions
+  - Numpy-like macro & functions
+  - Julia-like macro & functions
+- Plotting
+  - With `pyo3` & `matplotlib`
+- DataFrame
+  - Support various types simultaneously
+  - Read & Write `csv` files (`csv` feature)
+  - Read & Write `netcdf` files (`nc` feature)
+  - Read & Write `parquet` files (`parquet` feature)
 
 ### 6. Compatible with Mathematics
 
@@ -297,64 +309,77 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.36.0`
+Corresponding to `0.37.0`
 
 ## Pre-requisite
 
-* For `O3` feature - Need `OpenBLAS`
-* For `plot` feature - Need `matplotlib` and optional `scienceplots` (for publication quality)
-* For `nc` feature - Need `netcdf`
+- For `O3` feature - Need `OpenBLAS`
+- For `plot` feature - Need `matplotlib` and optional `scienceplots` (for publication quality)
+- For `nc` feature - Need `netcdf`
 
 ## Install
 
-* Run below commands in your project directory
+- Run below commands in your project directory
 
 1. Default
+
     ```bash
     cargo add peroxide
     ```
+
 2. OpenBLAS
+
     ```bash
     cargo add peroxide --features O3
     ```
+
 3. Plot
+
     ```bash
     cargo add peroxide --features plot
     ```
+
 4. NetCDF dependency for DataFrame
+
     ```bash
     cargo add peroxide --features nc
     ```
+
 5. CSV dependency for DataFrame
+
     ```bash
     cargo add peroxide --features csv
     ```
+
 6. Parquet dependency for DataFrame
+
     ```bash
     cargo add peroxide --features parquet
     ```
 
 7. Serialize or Deserialize with Matrix or polynomial
+
     ```bash
     cargo add peroxide --features serde
     ```
 
 8. All features
+
     ```bash
     cargo add peroxide --features "O3 plot nc csv parquet serde"
     ```
 
 ## Useful tips for features
 
-* If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
+- If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
 
-* If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
+- If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
 
-* For plotting, it is recommended to use the `plot` feature. However, if you require more customization, you can use the `parquet` or `nc` feature to export your data in the parquet or netcdf format and then use Python to create the plots.
+- For plotting, it is recommended to use the `plot` feature. However, if you require more customization, you can use the `parquet` or `nc` feature to export your data in the parquet or netcdf format and then use Python to create the plots.
 
-    * To read parquet files in Python, you can use the `pandas` and `pyarrow` libraries.
+  - To read parquet files in Python, you can use the `pandas` and `pyarrow` libraries.
 
-    * A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
+  - A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
 
 
 ## Module Structure
@@ -368,7 +393,7 @@ Corresponding to `0.36.0`
     - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
     - [mod.rs](src/macros/mod.rs)
     - [r_macro.rs](src/macros/r_macro.rs) : R like macro
-  - __ml__ : For machine learning (*Beta*)
+  - __ml__ : For machine learning (_Beta_)
     - [mod.rs](src/ml/mod.rs)
     - [reg.rs](src/ml/reg.rs) : Regression tools
   - __numerical__ : To do numerical things
@@ -400,7 +425,7 @@ Corresponding to `0.36.0`
     - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
     - [matrix.rs](src/structure/matrix.rs) : Matrix
     - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
-    - [sparse.rs](src/structure/sparse.rs) : For sparse structure (*Beta*)
+    - [sparse.rs](src/structure/sparse.rs) : For sparse structure (_Beta_)
     - [vector.rs](src/structure/vector.rs) : Extra tools for `Vec<f64>`
   - __traits__
     - [mod.rs](src/traits/mod.rs)
@@ -425,15 +450,17 @@ Corresponding to `0.36.0`
 
 ## Documentation
 
-* [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
+- [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
 
 ## Examples
 
 - In [examples](./examples) directory, there are some examples.
 
+- In [tests](./tests) directory, there are some useful tests.
+
 - More examples are in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery).
 
-## Version Info
+## Release Info
 
 To see [RELEASES.md](./RELEASES.md)
 
@@ -448,3 +475,18 @@ Peroxide is licensed under dual licenses - Apache License 2.0 and MIT License.
 ## TODO
 
 To see [TODO.md](./TODO.md)
+
+## Cite Peroxide
+
+Hey there!
+If you're using Peroxide in your research or project, you're not required to cite us.
+But if you do, we'd be really grateful! 😊
+
+To make citing Peroxide easy, we've created a DOI through Zenodo. Just click on this badge:
+
+[![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
+
+This will take you to the Zenodo page for Peroxide.
+At the bottom, you'll find the citation information in various formats like BibTeX, RIS, and APA.
+
+So, if you want to acknowledge the work we've put into Peroxide, citing us would be a great way to do it! Thanks for considering it, we appreciate your support! 👍

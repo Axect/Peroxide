@@ -201,7 +201,7 @@ pub use crate::numerical::{
     interp::*,
     ode::*,
     optimize::*,
-    root::{bisection, false_position, newton, secant},
+    root::*,
     spline::{cubic_spline, CubicSpline, CubicHermiteSpline, Spline},
     utils::*,
 };
@@ -216,3 +216,5 @@ pub use simpler::SimpleParquet;
 
 #[cfg(feature="plot")]
 pub use crate::util::plot::*;
+
+pub use anyhow;

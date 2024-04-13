@@ -194,6 +194,8 @@ pub use crate::ml::reg::*;
 #[cfg(feature = "plot")]
 pub use crate::util::plot::*;
 
+pub use anyhow;
+
 // =============================================================================
 // Enums
 // =============================================================================
@@ -213,7 +215,6 @@ pub use crate::numerical::integral::Integral::{
     G25K51R,
     G30K61R,
 };
-pub use crate::numerical::root::RootFind::{Bisection, FalsePosition, Newton, Secant};
 pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,
 };

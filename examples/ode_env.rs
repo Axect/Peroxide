@@ -49,7 +49,7 @@ impl ODEProblem for Test {
         vec![1f64]
     }
 
-    fn rhs(&self, t: f64, _y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+    fn rhs(&self, t: f64, _y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
         Ok(dy[0] = self.cs.eval(t))
     }
 }

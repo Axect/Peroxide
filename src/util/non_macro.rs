@@ -35,13 +35,20 @@ use crate::structure::{
     matrix::Shape::{Col, Row},
     matrix::{matrix, Matrix, Shape},
 };
-use thiserror::Error;
 use crate::traits::float::FloatWithPrecision;
+use anyhow::{Result, bail};
 
-#[derive(Debug, Copy, Clone, Error)]
+#[derive(Debug, Copy, Clone)]
 pub enum ConcatenateError {
-    #[error("To concatenate, vectors or matrices must have the same length")]
     DifferentLength,
+}
+
+impl std::fmt::Display for ConcatenateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            ConcatenateError::DifferentLength => write!(f, "To concatenate, vectors or matrices must have the same length"),
+        }
+    }
 }
 
 // ┌─────────────────────────────────────────────────────────┐
@@ -131,7 +138,7 @@ where
 ///     Ok(())
 /// }
 /// ```
-pub fn cbind(m1: Matrix, m2: Matrix) -> Result<Matrix, ConcatenateError> {
+pub fn cbind(m1: Matrix, m2: Matrix) -> Result<Matrix> {
     let mut temp = m1;
     if temp.shape != Col {
         temp = temp.change_shape();
@@ -147,7 +154,7 @@ pub fn cbind(m1: Matrix, m2: Matrix) -> Result<Matrix, ConcatenateError> {
     let r = temp.row;
 
     if r != temp2.row {
-        return Err(ConcatenateError::DifferentLength);
+        bail!(ConcatenateError::DifferentLength);
     }
     v.extend_from_slice(&temp2.data[..]);
     c += temp2.col;
@@ -170,7 +177,7 @@ pub fn cbind(m1: Matrix, m2: Matrix) -> Result<Matrix, ConcatenateError> {
 ///     Ok(())
 /// }
 /// ```
-pub fn rbind(m1: Matrix, m2: Matrix) -> Result<Matrix, ConcatenateError> {
+pub fn rbind(m1: Matrix, m2: Matrix) -> Result<Matrix> {
     let mut temp = m1;
     if temp.shape != Row {
         temp = temp.change_shape();
@@ -186,7 +193,7 @@ pub fn rbind(m1: Matrix, m2: Matrix) -> Result<Matrix, ConcatenateError> {
     let mut r = temp.row;
 
     if c != temp2.col {
-        return Err(ConcatenateError::DifferentLength);
+        bail!(ConcatenateError::DifferentLength);
     }
     v.extend_from_slice(&temp2.data[..]);
     r += temp2.row;
@@ -378,20 +385,20 @@ where
 }
 
 /// Numpy like column_stack
-pub fn column_stack(v: &[Vec<f64>]) -> Result<Matrix, ConcatenateError> {
+pub fn column_stack(v: &[Vec<f64>]) -> Result<Matrix> {
     let row = v[0].len();
     if v.iter().any(|x| x.len() != row) {
-        return Err(ConcatenateError::DifferentLength);
+        bail!(ConcatenateError::DifferentLength);
     }
     let data = v.iter().flatten().copied().collect();
     Ok(matrix(data, row, v.len(), Col))
 }
 
 /// Numpy like row_stack
-pub fn row_stack(v: &[Vec<f64>]) -> Result<Matrix, ConcatenateError> {
+pub fn row_stack(v: &[Vec<f64>]) -> Result<Matrix> {
     let col = v[0].len();
     if v.iter().any(|x| x.len() != col) {
-        return Err(ConcatenateError::DifferentLength);
+        bail!(ConcatenateError::DifferentLength);
     }
     let data = v.iter().flatten().copied().collect();
     Ok(matrix(data, v.len(), col, Row))

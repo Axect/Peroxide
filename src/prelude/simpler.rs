@@ -6,7 +6,7 @@ use crate::numerical::{
     integral,
     integral::Integral::G7K15R,
     spline,
-    spline::{CubicHermiteSpline, SlopeMethod::Quadratic, SplineError},
+    spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
@@ -148,7 +148,7 @@ pub fn chebyshev_polynomial(n: usize) -> polynomial::Polynomial {
     polynomial::chebyshev_polynomial(n, polynomial::SpecialKind::First)
 }
 
-pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> Result<CubicHermiteSpline, SplineError> {
+pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> anyhow::Result<CubicHermiteSpline> {
     spline::cubic_hermite_spline(node_x, node_y, Quadratic)
 }
 
