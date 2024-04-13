@@ -15,10 +15,10 @@
 //!     ```
 //!
 //! * To want more detailed explanation, see [`rand` crate](https://crates.io/crates/rand)
-//! 
+//!
 //! ## Piece-wise Rejection Sampling
-//! 
-//! 
+//!
+//!
 
 extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
@@ -26,7 +26,7 @@ use self::rand::prelude::*;
 
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
-use crate::statistics::dist::{RNG, WeightedUniform, WeightedUniformError};
+use crate::statistics::dist::{RNG, WeightedUniform};
 
 /// Small random number generator from seed
 ///
@@ -64,7 +64,6 @@ pub fn stdrng_from_seed(seed: u64) -> StdRng {
 ///
 /// # Examples
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
 /// let mut rng = thread_rng();
@@ -466,7 +465,7 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 ///
 ///     Ok(())
 /// }
-pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> Result<Vec<f64>, WeightedUniformError>
+pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> anyhow::Result<Vec<f64>>
 where F: Fn(f64) -> f64 + Copy {
     let mut rng = thread_rng();
 
@@ -528,7 +527,7 @@ where F: Fn(f64) -> f64 + Copy {
 ///
 ///     Ok(())
 /// }
-pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> Result<Vec<f64>, WeightedUniformError>
+pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> anyhow::Result<Vec<f64>>
     where F: Fn(f64) -> f64 + Copy {
     let mut result = vec![0f64; n];
 

@@ -177,7 +177,7 @@ pub trait ODESolver {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() -> std::results::Result<(), Box<dyn Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
 ///     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
 ///     let basic_ode_solver = BasicODESolver::new(rkf);
 ///     let (t_vec, y_vec) = basic_ode_solver.solve(

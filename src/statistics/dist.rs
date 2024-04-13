@@ -56,7 +56,6 @@
 //! * Usage is very simple
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -82,7 +81,6 @@
 //! * **Caution**: `Uniform(T, T)` generates `T` type samples (only for `Uniform`)
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -110,7 +108,6 @@
 //! * <del>In peroxide, main traits is Ziggurat - most efficient traits to generate random normal samples.</del>
 //!     * <del>Code is based on a [C implementation](https://www.seehuhn.de/pages/ziggurat.html) by Jochen Voss.</del>
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -135,7 +132,6 @@
 //! * To generate beta random samples, Peroxide uses the `rand_distr::Beta` distribution from the `rand_distr` crate.
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -159,7 +155,6 @@
 //! * To generate gamma random samples, Peroxide uses the `rand_distr::Gamma` distribution from the `rand_distr` crate.
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -183,7 +178,6 @@
 //! * To generate binomial random samples, Peroxide uses the `rand_distr::Binomial` distribution from the `rand_distr` crate.
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -207,7 +201,6 @@
 //! * To generate Student's t random samples, Peroxide uses the `rand_distr::StudentT` distribution from the `rand_distr` crate.
 //!
 //!     ```rust
-//!     extern crate peroxide;
 //!     use peroxide::fuga::*;
 //!
 //!     fn main() {
@@ -248,8 +241,8 @@ use crate::statistics::{ops::C, stat::Statistics};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
 use std::f64::consts::E;
-use thiserror::Error;
 use self::WeightedUniformError::*;
+use anyhow::{Result, bail};
 
 /// One parameter distribution
 ///
@@ -281,16 +274,23 @@ pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     intervals: Vec<(T, T)>
 }
 
-#[derive(Debug, Clone, Copy, Error)]
+#[derive(Debug, Clone, Copy)]
 pub enum WeightedUniformError {
-    #[error("all weights are zero")]
     AllZeroWeightError,
-    #[error("weights and intervals have different length")]
     LengthMismatchError,
-    #[error("no non-zero interval found")]
     NoNonZeroIntervalError,
-    #[error("weights are empty")]
     EmptyWeightError,
+}
+
+impl std::fmt::Display for WeightedUniformError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WeightedUniformError::AllZeroWeightError => write!(f, "all weights are zero"),
+            WeightedUniformError::LengthMismatchError => write!(f, "weights and intervals have different length"),
+            WeightedUniformError::NoNonZeroIntervalError => write!(f, "no non-zero interval found"),
+            WeightedUniformError::EmptyWeightError => write!(f, "weights are empty"),
+        }
+    }
 }
 
 impl WeightedUniform<f64> {
@@ -298,7 +298,6 @@ impl WeightedUniform<f64> {
     /// 
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
     /// fn main() -> Result<(), Box<dyn Error>> {
@@ -311,17 +310,17 @@ impl WeightedUniform<f64> {
     ///     Ok(())
     /// }
     /// ```    
-    pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Result<Self, WeightedUniformError> {
+    pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Result<Self> {
         let mut weights = weights;
         if weights.len() == 0 {
-            return Err(EmptyWeightError);
+            bail!(EmptyWeightError);
         }
         if weights.iter().all(|&x| x == 0f64) {
-            return Err(AllZeroWeightError);
+            bail!(AllZeroWeightError);
         }
         let mut intervals = auto_zip(&intervals);
         if weights.len() != intervals.len() {
-            return Err(LengthMismatchError);
+            bail!(LengthMismatchError);
         }
 
         // Remove zero weights & corresponding intervals
@@ -354,7 +353,6 @@ impl WeightedUniform<f64> {
     /// 
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     /// 
     /// fn main() -> Result<(), Box<dyn Error>> {
@@ -372,7 +370,7 @@ impl WeightedUniform<f64> {
     ///     }
     /// }
     /// ```
-    pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Result<Self, WeightedUniformError>
+    pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Result<Self>
     where F: Fn(f64) -> f64 + Copy {
         // Find non-zero intervals
         let mut a = a;
@@ -393,7 +391,7 @@ impl WeightedUniform<f64> {
             }
         }
         if a >= b {
-            return Err(NoNonZeroIntervalError);
+            bail!(NoNonZeroIntervalError);
         }
         let domain = linspace(a, b, n+1);
 
