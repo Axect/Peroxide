@@ -23,15 +23,27 @@ pub trait RootFindingProblem<const I: usize, const O: usize, T> {
     }
 }
 
-pub trait RootFindingMethod<const I: usize, const O: usize, T> {
-    fn step<P: RootFindingProblem<I, O, T>>(&self, problem: &P, state: T) -> Result<T>;
+pub trait RootFinder<const I: usize, const O: usize, T> {
+    fn max_iter(&self) -> usize;
+    fn tol(&self) -> f64;
+    fn find<P: RootFindingProblem<I, O, T>>(&self, problem: &P) -> Result<PT<I>>;
 }
 
-pub trait RootSolver {
-    fn solve<P, F, const I: usize, const O: usize, T>(&self, problem: &P, finder: &F) -> Result<[f64; I]>
-    where
-        P: RootFindingProblem<I, O, T>,
-        F: RootFindingMethod<I, O, T>;
+#[derive(Debug, Copy, Clone)]
+pub enum RootError<const I: usize> {
+    NotConverge(PT<I>),
+    NoRoot,
+    ZeroDerivative(PT<I>),
+}
+
+impl std::fmt::Display for RootError<1> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RootError::NoRoot => write!(f, "There is no root in the interval"),
+            RootError::NotConverge(a) => write!(f, "Not yet converge. Our guess is {:?}", a),
+            RootError::ZeroDerivative(a) => write!(f, "Zero derivative in {:?}", a),
+        }
+    }
 }
 
 /// Macro for single function
@@ -83,40 +95,58 @@ macro_rules! single_derivative {
 ///
 /// # Arguments
 ///
-/// - `max_iterations`: Maximum number of iterations
-/// - `tolerance`: Tolerance
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: tol
 ///
 /// # Caution
 ///
 /// - The function should be continuous
 /// - The function should have a root in the initial interval
 pub struct BisectionMethod {
-    pub max_iterations: usize,
-    pub tolerance: f64,
+    pub max_iter: usize,
+    pub tol: f64,
 }
 
-impl RootFindingMethod<1, 1, (f64, f64)> for BisectionMethod {
-    fn step<P: RootFindingProblem<1, 1, (f64, f64)>>(
+impl RootFinder<1, 1, (f64, f64)> for BisectionMethod {
+    fn max_iter(&self) -> usize {
+        self.max_iter
+    }
+
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
         &self,
         problem: &P,
-        state: (f64, f64),
-    ) -> Result<(f64, f64)> {
-        let (a, b) = state;
-        let c = (a + b) / 2.0;
+    ) -> Result<[f64; 1]> {
+        let state = problem.initial_guess();
+        let (mut a, mut b) = state;
+        let mut fa = single_function!(problem, a);
+        let mut fb = single_function!(problem, b);
 
-        let fa = single_function!(problem, a);
-        let fb = single_function!(problem, b);
-        let fc = single_function!(problem, c);
-
-        if fa * fc < 0.0 {
-            Ok((a, c))
-        } else if fb * fc < 0.0 {
-            Ok((c, b))
-        } else if fc == 0.0 {
-            Ok((c, c))
-        } else {
-            bail!("There is no root in the interval [{}, {}]", a, b);
+        if fa * fb > 0.0 {
+            bail!(RootError::NoRoot);
         }
+
+        for _ in 0..self.max_iter {
+            let c = (a + b) / 2.0;
+            let fc = single_function!(problem, c);
+
+            if fc.abs() < self.tol {
+                return Ok([c]);
+            } else if fa * fc < 0.0 {
+                b = c;
+                fb = fc;
+            } else if fb * fc < 0.0 {
+                a = c;
+                fa = fc;
+            } else {
+                bail!(RootError::NoRoot);
+            }
+        }
+        let c = (a + b) / 2.0;
+        bail!(RootError::NotConverge([c]));
     }
 }
 
@@ -127,8 +157,8 @@ impl RootFindingMethod<1, 1, (f64, f64)> for BisectionMethod {
 ///
 /// # Arguments
 ///
-/// - `max_iterations`: Maximum number of iterations
-/// - `tolerance`: Tolerance
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: Absolute tolerance
 ///
 /// # Caution
 ///
@@ -136,24 +166,55 @@ impl RootFindingMethod<1, 1, (f64, f64)> for BisectionMethod {
 /// - This method highly depends on the initial guess
 /// - This method is not guaranteed to converge
 pub struct NewtonMethod {
-    pub max_iterations: usize,
-    pub tolerance: f64,
+    pub max_iter: usize,
+    pub tol: f64,
 }
 
-impl RootFindingMethod<1, 1, f64> for NewtonMethod {
-    fn step<P: RootFindingProblem<1, 1, f64>>(
+#[derive(Debug, Copy, Clone)]
+pub enum NewtonError {
+    ZeroDerivative(f64),
+    NotConverge(f64),
+}
+
+impl std::fmt::Display for NewtonError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NewtonError::ZeroDerivative(x) => {
+                write!(f, "Zero derivative at x = {}", x)
+            }
+            NewtonError::NotConverge(x) => {
+                write!(f, "Not converge at x = {}", x)
+            }
+        }
+    }
+}
+
+impl RootFinder<1, 1, f64> for NewtonMethod {
+    fn max_iter(&self) -> usize {
+        self.max_iter
+    }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn find<P: RootFindingProblem<1, 1, f64>>(
         &self,
         problem: &P,
-        x: f64,
-    ) -> Result<f64> {
-        let f = single_function!(problem, x);
-        let df = single_derivative!(problem, x);
+    ) -> Result<[f64; 1]> {
+        let mut x = problem.initial_guess();
 
-        if df == 0.0 {
-            bail!("Zero derivative at x = {}", x);
+        for _ in 0..self.max_iter {
+            let f = single_function!(problem, x);
+            let df = single_derivative!(problem, x);
+
+            if f.abs() < self.tol {
+                return Ok([x]);
+            } else if df == 0.0 {
+                bail!(NewtonError::ZeroDerivative(x));
+            } else {
+                x -= f / df;
+            }
         }
-
-        Ok(x - f / df)
+        bail!(NewtonError::NotConverge(x));
     }
 }
 
@@ -164,32 +225,141 @@ impl RootFindingMethod<1, 1, f64> for NewtonMethod {
 ///
 /// # Arguments
 ///
-/// - `max_iterations`: Maximum number of iterations
-/// - `tolerance`: Tolerance
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: Absolute tolerance
 ///
 /// # Caution
 ///
 /// - The function should be differentiable
 pub struct SecantMethod {
-    pub max_iterations: usize,
-    pub tolerance: f64,
+    pub max_iter: usize,
+    pub tol: f64,
 }
 
-impl RootFindingMethod<1, 1, (f64, f64)> for SecantMethod {
-    fn step<P: RootFindingProblem<1, 1, (f64, f64)>>(
+#[derive(Debug, Copy, Clone)]
+pub enum SecantError {
+    ZeroSecant(f64, f64),
+    NotConverge(f64, f64),
+}
+
+impl std::fmt::Display for SecantError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SecantError::ZeroSecant(x0, x1) => {
+                write!(f, "Zero secant at ({}, {})", x0, x1)
+            }
+            SecantError::NotConverge(x0, x1) => {
+                write!(f, "Not converge at ({}, {})", x0, x1)
+            }
+        }
+    }
+}
+
+impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
+    fn max_iter(&self) -> usize {
+        self.max_iter
+    }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
         &self,
         problem: &P,
-        state: (f64, f64),
-    ) -> Result<(f64, f64)> {
-        let (x0, x1) = state;
-        let f0 = single_function!(problem, x0);
-        let f1 = single_function!(problem, x1);
+    ) -> Result<[f64; 1]> {
+        let mut state = problem.initial_guess();
 
-        if f0 == f1 {
-            bail!("Zero secant at ({}, {})", x0, x1);
+        for _ in 0..self.max_iter {
+            let (x0, x1) = state;
+            let f0 = single_function!(problem, x0);
+            let f1 = single_function!(problem, x1);
+
+            if f1.abs() < self.tol {
+                return Ok([x1]);
+            }
+
+            if f0 == f1 {
+                bail!(SecantError::ZeroSecant(x0, x1));
+            }
+
+            state = (x1, x1 - f1 * (x1 - x0) / (f1 - f0))
+        }
+        let (x0, x1) = state;
+        bail!(SecantError::NotConverge(x0, x1));
+    }
+}
+
+// ┌─────────────────────────────────────────────────────────┐
+//  False position method
+// └─────────────────────────────────────────────────────────┘
+/// False position method
+///
+/// # Arguments
+///
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: Absolute tolerance
+///
+/// # Caution
+///
+/// - The function should be differentiable
+pub struct FalsePositionMethod {
+    pub max_iter: usize,
+    pub tol: f64,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum FalsePositionError {
+    NoRoot,
+    NotConverge(f64, f64),
+}
+
+impl std::fmt::Display for FalsePositionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FalsePositionError::NoRoot => write!(f, "There is no root in the interval"),
+            FalsePositionError::NotConverge(a, b) => {
+                write!(f, "Not converge in [{}, {}]", a, b)
+            }
+        }
+    }
+}
+
+impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
+    fn max_iter(&self) -> usize {
+        self.max_iter
+    }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
+        &self,
+        problem: &P,
+    ) -> Result<[f64; 1]> {
+        let state = problem.initial_guess();
+        let (mut a, mut b) = state;
+        let mut fa = single_function!(problem, a);
+        let mut fb = single_function!(problem, b);
+
+        if fa * fb > 0.0 {
+            bail!(FalsePositionError::NoRoot);
         }
 
-        Ok((x1, x1 - f1 * (x1 - x0) / (f1 - f0)))
+        for _ in 0..self.max_iter {
+            let c = (a * fb - b * fa) / (fb - fa);
+            let fc = single_function!(problem, c);
+
+            if fc.abs() < self.tol {
+                return Ok([c]);
+            } else if fa * fc < 0.0 {
+                b = c;
+                fb = fc;
+            } else if fb * fc < 0.0 {
+                a = c;
+                fa = fc;
+            } else {
+                bail!(FalsePositionError::NoRoot);
+            }
+        }
+        bail!(FalsePositionError::NotConverge(a, b));
     }
 }
 
@@ -200,24 +370,29 @@ impl RootFindingMethod<1, 1, (f64, f64)> for SecantMethod {
 ///
 /// # Arguments
 ///
-/// - `max_iterations`: Maximum number of iterations
-/// - `tolerance`: Tolerance
+/// - `max_iter`: Maximum number of iterations
+/// - `tol`: Absolute tolerance
 ///
 /// # Caution
 ///
 /// - The function should be differentiable
 pub struct BroydenMethod {
-    pub max_iterations: usize,
-    pub tolerance: f64,
+    pub max_iter: usize,
+    pub tol: f64,
 }
 
 
-impl<const I: usize, const O: usize> RootFindingMethod<I, O, INTV<I>> for BroydenMethod {
-    fn step<P: RootFindingProblem<I, O, INTV<I>>>(
+impl<const I: usize, const O: usize> RootFinder<I, O, INTV<I>> for BroydenMethod {
+    fn max_iter(&self) -> usize {
+        self.max_iter
+    }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn find<P: RootFindingProblem<I, O, INTV<I>>>(
         &self,
         problem: &P,
-        state: INTV<I>,
-    ) -> Result<INTV<I>> {
+    ) -> Result<PT<I>> {
         unimplemented!()
     }
 }
