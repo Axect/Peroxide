@@ -201,7 +201,7 @@ pub use crate::numerical::{
     interp::*,
     ode::*,
     optimize::*,
-    root::{bisection, false_position, newton, secant},
+    root::*,
     spline::{cubic_spline, CubicSpline, CubicHermiteSpline, Spline},
     utils::*,
 };

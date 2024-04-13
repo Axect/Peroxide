@@ -1,9 +1,9 @@
 use anyhow::{Result, bail};
 
-type PT<const N: usize> = [f64; N];
-type INTV<const N: usize> = (PT<N>, PT<N>);
-type J<const R: usize, const C: usize> = [[f64; C]; R];
-type H<const R: usize, const C: usize> = [[[f64; C]; C]; R];
+pub type Pt<const N: usize> = [f64; N];
+pub type Intv<const N: usize> = (Pt<N>, Pt<N>);
+pub type Jaco<const R: usize, const C: usize> = [[f64; C]; R];
+pub type Hess<const R: usize, const C: usize> = [[[f64; C]; C]; R];
 
 /// Trait to define a root finding problem
 ///
@@ -13,12 +13,14 @@ type H<const R: usize, const C: usize> = [[[f64; C]; C]; R];
 /// - `O`: Output type (e.g. `f64`, `[f64; N]`, or etc.)
 /// - `T`: State type (e.g. `f64`, `(f64, f64)`, or etc.)
 pub trait RootFindingProblem<const I: usize, const O: usize, T> {
-    fn function(&self, x: PT<I>) -> Result<PT<O>>;
+    fn function(&self, x: Pt<I>) -> Result<Pt<O>>;
     fn initial_guess(&self) -> T;
-    fn derivative(&self, x: PT<I>) -> Result<J<O, I>> {
+    #[allow(unused_variables)]
+    fn derivative(&self, x: Pt<I>) -> Result<Jaco<O, I>> {
         unimplemented!()
     }
-    fn hessian(&self, x: PT<I>) -> Result<H<O, I>> {
+    #[allow(unused_variables)]
+    fn hessian(&self, x: Pt<I>) -> Result<Hess<O, I>> {
         unimplemented!()
     }
 }
@@ -26,14 +28,15 @@ pub trait RootFindingProblem<const I: usize, const O: usize, T> {
 pub trait RootFinder<const I: usize, const O: usize, T> {
     fn max_iter(&self) -> usize;
     fn tol(&self) -> f64;
-    fn find<P: RootFindingProblem<I, O, T>>(&self, problem: &P) -> Result<PT<I>>;
+    fn find<P: RootFindingProblem<I, O, T>>(&self, problem: &P) -> Result<Pt<I>>;
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum RootError<const I: usize> {
-    NotConverge(PT<I>),
+    NotConverge(Pt<I>),
     NoRoot,
-    ZeroDerivative(PT<I>),
+    ZeroDerivative(Pt<I>),
+    ZeroSecant(Pt<I>, Pt<I>),
 }
 
 impl std::fmt::Display for RootError<1> {
@@ -42,6 +45,7 @@ impl std::fmt::Display for RootError<1> {
             RootError::NoRoot => write!(f, "There is no root in the interval"),
             RootError::NotConverge(a) => write!(f, "Not yet converge. Our guess is {:?}", a),
             RootError::ZeroDerivative(a) => write!(f, "Zero derivative in {:?}", a),
+            RootError::ZeroSecant(a,b) => write!(f, "Zero secant in ({:?}, {:?})", a, b),
         }
     }
 }
@@ -52,15 +56,16 @@ impl std::fmt::Display for RootError<1> {
 ///
 /// For I=1, O=1, it is bother to write below code.
 ///
-/// ```no_run
+/// ```ignore
 /// let fx = problem.function([x])?[0];
 /// ```
 ///
 /// This macro solve this problem as follows.
 ///
-/// ```no_run
+/// ```ignore
 /// let fx = single_function!(problem, x);
 /// ```
+#[macro_export]
 macro_rules! single_function {
     ($problem:expr, $x:expr) => {{
         $problem.function([$x])?[0]
@@ -73,15 +78,16 @@ macro_rules! single_function {
 ///
 /// For I=1, O=1, it is bother to write below code.
 ///
-/// ```no_run
+/// ```ignore
 /// let fx = problem.derivative([x])?[0][0];
 /// ```
 ///
 /// This macro solve this problem as follows.
 ///
-/// ```no_run
+/// ```ignore
 /// let fx = single_derivative!(problem, x);
 /// ```
+#[macro_export]
 macro_rules! single_derivative {
     ($problem:expr, $x:expr) => {{
         $problem.derivative([$x])?[0][0]
@@ -125,7 +131,11 @@ impl RootFinder<1, 1, (f64, f64)> for BisectionMethod {
         let mut fa = single_function!(problem, a);
         let mut fb = single_function!(problem, b);
 
-        if fa * fb > 0.0 {
+        if fa.abs() < self.tol {
+            return Ok([a]);
+        } else if fb.abs() < self.tol {
+            return Ok([b]);
+        } else if fa * fb > 0.0 {
             bail!(RootError::NoRoot);
         }
 
@@ -170,25 +180,6 @@ pub struct NewtonMethod {
     pub tol: f64,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum NewtonError {
-    ZeroDerivative(f64),
-    NotConverge(f64),
-}
-
-impl std::fmt::Display for NewtonError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NewtonError::ZeroDerivative(x) => {
-                write!(f, "Zero derivative at x = {}", x)
-            }
-            NewtonError::NotConverge(x) => {
-                write!(f, "Not converge at x = {}", x)
-            }
-        }
-    }
-}
-
 impl RootFinder<1, 1, f64> for NewtonMethod {
     fn max_iter(&self) -> usize {
         self.max_iter
@@ -209,12 +200,12 @@ impl RootFinder<1, 1, f64> for NewtonMethod {
             if f.abs() < self.tol {
                 return Ok([x]);
             } else if df == 0.0 {
-                bail!(NewtonError::ZeroDerivative(x));
+                bail!(RootError::ZeroDerivative([x]));
             } else {
                 x -= f / df;
             }
         }
-        bail!(NewtonError::NotConverge(x));
+        bail!(RootError::NotConverge([x]));
     }
 }
 
@@ -236,25 +227,6 @@ pub struct SecantMethod {
     pub tol: f64,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum SecantError {
-    ZeroSecant(f64, f64),
-    NotConverge(f64, f64),
-}
-
-impl std::fmt::Display for SecantError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SecantError::ZeroSecant(x0, x1) => {
-                write!(f, "Zero secant at ({}, {})", x0, x1)
-            }
-            SecantError::NotConverge(x0, x1) => {
-                write!(f, "Not converge at ({}, {})", x0, x1)
-            }
-        }
-    }
-}
-
 impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
     fn max_iter(&self) -> usize {
         self.max_iter
@@ -266,11 +238,15 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
         &self,
         problem: &P,
     ) -> Result<[f64; 1]> {
-        let mut state = problem.initial_guess();
+        let state = problem.initial_guess();
+        let (mut x0, mut x1) = state;
+        let mut f0 = single_function!(problem, x0);
+
+        if f0.abs() < self.tol {
+            return Ok([x0]);
+        }
 
         for _ in 0..self.max_iter {
-            let (x0, x1) = state;
-            let f0 = single_function!(problem, x0);
             let f1 = single_function!(problem, x1);
 
             if f1.abs() < self.tol {
@@ -278,13 +254,13 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
             }
 
             if f0 == f1 {
-                bail!(SecantError::ZeroSecant(x0, x1));
+                bail!(RootError::ZeroSecant([x0], [x1]));
             }
 
-            state = (x1, x1 - f1 * (x1 - x0) / (f1 - f0))
+            f0 = f1;
+            (x0, x1) = (x1, x1 - f1 * (x1 - x0) / (f1 - f0))
         }
-        let (x0, x1) = state;
-        bail!(SecantError::NotConverge(x0, x1));
+        bail!(RootError::NotConverge([x1]));
     }
 }
 
@@ -306,23 +282,6 @@ pub struct FalsePositionMethod {
     pub tol: f64,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum FalsePositionError {
-    NoRoot,
-    NotConverge(f64, f64),
-}
-
-impl std::fmt::Display for FalsePositionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FalsePositionError::NoRoot => write!(f, "There is no root in the interval"),
-            FalsePositionError::NotConverge(a, b) => {
-                write!(f, "Not converge in [{}, {}]", a, b)
-            }
-        }
-    }
-}
-
 impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
     fn max_iter(&self) -> usize {
         self.max_iter
@@ -339,8 +298,12 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
         let mut fa = single_function!(problem, a);
         let mut fb = single_function!(problem, b);
 
-        if fa * fb > 0.0 {
-            bail!(FalsePositionError::NoRoot);
+        if fa.abs() < self.tol {
+            return Ok([a]);
+        } else if fb.abs() < self.tol {
+            return Ok([b]);
+        } else if fa * fb > 0.0 {
+            bail!(RootError::NoRoot);
         }
 
         for _ in 0..self.max_iter {
@@ -356,10 +319,11 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
                 a = c;
                 fa = fc;
             } else {
-                bail!(FalsePositionError::NoRoot);
+                bail!(RootError::NoRoot);
             }
         }
-        bail!(FalsePositionError::NotConverge(a, b));
+        let c = (a * fb - b * fa) / (fb - fa);
+        bail!(RootError::NotConverge([c]));
     }
 }
 
@@ -382,17 +346,18 @@ pub struct BroydenMethod {
 }
 
 
-impl<const I: usize, const O: usize> RootFinder<I, O, INTV<I>> for BroydenMethod {
+#[allow(unused_variables)]
+impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod {
     fn max_iter(&self) -> usize {
         self.max_iter
     }
     fn tol(&self) -> f64 {
         self.tol
     }
-    fn find<P: RootFindingProblem<I, O, INTV<I>>>(
+    fn find<P: RootFindingProblem<I, O, Intv<I>>>(
         &self,
         problem: &P,
-    ) -> Result<PT<I>> {
+    ) -> Result<Pt<I>> {
         unimplemented!()
     }
 }
