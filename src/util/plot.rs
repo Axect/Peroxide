@@ -21,8 +21,9 @@
 //!     let y1 = x.fmap(|t| t.powi(2));
 //!     let y2 = x.fmap(|t| t.powi(3));
 //!
+//!     let mut rng = SmallRng::seed_from_u64(42);
 //!     let normal = Normal(0f64, 0.1);
-//!     let eps = normal.sample(100);
+//!     let eps = normal.sample_with_rng(&mut rng, x.len());
 //!     let y3 = y2.add_v(&eps);
 //!
 //!     let mut plt = Plot2D::new();
