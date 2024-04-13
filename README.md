@@ -177,9 +177,19 @@ Peroxide can do many things.
     - Gradient Descent
     - Levenberg Marquardt
   - Ordinary Differential Equation
-    - Runge-Kutta 4th order (`RK4`)
-    - Runge-Kutta-Fehlberg 4/5th order (`RKF45`)
-    - Gauss-Legendre 4th order (`GL4`; Implicit)
+    - Trait based ODE solver (after `v0.36.0`)
+    - Explicit integrator
+      - Ralston's 3rd order
+      - Runge-Kutta 4th order
+      - Ralston's 4th order
+      - Runge-Kutta 5th order
+    - Embedded integrator
+      - Bogacki-Shampine 3(2)
+      - Runge-Kutta-Fehlberg 4(5)
+      - Dormand-Prince 5(4)
+      - Tsitouras 5(4)
+    - Implicit integrator
+      - Gauss-Legendre 4th order
   - Numerical Integration
     - Newton-Cotes Quadrature
     - Gauss-Legendre Quadrature (up to 30 order)
@@ -188,8 +198,9 @@ Peroxide can do many things.
     - Gauss-Kronrod Quadrature (Relative tolerance)
       - G7K15R, G10K21R, G15K31R, G20K41R, G25K51R, G30K61R
   - Root Finding
+    - Trait based root finding (after `v0.37.0`)
     - Bisection
-    - False Position (Regula Falsi)
+    - False Position
     - Secant
     - Newton
 - Statistics
@@ -211,6 +222,7 @@ Peroxide can do many things.
     - Marsaglia Polar
     - Ziggurat
     - Wrapper for `rand-dist` crate
+    - Piecewise Rejection Sampling
   - Confusion Matrix & Metrics
 - Special functions
   - Wrapper for `puruspe` crate (pure rust)
