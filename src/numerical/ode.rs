@@ -73,7 +73,7 @@
 //!         vec![1f64]
 //!     }
 //!
-//!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+//!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 //!         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
 //!     }
 //! }
@@ -97,7 +97,7 @@ use anyhow::{Result, bail};
 ///         vec![1.0, 2.0]
 ///     }
 ///
-///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<(), ODEError> {
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         dy[0] = -0.5 * y[0];
 ///         dy[1] = y[0] - y[1];
 ///         Ok(())
@@ -131,7 +131,6 @@ pub trait ODEIntegrator {
 ///
 /// ```no_run
 /// use peroxide::fuga::*;
-/// use anyhow::{Result, bail};
 ///
 /// struct ConstrainedProblem {
 ///     y_constraint: f64
@@ -139,9 +138,9 @@ pub trait ODEIntegrator {
 ///
 /// impl ODEProblem for ConstrainedProblem {
 ///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] } // y_0 = 0
-///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<()> {
+///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         if y[0] < self.y_constraint {
-///             bail!(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
+///             anyhow::bail!(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
 ///         } else {
 ///             // some function
 ///             Ok(())

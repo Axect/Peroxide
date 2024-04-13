@@ -23,11 +23,11 @@
 //! ## Members
 //!
 //! * `CubicSpline`: Structure for cubic spline
-//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Self` : Create a cubic spline from nodes
-//!     * `fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>)` : Extend the spline with nodes
+//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self>` : Create a cubic spline from nodes
+//!     * `fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<()>` : Extend the spline with nodes
 //! * `CubicHermiteSpline`: Structure for cubic Hermite spline
-//!     * `fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Self` : Create a Cubic Hermite spline from nodes with slopes
-//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Self` : Create a Cubic Hermite spline from nodes with slope estimation methods
+//!     * `fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slopes
+//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slope estimation methods
 //! * `SlopeMethod`: Enum for slope estimation methods
 //!     * `Akima`: Akima's method to estimate slopes ([Akima (1970)](https://dl.acm.org/doi/abs/10.1145/321607.321609))
 //!     * `Quadratic`: Using quadratic interpolation to estimate slopes
