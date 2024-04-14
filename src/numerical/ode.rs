@@ -321,16 +321,12 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                         }
                         y[i] += dt * s;
                     }
-                    //let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.25);
-                    //let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
                     return Ok(new_dt);
                 } else {
                     iter_count += 1;
                     if iter_count >= self.max_step_iter() {
                         bail!(ODEError::ReachedMaxStepIter);
                     }
-                    //let new_dt = self.safety_factor() * dt * (self.tol() / error).powf(0.2);
-                    //let new_dt = new_dt.max(self.min_step_size()).min(self.max_step_size());
                     dt = new_dt;
                 }
             } else {
