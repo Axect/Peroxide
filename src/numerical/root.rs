@@ -39,7 +39,8 @@
 //!
 //!   - Type Parameters: `I=1, O=1, T=(f64, f64)`
 //!
-//! - `BroydenMethod` (unimplemented): Implements Broyden's method for finding roots of systems of nonlinear equations.
+//! - `BroydenMethod`: Implements Broyden's method for finding roots of systems of nonlinear equations.
+//!   It requires an two initial guesses for the first step. (not an interval, just two points)
 //!
 //!   - Type Parameters: `I>=1, O>=1, T=([f64; I], [f64; I])`
 //!
@@ -175,8 +176,6 @@ use anyhow::{Result, bail};
 use crate::traits::math::{Normed, Norm, LinearOp};
 use crate::traits::sugar::{ConvToMat, VecOps};
 use crate::util::non_macro::zeros;
-use crate::structure::matrix::LinearAlgebra;
-use crate::util::print::Printable;
 
 /// Point alias (`[f64; N]`)
 pub type Pt<const N: usize> = [f64; N];
@@ -580,6 +579,42 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 /// # Caution
 ///
 /// - The function should be differentiable
+///
+/// # Example
+///
+/// ```rust
+/// use peroxide::fuga::*;
+/// use peroxide::numerical::root::{Pt, Intv};
+/// 
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let problem = CircleTangentLine;
+///     let broyden = BroydenMethod { max_iter: 100, tol: 1e-6 };
+///
+///     let root = broyden.find(&problem)?;
+///     let result = problem.function(root)?;
+///
+///     let norm = result.to_vec().norm(Norm::L2);
+///     assert!(norm < 1e-6);
+///
+///     Ok(())
+/// }
+/// 
+/// struct CircleTangentLine;
+/// 
+/// impl RootFindingProblem<2, 2, Intv<2>> for CircleTangentLine {
+///     fn function(&self, x: Pt<2>) -> anyhow::Result<Pt<2>> {
+///         Ok([
+///             x[0] * x[0] + x[1] * x[1] - 1.0,
+///             x[0] + x[1] - 2f64.sqrt()
+///         ])
+///     }
+/// 
+///     fn initial_guess(&self) -> Intv<2> {
+///         ([0.0, 0.1], [-0.1, 0.2])
+///     }
+/// }
+/// ```
+
 pub struct BroydenMethod {
     pub max_iter: usize,
     pub tol: f64,
@@ -609,7 +644,6 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
         for i in 0..O.min(I) {
             H[(i, i)] = 1.0;
         }
-        H.print();
 
         for _ in 0..self.max_iter {
             let fx1 = problem.function(x1)?.to_vec();
