@@ -1,3 +1,8 @@
+# Release 0.37.1 (2024-04-15)
+
+- Implement `BrodenMethod`: Broyden's method (`I>=1, O>=1, T=([f64; I], [f64; I])`)
+- Restore citation file
+
 # Release 0.37.0 (2024-04-14)
 
 ## Huge Update - Whole new Root finding & anyhow
