@@ -176,6 +176,7 @@ use crate::traits::math::{Normed, Norm, LinearOp};
 use crate::traits::sugar::{ConvToMat, VecOps};
 use crate::util::non_macro::zeros;
 use crate::structure::matrix::LinearAlgebra;
+use crate::util::print::Printable;
 
 /// Point alias (`[f64; N]`)
 pub type Pt<const N: usize> = [f64; N];
@@ -602,18 +603,13 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
         let (mut x0, mut x1) = state;
         let mut fx0 = problem.function(x0)?.to_vec();
 
-        // Initialize inverse Jacobian via FDM
-        let h = 1e-6;
-        let mut J = zeros(O, I);
-        for o in 0..O {
-            for i in 0..I {
-                let mut x0h = x0;
-                x0h[i] += h;
-                let f1 = problem.function(x0h)?;
-                J[(o, i)] = (f1[o] - fx0[o]) / h;
-            }
+        // Initialize negative inverse jacobian as identity
+        // H = -J^{-1}
+        let mut H = zeros(I, O);
+        for i in 0..O.min(I) {
+            H[(i, i)] = 1.0;
         }
-        let mut H = -J.pseudo_inv();
+        H.print();
 
         for _ in 0..self.max_iter {
             let fx1 = problem.function(x1)?.to_vec();
@@ -628,11 +624,11 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
 
             let denom = dx.add_v(&H.apply(&df));
             let right = &dx.to_row() * &H;
-            let num = right.apply(&df);
+            let num = right.apply(&df)[0];
 
-            let left = denom.div_v(&num);
+            let left = denom.div_s(num);
 
-            H = H + left.to_row() * right;
+            H = H - left.to_col() * right;
 
             x0 = x1;
             fx0 = fx1.clone();
