@@ -47,9 +47,10 @@
 //!   - Levenberg-Marquardt
 //! - [Root Finding](numerical/root/index.html)
 //!   - Bisection
-//!   - False Position (Regula falsi)
+//!   - False Position
 //!   - Secant
 //!   - Newton
+//!   - Broyden
 //! - [Ordinary Differential Equations](numerical/ode/index.html)
 //!   - Explicit
 //!     - Ralston's 3rd order
