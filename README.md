@@ -203,6 +203,7 @@ Peroxide can do many things.
     - False Position
     - Secant
     - Newton
+    - Broyden
 - Statistics
   - More easy random with `rand` crate
   - Ordered Statistics
@@ -309,7 +310,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.37.0`
+Corresponding to `0.37.1`
 
 ## Pre-requisite
 
