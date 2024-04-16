@@ -651,10 +651,14 @@ impl Plot for Plot2D {
                 }
             }
 
+            if !legends.is_empty() {
+                plot_string.push_str("plt.legend()\n");
+            }
+
             if self.tight {
-                plot_string.push_str(&format!("plt.legend()\nplt.savefig(pa, dpi={}, bbox_inches='tight')", dpi)[..]);
+                plot_string.push_str(&format!("plt.savefig(pa, dpi={}, bbox_inches='tight')", dpi)[..]);
             } else {
-                plot_string.push_str(&format!("plt.legend()\nplt.savefig(pa, dpi={})", dpi)[..]);
+                plot_string.push_str(&format!("plt.savefig(pa, dpi={})", dpi)[..]);
             }
 
             py.run(&plot_string[..], Some(&globals), None)?;

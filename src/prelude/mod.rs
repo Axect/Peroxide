@@ -218,3 +218,4 @@ pub use simpler::SimpleParquet;
 pub use crate::util::plot::*;
 
 pub use anyhow;
+pub use paste;

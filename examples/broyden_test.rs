@@ -3,7 +3,7 @@ use peroxide::numerical::root::{Pt, Intv};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let problem = Quadratic;
-    let broyden = BroydenMethod { max_iter: 100, tol: 1e-6 };
+    let broyden = BroydenMethod { max_iter: 100, tol: 1e-6, rtol: 1e-6 };
     let root = broyden.find(&problem)?;
     let result = problem.function(root)?;
 
