@@ -1,3 +1,13 @@
+# Release 0.37.2 (2024-04-16)
+
+- Do not include legend box if there is no legend ([#58](https://github.com/Axect/Peroxide/pull/58)) (Thanks to [@GComitini](https://github.com/GComitini))
+- Add `rtol` field to `BroydenMethod`
+- Implement high-level macros for root finding
+  - `bisection!(f, (a,b), max_iter, tol)`
+  - `newton!(f, x0, max_iter, tol)` (require `#[ad_function]` attribute)
+  - `secant!(f, (a,b), max_iter, tol)`
+  - `false_position!(f, (a,b), max_iter, tol)`
+
 # Release 0.37.1 (2024-04-15)
 
 - Implement `BrodenMethod`: Broyden's method (`I>=1, O>=1, T=([f64; I], [f64; I])`)

@@ -781,7 +781,7 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 /// 
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let problem = CircleTangentLine;
-///     let broyden = BroydenMethod { max_iter: 100, tol: 1e-6 };
+///     let broyden = BroydenMethod { max_iter: 100, tol: 1e-6, rtol: 1e-6 };
 ///
 ///     let root = broyden.find(&problem)?;
 ///     let result = problem.function(root)?;
