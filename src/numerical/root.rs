@@ -618,8 +618,8 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 pub struct BroydenMethod {
     pub max_iter: usize,
     pub tol: f64,
+    pub rtol: f64,
 }
-
 
 #[allow(unused_variables, non_snake_case)]
 impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod {
@@ -651,7 +651,7 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
                 return Ok(x1);
             }
             let dx = x1.iter().zip(x0.iter()).map(|(x1, x0)| x1 - x0).collect::<Vec<_>>();
-            if dx.norm(Norm::L2) < self.tol {
+            if dx.norm(Norm::L2) < self.rtol {
                 return Ok(x1);
             }
             let df = fx1.iter().zip(fx0.iter()).map(|(fx1, fx0)| fx1 - fx0).collect::<Vec<_>>();
