@@ -51,6 +51,47 @@
 //! - `Jaco<const R: usize, const C: usize>`: Represents the Jacobian matrix of a function. (`[[f64; C]; R]`)
 //! - `Hess<const R: usize, const C: usize>`: Represents the Hessian matrix of a function. (`[[[f64; C]; C]; R]`)
 //!
+//! ## High-level macros
+//!
+//! Peroxide also provides high-level macros for root finding.
+//! Assume `f: fn(f64) -> f64`.
+//!
+//! - `bisection!(f, (a,b), max_iter, tol)`
+//! - `newton!(f, x0, max_iter, tol)`: (**Caution**: newton macro requires `#[ad_function]` attribute)
+//! - `secant!(f, (x0, x1), max_iter, tol)`
+//! - `false_position!(f, (a,b), max_iter, tol)`
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//! use anyhow::Result;
+//! 
+//! fn main() -> Result<()> {
+//!     let root_bisect = bisection!(f, (0.0, 2.0), 100, 1e-6);
+//!     let root_newton = newton!(f, 0.0, 100, 1e-6);
+//!     let root_false_pos = false_position!(f, (0.0, 2.0), 100, 1e-6);
+//!     let root_secant = secant!(f, (0.0, 2.0), 100, 1e-6);
+//! 
+//!     println!("root_bisect: {}", root_bisect);
+//!     println!("root_newton: {}", root_newton);
+//!     println!("root_false_pos: {}", root_false_pos);
+//!     println!("root_secant: {}", root_secant);
+//! 
+//!     assert!(f(root_bisect).abs() < 1e-6);
+//!     assert!(f(root_newton).abs() < 1e-6);
+//!     assert!(f(root_false_pos).abs() < 1e-6);
+//!     assert!(f(root_secant).abs() < 1e-6);
+//! 
+//!     Ok(())
+//! }
+//! 
+//! #[ad_function]
+//! fn f(x: f64) -> f64 {
+//!     (x - 1f64).powi(3)
+//! }
+//! ```
+//!
 //! ## Examples
 //!
 //! ### Finding the root of a cubic function
@@ -177,6 +218,154 @@ use crate::traits::math::{Normed, Norm, LinearOp};
 use crate::traits::sugar::{ConvToMat, VecOps};
 use crate::util::non_macro::zeros;
 
+// ┌─────────────────────────────────────────────────────────┐
+//  High level macro
+// └─────────────────────────────────────────────────────────┘
+/// High level macro for bisection
+///
+/// # Arguments
+///
+/// - `f`: `fn(f64) -> f64`
+/// - `(a, b)`: `(f64, f64)`
+/// - `max_iter`: `usize`
+/// - `tol`: `f64`
+#[macro_export]
+macro_rules! bisection {
+    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct BisectionProblem;
+
+        impl RootFindingProblem<1, 1, (f64, f64)> for BisectionProblem {
+            fn initial_guess(&self) -> (f64, f64) {
+                ($a, $b)
+            }
+
+            fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+                Ok([$f(x[0])])
+            }
+        }
+
+        let problem = BisectionProblem;
+        let bisection = BisectionMethod { max_iter: $max_iter, tol: $tol };
+        let root = bisection.find(&problem)?;
+        root[0]
+    }}
+}
+
+/// High level macro for newton (using Automatic differentiation)
+///
+/// # Requirements
+///
+/// - This macro requires the function with `ad_function`
+///
+///   ```rust
+///   use peroxide::fuga::*;
+///
+///   #[ad_function]
+///   fn f(x: f64) -> f64 {
+///       (x - 1f64).powi(3)
+///   }
+///   ```
+///
+/// # Arguments
+///
+/// - `f`: `fn(f64) -> f64`
+/// - `x`: `f64`
+/// - `max_iter`: `usize`
+/// - `tol`: `f64`
+#[macro_export]
+macro_rules! newton {
+    ($f:ident, $x:expr, $max_iter:expr, $tol:expr) => {{
+        use paste::paste;
+        struct NewtonProblem;
+
+        impl RootFindingProblem<1, 1, f64> for NewtonProblem {
+            fn initial_guess(&self) -> f64 {
+                $x 
+            }
+
+            fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+                Ok([$f(x[0])])
+            }
+
+            fn derivative(&self, x: [f64; 1]) -> Result<Jaco<1, 1>> {
+                paste! {
+                    let x_ad = AD1(x[0], 1f64);
+                    Ok([[[<$f _ad>](x_ad).dx()]])
+                }
+            }
+        }
+
+        let problem = NewtonProblem;
+        let newton = NewtonMethod { max_iter: $max_iter, tol: $tol };
+        let root = newton.find(&problem)?;
+        root[0]
+    }}
+}
+
+/// High level macro for false position
+///
+/// # Arguments
+///
+/// - `f`: `fn(f64) -> f64`
+/// - `(a, b)`: `(f64, f64)`
+/// - `max_iter`: `usize`
+/// - `tol`: `f64`
+#[macro_export]
+macro_rules! false_position {
+    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct FalsePositionProblem;
+
+        impl RootFindingProblem<1, 1, (f64, f64)> for FalsePositionProblem {
+            fn initial_guess(&self) -> (f64, f64) {
+                ($a, $b)
+            }
+
+            fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+                Ok([$f(x[0])])
+            }
+        }
+
+        let problem = FalsePositionProblem;
+        let false_position = FalsePositionMethod { max_iter: $max_iter, tol: $tol };
+        let root = false_position.find(&problem)?;
+        root[0]
+    }}
+}
+
+/// High level macro for secant
+///
+/// # Arguments
+///
+/// - `f`: `fn(f64) -> f64`
+/// - `(a, b)`: `(f64, f64)`
+/// - `max_iter`: `usize`
+/// - `tol`: `f64`
+#[macro_export]
+macro_rules! secant {
+    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct SecantProblem;
+
+        impl RootFindingProblem<1, 1, (f64, f64)> for SecantProblem {
+            fn initial_guess(&self) -> (f64, f64) {
+                ($a, $b)
+            }
+
+            fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
+                Ok([$f(x[0])])
+            }
+        }
+
+        let problem = SecantProblem;
+        let secant = SecantMethod { max_iter: $max_iter, tol: $tol };
+        let root = secant.find(&problem)?;
+        root[0]
+    }}
+}
+
+
+// ┌─────────────────────────────────────────────────────────┐
+//  Type aliases
+// └─────────────────────────────────────────────────────────┘
 /// Point alias (`[f64; N]`)
 pub type Pt<const N: usize> = [f64; N];
 /// Interval alias (`([f64; N], [f64; N])`)
@@ -186,6 +375,9 @@ pub type Jaco<const R: usize, const C: usize> = [[f64; C]; R];
 /// Hessian alias (`[[[f64; C]; C]; R]`)
 pub type Hess<const R: usize, const C: usize> = [[[f64; C]; C]; R];
 
+// ┌─────────────────────────────────────────────────────────┐
+//  Traits
+// └─────────────────────────────────────────────────────────┘
 /// Trait to define a root finding problem
 ///
 /// # Type Parameters
@@ -484,8 +676,9 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
                 bail!(RootError::ZeroSecant([x0], [x1]));
             }
 
+            let f0_old = f0;
             f0 = f1;
-            (x0, x1) = (x1, x1 - f1 * (x1 - x0) / (f1 - f0))
+            (x0, x1) = (x1, x1 - f1 * (x1 - x0) / (f1 - f0_old))
         }
         bail!(RootError::NotConverge([x1]));
     }
