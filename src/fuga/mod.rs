@@ -195,6 +195,7 @@ pub use crate::ml::reg::*;
 pub use crate::util::plot::*;
 
 pub use anyhow;
+pub use paste;
 
 // =============================================================================
 // Enums
