@@ -205,3 +205,6 @@ pub mod statistics;
 pub mod structure;
 pub mod traits;
 pub mod util;
+
+#[cfg(feature = "complex")]
+pub mod complex;
