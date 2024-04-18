@@ -273,7 +273,6 @@ use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct},
     mutable::MutFP,
-    num::Real,
     pointer::{Oxide, Redox, RedoxCommon},
 };
 use std::cmp::min;
@@ -328,7 +327,7 @@ impl FPVector for Vec<f64> {
     where
         F: Fn(f64, f64) -> f64,
     {
-        self.into_iter()
+        self.iter()
             .zip(other)
             .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>()
@@ -374,10 +373,8 @@ impl FPVector for Vec<f64> {
     /// ```
     fn take(&self, n: usize) -> Vec<f64> {
         let mut v = vec![0f64; n];
-        for i in 0..n {
-            v[i] = self[i];
-        }
-        return v;
+        v[..n].copy_from_slice(&self[..n]);
+        v
     }
 
     /// Skip for `Vec<f64>`
@@ -400,7 +397,7 @@ impl FPVector for Vec<f64> {
         for (i, j) in (n..l).enumerate() {
             v[i] = self[j];
         }
-        return v;
+        v
     }
 
     fn sum(&self) -> f64 {
@@ -413,10 +410,10 @@ impl FPVector for Vec<f64> {
 }
 
 /// Explicit version of `map`
-pub fn map<F, T>(f: F, xs: &Vec<T>) -> Vec<T>
+pub fn map<F, T>(f: F, xs: &[T]) -> Vec<T>
 where
     F: Fn(T) -> T,
-    T: Real + Default,
+    T: Default + Copy,
 {
     let l = xs.len();
     let mut result = vec![T::default(); l];
@@ -427,23 +424,23 @@ where
 }
 
 /// Explicit version of `reduce`
-pub fn reduce<F, T>(f: F, init: T, xs: &Vec<T>) -> T
+pub fn reduce<F, T>(f: F, init: T, xs: &[T]) -> T
 where
     F: Fn(T, T) -> T,
-    T: Real,
+    T: Copy,
 {
     let mut s = init;
-    for i in 0..xs.len() {
-        s = f(s, xs[i]);
+    for &x in xs {
+        s = f(s, x);
     }
     s
 }
 
 /// Explicit version of `zip_with`
-pub fn zip_with<F, T>(f: F, xs: &Vec<T>, ys: &Vec<T>) -> Vec<T>
+pub fn zip_with<F, T>(f: F, xs: &[T], ys: &[T]) -> Vec<T>
 where
     F: Fn(T, T) -> T,
-    T: Real + Default,
+    T: Default + Copy,
 {
     let l = min(xs.len(), ys.len());
     let mut result = vec![T::default(); l];
@@ -460,8 +457,8 @@ impl MutFP for Vec<f64> {
     where
         F: Fn(Self::Scalar) -> Self::Scalar,
     {
-        for i in 0..self.len() {
-            self[i] = f(self[i]);
+        for x in self.iter_mut() {
+            *x = f(*x);
         }
     }
 
@@ -536,7 +533,7 @@ impl Algorithm for Vec<f64> {
                 }
             }
         }
-        return sgn;
+        sgn
     }
 
     /// arg max
@@ -556,29 +553,27 @@ impl Algorithm for Vec<f64> {
     /// }
     /// ```
     fn arg_max(&self) -> usize {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let idx: usize;
-                unsafe {
-                    idx = idamax(n_i32, self, 1) - 1;
-                }
-                idx
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let idx: usize;
+            unsafe {
+                idx = idamax(n_i32, self, 1) - 1;
             }
-            _ => {
-                //self.into_iter().enumerate().max_by(|x1, x2| x1.1.partial_cmp(&x2.1).unwrap()).unwrap().0
-                self.into_iter()
-                    .enumerate()
-                    .fold((0usize, f64::MIN), |acc, (ics, &val)| {
-                        if acc.1 < val {
-                            (ics, val)
-                        } else {
-                            acc
-                        }
-                    })
-                    .0
-            }
+            idx
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.into_iter()
+                .enumerate()
+                .fold((0usize, f64::MIN), |acc, (ics, &val)| {
+                    if acc.1 < val {
+                        (ics, val)
+                    } else {
+                        acc
+                    }
+                })
+                .0
         }
     }
 
@@ -598,57 +593,38 @@ impl Algorithm for Vec<f64> {
     ///     assert_eq!(v2.arg_min(),4);
     /// }
     fn arg_min(&self) -> usize {
-        match () {
-            _ => {
-                self.into_iter()
-                    .enumerate()
-                    .fold((0usize, f64::MAX), |acc, (ics, &val)| {
-                        if acc.1 > val {
-                            (ics, val)
-                        } else {
-                            acc
-                        }
-                    })
-                    .0
-            }
-        }
+        self.iter()
+            .enumerate()
+            .fold((0usize, f64::MAX), |acc, (ics, &val)| {
+                if acc.1 > val {
+                    (ics, val)
+                } else {
+                    acc
+                }
+            })
+            .0
     }
 
     fn max(&self) -> f64 {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let idx: usize;
-                unsafe {
-                    idx = idamax(n_i32, self, 1) - 1;
-                }
-                self[idx]
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let idx: usize;
+            unsafe {
+                idx = idamax(n_i32, self, 1) - 1;
             }
-            _ => {
-                self.into_iter().fold(f64::MIN, |acc, &val| {
-                    if acc < val {
-                        val
-                    } else {
-                        acc
-                    }
-                })
-            }
+            self[idx]
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.into_iter()
+                .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
         }
     }
 
     fn min(&self) -> f64 {
-        match () {
-            _ => {
-                self.into_iter().fold(f64::MAX, |acc, &val| {
-                    if acc > val {
-                        val
-                    } else {
-                        acc
-                    }
-                })
-            }
-        }
+        self.iter()
+            .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
     }
 
     fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
@@ -680,9 +656,9 @@ impl Normed for Vec<f64> {
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::L1 => self.iter().map(|x| x.abs()).sum(),
-            Norm::L2 => match () {
+            Norm::L2 => {
                 #[cfg(feature = "O3")]
-                () => {
+                {
                     let n_i32 = self.len() as i32;
                     let res: f64;
                     unsafe {
@@ -690,13 +666,16 @@ impl Normed for Vec<f64> {
                     }
                     res
                 }
-                _ => self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt(),
-            },
+                #[cfg(not(feature = "O3"))]
+                {
+                    self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+                }
+            }
             Norm::Lp(p) => {
                 assert!(
                     p >= 1f64,
                     "lp norm is only defined for p>=1, the given value was p={}",
-                     p
+                    p
                 );
                 self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
             }
@@ -716,20 +695,20 @@ impl Normed for Vec<f64> {
 
 impl InnerProduct for Vec<f64> {
     fn dot(&self, rhs: &Self) -> f64 {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let n_i32 = self.len() as i32;
-                let res: f64;
-                unsafe {
-                    res = ddot(n_i32, self, 1, rhs, 1);
-                }
-                res
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let res: f64;
+            unsafe {
+                res = ddot(n_i32, self, 1, rhs, 1);
             }
-            _ => self
-                .iter()
+            res
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.iter()
                 .zip(rhs.iter())
-                .fold(0f64, |x, (y1, y2)| x + y1 * y2),
+                .fold(0f64, |x, (y1, y2)| x + y1 * y2)
         }
     }
 }
@@ -918,7 +897,7 @@ impl VectorProduct for Vec<f64> {
 //     }
 
 #[cfg(feature = "O3")]
-pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
+pub fn blas_daxpy(a: f64, x: &[f64], y: &mut [f64]) {
     assert_eq!(x.len(), y.len());
     unsafe {
         let n = x.len() as i32;
@@ -927,9 +906,9 @@ pub fn blas_daxpy(a: f64, x: &Vec<f64>, y: &mut Vec<f64>) {
 }
 
 #[cfg(feature = "O3")]
-pub fn blas_daxpy_return(a: f64, x: &Vec<f64>, y: &Vec<f64>) -> Vec<f64> {
+pub fn blas_daxpy_return(a: f64, x: &[f64], y: &[f64]) -> Vec<f64> {
     assert_eq!(x.len(), y.len());
-    let mut result = y.clone();
+    let mut result = y.to_vec();
     let n = x.len() as i32;
     unsafe {
         daxpy(n, a, x, 1, &mut result, 1);
