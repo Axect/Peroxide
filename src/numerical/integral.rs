@@ -240,6 +240,9 @@ where
                     tol
                 };
                 if (G - K).abs() < tol_curr || a == b || max_iter == 0 {
+                    if ! G.is_finite() {
+                        return G;
+                    }
                     I += G;
                 } else {
                     S.push((a, c, tol / 2f64, max_iter - 1));
