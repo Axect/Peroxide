@@ -173,6 +173,8 @@ Peroxide can do many things.
     - Cubic Hermite Spline
       - Estimate slope via Akima
       - Estimate slope via Quadratic interpolation
+    - B-Spline (incomplete)
+      - Uniform Cubic B-Spline basis function
   - Non-linear regression
     - Gradient Descent
     - Levenberg Marquardt
