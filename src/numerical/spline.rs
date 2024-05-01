@@ -863,7 +863,7 @@ pub struct UnitCubicBasis {
     pub scale: f64,
 }
 
-impl CubicBasis {
+impl UnitCubicBasis {
     pub fn new(x_min: f64, x_max: f64, scale: f64) -> Self {
         Self { x_min, x_max, scale }
     }
@@ -901,7 +901,7 @@ impl CubicBasis {
 /// 
 /// # #[allow(unused_variables)]
 /// fn main() -> anyhow::Result<()> {
-///     let cubic_b_spline = CubicBSpline::from_interval((0f64, 1f64), 5);
+///     let cubic_b_spline = CubicBSplineBases::from_interval((0f64, 1f64), 5);
 ///     let x = linspace(0f64, 1f64, 1000);
 ///     let y = cubic_b_spline.eval_vec(&x);
 /// 
@@ -930,7 +930,7 @@ impl CubicBasis {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct CubicBSplineBases {
     pub ranges: Vec<Range<f64>>,
-    pub bases: Vec<CubicBasis>,
+    pub bases: Vec<UnitCubicBasis>,
 }
 
 impl CubicBSplineBases {
