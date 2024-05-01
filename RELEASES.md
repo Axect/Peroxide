@@ -1,3 +1,11 @@
+# Release 0.37.3 (2024-05-01)
+
+- Add Nan/infinite guard to `gauss_kronrod_quadrature` (early exit) ([#59](https://github.com/Axect/Peroxide/pull/59)) (Thanks to [@GComitini](https://github.com/GComitini))
+- Add complex feature & complex module ([#35](https://github.com/Axect/Peroxide/issues/35))
+- Implement Cubic B-Spline basis functions
+  - `UnitCubicBasis`
+  - `CubicBSplineBases`
+
 # Release 0.37.2 (2024-04-16)
 
 - Do not include legend box if there is no legend ([#58](https://github.com/Axect/Peroxide/pull/58)) (Thanks to [@GComitini](https://github.com/GComitini))
