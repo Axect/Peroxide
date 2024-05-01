@@ -194,9 +194,15 @@
 //! }
 //! ```
 //!
+//! # B-Spline (incomplete)
+//!
+//! - `UnitCubicBasis`: Single cubic B-Spline basis function
+//! - `CubicBSplineBases`: Uniform Cubic B-Spline basis functions
+//!
 //! # References
 //!
-//! * Gary D. Knott, *Interpolating Splines*, Birkhäuser Boston, MA, (2000).
+//! - Gary D. Knott, *Interpolating Splines*, Birkhäuser Boston, MA, (2000).
+/// - [Wikipedia - Irwin-Hall distribution](https://en.wikipedia.org/wiki/Irwin%E2%80%93Hall_distribution#Special_cases)
 
 use self::SplineError::{NotEnoughNodes, NotEqualNodes, NotEqualSlopes, RedundantNodeX};
 #[allow(unused_imports)]
