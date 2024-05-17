@@ -39,7 +39,14 @@
 //! use peroxide::fuga::*;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
-//!     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+//!     // Same as : let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
+//!     let rkf = RKF45 {
+//!         tol: 1e-6,
+//!         safety_factor: 0.9,
+//!         min_step_size: 1e-6,
+//!         max_step_size: 1e-1,
+//!         max_step_iter: 100,
+//!     };
 //!     let basic_ode_solver = BasicODESolver::new(rkf);
 //!     let (t_vec, y_vec) = basic_ode_solver.solve(
 //!         &Test,
@@ -438,11 +445,11 @@ impl ButcherTableau for RK5 {
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BS23 {
-    tol: f64,
-    safety_factor: f64,
-    min_step_size: f64,
-    max_step_size: f64,
-    max_step_iter: usize,
+    pub tol: f64,
+    pub safety_factor: f64,
+    pub min_step_size: f64,
+    pub max_step_size: f64,
+    pub max_step_iter: usize,
 }
 
 impl Default for BS23 {
@@ -492,11 +499,11 @@ impl ButcherTableau for BS23 {
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RKF45 {
-    tol: f64,
-    safety_factor: f64,
-    min_step_size: f64,
-    max_step_size: f64,
-    max_step_iter: usize,
+    pub tol: f64,
+    pub safety_factor: f64,
+    pub min_step_size: f64,
+    pub max_step_size: f64,
+    pub max_step_iter: usize,
 }
 
 impl Default for RKF45 {
@@ -558,11 +565,11 @@ impl ButcherTableau for RKF45 {
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DP45 {
-    tol: f64,
-    safety_factor: f64,
-    min_step_size: f64,
-    max_step_size: f64,
-    max_step_iter: usize,
+    pub tol: f64,
+    pub safety_factor: f64,
+    pub min_step_size: f64,
+    pub max_step_size: f64,
+    pub max_step_iter: usize,
 }
 
 impl Default for DP45 {
@@ -629,11 +636,11 @@ impl ButcherTableau for DP45 {
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TSIT45 {
-    tol: f64,
-    safety_factor: f64,
-    min_step_size: f64,
-    max_step_size: f64,
-    max_step_iter: usize,
+    pub tol: f64,
+    pub safety_factor: f64,
+    pub min_step_size: f64,
+    pub max_step_size: f64,
+    pub max_step_iter: usize,
 }
 
 impl Default for TSIT45 {
@@ -718,9 +725,9 @@ pub enum ImplicitSolver {
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GL4 {
-    solver: ImplicitSolver,
-    tol: f64,
-    max_step_iter: usize,
+    pub solver: ImplicitSolver,
+    pub tol: f64,
+    pub max_step_iter: usize,
 }
 
 impl Default for GL4 {
