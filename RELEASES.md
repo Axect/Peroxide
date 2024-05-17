@@ -1,3 +1,7 @@
+# Release 0.37.4 (2024-05-17)
+
+- Public ODE Integrator fields
+
 # Release 0.37.3 (2024-05-01)
 
 - Add Nan/infinite guard to `gauss_kronrod_quadrature` (early exit) ([#59](https://github.com/Axect/Peroxide/pull/59)) (Thanks to [@GComitini](https://github.com/GComitini))
