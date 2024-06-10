@@ -68,10 +68,10 @@
 //! use anyhow::Result;
 //! 
 //! fn main() -> Result<()> {
-//!     let root_bisect = bisection!(f, (0.0, 2.0), 100, 1e-6);
-//!     let root_newton = newton!(f, 0.0, 100, 1e-6);
-//!     let root_false_pos = false_position!(f, (0.0, 2.0), 100, 1e-6);
-//!     let root_secant = secant!(f, (0.0, 2.0), 100, 1e-6);
+//!     let root_bisect = bisection!(f, (0.0, 2.0), 100, 1e-6)?;
+//!     let root_newton = newton!(f, 0.0, 100, 1e-6)?;
+//!     let root_false_pos = false_position!(f, (0.0, 2.0), 100, 1e-6)?;
+//!     let root_secant = secant!(f, (0.0, 2.0), 100, 1e-6)?;
 //! 
 //!     println!("root_bisect: {}", root_bisect);
 //!     println!("root_newton: {}", root_newton);
@@ -246,8 +246,10 @@ macro_rules! bisection {
 
         let problem = BisectionProblem;
         let bisection = BisectionMethod { max_iter: $max_iter, tol: $tol };
-        let root = bisection.find(&problem)?;
-        root[0]
+        match bisection.find(&problem) {
+            Ok(root) => Ok(root[0]),
+            Err(e) => Err(e),
+        }
     }}
 }
 
@@ -297,8 +299,10 @@ macro_rules! newton {
 
         let problem = NewtonProblem;
         let newton = NewtonMethod { max_iter: $max_iter, tol: $tol };
-        let root = newton.find(&problem)?;
-        root[0]
+        match newton.find(&problem) {
+            Ok(root) => Ok(root[0]),
+            Err(e) => Err(e),
+        }
     }}
 }
 
@@ -327,8 +331,10 @@ macro_rules! false_position {
 
         let problem = FalsePositionProblem;
         let false_position = FalsePositionMethod { max_iter: $max_iter, tol: $tol };
-        let root = false_position.find(&problem)?;
-        root[0]
+        match false_position.find(&problem) {
+            Ok(root) => Ok(root[0]),
+            Err(e) => Err(e),
+        }
     }}
 }
 
@@ -357,8 +363,10 @@ macro_rules! secant {
 
         let problem = SecantProblem;
         let secant = SecantMethod { max_iter: $max_iter, tol: $tol };
-        let root = secant.find(&problem)?;
-        root[0]
+        match secant.find(&problem) {
+            Ok(root) => Ok(root[0]),
+            Err(e) => Err(e),
+        }
     }}
 }
 
