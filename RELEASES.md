@@ -1,3 +1,7 @@
+# Release 0.37.5 (2024-06-10)
+
+- More generic & stable root finding macros (except `Newton`)
+
 # Release 0.37.4 (2024-05-17)
 
 - Public ODE Integrator fields
