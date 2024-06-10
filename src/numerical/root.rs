@@ -225,26 +225,28 @@ use crate::util::non_macro::zeros;
 ///
 /// # Arguments
 ///
-/// - `f`: `fn(f64) -> f64`
+/// - `f`: `Fn(f64) -> f64` (allow closure)
 /// - `(a, b)`: `(f64, f64)`
 /// - `max_iter`: `usize`
 /// - `tol`: `f64`
 #[macro_export]
 macro_rules! bisection {
-    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
-        struct BisectionProblem;
+    ($f:expr, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct BisectionProblem<F: Fn(f64) -> f64> {
+            f: F,
+        };
 
-        impl RootFindingProblem<1, 1, (f64, f64)> for BisectionProblem {
+        impl<F: Fn(f64) -> f64> RootFindingProblem<1, 1, (f64, f64)> for BisectionProblem<F> {
             fn initial_guess(&self) -> (f64, f64) {
                 ($a, $b)
             }
 
             fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
-                Ok([$f(x[0])])
+                Ok([(self.f)(x[0])])
             }
         }
 
-        let problem = BisectionProblem;
+        let problem = BisectionProblem { f: $f };
         let bisection = BisectionMethod { max_iter: $max_iter, tol: $tol };
         match bisection.find(&problem) {
             Ok(root) => Ok(root[0]),
@@ -270,7 +272,7 @@ macro_rules! bisection {
 ///
 /// # Arguments
 ///
-/// - `f`: `fn(f64) -> f64`
+/// - `f`: `fn(f64) -> f64` (not allow closure)
 /// - `x`: `f64`
 /// - `max_iter`: `usize`
 /// - `tol`: `f64`
@@ -310,26 +312,28 @@ macro_rules! newton {
 ///
 /// # Arguments
 ///
-/// - `f`: `fn(f64) -> f64`
+/// - `f`: `Fn(f64) -> f64` (allow closure)
 /// - `(a, b)`: `(f64, f64)`
 /// - `max_iter`: `usize`
 /// - `tol`: `f64`
 #[macro_export]
 macro_rules! false_position {
-    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
-        struct FalsePositionProblem;
+    ($f:expr, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct FalsePositionProblem<F: Fn(f64) -> f64> {
+            f: F,
+        };
 
-        impl RootFindingProblem<1, 1, (f64, f64)> for FalsePositionProblem {
+        impl<F: Fn(f64) -> f64> RootFindingProblem<1, 1, (f64, f64)> for FalsePositionProblem<F> {
             fn initial_guess(&self) -> (f64, f64) {
                 ($a, $b)
             }
 
             fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
-                Ok([$f(x[0])])
+                Ok([(self.f)(x[0])])
             }
         }
 
-        let problem = FalsePositionProblem;
+        let problem = FalsePositionProblem { f: $f };
         let false_position = FalsePositionMethod { max_iter: $max_iter, tol: $tol };
         match false_position.find(&problem) {
             Ok(root) => Ok(root[0]),
@@ -342,26 +346,28 @@ macro_rules! false_position {
 ///
 /// # Arguments
 ///
-/// - `f`: `fn(f64) -> f64`
+/// - `f`: `Fn(f64) -> f64` (allow closure)
 /// - `(a, b)`: `(f64, f64)`
 /// - `max_iter`: `usize`
 /// - `tol`: `f64`
 #[macro_export]
 macro_rules! secant {
-    ($f:ident, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
-        struct SecantProblem;
+    ($f:expr, ($a:expr, $b:expr), $max_iter:expr, $tol:expr) => {{
+        struct SecantProblem<F: Fn(f64) -> f64> {
+            f: F,
+        };
 
-        impl RootFindingProblem<1, 1, (f64, f64)> for SecantProblem {
+        impl<F: Fn(f64) -> f64> RootFindingProblem<1, 1, (f64, f64)> for SecantProblem<F> {
             fn initial_guess(&self) -> (f64, f64) {
                 ($a, $b)
             }
 
             fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
-                Ok([$f(x[0])])
+                Ok([(self.f)(x[0])])
             }
         }
 
-        let problem = SecantProblem;
+        let problem = SecantProblem { f: $f };
         let secant = SecantMethod { max_iter: $max_iter, tol: $tol };
         match secant.find(&problem) {
             Ok(root) => Ok(root[0]),
