@@ -1,3 +1,18 @@
+# Release 0.37.6 (2024-06-19)
+
+## Huge Spline Change
+
+- Generic Spline trait
+  - `Spline<T>`: desired output type is `T`
+- Split `PolynomialSpline` from `Spline`
+  - `CubicSpline` & `CubicHermiteSpline` are now `PolynomialSpline`
+  - Implement `Spline<f64>` for `PolynomialSpline`
+- Implement B-Spline
+  - `BSpline { degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>> }`
+  - `BSpline::open(degree, knots, control_points)` : Open B-Spline
+  - `BSpline::clamped(degree, knots, control_points)` : Clamped B-Spline
+- Implement `Spline<(f64, f64)>` for `BSpline`
+
 # Release 0.37.5 (2024-06-10)
 
 - More generic & stable root finding macros (except `Newton`)
