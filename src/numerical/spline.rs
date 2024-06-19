@@ -4,35 +4,48 @@
 //!
 //! * Cubic spline
 //! * Cubic Hermite spline
+//! * B-spline
 //!
-//! # `Spline` trait
+//! # `Spline<T>` trait
 //!
 //! ## Methods
 //!
-//! Let `T: Into<f64> + Copy`
-//! * `fn eval<T>(&self, x: T) -> f64` : Evaluate the spline at x
-//! * `fn eval_vec<T>(&self, v: &[T]) -> Vec<f64>` : Evaluate spline values for an array v
-//! * `fn polynomial_at<T>(&self, x: T) -> &Polynomial` : Get the polynomial at x
+//! * `fn eval(&self, t: f64) -> T` : Evaluate the spline at t
+//!   * For Cubic Spline, t means x (domain) and `T = f64`
+//!   * For B-Spline, t means parameter of curve and `T = (f64, f64)`
+//! * `fn eval_vec(&self, v: &[f64]) -> Vec<T>` : Evaluate spline values for an array v
+//! * `fn eval_with_cond<F>(&self, t: f64, cond: F) -> T` : Evaluate the spline at t, with a condition
+//! * `fn eval_vec_with_cond<F>(&self, v: &[f64], cond: F) -> Vec<T>` : Evaluate spline values for an array v, with a condition
+//!
+//! # `PolynomialSpline` trait
+//!
+//! ## Methods
+//!
+//! * `fn polynomial_at(&self, x: f64) -> &Polynomial` : Get the polynomial at x
 //! * `fn number_of_polynomials(&self) -> usize` : Get the number of polynomials
 //! * `fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)>` : Get the polynomials
-//! * `fn eval_with_cond<F>(&self, x: f64, cond: F) -> f64` : Evaluate the spline at x, with a condition
-//! * `fn eval_vec_with_cond<F>(&self, v: &[f64], cond: F) -> Vec<f64>` : Evaluate spline values for an array v, with a condition
 //!
 //! # Low-level interface
 //!
 //! ## Members
 //!
 //! * `CubicSpline`: Structure for cubic spline
-//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self>` : Create a cubic spline from nodes
-//!     * `fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<()>` : Extend the spline with nodes
+//!   * `fn from_nodes(node_x: &[f64], node_y: &[f64]) -> Result<Self>` : Create a cubic spline from nodes
+//!   * `fn extend_with_nodes(&mut self, node_x: Vec<f64>, node_y: Vec<f64>) -> Result<()>` : Extend the spline with nodes
 //! * `CubicHermiteSpline`: Structure for cubic Hermite spline
-//!     * `fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slopes
-//!     * `fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slope estimation methods
-//! * `SlopeMethod`: Enum for slope estimation methods
+//!   * `fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slopes
+//!   * `fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Result<Self>` : Create a Cubic Hermite spline from nodes with slope estimation methods
+//!   * `SlopeMethod`: Enum for slope estimation methods
 //!     * `Akima`: Akima's method to estimate slopes ([Akima (1970)](https://dl.acm.org/doi/abs/10.1145/321607.321609))
 //!     * `Quadratic`: Using quadratic interpolation to estimate slopes
+//! * `BSpline`: Structure for B-Spline
+//!   * `fn open(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self>` : Create an open B-Spline
+//!   * `fn clamped(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self>`
+//!     : Create a clamped B-Spline
+//!   * `fn cox_de_boor(t: f64, i: f64)` : Cox-de Boor recursion formula (Here, use iteration
+//!   instead of recursion)
 //!
-//! ## Usage
+//! ## Usage (Cubic Spline Family)
 //!
 //! ```rust
 //! use peroxide::fuga::*;
@@ -74,6 +87,37 @@
 //!     //  r[3]  5.6 -0.6313 -0.6288 -0.5960 -0.6120
 //!     //  r[4]  5.8 -0.4646 -0.4631 -0.4424 -0.4459
 //!     //  r[5]    6 -0.2794 -0.2794 -0.2794 -0.2794
+//!
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ## Usage (B-Spline)
+//!
+//! ```rust
+//! use peroxide::fuga::*;
+//!
+//! fn main() -> Result<(), Box<dyn Error>> {
+//!     let knots = vec![0f64, 1f64, 2f64, 3f64];
+//!     let degree = 3;
+//!     let control_points = vec![
+//!         vec![0f64, 2f64],
+//!         vec![0.2, -1f64],
+//!         vec![0.4, 1f64],
+//!         vec![0.6, -1f64],
+//!         vec![0.8, 1f64],
+//!         vec![1f64, 2f64],
+//!     ];
+//!
+//!     let spline = BSpline::clamped(degree, knots, control_points)?;
+//!     let t = linspace(0f64, 3f64, 100);
+//!     let (x, y): (Vec<f64>, Vec<f64>) = spline.eval_vec(&t).into_iter().unzip();
+//!
+//!     let mut df = DataFrame::new(vec![]);
+//!     df.push("t", Series::new(t));
+//!     df.push("x", Series::new(x));
+//!     df.push("y", Series::new(y));
+//!     df.print();
 //!
 //!     Ok(())
 //! }
@@ -133,7 +177,7 @@
 //! }
 //! ```
 //!
-//! # Calculus with splines
+//! # Calculus with polynomial splines
 //!
 //! ## Usage
 //!
@@ -194,7 +238,7 @@
 //! }
 //! ```
 //!
-//! # B-Spline (incomplete)
+//! # B-Spline utils
 //!
 //! - `UnitCubicBasis`: Single cubic B-Spline basis function
 //! - `CubicBSplineBases`: Uniform Cubic B-Spline basis functions
@@ -222,29 +266,32 @@ use std::convert::From;
 use std::ops::{Index, Range};
 use anyhow::{Result, bail};
 
+pub trait Spline<T> {
+    fn eval(&self, t: f64) -> T;
+    fn eval_vec(&self, v: &[f64]) -> Vec<T> {
+        v.iter().map(|&t| self.eval(t)).collect()
+    }
+    fn eval_with_cond<F: Fn(T) -> T>(&self, t: f64, cond: F) -> T {
+        cond(self.eval(t))
+    }
+    fn eval_vec_with_cond<F: Fn(T) -> T + Copy>(&self, t: &[f64], cond: F) -> Vec<T> {
+        t.iter().map(|&x| self.eval_with_cond(x, cond)).collect()
+    }
+}
+
 /// Trait for spline interpolation
 ///
 /// # Available Splines
 ///
 /// - `CubicSpline`
 /// - `CubicHermiteSpline`
-pub trait Spline {
-    fn eval<T: Into<f64> + Copy>(&self, x: T) -> f64 {
-        let x = x.into();
-
+impl<P: PolynomialSpline> Spline<f64> for P {
+    fn eval(&self, x: f64) -> f64 {
         self.polynomial_at(x).eval(x)
     }
+}
 
-    fn eval_vec<T: Into<f64> + Copy>(&self, v: &[T]) -> Vec<f64> {
-        let mut result = vec![0f64; v.len()];
-
-        for (i, x) in v.iter().enumerate() {
-            result[i] = self.eval(*x);
-        }
-
-        result
-    }
-
+pub trait PolynomialSpline {
     fn polynomial_at<T: Into<f64> + Copy>(&self, x: T) -> &Polynomial {
         let x = x.into();
 
@@ -271,14 +318,6 @@ pub trait Spline {
     }
 
     fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)>;
-
-    fn eval_with_cond<F: Fn(f64) -> f64>(&self, x: f64, cond: F) -> f64 {
-        cond(self.eval(x))
-    }
-
-    fn eval_vec_with_cond<F: Fn(f64) -> f64 + Copy>(&self, x: &[f64], cond: F) -> Vec<f64> {
-        x.iter().map(|&x| self.eval_with_cond(x, cond)).collect()
-    }
 }
 
 // =============================================================================
@@ -383,7 +422,7 @@ pub struct CubicSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
 }
 
-impl Spline for CubicSpline {
+impl PolynomialSpline for CubicSpline {
     fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)> {
         &self.polynomials
     }
@@ -633,7 +672,7 @@ pub struct CubicHermiteSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
 }
 
-impl Spline for CubicHermiteSpline {
+impl PolynomialSpline for CubicHermiteSpline {
     fn get_ranged_polynomials(&self) -> &Vec<(Range<f64>, Polynomial)> {
         &self.polynomials
     }
@@ -806,8 +845,8 @@ fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>> {
     let y_f = l_f.eval(x_f);
     let y_ff = l_f.eval(x_ff);
 
-    let new_x = concat(&concat(&vec![x_ii, x_i], &x.to_vec()), &vec![x_f, x_ff]);
-    let new_y = concat(&concat(&vec![y_ii, y_i], &y.to_vec()), &vec![y_f, y_ff]);
+    let new_x = concat(&concat(&[x_ii, x_i], x), &[x_f, x_ff]);
+    let new_y = concat(&concat(&[y_ii, y_i], y), &[y_f, y_ff]);
 
     for i in 0..new_x.len() - 1 {
         let dx = new_x[i + 1] - new_x[i];
@@ -817,12 +856,12 @@ fn akima_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>> {
         s[i] = (new_y[i + 1] - new_y[i]) / dx;
     }
 
-    for i in 0..x.len() {
+    for (i, m_i) in m.iter_mut().enumerate() {
         let j = i + 2;
         let ds_f = (s[j + 1] - s[j]).abs();
         let ds_i = (s[j - 1] - s[j - 2]).abs();
 
-        m[i] = if ds_f == 0f64 && ds_i == 0f64 {
+        *m_i = if ds_f == 0f64 && ds_i == 0f64 {
             (s[j - 1] + s[j]) / 2f64
         } else {
             (ds_f * s[j - 1] + ds_i * s[j]) / (ds_f + ds_i)
@@ -985,5 +1024,147 @@ impl CubicBSplineBases {
 
     pub fn eval_vec(&self, x: &[f64]) -> Vec<f64> {
         x.iter().map(|x| self.eval(*x)).collect()
+    }
+}
+
+/// B-Spline
+///
+/// # Description
+/// : B-Spline is a generalization of Bezier curve.
+///
+/// # Caution
+/// - Let K = the number of knots, C = the number of control points
+/// - For open, K = C + degree + 1 (C = K - degree - 1)
+/// - For clamped, K + 2 * degree = C + degree + 1 (C = K + degree - 1)
+///
+/// # Example
+/// ```
+/// use peroxide::fuga::*;
+/// use anyhow::Result;
+///
+/// fn main() -> Result<()> {
+///     let degree = 3;
+///     let knots = vec![0f64, 0.5, 1f64];
+///     let control_points = vec![
+///         vec![0f64, 0f64],
+///         vec![0.3, 0.5],
+///         vec![0.5, 0.7],
+///         vec![0.7, 0.3],
+///         vec![1f64, 1f64],
+///     ];
+///     let spline = BSpline::clamped(degree, knots, control_points)?;
+///     
+///     let t = linspace(0f64, 1f64, 100);
+///     let (x, y): (Vec<f64>, Vec<f64>) = spline.eval_vec(&t).into_iter().unzip();
+///     assert_eq!(x.len(), 100);
+///     assert_eq!(y.len(), 100);
+///
+///     Ok(())
+/// }
+/// ```
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct BSpline {
+    pub degree: usize,
+    pub knots: Vec<f64>,
+    pub control_points: Vec<Vec<f64>>,
+}
+
+impl BSpline {
+    /// Create new open B-Spline
+    ///
+    /// # Arguments
+    /// - `degree` - Degree of B-Spline
+    /// - `knots` - Knots (length = K)
+    /// - `control_points` - Control points (length = C)
+    ///
+    /// # Caution
+    /// - K = C + degree + 1 (C = K - degree - 1)
+    pub fn open(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self> {
+        if knots.len() != control_points.len() + degree + 1 {
+            bail!("The number of knots ({}) should be equal to the number of control points ({}) + degree ({}) + 1", knots.len(), control_points.len(), degree);
+        }
+
+        Ok(Self { degree, knots, control_points })
+    }
+
+    /// Create new clamped B-Spline
+    ///
+    /// # Arguments
+    /// - `degree` - Degree of B-Spline
+    /// - `knots` - Knots (length = K)
+    /// - `control_points` - Control points (length = C)
+    ///
+    /// # Caution
+    /// - K + 2 * degree = C + degree + 1 (C = K + degree - 1)
+    pub fn clamped(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self> {
+        let mut knots = knots.clone();
+
+        if knots.len() != control_points.len() + 1 - degree {
+            bail!("For clamped, the number of knots ({}) should be equal to the number of control points ({}) + 1 - degree ({})", knots.len(), control_points.len(), degree);
+        }
+        for _ in 0..degree {
+            knots.insert(0, knots[0]);
+            knots.push(knots[knots.len() - 1]);
+        }
+        if knots.len() != control_points.len() + degree + 1 {
+            bail!("The number of knots ({}) should be equal to the number of control points ({}) + degree ({}) + 1", knots.len(), control_points.len(), degree);
+        }
+
+        Ok(Self { degree, knots, control_points })
+    }
+
+    /// Obtain basis function via Cox-de Boor algorithm
+    #[allow(non_snake_case)]
+    pub fn cox_de_boor(&self, t: f64, i: usize) -> f64 {
+        let p = self.degree;
+        let mut B = vec![vec![0f64; p + 1]; p + 1];
+
+        // Initialize 0th degree basis functions
+        for (j, B_j) in B.iter_mut().enumerate() {
+            if (self.knots[i + j] <= t && t < self.knots[i + j + 1]) || (i + j == self.knots.len() - (p + 2) && t == self.knots[i + j + 1]) {
+                B_j[0] = 1f64;
+            } else {
+                B_j[0] = 0f64;
+            }
+        }
+
+        // Compute the basis functions for higher degree
+        for k in 1..=p {
+            for j in 0..=(p-k) {
+                let a = if self.knots[i + j + k] == self.knots[i+j] {
+                    0f64
+                } else {
+                    (t - self.knots[i+j]) / (self.knots[i+j+k] - self.knots[i+j])
+                };
+
+                let b = if self.knots[i + j + k + 1] == self.knots[i+j+1] {
+                    0f64
+                } else {
+                    (self.knots[i+j+k+1] - t) / (self.knots[i+j+k+1] - self.knots[i+j+1])
+                };
+
+                B[j][k] = a * B[j][k-1] + b * B[j+1][k-1];
+            }
+        }
+
+        B[0][p]
+    }
+}
+
+impl Spline<(f64, f64)> for BSpline {
+    #[allow(non_snake_case)]
+    fn eval(&self, t: f64) -> (f64, f64) {
+        let n = self.control_points.len();
+
+        let mut x = 0f64;
+        let mut y = 0f64;
+        for i in 0 .. n {
+            let B = self.cox_de_boor(t, i);
+            x += B * self.control_points[i][0];
+            y += B * self.control_points[i][1];
+        }
+
+        (x, y)
     }
 }
