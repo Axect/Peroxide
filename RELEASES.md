@@ -1,3 +1,9 @@
+# Release 0.37.7 (2024-07-05)
+
+- Bump `pyo3` dependency to `0.22`
+- Fix plot functions to be compatible with `pyo3`
+- Add B-Spline to README
+
 # Release 0.37.6 (2024-06-19)
 
 ## Huge Spline Change
