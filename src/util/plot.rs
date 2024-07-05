@@ -494,23 +494,23 @@ impl Plot for Plot2D {
             let plot_type = self.plot_type.clone();
 
             // Global variables to plot
-            let globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py);
-            globals.set_item("x", x)?;
-            globals.set_item("y", ys)?;
-            globals.set_item("pair", pairs)?;
-            globals.set_item("n", y_length)?;
-            globals.set_item("p", pair_length)?;
+            let globals = vec![("plt", py.import_bound("matplotlib.pyplot")?)].into_py_dict_bound(py);
+            globals.as_gil_ref().set_item("x", x)?;
+            globals.as_gil_ref().set_item("y", ys)?;
+            globals.as_gil_ref().set_item("pair", pairs)?;
+            globals.as_gil_ref().set_item("n", y_length)?;
+            globals.as_gil_ref().set_item("p", pair_length)?;
             if let Some(fs) = fig_size {
-                globals.set_item("fs", fs)?;
+                globals.as_gil_ref().set_item("fs", fs)?;
             }
-            globals.set_item("dp", dpi)?;
-            globals.set_item("gr", grid)?;
-            globals.set_item("pa", path)?;
+            globals.as_gil_ref().set_item("dp", dpi)?;
+            globals.as_gil_ref().set_item("gr", grid)?;
+            globals.as_gil_ref().set_item("pa", path)?;
             if let Some(xl) = self.xlim {
-                globals.set_item("xl", xl)?;
+                globals.as_gil_ref().set_item("xl", xl)?;
             }
             if let Some(yl) = self.ylim {
-                globals.set_item("yl", yl)?;
+                globals.as_gil_ref().set_item("yl", yl)?;
             }
 
             // Plot Code
@@ -661,7 +661,7 @@ impl Plot for Plot2D {
                 plot_string.push_str(&format!("plt.savefig(pa, dpi={})", dpi)[..]);
             }
 
-            py.run(&plot_string[..], Some(&globals), None)?;
+            py.run_bound(&plot_string[..], Some(&globals), None)?;
             Ok(())
         })
     }
