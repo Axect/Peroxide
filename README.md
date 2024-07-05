@@ -173,8 +173,7 @@ Peroxide can do many things.
     - Cubic Hermite Spline
       - Estimate slope via Akima
       - Estimate slope via Quadratic interpolation
-    - B-Spline (incomplete)
-      - Uniform Cubic B-Spline basis function
+    - B-Spline
   - Non-linear regression
     - Gradient Descent
     - Levenberg Marquardt
@@ -312,7 +311,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.37.1`
+Corresponding to `0.37.7`
 
 ## Pre-requisite
 
@@ -408,7 +407,7 @@ Corresponding to `0.37.1`
     - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
     - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
     - [root.rs](src/numerical/root.rs) : Root finding
-    - [spline.rs](src/numerical/spline.rs) : Cubic spline & Cubic Hermite spline
+    - [spline.rs](src/numerical/spline.rs) : Cubic spline, Cubic Hermite spline & B-Spline
     - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
   - __prelude__ : Prelude for using simple
     - [mod.rs](src/prelude/mod.rs)
