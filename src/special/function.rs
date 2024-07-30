@@ -107,7 +107,7 @@ pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
 /// Inverse regularized incomplete beta function
 ///
 /// Wrapper of `invbetai` function of `puruspe` crate
-pub fn inv_inv_beta(p: f64, a: f64, b: f64) -> f64 {
+pub fn inv_inc_beta(p: f64, a: f64, b: f64) -> f64 {
     puruspe::invbetai(p, a, b)
 }
 
@@ -117,15 +117,6 @@ pub fn inv_inv_beta(p: f64, a: f64, b: f64) -> f64 {
 pub fn phi(x: f64) -> f64 {
     0.5 * (1f64 + erf(x / 2f64.sqrt()))
 }
-
-// /// Hypergeometric function 2F1
-// ///
-// /// Wrapper of `hyp2f1` function of `special-fun` crate
-// pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
-//     unsafe {
-//         special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
-//     }
-// }
 
 /// The principal branch of the Lambert W function, W_0(`z`).
 ///
