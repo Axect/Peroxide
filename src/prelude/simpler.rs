@@ -153,7 +153,7 @@ pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> anyhow::Result<Cu
 }
 
 use crate::special::function::{
-    lambert_w0 as lambert_w0_flex, lambert_wm1 as lambert_w_m1_flex, LambertWAccuracyMode,
+    lambert_w0 as lambert_w0_flex, lambert_wm1 as lambert_wm1_flex, LambertWAccuracyMode,
 };
 
 /// The principal branch of the Lambert W function, W_0(`z`).
@@ -182,8 +182,8 @@ pub fn lambert_w0(z: f64) -> f64 {
 /// # Reference
 ///
 /// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
-pub fn lambert_w_m1(z: f64) -> f64 {
-    lambert_w_m1_flex(z, LambertWAccuracyMode::Precise)
+pub fn lambert_wm1(z: f64) -> f64 {
+    lambert_wm1_flex(z, LambertWAccuracyMode::Precise)
 }
 
 /// Simple handle parquet
