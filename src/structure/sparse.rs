@@ -2,13 +2,13 @@
 //!
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
-use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, WAZD, SVD};
+use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, SVD, WAZD};
 use crate::traits::math::LinearOp;
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
+#[cfg(feature = "O3")]
+use crate::fuga::UPLO;
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
-#[cfg(feature="O3")]
-use crate::fuga::UPLO;
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -163,7 +163,7 @@ impl LinearAlgebra for SPMatrix {
         unimplemented!()
     }
 
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self, _uplo: UPLO) -> Matrix {
         unimplemented!()
     }

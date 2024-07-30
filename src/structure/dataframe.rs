@@ -39,7 +39,7 @@
 //!         fn at_raw(&self, i: usize) -> T;
 //!         fn push(&mut self, elem: T);
 //!     }
-//!     ``` 
+//!     ```
 //!
 //! * `Series` methods
 //!
@@ -58,7 +58,7 @@
 //!         * All integer & float types can be exchanged.
 //!         * `Bool, Char` can be changed to `Str` or `U8` only.
 //!         * `U8` can be changed to all types.
-//! 
+//!
 //! ### 3. Example
 //!
 //! ```rust
@@ -72,7 +72,7 @@
 //!
 //!     a.print();       // print for Series
 //!     b.dtype.print(); // print for dtype of Series (=Char)
-//!     c.as_type(U8);   // Bool => U8 
+//!     c.as_type(U8);   // Bool => U8
 //!     
 //!     assert_eq!(c.dtype, U8);
 //! }
@@ -215,16 +215,16 @@
 //!         Ok(())
 //!     }
 //!     ```
-//! 
+//!
 //! * `WithParquet` trait
-//! 
+//!
 //!     ```ignore
 //!     pub trait WithParquet: Sized {
 //!         fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>>;
 //!         fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>;
 //!     }
 //!     ```
-//! 
+//!
 //!     * `parquet` feature should be required
 //!     * `Char` is saved with `String` type. Thus, for reading `Char` type parquet file,
 //!     the output type is `String`.
@@ -255,56 +255,35 @@
 //!     }
 //!     ```
 
-#[cfg(feature="csv")]
+use crate::traits::math::Vector;
+use crate::util::{print::LowerExpWithPlus, useful::tab};
+use std::cmp::{max, min};
+#[cfg(feature = "csv")]
 use std::collections::HashMap;
+#[cfg(any(feature = "csv", feature = "nc", feature = "parquet"))]
+use std::error::Error;
 use std::fmt;
 use std::ops::{Index, IndexMut};
-use std::cmp::{max, min};
-#[cfg(any(feature="csv", feature="nc", feature="parquet"))]
-use std::error::Error;
-use crate::util::{
-    useful::tab,
-    print::LowerExpWithPlus,
-};
-use crate::traits::math::Vector;
-use DType::{
-    USIZE,U8,U16,U32,U64,
-    ISIZE,I8,I16,I32,I64,
-    F32,F64,Bool,Char,Str
-};
+use DType::{Bool, Char, Str, F32, F64, I16, I32, I64, I8, ISIZE, U16, U32, U64, U8, USIZE};
 
-#[cfg(feature="csv")]
+#[cfg(feature = "parquet")]
+use arrow2::{
+    array::{Array, BooleanArray, PrimitiveArray, Utf8Array},
+    chunk::Chunk,
+    datatypes::{DataType, Field, Schema},
+    io::parquet::read::{infer_schema, read_metadata, FileReader},
+    io::parquet::write::{
+        CompressionOptions, Encoding, FileWriter, RowGroupIterator, Version, WriteOptions,
+    },
+    types::NativeType,
+};
+#[cfg(feature = "csv")]
 use csv::{ReaderBuilder, WriterBuilder};
-#[cfg(feature="nc")]
+#[cfg(feature = "nc")]
 use netcdf::{
     types::VariableType,
-    variable::{VariableMut, Variable},
+    variable::{Variable, VariableMut},
     Numeric,
-};
-#[cfg(feature="parquet")]
-use arrow2::{
-    array::{
-        PrimitiveArray,
-        BooleanArray,
-        Utf8Array,
-        Array
-    },
-    chunk::Chunk,
-    datatypes::{Field, DataType, Schema},
-    types::NativeType,
-    io::parquet::write::{
-        WriteOptions,
-        CompressionOptions,
-        RowGroupIterator,
-        Version,
-        FileWriter,
-        Encoding
-    },
-    io::parquet::read::{
-        read_metadata,
-        infer_schema,
-        FileReader,
-    }
 };
 
 // =============================================================================
@@ -448,7 +427,9 @@ pub struct Scalar {
 // Traits
 // =============================================================================
 pub trait TypedScalar<T> {
-    fn new(s: T) -> Self where Self: Sized;
+    fn new(s: T) -> Self
+    where
+        Self: Sized;
     fn unwrap(self) -> T;
 }
 
@@ -461,13 +442,13 @@ pub trait TypedVector<T> {
     fn push(&mut self, elem: T);
     fn map<F: Fn(T) -> T>(&self, f: F) -> Self;
     fn mut_map<F: Fn(&mut T)>(&mut self, f: F);
-    fn fold<F: Fn(T,T) -> T>(&self, init: T, f: F) -> T;
+    fn fold<F: Fn(T, T) -> T>(&self, init: T, f: F) -> T;
     fn filter<F: Fn(&T) -> bool>(&self, f: F) -> Self;
     fn take(&self, n: usize) -> Self;
     fn skip(&self, n: usize) -> Self;
     fn take_while<F: Fn(&T) -> bool>(&self, f: F) -> Self;
     fn skip_while<F: Fn(&T) -> bool>(&self, f: F) -> Self;
-    fn zip_with<F: Fn(T,T) -> T>(&self, f: F, other: &Self) -> Self;
+    fn zip_with<F: Fn(T, T) -> T>(&self, f: F, other: &Self) -> Self;
 }
 
 // =============================================================================
@@ -490,7 +471,7 @@ macro_rules! impl_typed_scalar {
                 }
             }
         }
-    }
+    };
 }
 
 macro_rules! impl_typed_vector {
@@ -578,13 +559,14 @@ macro_rules! impl_typed_vector {
                 let v: Vec<$type> = self.to_vec();
                 let w: Vec<$type> = other.to_vec();
                 Series::new(
-                    v.into_iter().zip(w.into_iter())
+                    v.into_iter()
+                        .zip(w.into_iter())
                         .map(|(x, y)| f(x, y))
-                        .collect::<Vec<$type>>()
+                        .collect::<Vec<$type>>(),
                 )
             }
         }
-    }
+    };
 }
 
 macro_rules! dtype_case {
@@ -693,7 +675,7 @@ macro_rules! set_space {
                     st2
                 }
             }
-            _ => $elem.to_string()
+            _ => $elem.to_string(),
         }
     }};
 
@@ -703,14 +685,14 @@ macro_rules! set_space {
                 let elem: f32 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len())
+                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len()),
                 );
             }
             F64 => {
                 let elem: f64 = $elem.unwrap();
                 $space = max(
                     $space,
-                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len())
+                    min(elem.fmt_lower_exp(2).len(), elem.to_string().len()),
                 );
             }
             _ => {
@@ -724,14 +706,10 @@ macro_rules! format_float_vec {
     ($self:expr) => {{
         let mut result = String::new();
         result.push_str("[");
-        for i in 0 .. $self.len() {
+        for i in 0..$self.len() {
             let st1 = $self[i].fmt_lower_exp(2);
             let st2 = $self[i].to_string();
-            let st = if st1.len() < st2.len() {
-                st1
-            } else {
-                st2
-            };
+            let st = if st1.len() < st2.len() { st1 } else { st2 };
             result.push_str(&st);
             if i == $self.len() - 1 {
                 break;
@@ -757,7 +735,7 @@ macro_rules! string_cast_vec {
         let y: Vec<$ty1> = $to_vec;
         let x: Vec<String> = y.into_iter().map(|x| x.to_string()).collect();
         $wrapper(x)
-    }}
+    }};
 }
 
 macro_rules! type_parse_vec {
@@ -815,20 +793,18 @@ macro_rules! dtype_cast_vec {
     ($dt1:expr, $dt2:expr, $to_vec:expr, $wrapper:expr) => {{
         match $dt1 {
             USIZE => dtype_cast_vec_part!(usize, $dt2, $to_vec, $wrapper),
-            U8 => {
-                match $dt2 {
-                    Bool => {
-                        let y: Vec<u8> = $to_vec;
-                        let x: Vec<bool> = y.into_iter().map(|x| x != 0).collect();
-                        $wrapper(x)
-                    },
-                    Char => {
-                        let y: Vec<u8> = $to_vec;
-                        let x: Vec<char> = y.into_iter().map(|x| x as char).collect();
-                        $wrapper(x)
-                    },
-                    _ => dtype_cast_vec_part!(u8, $dt2, $to_vec, $wrapper)
+            U8 => match $dt2 {
+                Bool => {
+                    let y: Vec<u8> = $to_vec;
+                    let x: Vec<bool> = y.into_iter().map(|x| x != 0).collect();
+                    $wrapper(x)
                 }
+                Char => {
+                    let y: Vec<u8> = $to_vec;
+                    let x: Vec<char> = y.into_iter().map(|x| x as char).collect();
+                    $wrapper(x)
+                }
+                _ => dtype_cast_vec_part!(u8, $dt2, $to_vec, $wrapper),
             },
             U16 => dtype_cast_vec_part!(u16, $dt2, $to_vec, $wrapper),
             U32 => dtype_cast_vec_part!(u32, $dt2, $to_vec, $wrapper),
@@ -841,28 +817,24 @@ macro_rules! dtype_cast_vec {
             F32 => dtype_cast_vec_part!(f32, $dt2, $to_vec, $wrapper),
             F64 => dtype_cast_vec_part!(f64, $dt2, $to_vec, $wrapper),
             Str => dtype_parse_vec_part!($dt2, $to_vec, $wrapper),
-            Char => {
-                match $dt2 {
-                    Str => string_cast_vec!(char, $to_vec, $wrapper),
-                    U8 => {
-                        let y: Vec<char> = $to_vec;
-                        let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
-                        $wrapper(x)
-                    },
-                    _ => panic!("Can't convert char type to {}", $dt2),
+            Char => match $dt2 {
+                Str => string_cast_vec!(char, $to_vec, $wrapper),
+                U8 => {
+                    let y: Vec<char> = $to_vec;
+                    let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
+                    $wrapper(x)
                 }
-            }
-            Bool => {
-                match $dt2 {
-                    Str => string_cast_vec!(bool, $to_vec, $wrapper),
-                    U8 => {
-                        let y: Vec<bool> = $to_vec;
-                        let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
-                        $wrapper(x)
-                    },
-                    _ => panic!("Can't convert bool type to {}", $dt2),
+                _ => panic!("Can't convert char type to {}", $dt2),
+            },
+            Bool => match $dt2 {
+                Str => string_cast_vec!(bool, $to_vec, $wrapper),
+                U8 => {
+                    let y: Vec<bool> = $to_vec;
+                    let x: Vec<u8> = y.into_iter().map(|x| x as u8).collect();
+                    $wrapper(x)
                 }
-            }
+                _ => panic!("Can't convert bool type to {}", $dt2),
+            },
         }
     }};
 }
@@ -875,7 +847,7 @@ fn to_string<T: fmt::Display>(x: T) -> String {
     x.to_string()
 }
 
-#[cfg(feature= "nc")]
+#[cfg(feature = "nc")]
 fn dtype_to_vtype(dt: DType) -> netcdf::types::BasicType {
     match dt {
         USIZE => netcdf::types::BasicType::Uint64,
@@ -896,7 +868,7 @@ fn dtype_to_vtype(dt: DType) -> netcdf::types::BasicType {
     }
 }
 
-#[cfg(feature= "nc")]
+#[cfg(feature = "nc")]
 fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
     match dv {
         netcdf::types::BasicType::Ubyte => U8,
@@ -913,20 +885,26 @@ fn vtype_to_dtype(dv: netcdf::types::BasicType) -> DType {
     }
 }
 
-#[cfg(feature= "nc")]
+#[cfg(feature = "nc")]
 fn nc_put_value<T: Numeric>(var: &mut VariableMut, v: Vec<T>) -> Result<(), netcdf::error::Error> {
     var.put_values(&v, None, None)
 }
 
-#[cfg(feature= "nc")]
-fn nc_read_value<T: Numeric + Default + Clone>(val: &Variable, v: Vec<T>) -> Result<Series, netcdf::error::Error> where Series: TypedVector<T> {
+#[cfg(feature = "nc")]
+fn nc_read_value<T: Numeric + Default + Clone>(
+    val: &Variable,
+    v: Vec<T>,
+) -> Result<Series, netcdf::error::Error>
+where
+    Series: TypedVector<T>,
+{
     let mut v = v;
     v.resize_with(val.len(), Default::default);
     val.values_to(&mut v, None, None)?;
     Ok(Series::new(v.clone()))
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 fn dtype_to_arrow(dt: DType) -> DataType {
     match dt {
         USIZE => DataType::UInt64,
@@ -947,7 +925,7 @@ fn dtype_to_arrow(dt: DType) -> DataType {
     }
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 fn arrow_to_dtype(dt: DataType) -> DType {
     match dt {
         DataType::Boolean => Bool,
@@ -963,27 +941,29 @@ fn arrow_to_dtype(dt: DataType) -> DType {
         DataType::Float32 => F32,
         DataType::Float64 => F64,
         DataType::Utf8 => Str,
-        _ => unimplemented!()
+        _ => unimplemented!(),
     }
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 macro_rules! dtype_case_to_arrow {
     ($ty:ty, $to_arr:expr, $value:expr, $chunk_vec:expr; $length:expr) => {{
         let v: Vec<$ty> = $value;
-        let v_wrap = (0usize..$length).map(|i| {
-            if i < v.len() {
-                Some(v[i].clone())
-            } else {
-                None
-            }
-        }).collect::<Vec<_>>();
+        let v_wrap = (0usize..$length)
+            .map(|i| {
+                if i < v.len() {
+                    Some(v[i].clone())
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
         let arr = $to_arr(v_wrap);
         $chunk_vec.push(arr.boxed())
-    }}
+    }};
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 macro_rules! dtype_match_to_arrow {
     ($dtype:expr, $value:expr, $chunk_vec:expr; $length:expr) => {{
         match $dtype {
@@ -1010,26 +990,38 @@ macro_rules! dtype_match_to_arrow {
     }};
 }
 
-#[cfg(feature= "parquet")]
-fn parquet_read_value<T: Default + Clone + NativeType>(arr: &Box<dyn Array>, _v: Vec<T>) -> Result<Series, arrow2::error::Error> where Series: TypedVector<T> {
+#[cfg(feature = "parquet")]
+fn parquet_read_value<T: Default + Clone + NativeType>(
+    arr: &Box<dyn Array>,
+    _v: Vec<T>,
+) -> Result<Series, arrow2::error::Error>
+where
+    Series: TypedVector<T>,
+{
     let x = arr.as_any().downcast_ref::<PrimitiveArray<T>>().unwrap();
     let x = x.values_iter().cloned().collect::<Vec<_>>();
 
     Ok(Series::new(x))
 }
 
-fn add_vec<T: std::ops::Add<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
-where Series: TypedVector<T> {
+fn add_vec<T: std::ops::Add<T, Output = T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series
+where
+    Series: TypedVector<T>,
+{
     Series::new(v.into_iter().zip(w).map(|(x, y)| x + y).collect::<Vec<T>>())
 }
 
-fn sub_vec<T: std::ops::Sub<T, Output=T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series 
-where Series: TypedVector<T> {
+fn sub_vec<T: std::ops::Sub<T, Output = T> + Clone>(v: Vec<T>, w: Vec<T>) -> Series
+where
+    Series: TypedVector<T>,
+{
     Series::new(v.into_iter().zip(w).map(|(x, y)| x - y).collect::<Vec<T>>())
 }
 
-fn mul_scalar<T: std::ops::Mul<T, Output=T> + Clone + Copy>(v: Vec<T>, s: T) -> Series
-where Series: TypedVector<T> {
+fn mul_scalar<T: std::ops::Mul<T, Output = T> + Clone + Copy>(v: Vec<T>, s: T) -> Series
+where
+    Series: TypedVector<T>,
+{
     Series::new(v.into_iter().map(|x| x * s).collect::<Vec<T>>())
 }
 
@@ -1141,7 +1133,7 @@ impl Series {
     pub fn at(&self, i: usize) -> Scalar {
         dtype_match!(self.dtype, self.at_raw(i), Scalar::new)
     }
-    
+
     /// Length for Series
     pub fn len(&self) -> usize {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
@@ -1196,7 +1188,7 @@ impl Vector for Series {
         assert_eq!(self.dtype, rhs.dtype, "DTypes are not same (add_vec)");
         dtype_match!(
             N;
-            self.dtype, 
+            self.dtype,
             self.to_vec(),
             |x| add_vec(x, rhs.to_vec());
             Vec
@@ -1374,12 +1366,9 @@ impl fmt::Display for Scalar {
 impl DataFrame {
     /// Declare new DataFrame with `Vec<Series>`
     pub fn new(v: Vec<Series>) -> Self {
-        let ics = (0usize .. v.len()).map(|x| x.to_string()).collect();
+        let ics = (0usize..v.len()).map(|x| x.to_string()).collect();
 
-        Self {
-            data: v,
-            ics,
-        }
+        Self { data: v, ics }
     }
 
     pub fn header(&self) -> &Vec<String> {
@@ -1399,7 +1388,11 @@ impl DataFrame {
     /// Push new pair of head, Series to DataFrame
     pub fn push(&mut self, name: &str, series: Series) {
         if self.ics.len() > 0 {
-            assert_eq!(self.ics.iter().find(|x| x.as_str() == name), None, "Repetitive index!");
+            assert_eq!(
+                self.ics.iter().find(|x| x.as_str() == name),
+                None,
+                "Repetitive index!"
+            );
         }
         self.ics.push(name.to_string());
         self.data.push(series);
@@ -1417,9 +1410,12 @@ impl DataFrame {
     }
 
     pub fn spread(&self) -> String {
-        let r: usize = self.data.iter().fold(0, |max_len, column| max(max_len, column.len()));
+        let r: usize = self
+            .data
+            .iter()
+            .fold(0, |max_len, column| max(max_len, column.len()));
         let h = self.header();
-        
+
         let mut result = String::new();
 
         if r > 100 {
@@ -1427,15 +1423,15 @@ impl DataFrame {
             result.push_str(&tab("", lc1));
 
             let mut space_vec: Vec<usize> = vec![];
-            for i in 0 .. self.data.len() {
+            for i in 0..self.data.len() {
                 let v = &self[i];
                 let mut space = 0usize;
-                for j in 0 .. v.len().min(5) {
+                for j in 0..v.len().min(5) {
                     let elem = v.at(j);
                     set_space!(elem, space);
                 }
-                if v.len() >= r-5 {
-                    for j in v.len()-5 .. v.len() {
+                if v.len() >= r - 5 {
+                    for j in v.len() - 5..v.len() {
                         let elem = v.at(j);
                         set_space!(elem, space);
                     }
@@ -1449,31 +1445,10 @@ impl DataFrame {
                 space_vec.push(space);
             }
             result.push('\n');
-            
-            for i in 0 .. 5 {
+
+            for i in 0..5 {
                 result.push_str(&tab(&format!("r[{}]", i), lc1));
-                for j in 0 .. self.data.len() {
-                    let v = &self[j];
-                    let space = space_vec[j];
-                    if i < v.len() {
-                        let elem = v.at(i);
-                        let st = set_space!(elem);
-                        result.push_str(&tab(&st, space));
-                    }  else { 
-                        result.push_str(&tab("", space));      
-                    }
-                }
-                result.push('\n');
-            }
-            result.push_str(&tab("...", lc1));
-            for j in 0 .. self.data.len() {
-                let space = space_vec[j];
-                result.push_str(&tab("...", space));
-            }
-            result.push('\n');
-            for i in r-5 .. r {
-                result.push_str(&tab(&format!("r[{}]", i), lc1));
-                for j in 0 .. self.data.len() {
+                for j in 0..self.data.len() {
                     let v = &self[j];
                     let space = space_vec[j];
                     if i < v.len() {
@@ -1484,7 +1459,28 @@ impl DataFrame {
                         result.push_str(&tab("", space));
                     }
                 }
-                if i == r-1 {
+                result.push('\n');
+            }
+            result.push_str(&tab("...", lc1));
+            for j in 0..self.data.len() {
+                let space = space_vec[j];
+                result.push_str(&tab("...", space));
+            }
+            result.push('\n');
+            for i in r - 5..r {
+                result.push_str(&tab(&format!("r[{}]", i), lc1));
+                for j in 0..self.data.len() {
+                    let v = &self[j];
+                    let space = space_vec[j];
+                    if i < v.len() {
+                        let elem = v.at(i);
+                        let st = set_space!(elem);
+                        result.push_str(&tab(&st, space));
+                    } else {
+                        result.push_str(&tab("", space));
+                    }
+                }
+                if i == r - 1 {
                     break;
                 }
                 result.push('\n');
@@ -1495,10 +1491,10 @@ impl DataFrame {
         result.push_str(&tab("", 5));
         let mut space_vec: Vec<usize> = vec![];
 
-        for i in 0 .. self.data.len() {
+        for i in 0..self.data.len() {
             let v = &self[i];
             let mut space = 0usize;
-            for j in 0 .. v.len() {
+            for j in 0..v.len() {
                 let elem = v.at(j);
                 set_space!(elem, space)
             }
@@ -1512,9 +1508,9 @@ impl DataFrame {
         }
         result.push('\n');
 
-        for i in 0 .. r {
+        for i in 0..r {
             result.push_str(&tab(&format!("r[{}]", i), 5));
-            for j in 0 .. self.data.len() {
+            for j in 0..self.data.len() {
                 let v = &self[j];
                 let space = space_vec[j];
                 if i < v.len() {
@@ -1532,7 +1528,7 @@ impl DataFrame {
         }
         result
     }
-    
+
     /// Type casting for DataFrame
     ///
     /// # Examples
@@ -1556,7 +1552,11 @@ impl DataFrame {
     /// }
     /// ```
     pub fn as_types(&mut self, dtypes: Vec<DType>) {
-        assert_eq!(self.data.len(), dtypes.len(), "Length of dtypes are not compatible with DataFrame");
+        assert_eq!(
+            self.data.len(),
+            dtypes.len(),
+            "Length of dtypes are not compatible with DataFrame"
+        );
         for (i, dtype) in dtypes.into_iter().enumerate() {
             self[i].as_type(dtype);
         }
@@ -1637,13 +1637,13 @@ impl fmt::Display for DataFrame {
 // =============================================================================
 
 /// To handle CSV file format
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 pub trait WithCSV: Sized {
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_csv(file_path: &str, delimiter: char) -> Result<Self, Box<dyn Error>>;
 }
 
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 impl WithCSV for DataFrame {
     /// Write csv file
     fn write_csv(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
@@ -1653,11 +1653,9 @@ impl WithCSV for DataFrame {
             .iter()
             .fold(0, |max_len, column| max(max_len, column.len()));
         let c: usize = self.data.len();
-        wtr.write_record(
-            self.header().clone()
-        )?;
-        
-        for i in 0 .. r {
+        wtr.write_record(self.header().clone())?;
+
+        for i in 0..r {
             let mut record: Vec<String> = vec!["".to_string(); c];
             for (j, v) in self.data.iter().enumerate() {
                 if i < v.len() {
@@ -1699,14 +1697,14 @@ impl WithCSV for DataFrame {
 }
 
 /// To handle with NetCDF file format
-#[cfg(feature= "nc")]
+#[cfg(feature = "nc")]
 pub trait WithNetCDF: Sized {
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>>;
     fn read_nc(file_path: &str) -> Result<Self, Box<dyn Error>>;
     fn read_nc_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>>;
 }
 
-#[cfg(feature= "nc")]
+#[cfg(feature = "nc")]
 impl WithNetCDF for DataFrame {
     /// write netcdf file
     fn write_nc(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
@@ -1720,7 +1718,11 @@ impl WithNetCDF for DataFrame {
             match v.dtype {
                 dtype if dtype.is_numeric() => {
                     let vtype = dtype_to_vtype(dtype);
-                    let var = &mut f.add_variable_with_type(h, &[&dim_name], &VariableType::Basic(vtype))?;
+                    let var = &mut f.add_variable_with_type(
+                        h,
+                        &[&dim_name],
+                        &VariableType::Basic(vtype),
+                    )?;
                     dtype_match!(N; dtype, v.to_vec(), |v| nc_put_value(var, v); Vec)?;
                 }
                 Str => {
@@ -1754,7 +1756,7 @@ impl WithNetCDF for DataFrame {
                     let v_slice: &[u8] = v.as_slice();
                     var.put_values(v_slice, None, None)?;
                 }
-                _ => unreachable!()
+                _ => unreachable!(),
             }
         }
 
@@ -1769,7 +1771,7 @@ impl WithNetCDF for DataFrame {
             let h = v.name();
             if v.vartype().is_string() {
                 let mut data: Vec<String> = vec![Default::default(); v.len()];
-                for i in 0 .. v.len() {
+                for i in 0..v.len() {
                     data[i] = v.string_value(Some(&[i]))?;
                 }
                 df.push(&h, Series::new(data));
@@ -1778,7 +1780,6 @@ impl WithNetCDF for DataFrame {
                 let series = dtype_match!(N; dtype, vec![], |vec| nc_read_value(&v, vec); Vec)?;
                 df.push(&h, series);
             }
-            
         }
         Ok(df)
     }
@@ -1818,7 +1819,7 @@ impl WithNetCDF for DataFrame {
             };
             if v.vartype().is_string() {
                 let mut data: Vec<String> = vec![Default::default(); v.len()];
-                for i in 0 .. v.len() {
+                for i in 0..v.len() {
                     data[i] = v.string_value(Some(&[i]))?;
                 }
                 df.push(&h, Series::new(data));
@@ -1833,17 +1834,27 @@ impl WithNetCDF for DataFrame {
 }
 
 /// To handle parquet format
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 pub trait WithParquet {
-    fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>>;
-    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized;
+    fn write_parquet(
+        &self,
+        file_path: &str,
+        compression: CompressionOptions,
+    ) -> Result<(), Box<dyn Error>>;
+    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>
+    where
+        Self: Sized;
     // fn read_parquet_by_header(file_path: &str, header: Vec<&str>) -> Result<Self, Box<dyn Error>> where Self: Sized;
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 impl WithParquet for DataFrame {
     /// Write DataFrame to parquet
-    fn write_parquet(&self, file_path: &str, compression: CompressionOptions) -> Result<(), Box<dyn Error>> {
+    fn write_parquet(
+        &self,
+        file_path: &str,
+        compression: CompressionOptions,
+    ) -> Result<(), Box<dyn Error>> {
         let file = std::fs::File::create(file_path)?;
 
         let mut schema_vec = vec![];
@@ -1862,7 +1873,7 @@ impl WithParquet for DataFrame {
         let schema = Schema::from(schema_vec);
         let l = arr_vec.len();
         let chunk = Chunk::new(arr_vec);
-        let encodings = (0 .. l).map(|_| vec![Encoding::Plain]).collect::<Vec<_>>();
+        let encodings = (0..l).map(|_| vec![Encoding::Plain]).collect::<Vec<_>>();
         let options = WriteOptions {
             write_statistics: true,
             compression,
@@ -1870,12 +1881,8 @@ impl WithParquet for DataFrame {
             data_pagesize_limit: None,
         };
 
-        let row_groups = RowGroupIterator::try_new(
-            vec![Ok(chunk)].into_iter(),
-            &schema,
-            options,
-            encodings,
-        )?;
+        let row_groups =
+            RowGroupIterator::try_new(vec![Ok(chunk)].into_iter(), &schema, options, encodings)?;
 
         let mut writer = FileWriter::try_new(file, schema, options)?;
 
@@ -1889,7 +1896,10 @@ impl WithParquet for DataFrame {
     }
 
     /// Read parquet to DataFrame
-    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>> where Self: Sized {
+    fn read_parquet(file_path: &str) -> Result<Self, Box<dyn Error>>
+    where
+        Self: Sized,
+    {
         let mut df = DataFrame::new(vec![]);
 
         let mut reader = std::fs::File::open(file_path)?;
@@ -1920,15 +1930,21 @@ impl WithParquet for DataFrame {
                     }
                     Char => {
                         let data = arr.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
-                        let data = data.values_iter().map(|t| t.chars().next().unwrap()).collect::<Vec<_>>();
+                        let data = data
+                            .values_iter()
+                            .map(|t| t.chars().next().unwrap())
+                            .collect::<Vec<_>>();
                         df.push(&h, Series::new(data))
                     }
                     Str => {
                         let data = arr.as_any().downcast_ref::<Utf8Array<i32>>().unwrap();
-                        let data = data.values_iter().map(|t| t.to_string()).collect::<Vec<_>>();
+                        let data = data
+                            .values_iter()
+                            .map(|t| t.to_string())
+                            .collect::<Vec<_>>();
                         df.push(&h, Series::new(data))
                     }
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
         }

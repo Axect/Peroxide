@@ -87,7 +87,7 @@
 //! }
 //! ```
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 /// Trait for defining an ODE problem.
 ///
@@ -117,14 +117,12 @@ pub trait ODEProblem {
     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<()>;
 }
 
-
 /// Trait for ODE integrators.
 ///
 /// Implement this trait to define your own ODE integrator.
 pub trait ODEIntegrator {
     fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64>;
 }
-
 
 /// Enum for ODE errors.
 ///
@@ -165,7 +163,11 @@ pub enum ODEError {
 impl std::fmt::Display for ODEError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ODEError::ConstraintViolation(t, y, dy) => write!(f, "Constraint violation at t = {}, y = {:?}, dy = {:?}", t, y, dy),
+            ODEError::ConstraintViolation(t, y, dy) => write!(
+                f,
+                "Constraint violation at t = {}, y = {:?}, dy = {:?}",
+                t, y, dy
+            ),
             ODEError::ReachedMaxStepIter => write!(f, "Reached maximum number of steps per step"),
         }
     }
@@ -175,7 +177,12 @@ impl std::fmt::Display for ODEError {
 ///
 /// Implement this trait to define your own ODE solver.
 pub trait ODESolver {
-    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>)>;
+    fn solve<P: ODEProblem>(
+        &self,
+        problem: &P,
+        t_span: (f64, f64),
+        dt: f64,
+    ) -> Result<(Vec<f64>, Vec<Vec<f64>>)>;
 }
 
 /// A basic ODE solver using a specified integrator.
@@ -222,7 +229,12 @@ impl<I: ODEIntegrator> BasicODESolver<I> {
 }
 
 impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
-    fn solve<P: ODEProblem>(&self, problem: &P, t_span: (f64, f64), dt: f64) -> Result<(Vec<f64>, Vec<Vec<f64>>)> {
+    fn solve<P: ODEProblem>(
+        &self,
+        problem: &P,
+        t_span: (f64, f64),
+        dt: f64,
+    ) -> Result<(Vec<f64>, Vec<Vec<f64>>)> {
         let mut t = t_span.0;
         let mut dt = dt;
         let mut y = problem.initial_conditions();
@@ -248,7 +260,7 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
 ///
 /// ```text
 /// C | A
-/// - - - 
+/// - - -
 ///   | BU (Coefficient for update)
 ///   | BE (Coefficient for estimate error)
 /// ```
@@ -295,10 +307,10 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
             let mut k_vec = vec![vec![0.0; n]; n_k];
             let mut y_temp = y.to_vec();
 
-            for i in 0 .. n_k {
-                for i in 0 .. n {
+            for i in 0..n_k {
+                for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0 .. i {
+                    for j in 0..i {
                         s += Self::A[i][j] * k_vec[j][i];
                     }
                     y_temp[i] = y[i] + dt * s;
@@ -308,9 +320,9 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
 
             if !Self::BE.is_empty() {
                 let mut error = 0f64;
-                for i in 0 .. n {
+                for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0 .. n_k {
+                    for j in 0..n_k {
                         s += (Self::BU[j] - Self::BE[j]) * k_vec[j][i];
                     }
                     error = error.max(dt * s.abs())
@@ -318,12 +330,12 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
 
                 let factor = (self.tol() * dt / error).powf(0.2);
                 let new_dt = self.safety_factor() * dt * factor;
-                let new_dt = new_dt.clamp(self.min_step_size(),self.max_step_size());
+                let new_dt = new_dt.clamp(self.min_step_size(), self.max_step_size());
 
                 if error < self.tol() {
-                    for i in 0 .. n {
+                    for i in 0..n {
                         let mut s = 0.0;
-                        for j in 0 .. n_k {
+                        for j in 0..n_k {
                             s += Self::BU[j] * k_vec[j][i];
                         }
                         y[i] += dt * s;
@@ -337,9 +349,9 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                     dt = new_dt;
                 }
             } else {
-                for i in 0 .. n {
+                for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0 .. n_k {
+                    for j in 0..n_k {
                         s += Self::BU[j] * k_vec[j][i];
                     }
                     y[i] += dt * s;
@@ -363,11 +375,7 @@ pub struct RALS3;
 
 impl ButcherTableau for RALS3 {
     const C: &'static [f64] = &[0.0, 0.5, 0.75];
-    const A: &'static [&'static [f64]] = &[
-        &[],
-        &[0.5],
-        &[0.0, 0.75],
-    ];
+    const A: &'static [&'static [f64]] = &[&[], &[0.5], &[0.0, 0.75]];
     const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0];
     const BE: &'static [f64] = &[];
 }
@@ -420,11 +428,37 @@ impl ButcherTableau for RK5 {
         &[0.2],
         &[0.075, 0.225],
         &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0],
-        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0],
-        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
-        &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
+        &[
+            19372.0 / 6561.0,
+            -25360.0 / 2187.0,
+            64448.0 / 6561.0,
+            -212.0 / 729.0,
+        ],
+        &[
+            9017.0 / 3168.0,
+            -355.0 / 33.0,
+            46732.0 / 5247.0,
+            49.0 / 176.0,
+            -5103.0 / 18656.0,
+        ],
+        &[
+            35.0 / 384.0,
+            0.0,
+            500.0 / 1113.0,
+            125.0 / 192.0,
+            -2187.0 / 6784.0,
+            11.0 / 84.0,
+        ],
     ];
-    const BU: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BU: &'static [f64] = &[
+        5179.0 / 57600.0,
+        0.0,
+        7571.0 / 16695.0,
+        393.0 / 640.0,
+        -92097.0 / 339200.0,
+        187.0 / 2100.0,
+        1.0 / 40.0,
+    ];
     const BE: &'static [f64] = &[];
 }
 
@@ -454,13 +488,31 @@ pub struct BS23 {
 
 impl Default for BS23 {
     fn default() -> Self {
-        Self { tol: 1e-3, safety_factor: 0.9, min_step_size: 1e-6, max_step_size: 1e-1, max_step_iter: 100 }
+        Self {
+            tol: 1e-3,
+            safety_factor: 0.9,
+            min_step_size: 1e-6,
+            max_step_size: 1e-1,
+            max_step_iter: 100,
+        }
     }
 }
 
 impl BS23 {
-    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
-        Self { tol, safety_factor, min_step_size, max_step_size, max_step_iter }
+    pub fn new(
+        tol: f64,
+        safety_factor: f64,
+        min_step_size: f64,
+        max_step_size: f64,
+        max_step_iter: usize,
+    ) -> Self {
+        Self {
+            tol,
+            safety_factor,
+            min_step_size,
+            max_step_size,
+            max_step_iter,
+        }
     }
 }
 
@@ -475,13 +527,22 @@ impl ButcherTableau for BS23 {
     const BU: &'static [f64] = &[2.0 / 9.0, 1.0 / 3.0, 4.0 / 9.0, 0.0];
     const BE: &'static [f64] = &[7.0 / 24.0, 0.25, 1.0 / 3.0, 0.125];
 
-    fn tol(&self) -> f64 { self.tol }
-    fn safety_factor(&self) -> f64 { self.safety_factor }
-    fn min_step_size(&self) -> f64 { self.min_step_size }
-    fn max_step_size(&self) -> f64 { self.max_step_size }
-    fn max_step_iter(&self) -> usize { self.max_step_iter }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn safety_factor(&self) -> f64 {
+        self.safety_factor
+    }
+    fn min_step_size(&self) -> f64 {
+        self.min_step_size
+    }
+    fn max_step_size(&self) -> f64 {
+        self.max_step_size
+    }
+    fn max_step_iter(&self) -> usize {
+        self.max_step_iter
+    }
 }
-
 
 /// Runge-Kutta-Fehlberg 4/5th order integrator.
 ///
@@ -519,7 +580,13 @@ impl Default for RKF45 {
 }
 
 impl RKF45 {
-    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+    pub fn new(
+        tol: f64,
+        safety_factor: f64,
+        min_step_size: f64,
+        max_step_size: f64,
+        max_step_iter: usize,
+    ) -> Self {
         Self {
             tol,
             safety_factor,
@@ -538,16 +605,46 @@ impl ButcherTableau for RKF45 {
         &[3.0 / 32.0, 9.0 / 32.0],
         &[1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0],
         &[439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0],
-        &[-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
+        &[
+            -8.0 / 27.0,
+            2.0,
+            -3544.0 / 2565.0,
+            1859.0 / 4104.0,
+            -11.0 / 40.0,
+        ],
     ];
-    const BU: &'static [f64] = &[16.0 / 135.0, 0.0, 6656.0 / 12825.0, 28561.0 / 56430.0, -9.0 / 50.0, 2.0 / 55.0];
-    const BE: &'static [f64] = &[25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -1.0 / 5.0, 0.0];
+    const BU: &'static [f64] = &[
+        16.0 / 135.0,
+        0.0,
+        6656.0 / 12825.0,
+        28561.0 / 56430.0,
+        -9.0 / 50.0,
+        2.0 / 55.0,
+    ];
+    const BE: &'static [f64] = &[
+        25.0 / 216.0,
+        0.0,
+        1408.0 / 2565.0,
+        2197.0 / 4104.0,
+        -1.0 / 5.0,
+        0.0,
+    ];
 
-    fn tol(&self) -> f64 { self.tol }
-    fn safety_factor(&self) -> f64 { self.safety_factor }
-    fn min_step_size(&self) -> f64 { self.min_step_size }
-    fn max_step_size(&self) -> f64 { self.max_step_size }
-    fn max_step_iter(&self) -> usize { self.max_step_iter }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn safety_factor(&self) -> f64 {
+        self.safety_factor
+    }
+    fn min_step_size(&self) -> f64 {
+        self.min_step_size
+    }
+    fn max_step_size(&self) -> f64 {
+        self.max_step_size
+    }
+    fn max_step_iter(&self) -> usize {
+        self.max_step_iter
+    }
 }
 
 /// Dormand-Prince 5(4) method
@@ -585,7 +682,13 @@ impl Default for DP45 {
 }
 
 impl DP45 {
-    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+    pub fn new(
+        tol: f64,
+        safety_factor: f64,
+        min_step_size: f64,
+        max_step_size: f64,
+        max_step_iter: usize,
+    ) -> Self {
         Self {
             tol,
             safety_factor,
@@ -603,18 +706,62 @@ impl ButcherTableau for DP45 {
         &[0.2],
         &[0.075, 0.225],
         &[44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0],
-        &[19372.0 / 6561.0, -25360.0 / 2187.0, 64448.0 / 6561.0, -212.0 / 729.0],
-        &[9017.0 / 3168.0, -355.0 / 33.0, 46732.0 / 5247.0, 49.0 / 176.0, -5103.0 / 18656.0],
-        &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0],
+        &[
+            19372.0 / 6561.0,
+            -25360.0 / 2187.0,
+            64448.0 / 6561.0,
+            -212.0 / 729.0,
+        ],
+        &[
+            9017.0 / 3168.0,
+            -355.0 / 33.0,
+            46732.0 / 5247.0,
+            49.0 / 176.0,
+            -5103.0 / 18656.0,
+        ],
+        &[
+            35.0 / 384.0,
+            0.0,
+            500.0 / 1113.0,
+            125.0 / 192.0,
+            -2187.0 / 6784.0,
+            11.0 / 84.0,
+        ],
     ];
-    const BU: &'static [f64] = &[35.0 / 384.0, 0.0, 500.0 / 1113.0, 125.0 / 192.0, -2187.0 / 6784.0, 11.0 / 84.0, 0.0];
-    const BE: &'static [f64] = &[5179.0 / 57600.0, 0.0, 7571.0 / 16695.0, 393.0 / 640.0, -92097.0 / 339200.0, 187.0 / 2100.0, 1.0 / 40.0];
+    const BU: &'static [f64] = &[
+        35.0 / 384.0,
+        0.0,
+        500.0 / 1113.0,
+        125.0 / 192.0,
+        -2187.0 / 6784.0,
+        11.0 / 84.0,
+        0.0,
+    ];
+    const BE: &'static [f64] = &[
+        5179.0 / 57600.0,
+        0.0,
+        7571.0 / 16695.0,
+        393.0 / 640.0,
+        -92097.0 / 339200.0,
+        187.0 / 2100.0,
+        1.0 / 40.0,
+    ];
 
-    fn tol(&self) -> f64 { self.tol }
-    fn safety_factor(&self) -> f64 { self.safety_factor }
-    fn min_step_size(&self) -> f64 { self.min_step_size }
-    fn max_step_size(&self) -> f64 { self.max_step_size }
-    fn max_step_iter(&self) -> usize { self.max_step_iter }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn safety_factor(&self) -> f64 {
+        self.safety_factor
+    }
+    fn min_step_size(&self) -> f64 {
+        self.min_step_size
+    }
+    fn max_step_size(&self) -> f64 {
+        self.max_step_size
+    }
+    fn max_step_iter(&self) -> usize {
+        self.max_step_iter
+    }
 }
 
 /// Tsitouras 5(4) method
@@ -656,7 +803,13 @@ impl Default for TSIT45 {
 }
 
 impl TSIT45 {
-    pub fn new(tol: f64, safety_factor: f64, min_step_size: f64, max_step_size: f64, max_step_iter: usize) -> Self {
+    pub fn new(
+        tol: f64,
+        safety_factor: f64,
+        min_step_size: f64,
+        max_step_size: f64,
+        max_step_iter: usize,
+    ) -> Self {
         Self {
             tol,
             safety_factor,
@@ -673,27 +826,70 @@ impl ButcherTableau for TSIT45 {
         &[],
         &[Self::C[1]],
         &[Self::C[2] - 0.335480655492357, 0.335480655492357],
-        &[Self::C[3] - (-6.359448489975075 + 4.362295432869581), -6.359448489975075, 4.362295432869581],
-        &[Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525), -11.74888356406283, 7.495539342889836, -0.09249506636175525],
-        &[Self::C[5] - (-12.92096931784711 + 8.159367898576159 - 0.0715849732814010 - 0.02826905039406838), -12.92096931784711, 8.159367898576159, -0.0715849732814010, -0.02826905039406838],
-        &[Self::BU[0], Self::BU[1], Self::BU[2], Self::BU[3], Self::BU[4], Self::BU[5]],
+        &[
+            Self::C[3] - (-6.359448489975075 + 4.362295432869581),
+            -6.359448489975075,
+            4.362295432869581,
+        ],
+        &[
+            Self::C[4] - (-11.74888356406283 + 7.495539342889836 - 0.09249506636175525),
+            -11.74888356406283,
+            7.495539342889836,
+            -0.09249506636175525,
+        ],
+        &[
+            Self::C[5]
+                - (-12.92096931784711 + 8.159367898576159
+                    - 0.0715849732814010
+                    - 0.02826905039406838),
+            -12.92096931784711,
+            8.159367898576159,
+            -0.0715849732814010,
+            -0.02826905039406838,
+        ],
+        &[
+            Self::BU[0],
+            Self::BU[1],
+            Self::BU[2],
+            Self::BU[3],
+            Self::BU[4],
+            Self::BU[5],
+        ],
     ];
-    const BU: &'static [f64] = &[0.09646076681806523, 0.01, 0.4798896504144996, 1.379008574103742, -3.290069515436081, 2.324710524099774, 0.0];
+    const BU: &'static [f64] = &[
+        0.09646076681806523,
+        0.01,
+        0.4798896504144996,
+        1.379008574103742,
+        -3.290069515436081,
+        2.324710524099774,
+        0.0,
+    ];
     const BE: &'static [f64] = &[
         0.001780011052226,
         0.000816434459657,
-        - 0.007880878010262,
+        -0.007880878010262,
         0.144711007173263,
-        - 0.582357165452555,
+        -0.582357165452555,
         0.458082105929187,
         1.0 / 66.0,
     ];
 
-    fn tol(&self) -> f64 { self.tol }
-    fn safety_factor(&self) -> f64 { self.safety_factor }
-    fn min_step_size(&self) -> f64 { self.min_step_size }
-    fn max_step_size(&self) -> f64 { self.max_step_size }
-    fn max_step_iter(&self) -> usize { self.max_step_iter }
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn safety_factor(&self) -> f64 {
+        self.safety_factor
+    }
+    fn min_step_size(&self) -> f64 {
+        self.min_step_size
+    }
+    fn max_step_size(&self) -> f64 {
+        self.max_step_size
+    }
+    fn max_step_iter(&self) -> usize {
+        self.max_step_iter
+    }
 }
 
 // ┌─────────────────────────────────────────────────────────┐
@@ -776,8 +972,19 @@ impl ODEIntegrator for GL4 {
 
                     let mut max_diff = 0f64;
                     for i in 0..n {
-                        max_diff = max_diff.max((y1[i] - y[i] - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0)).abs())
-                                            .max((y2[i] - y[i] - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0)).abs());
+                        max_diff = max_diff
+                            .max(
+                                (y1[i]
+                                    - y[i]
+                                    - dt * (c * k1[i] + d * k2[i] - sqrt3 * (k2[i] - k1[i]) / 2.0))
+                                    .abs(),
+                            )
+                            .max(
+                                (y2[i]
+                                    - y[i]
+                                    - dt * (c * k1[i] + d * k2[i] + sqrt3 * (k2[i] - k1[i]) / 2.0))
+                                    .abs(),
+                            );
                     }
 
                     if max_diff < self.tol {

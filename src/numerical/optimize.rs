@@ -111,8 +111,8 @@
 pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
 use crate::numerical::utils::jacobian;
+use crate::structure::ad::{ADVec, AD};
 use crate::structure::matrix::{LinearAlgebra, Matrix};
-use crate::structure::ad::{AD, ADVec};
 use crate::util::useful::max;
 use std::collections::HashMap;
 
@@ -224,13 +224,15 @@ where
 
     /// Set initial lambda for `LevenbergMarquardt`
     pub fn set_lambda_init(&mut self, lambda_init: f64) -> &mut Self {
-        self.hyperparams.insert("lambda_init".to_string(), lambda_init);
+        self.hyperparams
+            .insert("lambda_init".to_string(), lambda_init);
         self
     }
 
     /// Set maximum lambda for `LevenbergMarquardt`
     pub fn set_lambda_max(&mut self, lambda_max: f64) -> &mut Self {
-        self.hyperparams.insert("lambda_max".to_string(), lambda_max);
+        self.hyperparams
+            .insert("lambda_max".to_string(), lambda_max);
         self
     }
 
@@ -287,13 +289,20 @@ where
                 let mut chi2 = ((&y - &y_hat).t() * (&y - &y_hat))[(0, 0)];
                 let mut nu = 2f64;
                 let lambda_0 = *self.hyperparams.get("lambda_init").unwrap_or(&1e-3);
-                let lambda_max = *self.hyperparams.get("lambda_max").unwrap_or(&f64::MAX.sqrt());
+                let lambda_max = *self
+                    .hyperparams
+                    .get("lambda_max")
+                    .unwrap_or(&f64::MAX.sqrt());
 
                 let mut lambda = lambda_0 * max(jtj.diag());
 
                 for i in 0..max_iter {
                     if lambda > lambda_max {
-                        println!("Caution: At {}-th iter, lambda exceeds max value: {}", i+1, lambda);
+                        println!(
+                            "Caution: At {}-th iter, lambda exceeds max value: {}",
+                            i + 1,
+                            lambda
+                        );
                         break;
                     }
 

@@ -149,7 +149,7 @@
 #[allow(unused_imports)]
 pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 
-pub use peroxide_ad::{ad_function, ad_closure};
+pub use peroxide_ad::{ad_closure, ad_function};
 
 pub use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 
@@ -161,17 +161,17 @@ pub use crate::traits::{
     num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
     stable::StableFn,
-    sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
+    sugar::{ConvToMat, Scalable, ScalableMut, VecOps},
 };
 
 #[allow(unused_imports)]
 pub use crate::structure::{
-    matrix::*, 
-    polynomial::*, 
-    vector::*, 
-    dataframe::*,
     ad::*,
     //complex::C64,
+    dataframe::*,
+    matrix::*,
+    polynomial::*,
+    vector::*,
 };
 
 pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
@@ -201,33 +201,21 @@ pub use paste;
 // Enums
 // =============================================================================
 pub use crate::numerical::integral::Integral::{
-    GaussLegendre, 
-    NewtonCotes,
-    G7K15,
-    G10K21,
-    G15K31,
-    G20K41,
-    G25K51,
-    G30K61,
-    G7K15R,
-    G10K21R,
-    G15K31R,
-    G20K41R,
-    G25K51R,
-    G30K61R,
+    GaussLegendre, NewtonCotes, G10K21, G10K21R, G15K31, G15K31R, G20K41, G20K41R, G25K51, G25K51R,
+    G30K61, G30K61R, G7K15, G7K15R,
 };
+pub use crate::numerical::spline::SlopeMethod::{Akima, Quadratic};
+pub use crate::statistics::stat::Metric::*;
 pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,
 };
+pub use crate::structure::ad::AD::*;
+pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::matrix::{
     Form::{Diagonal, Identity},
     SolveKind::{LU, WAZ},
-    UPLO::{Upper, Lower}
+    UPLO::{Lower, Upper},
 };
-pub use crate::structure::dataframe::DType::*;
-pub use crate::structure::ad::AD::*;
-pub use crate::numerical::spline::SlopeMethod::{Akima, Quadratic};
-pub use crate::statistics::stat::Metric::*;
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 pub use arrow2::io::parquet::write::CompressionOptions;

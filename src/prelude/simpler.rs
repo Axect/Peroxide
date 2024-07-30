@@ -1,5 +1,3 @@
-#[cfg(feature="parquet")]
-use std::error::Error;
 use crate::numerical::{
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
@@ -8,13 +6,15 @@ use crate::numerical::{
     spline,
     spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
+#[cfg(feature = "parquet")]
+use crate::structure::dataframe::{DataFrame, WithParquet};
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
-#[cfg(feature="parquet")]
-use crate::structure::dataframe::{DataFrame, WithParquet};
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
+#[cfg(feature = "parquet")]
+use std::error::Error;
 
 /// Simple Norm
 pub trait SimpleNorm: Normed {
@@ -35,7 +35,7 @@ pub trait SimplerLinearAlgebra {
     fn waz_diag(&self) -> Option<matrix::WAZD>;
     fn waz(&self) -> Option<matrix::WAZD>;
     fn qr(&self) -> matrix::QR;
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self) -> Matrix;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
@@ -99,7 +99,7 @@ impl SimplerLinearAlgebra for Matrix {
         matrix::LinearAlgebra::qr(self)
     }
 
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self) -> Matrix {
         matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
     }
@@ -153,13 +153,13 @@ pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> anyhow::Result<Cu
 }
 
 /// Simple handle parquet
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 pub trait SimpleParquet: Sized {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>>;
     fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>>;
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 impl SimpleParquet for DataFrame {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>> {
         WithParquet::write_parquet(self, path, CompressionOptions::Uncompressed)

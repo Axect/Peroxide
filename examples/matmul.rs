@@ -7,12 +7,12 @@ fn main() {
 
     // Create Matrix
     let m = rand(row, col);
-    
+
     // Create another Matrix
     let n = rand(row, col);
-    
+
     // Matmul
     let result = m * n;
 
-    result[(row/2, col/2)].print();
+    result[(row / 2, col / 2)].print();
 }

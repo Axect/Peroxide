@@ -1,6 +1,6 @@
-use crate::structure::matrix::*;
-use crate::structure::ad::*;
 use crate::structure::ad::AD::*;
+use crate::structure::ad::*;
+use crate::structure::matrix::*;
 use crate::util::non_macro::{cat, zeros};
 
 /// Jacobian Matrix
@@ -45,7 +45,7 @@ pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
 
     let mut J = zeros(l2, l);
 
-    for i in 0 .. l {
+    for i in 0..l {
         x_ad[i][1] = 1f64;
         let slopes: Vec<f64> = f(&x_ad).iter().map(|ad| ad.dx()).collect();
         J.subs_col(i, &slopes);
@@ -89,7 +89,6 @@ pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
 //    }
 //    JT
 //}
-
 
 /// TriDiagonal Matrix Algorithm (TDMA)
 ///

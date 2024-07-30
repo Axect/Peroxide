@@ -12,7 +12,7 @@ fn f(x: f64) -> f64 {
 }
 
 #[test]
-fn test_cubic_spline_initialization() -> Result<(), Box<dyn std::error::Error>>{
+fn test_cubic_spline_initialization() -> Result<(), Box<dyn std::error::Error>> {
     let mut vx = Vec::new();
     let mut vy = Vec::new();
     for i in 0..11 {
@@ -34,7 +34,7 @@ fn test_cubic_spline_initialization() -> Result<(), Box<dyn std::error::Error>>{
 }
 
 #[test]
-fn test_cubic_spline_extension() -> Result<(), Box<dyn std::error::Error>>{
+fn test_cubic_spline_extension() -> Result<(), Box<dyn std::error::Error>> {
     let mut vx = Vec::new();
     let mut vy = Vec::new();
     for i in 0..11 {

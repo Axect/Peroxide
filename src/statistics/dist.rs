@@ -234,15 +234,15 @@ use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
-use crate::traits::fp::FPVector;
 use crate::special::function::*;
+use crate::traits::fp::FPVector;
 //use statistics::rand::ziggurat;
+use self::WeightedUniformError::*;
 use crate::statistics::{ops::C, stat::Statistics};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
+use anyhow::{bail, Result};
 use std::f64::consts::E;
-use self::WeightedUniformError::*;
-use anyhow::{Result, bail};
 
 /// One parameter distribution
 ///
@@ -271,7 +271,7 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
 pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     weights: Vec<T>,
     sum: T,
-    intervals: Vec<(T, T)>
+    intervals: Vec<(T, T)>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -286,7 +286,9 @@ impl std::fmt::Display for WeightedUniformError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             WeightedUniformError::AllZeroWeightError => write!(f, "all weights are zero"),
-            WeightedUniformError::LengthMismatchError => write!(f, "weights and intervals have different length"),
+            WeightedUniformError::LengthMismatchError => {
+                write!(f, "weights and intervals have different length")
+            }
             WeightedUniformError::NoNonZeroIntervalError => write!(f, "no non-zero interval found"),
             WeightedUniformError::EmptyWeightError => write!(f, "weights are empty"),
         }
@@ -295,11 +297,11 @@ impl std::fmt::Display for WeightedUniformError {
 
 impl WeightedUniform<f64> {
     /// Create a new weighted uniform distribution
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let weights = vec![1f64, 3f64, 0f64, 2f64];
     ///     let intervals = vec![0f64, 1f64, 2f64, 4f64, 5f64];
@@ -336,32 +338,31 @@ impl WeightedUniform<f64> {
             }
         }
 
-        let sum = weights.iter()
+        let sum = weights
+            .iter()
             .zip(intervals.iter())
             .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
 
-        Ok(
-            WeightedUniform {
-                weights,
-                sum,
-                intervals
-            }
-        )
+        Ok(WeightedUniform {
+            weights,
+            sum,
+            intervals,
+        })
     }
 
     /// Create WeightedUniform from max pooling
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn Error>> {
     ///     let w = WeightedUniform::from_max_pool_1d(f, (-2f64, 3f64), 10, 1e-3)?;
     ///     w.weights().print();
     ///
     ///     Ok(())
     /// }
-    /// 
+    ///
     /// fn f(x: f64) -> f64 {
     ///     if x.abs() < 1f64 {
     ///         1f64 - x.abs()
@@ -371,40 +372,39 @@ impl WeightedUniform<f64> {
     /// }
     /// ```
     pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Result<Self>
-    where F: Fn(f64) -> f64 + Copy {
+    where
+        F: Fn(f64) -> f64 + Copy,
+    {
         // Find non-zero intervals
         let mut a = a;
         let mut b = b;
         let trial = seq(a, b, eps);
-        for i in 0 .. trial.len() {
+        for i in 0..trial.len() {
             let x = trial[i];
             if f(x) > 0f64 {
-                a = if i > 0 { trial[i-1] } else { x };
+                a = if i > 0 { trial[i - 1] } else { x };
                 break;
             }
         }
-        for i in (0 .. trial.len()).rev() {
+        for i in (0..trial.len()).rev() {
             let x = trial[i];
             if f(x) > 0f64 {
-                b = if i < trial.len() - 1 { trial[i+1] } else { x };
+                b = if i < trial.len() - 1 { trial[i + 1] } else { x };
                 break;
             }
         }
         if a >= b {
             bail!(NoNonZeroIntervalError);
         }
-        let domain = linspace(a, b, n+1);
+        let domain = linspace(a, b, n + 1);
 
         // Find intervals
         let intervals = auto_zip(&domain);
 
         // Find weights
-        let weights: Vec<f64> = intervals.iter()
-            .map(
-                |(a, b)| {
-                    seq(*a, *b+eps, eps).reduce(0f64, |acc, x| acc.max(f(x)))
-                }
-            )
+        let weights: Vec<f64> = intervals
+            .iter()
+            .map(|(a, b)| seq(*a, *b + eps, eps).reduce(0f64, |acc, x| acc.max(f(x))))
             .collect();
 
         Self::new(weights, domain)
@@ -419,11 +419,19 @@ impl WeightedUniform<f64> {
     }
 
     pub fn domain_linspace(&self, n: usize) -> Vec<f64> {
-        linspace(self.intervals[0].0, self.intervals[self.intervals.len()-1].1, n)
+        linspace(
+            self.intervals[0].0,
+            self.intervals[self.intervals.len() - 1].1,
+            n,
+        )
     }
 
     pub fn domain_seq(&self, step: f64) -> Vec<f64> {
-        seq(self.intervals[0].0, self.intervals[self.intervals.len()-1].1, step)
+        seq(
+            self.intervals[0].0,
+            self.intervals[self.intervals.len() - 1].1,
+            step,
+        )
     }
 
     pub fn sum(&self) -> f64 {
@@ -433,15 +441,19 @@ impl WeightedUniform<f64> {
     pub fn update_weights(&mut self, weights: Vec<f64>) {
         assert_eq!(self.intervals.len(), weights.len());
         self.weights = weights;
-        self.sum = self.weights.iter()
+        self.sum = self
+            .weights
+            .iter()
             .zip(self.intervals.iter())
             .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
     }
 
     pub fn update_intervals(&mut self, intervals: Vec<f64>) {
-        assert_eq!(self.weights.len()+1, intervals.len());
+        assert_eq!(self.weights.len() + 1, intervals.len());
         self.intervals = auto_zip(&intervals);
-        self.sum = self.weights.iter()
+        self.sum = self
+            .weights
+            .iter()
             .zip(self.intervals.iter())
             .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a));
     }
@@ -493,7 +505,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for Weight
 
     fn params(&self) -> Self::Parameter {
         let weights = self.weights.iter().map(|x| (*x).into()).collect();
-        let intervals = self.intervals.iter().map(|(x, y)| ((*x).into(), (*y).into())).collect();
+        let intervals = self
+            .intervals
+            .iter()
+            .map(|(x, y)| ((*x).into(), (*y).into()))
+            .collect();
         (weights, intervals)
     }
 }
@@ -619,11 +635,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
 
             Binomial(num, mu) => {
                 let binom = rand_distr::Binomial::new(*num as u64, (*mu).into()).unwrap();
-                binom
-                    .sample_iter(rng)
-                    .take(n)
-                    .map(|t| t as f64)
-                    .collect()
+                binom.sample_iter(rng).take(n).map(|t| t as f64).collect()
             }
 
             Normal(m, s) => {
@@ -789,10 +801,12 @@ impl RNG for WeightedUniform<f64> {
         let ics: Vec<usize> = w.sample_iter(&mut rng_clip).take(n).collect();
         *rng = rng_clip;
 
-        ics.into_iter().map(|idx| {
-            let (l, r) = self.intervals[idx];
-            rng.gen_range(l ..=r)
-        }).collect::<Vec<f64>>()
+        ics.into_iter()
+            .map(|idx| {
+                let (l, r) = self.intervals[idx];
+                rng.gen_range(l..=r)
+            })
+            .collect::<Vec<f64>>()
     }
 
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
@@ -812,11 +826,11 @@ impl RNG for WeightedUniform<f64> {
             return 1f64;
         }
         let idx = find_interval(self.intervals(), x);
-        self.weights[0 ..=idx].iter()
-            .zip(self.intervals[0 ..=idx].iter())
-            .fold(0f64, |acc, (w, (a, b))| {
-                acc + w * (b - a)
-            }) / self.sum
+        self.weights[0..=idx]
+            .iter()
+            .zip(self.intervals[0..=idx].iter())
+            .fold(0f64, |acc, (w, (a, b))| acc + w * (b - a))
+            / self.sum
     }
 }
 
@@ -912,16 +926,23 @@ impl Statistics for WeightedUniform<f64> {
     type Value = f64;
 
     fn mean(&self) -> Self::Value {
-        self.intervals().iter().zip(self.weights().iter())
-            .map(|((l, r), w)| (r.powi(2)-l.powi(2))/2f64 * w)
-            .sum::<f64>() / self.sum
+        self.intervals()
+            .iter()
+            .zip(self.weights().iter())
+            .map(|((l, r), w)| (r.powi(2) - l.powi(2)) / 2f64 * w)
+            .sum::<f64>()
+            / self.sum
     }
 
     fn var(&self) -> Self::Value {
         let mean = self.mean();
-        self.intervals().iter().zip(self.weights().iter())
+        self.intervals()
+            .iter()
+            .zip(self.weights().iter())
             .map(|((l, r), w)| w * (r.powi(3) - l.powi(3)) / 3f64)
-            .sum::<f64>() / self.sum - mean * mean
+            .sum::<f64>()
+            / self.sum
+            - mean * mean
     }
 
     fn sd(&self) -> Self::Value {

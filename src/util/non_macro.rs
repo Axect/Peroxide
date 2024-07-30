@@ -36,7 +36,7 @@ use crate::structure::{
     matrix::{matrix, Matrix, Shape},
 };
 use crate::traits::float::FloatWithPrecision;
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ConcatenateError {
@@ -46,7 +46,10 @@ pub enum ConcatenateError {
 impl std::fmt::Display for ConcatenateError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            ConcatenateError::DifferentLength => write!(f, "To concatenate, vectors or matrices must have the same length"),
+            ConcatenateError::DifferentLength => write!(
+                f,
+                "To concatenate, vectors or matrices must have the same length"
+            ),
         }
     }
 }
@@ -62,7 +65,7 @@ impl std::fmt::Display for ConcatenateError {
 ///
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
-/// 
+///
 /// let b = seq(1, 1, 1);
 /// assert_eq!(b, vec![1f64]);
 /// ```
@@ -248,11 +251,11 @@ pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
 }
 
 /// MATLAB like linspace
-/// 
+///
 /// # Examples
 /// ```
 /// use peroxide::fuga::*;
-/// 
+///
 /// let a = linspace(1, 10, 10);
 /// assert_eq!(a, seq(1,10,1));
 /// assert_eq!(a.len(), 10);
@@ -346,7 +349,7 @@ pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
 //  Numpy like non-macro functions
 // └─────────────────────────────────────────────────────────┘
 /// Numpy like logspace
-/// 
+///
 /// # Examples
 /// ```
 /// use peroxide::fuga::*;
@@ -370,7 +373,7 @@ where
 
     assert!(e >= s);
 
-    let step: f64 = if length > 1 { 
+    let step: f64 = if length > 1 {
         (e - s) / (length as f64 - 1f64)
     } else {
         0f64
