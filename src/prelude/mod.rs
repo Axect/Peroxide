@@ -209,7 +209,7 @@ pub use crate::numerical::{
     utils::*,
 };
 
-pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline, lambert_w0, lambert_w_m1};
+pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline, lambert_w0, lambert_wm1};
 
 #[allow(unused_imports)]
 pub use crate::statistics::stat::Metric::*;
