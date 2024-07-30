@@ -160,6 +160,8 @@ use crate::special::function::{
 ///
 /// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e (≈ -0.36787944117144233).
 ///
+/// Accurate to 50 bits.
+/// 
 /// Wrapper of `lambert_w_0` function of `lambert_w` crate.
 ///
 /// # Reference
@@ -173,6 +175,8 @@ pub fn lambert_w0(z: f64) -> f64 {
 ///
 /// Returns [`NAN`](f64::NAN) if the given input is positive or smaller than -1/e (≈ -0.36787944117144233).
 ///
+/// Accurate to 50 bits.
+/// 
 /// Wrapper of `lambert_w_m1` function of `lambert_w` crate.
 ///
 /// # Reference
