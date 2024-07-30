@@ -13,6 +13,10 @@ authors:
     email: axect.tg@proton.me
     affiliation: Yonsei University
     orcid: 'https://orcid.org/0009-0000-4229-2935'
+  - name: Peroxide contributors
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.10815823
 repository-code: 'https://github.com/Axect/Peroxide'
 url: 'https://crates.io/crates/peroxide'
 abstract: >-
@@ -37,4 +41,4 @@ keywords:
   - Integration
   - Linear algebra
   - Differential equation
-license: Apache-2.0
+license: MIT
