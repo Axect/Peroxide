@@ -118,6 +118,24 @@ pub fn phi(x: f64) -> f64 {
     0.5 * (1f64 + erf(x / 2f64.sqrt()))
 }
 
+/// The principal branch of the Lambert W function, W_0(`z`).
+/// 
+/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e.
+/// 
+/// Wrapper of `lambert_w_0` function of `lambert_w` crate.
+pub fn lambert_w0(z: f64) -> f64 {
+    lambert_w::lambert_w_0(z).unwrap_or(f64::NAN)
+}
+
+/// The secondary branch of the Lambert W function, W_-1(`z`).
+/// 
+/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e or positive.
+/// 
+/// Wrapper of `lambert_w_m1` function of `lambert_w` crate.
+pub fn lambert_wm1(z: f64) -> f64 {
+    lambert_w::lambert_w_m1(z).unwrap_or(f64::NAN)
+}
+
 // /// Hypergeometric function 2F1
 // ///
 // /// Wrapper of `hyp2f1` function of `special-fun` crate
