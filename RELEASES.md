@@ -1,3 +1,7 @@
+# Release 0.37.9 (2024-07-31)
+
+- Fix inconsistent lambert w function name [#65](https://github.com/Axect/Peroxide/issues/65) (Thanks to [@JSorngard](https://github.com/JSorngard))
+
 # Release 0.37.8 (2024-07-30)
 
 - Integrate with [lambert_w](https://crates.io/crates/lambert_w) crate ([#63](https://github.com/Axect/Peroxide/pull/63)) (Thanks to [@JSorngard](https://github.com/JSorngard))
