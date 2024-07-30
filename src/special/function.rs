@@ -107,7 +107,7 @@ pub fn inc_beta(a: f64, b: f64, x: f64) -> f64 {
 /// Inverse regularized incomplete beta function
 ///
 /// Wrapper of `invbetai` function of `puruspe` crate
-pub fn inv_inv_beta(p: f64, a: f64, b: f64) -> f64 {
+pub fn inv_inc_beta(p: f64, a: f64, b: f64) -> f64 {
     puruspe::invbetai(p, a, b)
 }
 
@@ -118,11 +118,51 @@ pub fn phi(x: f64) -> f64 {
     0.5 * (1f64 + erf(x / 2f64.sqrt()))
 }
 
-// /// Hypergeometric function 2F1
-// ///
-// /// Wrapper of `hyp2f1` function of `special-fun` crate
-// pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
-//     unsafe {
-//         special_fun::unsafe_cephes_double::hyp2f1(a, b, c, x)
-//     }
-// }
+/// The principal branch of the Lambert W function, W_0(`z`).
+///
+/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e (≈ -0.36787944117144233).
+///
+/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
+/// for only 24 bits, but with faster execution time.
+/// 
+/// Wrapper of the `lambert_w_0` and `sp_lambert_w_0` functions of the `lambert_w` crate.
+///
+/// # Reference
+///
+/// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
+pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
+    match mode {
+        LambertWAccuracyMode::Precise => lambert_w::lambert_w_0(z),
+        LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_0(z),
+    }
+    .unwrap_or(f64::NAN)
+}
+
+/// The secondary branch of the Lambert W function, W_-1(`z`).
+///
+/// Returns [`NAN`](f64::NAN) if the given input is positive or smaller than -1/e (≈ -0.36787944117144233).
+///
+/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
+/// for only 24 bits, but with faster execution time.
+/// 
+/// Wrapper of the `lambert_w_m1` and `sp_lambert_w_m1` functions of the `lambert_w` crate.
+/// 
+/// # Reference
+///
+/// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
+pub fn lambert_wm1(z: f64, mode: LambertWAccuracyMode) -> f64 {
+    match mode {
+        LambertWAccuracyMode::Precise => lambert_w::lambert_w_m1(z),
+        LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_m1(z),
+    }
+    .unwrap_or(f64::NAN)
+}
+
+/// Decides the accuracy mode of the Lambert W functions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LambertWAccuracyMode {
+    /// Faster, 24 bits of accuracy.
+    Simple,
+    /// Slower, 50 bits of accuracy.
+    Precise,
+}

@@ -193,7 +193,10 @@ pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, w
 pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
 
 #[allow(unused_imports)]
-pub use crate::special::function::*;
+pub use crate::special::function::{
+    beta, erf, erfc, gamma, gaussian, inc_beta, inc_gamma, inv_erf, inv_erfc, inv_inc_gamma,
+    inv_inc_beta, ln_gamma, phi, poch,
+};
 
 #[allow(unused_imports)]
 pub use crate::numerical::{
@@ -206,7 +209,7 @@ pub use crate::numerical::{
     utils::*,
 };
 
-pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline};
+pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline, lambert_w0, lambert_w_m1};
 
 #[allow(unused_imports)]
 pub use crate::statistics::stat::Metric::*;
