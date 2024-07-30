@@ -121,7 +121,7 @@ pub fn phi(x: f64) -> f64 {
 /// Decides the accuracy mode of the Lambert W functions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LambertWAccuracyMode {
-    /// Faster, 24 bits of accuracy
+    /// Faster, 24 bits of accuracy.
     Simple,
     /// Slower, 50 bits of accuracy.
     Precise,
@@ -129,7 +129,7 @@ pub enum LambertWAccuracyMode {
 
 /// The principal branch of the Lambert W function, W_0(`z`).
 ///
-/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e.
+/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e (≈ -0.36787944117144233).
 ///
 /// Wrapper of the `lambert_w_0` and `sp_lambert_w_0` functions of the `lambert_w` crate.
 ///
@@ -146,7 +146,7 @@ pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
 
 /// The secondary branch of the Lambert W function, W_-1(`z`).
 ///
-/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e or positive.
+/// Returns [`NAN`](f64::NAN) if the given input is positive or smaller than -1/e (≈ -0.36787944117144233).
 ///
 /// Wrapper of the `lambert_w_m1` and `sp_lambert_w_m1` functions of the `lambert_w` crate.
 ///
