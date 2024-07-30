@@ -1,5 +1,3 @@
-#[cfg(feature="parquet")]
-use std::error::Error;
 use crate::numerical::{
     eigen,
     eigen::{Eigen, EigenMethod::Jacobi},
@@ -8,13 +6,15 @@ use crate::numerical::{
     spline,
     spline::{CubicHermiteSpline, SlopeMethod::Quadratic},
 };
+#[cfg(feature = "parquet")]
+use crate::structure::dataframe::{DataFrame, WithParquet};
 use crate::structure::matrix::{self, Matrix};
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
-#[cfg(feature="parquet")]
-use crate::structure::dataframe::{DataFrame, WithParquet};
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
+#[cfg(feature = "parquet")]
+use std::error::Error;
 
 /// Simple Norm
 pub trait SimpleNorm: Normed {
@@ -35,7 +35,7 @@ pub trait SimplerLinearAlgebra {
     fn waz_diag(&self) -> Option<matrix::WAZD>;
     fn waz(&self) -> Option<matrix::WAZD>;
     fn qr(&self) -> matrix::QR;
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self) -> Matrix;
     fn rref(&self) -> Matrix;
     fn det(&self) -> f64;
@@ -99,7 +99,7 @@ impl SimplerLinearAlgebra for Matrix {
         matrix::LinearAlgebra::qr(self)
     }
 
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self) -> Matrix {
         matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
     }
@@ -152,14 +152,44 @@ pub fn cubic_hermite_spline(node_x: &[f64], node_y: &[f64]) -> anyhow::Result<Cu
     spline::cubic_hermite_spline(node_x, node_y, Quadratic)
 }
 
+use crate::special::function::{
+    lambert_w0 as lambert_w0_flex, lambert_wm1 as lambert_w_m1_flex, LambertWAccuracyMode,
+};
+
+/// The principal branch of the Lambert W function, W_0(`z`).
+///
+/// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e (≈ -0.36787944117144233).
+///
+/// Wrapper of `lambert_w_0` function of `lambert_w` crate.
+///
+/// # Reference
+///
+/// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
+pub fn lambert_w0(z: f64) -> f64 {
+    lambert_w0_flex(z, LambertWAccuracyMode::Precise)
+}
+
+/// The secondary branch of the Lambert W function, W_-1(`z`).
+///
+/// Returns [`NAN`](f64::NAN) if the given input is positive or smaller than -1/e (≈ -0.36787944117144233).
+///
+/// Wrapper of `lambert_w_m1` function of `lambert_w` crate.
+///
+/// # Reference
+///
+/// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
+pub fn lambert_w_m1(z: f64) -> f64 {
+    lambert_w_m1_flex(z, LambertWAccuracyMode::Precise)
+}
+
 /// Simple handle parquet
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 pub trait SimpleParquet: Sized {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>>;
     fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>>;
 }
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 impl SimpleParquet for DataFrame {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>> {
         WithParquet::write_parquet(self, path, CompressionOptions::Uncompressed)
