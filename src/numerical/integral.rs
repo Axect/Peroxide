@@ -1,4 +1,4 @@
-use crate::structure::polynomial::{lagrange_polynomial, Calculus};
+use crate::structure::polynomial::{lagrange_polynomial, Calculus, Polynomial};
 use crate::traits::fp::FPVector;
 use crate::util::non_macro::seq;
 
@@ -132,6 +132,78 @@ impl Integral {
     }
 }
 
+// Types that can be integrated using Newton Cotes Quadrature
+pub trait NCIntegrable: std::ops::Sub<Self, Output = Self> + Sized {
+    type NodeY;
+    type NCPolynomial;
+
+    fn compute_node_y<F>(f: F, node_x: &[f64]) -> Self::NodeY
+    where
+        F: Fn(f64) -> Self;
+
+    fn compute_polynomial(node_x: &[f64], node_y: &Self::NodeY) -> Self::NCPolynomial;
+
+    fn integrate_polynomial(p: &Self::NCPolynomial) -> Self::NCPolynomial;
+
+    fn evaluate_polynomial(p: &Self::NCPolynomial, x: f64) -> Self;
+}
+
+impl NCIntegrable for f64 {
+    type NodeY = Vec<f64>;
+    type NCPolynomial = Polynomial;
+
+    fn compute_node_y<F>(f: F, node_x: &[f64]) -> Vec<f64>
+    where
+        F: Fn(f64) -> Self,
+    {
+        node_x.to_vec().fmap(|x| f(x))
+    }
+
+    fn compute_polynomial(node_x: &[f64], node_y: &Vec<f64>) -> Polynomial {
+        lagrange_polynomial(node_x.to_vec(), node_y.to_vec())
+    }
+
+    fn integrate_polynomial(p: &Polynomial) -> Polynomial {
+        p.integral()
+    }
+
+    fn evaluate_polynomial(p: &Polynomial, x: f64) -> Self {
+        p.eval(x)
+    }
+}
+
+// Types that can be integrated using Gauss Lagrange or Kronrod Quadrature
+pub trait GLKIntegrable:
+    std::ops::Add<Self, Output = Self> + std::ops::Mul<f64, Output = Self> + Sized
+{
+    const ZERO: Self;
+}
+
+impl GLKIntegrable for f64 {
+    const ZERO: Self = 0f64;
+}
+
+// Types that can be integrated using Gauss Kronrod Quadrature
+pub trait GKIntegrable: GLKIntegrable + std::ops::Sub<Self, Output = Self> + Sized + Clone {
+    fn is_finite(&self) -> bool;
+
+    fn gk_norm(&self) -> f64;
+
+    fn is_within_tol(&self, tol: f64) -> bool {
+        self.gk_norm() < tol
+    }
+}
+
+impl GKIntegrable for f64 {
+    fn is_finite(&self) -> bool {
+        f64::is_finite(*self)
+    }
+
+    fn gk_norm(&self) -> f64 {
+        self.abs()
+    }
+}
+
 /// Numerical Integration
 ///
 /// # Description
@@ -159,29 +231,31 @@ impl Integral {
 ///     * `G20K41R`
 ///     * `G25K51R`
 ///     * `G30K61R`
-pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
+pub fn integrate<F, Y>(f: F, (a, b): (f64, f64), method: Integral) -> Y
 where
-    F: Fn(f64) -> f64 + Copy,
+    F: Fn(f64) -> Y + Copy,
+    Y: GKIntegrable + NCIntegrable,
 {
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
-        method => gauss_kronrod_quadrature(f, (a,b), method),
+        method => gauss_kronrod_quadrature(f, (a, b), method),
     }
 }
 
 /// Newton Cotes Quadrature
-pub fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
+pub fn newton_cotes_quadrature<F, Y>(f: F, n: usize, (a, b): (f64, f64)) -> Y
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> Y,
+    Y: NCIntegrable,
 {
     let h = (b - a) / (n as f64);
     let node_x = seq(a, b, h);
-    let node_y = node_x.fmap(|x| f(x));
-    let p = lagrange_polynomial(node_x, node_y);
-    let q = p.integral();
+    let node_y = Y::compute_node_y(f, &node_x);
+    let p = Y::compute_polynomial(&node_x, &node_y);
+    let q = Y::integrate_polynomial(&p);
 
-    q.eval(b) - q.eval(a)
+    Y::evaluate_polynomial(&q, b) - Y::evaluate_polynomial(&q, a)
 }
 
 /// Gauss Legendre Quadrature
@@ -195,11 +269,12 @@ where
 /// # Reference
 /// * A. N. Lowan et al. (1942)
 /// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
-pub fn gauss_legendre_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
+pub fn gauss_legendre_quadrature<F, Y>(f: F, n: usize, (a, b): (f64, f64)) -> Y
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> Y,
+    Y: GLKIntegrable,
 {
-    (b - a) / 2f64 * unit_gauss_legendre_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n)
+    unit_gauss_legendre_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n) * ((b - a) / 2f64)
 }
 
 /// Gauss Kronrod Quadrature
@@ -215,16 +290,17 @@ where
 /// * arXiv: [1003.4629](https://arxiv.org/abs/1003.4629)
 /// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
 #[allow(non_snake_case)]
-pub fn gauss_kronrod_quadrature<F, T, S>(f: F, (a, b): (T, S), method: Integral) -> f64
+pub fn gauss_kronrod_quadrature<F, T, S, Y>(f: F, (a, b): (T, S), method: Integral) -> Y
 where
-     F: Fn(f64) -> f64 + Copy,
-     T: Into<f64>,
-     S: Into<f64>,
+    F: Fn(f64) -> Y + Copy,
+    T: Into<f64>,
+    S: Into<f64>,
+    Y: GKIntegrable,
 {
     let (g, k) = method.get_gauss_kronrod_order();
     let tol = method.get_tol();
     let max_iter = method.get_max_iter();
-    let mut I = 0f64;
+    let mut I = Y::ZERO;
     let mut S: Vec<(f64, f64, f64, u32)> = vec![];
     S.push((a.into(), b.into(), tol, max_iter));
 
@@ -235,15 +311,15 @@ where
                 let K = kronrod_quadrature(f, k as usize, (a, b));
                 let c = (a + b) / 2f64;
                 let tol_curr = if method.is_relative() {
-                    tol * G
+                    tol * G.gk_norm()
                 } else {
                     tol
                 };
-                if (G - K).abs() < tol_curr || a == b || max_iter == 0 {
-                    if ! G.is_finite() {
+                if (G.clone() - K).is_within_tol(tol_curr) || a == b || max_iter == 0 {
+                    if !G.is_finite() {
                         return G;
                     }
-                    I += G;
+                    I = I + G;
                 } else {
                     S.push((a, c, tol / 2f64, max_iter - 1));
                     S.push((c, b, tol / 2f64, max_iter - 1));
@@ -255,24 +331,26 @@ where
     I
 }
 
-pub fn kronrod_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64 
+pub fn kronrod_quadrature<F, Y>(f: F, n: usize, (a, b): (f64, f64)) -> Y
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> Y,
+    Y: GLKIntegrable,
 {
-    (b - a) / 2f64 * unit_kronrod_quadrature(|x| f(x * (b-a) / 2f64 + (a + b) / 2f64), n)   
+    unit_kronrod_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n) * ((b - a) / 2f64)
 }
 
 // =============================================================================
 // Gauss Legendre Backends
 // =============================================================================
-fn unit_gauss_legendre_quadrature<F>(f: F, n: usize) -> f64
+fn unit_gauss_legendre_quadrature<F, Y>(f: F, n: usize) -> Y
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> Y,
+    Y: GLKIntegrable,
 {
     let (a, x) = gauss_legendre_table(n);
-    let mut s = 0f64;
+    let mut s = Y::ZERO;
     for i in 0..a.len() {
-        s += a[i] * f(x[i]);
+        s = s + f(x[i]) * a[i];
     }
     s
 }
@@ -378,14 +456,15 @@ fn gauss_legendre_table(n: usize) -> (Vec<f64>, Vec<f64>) {
 // Gauss Kronrod Backends
 // =============================================================================
 
-fn unit_kronrod_quadrature<F>(f: F, n: usize) -> f64
+fn unit_kronrod_quadrature<F, Y>(f: F, n: usize) -> Y
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> Y,
+    Y: GLKIntegrable,
 {
-    let (a,x) = kronrod_table(n);
-    let mut s = 0f64;
-    for i in 0 .. a.len() {
-        s += a[i] * f(x[i]);
+    let (a, x) = kronrod_table(n);
+    let mut s = Y::ZERO;
+    for i in 0..a.len() {
+        s = s + f(x[i]) * a[i];
     }
     s
 }
@@ -414,28 +493,28 @@ fn kronrod_table(n: usize) -> (Vec<f64>, Vec<f64>) {
 
     match n % 2 {
         0 => {
-            for i in 0 .. ref_node.len() {
+            for i in 0..ref_node.len() {
                 result_node[i] = ref_node[i];
                 result_weight[i] = ref_weight[i];
             }
 
-            for i in ref_node.len() .. n {
-                result_node[i] = -ref_node[n-i-1];
-                result_weight[i] = ref_weight[n-i-1];
+            for i in ref_node.len()..n {
+                result_node[i] = -ref_node[n - i - 1];
+                result_weight[i] = ref_weight[n - i - 1];
             }
         }
         1 => {
-            for i in 0 .. ref_node.len() {
+            for i in 0..ref_node.len() {
                 result_node[i] = ref_node[i];
                 result_weight[i] = ref_weight[i];
             }
 
-            for i in ref_node.len() .. n {
-                result_node[i] = -ref_node[n-i];
-                result_weight[i] = ref_weight[n-i];
+            for i in ref_node.len()..n {
+                result_node[i] = -ref_node[n - i];
+                result_weight[i] = ref_weight[n - i];
             }
         }
-        _ => unreachable!()
+        _ => unreachable!(),
     }
     (result_weight, result_node)
 }
@@ -922,7 +1001,7 @@ const LEGENDRE_WEIGHT_25: [f64; 13] = [
     0.054904695975835192,
     0.040939156701306313,
     0.026354986615032137,
-    0.011393798501026288,    
+    0.011393798501026288,
 ];
 const LEGENDRE_WEIGHT_26: [f64; 13] = [
     0.118321415279262277,
