@@ -1,6 +1,6 @@
 use std::{
     fmt,
-    ops::{Add, Index, IndexMut},
+    ops::{Add, Index, IndexMut, Neg, Sub},
 };
 
 use num_complex::Complex;
@@ -819,7 +819,7 @@ impl Into<ComplexMatrix> for &Vec<Complex<f64>> {
 impl Add<ComplexMatrix> for ComplexMatrix {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self::Output {
+    fn add(self, other: Self) -> Self {
         assert_eq!(&self.row, &other.row);
         assert_eq!(&self.col, &other.col);
 
@@ -838,6 +838,245 @@ impl<'a, 'b> Add<&'b ComplexMatrix> for &'a ComplexMatrix {
 
     fn add(self, rhs: &'b ComplexMatrix) -> Self::Output {
         self.add_vec(rhs)
+    }
+}
+
+/// Element-wise addition between Complex Matrix & Complex<f64>
+///
+/// # Examples
+/// ```rust
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// fn main() {
+///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
+///                                    4.0+4.0i 5.0+5.0i");
+///     let a_exp = ml_complex_matrix("2.0+2.0i 3.0+3.0i;
+///                                    5.0+5.0i 6.0+6.0i");
+///     assert_eq!(a + Complex64::new(1_f64, 1_f64), a_exp);
+/// }
+/// ```
+impl<T> Add<T> for ComplexMatrix
+where
+    T: Into<Complex<f64>> + Copy,
+{
+    type Output = Self;
+    fn add(self, other: T) -> Self {
+        self.fmap(|x| x + other.into())
+    }
+}
+
+/// Element-wise addition between &ComplexMatrix & Complex<f64>
+impl<'a, T> Add<T> for &'a ComplexMatrix
+where
+    T: Into<Complex<f64>> + Copy,
+{
+    type Output = ComplexMatrix;
+
+    fn add(self, other: T) -> Self::Output {
+        self.fmap(|x| x + other.into())
+    }
+}
+
+// Element-wise addition between Complex<f64> & ComplexMatrix
+///
+/// # Examples
+///
+/// ```rust
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// fn main() {
+///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
+///                                    4.0+4.0i 5.0+5.0i");
+///     let a_exp = ml_complex_matrix("2.0+2.0i 3.0+3.0i;
+///                                    5.0+5.0i 6.0+6.0i");
+///     assert_eq!(Complex64::new(1_f64, 1_f64) + a, a_exp);
+/// }
+/// ```
+impl Add<ComplexMatrix> for Complex<f64> {
+    type Output = ComplexMatrix;
+
+    fn add(self, other: ComplexMatrix) -> Self::Output {
+        other.add(self)
+    }
+}
+
+/// Element-wise addition between Complex<f64> & &ComplexMatrix
+impl<'a> Add<&'a ComplexMatrix> for Complex<f64> {
+    type Output = ComplexMatrix;
+
+    fn add(self, other: &'a ComplexMatrix) -> Self::Output {
+        other.add(self)
+    }
+}
+
+// =============================================================================
+// Standard Operation for Matrix (Neg)
+// =============================================================================
+/// Negation of Complex Matrix
+///
+/// # Examples
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+///                             Complex64::new(2f64, 2f64),
+///                             Complex64::new(3f64, 3f64),
+///                             Complex64::new(4f64, 4f64)],
+///                             2, 2, Row);
+/// let a_neg = complex_matrix(vec![Complex64::new(-1f64, -1f64),
+///                                 Complex64::new(-2f64, -2f64),
+///                                 Complex64::new(-3f64, -3f64),
+///                                 Complex64::new(-4f64, -4f64)],
+///                             2, 2, Row);
+/// assert_eq!(-a, a_neg);
+/// ```
+impl Neg for ComplexMatrix {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        complex_matrix(
+            self.data
+                .into_iter()
+                .map(|x: Complex<f64>| -x)
+                .collect::<Vec<Complex<f64>>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+}
+
+/// Negation of &'a Complex Matrix
+impl<'a> Neg for &'a ComplexMatrix {
+    type Output = ComplexMatrix;
+
+    fn neg(self) -> Self::Output {
+        complex_matrix(
+            self.data
+                .clone()
+                .into_iter()
+                .map(|x: Complex<f64>| -x)
+                .collect::<Vec<Complex<f64>>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+}
+
+// =============================================================================
+// Standard Operation for Matrix (Sub)
+// =============================================================================
+/// Subtraction between Complex Matrix
+///
+/// # Examples
+/// ```rust
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// fn main() {
+///     let mut a = ml_complex_matrix("10.0+10.0i 20.0+20.0i;
+///                                    40.0+40.0i 50.0+50.0i");
+///     let b = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
+///                                    4.0+4.0i 5.0+5.0i");
+///     let diff = ml_complex_matrix("9.0+9.0i 18.0+18.0i;
+///                                    36.0+36.0i 45.0+45.0i");
+///     assert_eq!(a-b, diff);
+/// }
+/// ```
+impl Sub<ComplexMatrix> for ComplexMatrix {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        assert_eq!(&self.row, &other.row);
+        assert_eq!(&self.col, &other.col);
+        let mut result = complex_matrix(self.data.clone(), self.row, self.col, self.shape);
+        for i in 0..self.row {
+            for j in 0..self.col {
+                result[(i, j)] -= other[(i, j)];
+            }
+        }
+        result
+    }
+}
+
+impl<'a, 'b> Sub<&'b ComplexMatrix> for &'a ComplexMatrix {
+    type Output = ComplexMatrix;
+
+    fn sub(self, rhs: &'b ComplexMatrix) -> Self::Output {
+        self.sub_vec(rhs)
+    }
+}
+
+/// Subtraction between Complex Matrix & Complex<f64>
+impl<T> Sub<T> for ComplexMatrix
+where
+    T: Into<Complex<f64>> + Copy,
+{
+    type Output = Self;
+
+    fn sub(self, other: T) -> Self::Output {
+        self.fmap(|x| x - other.into())
+    }
+}
+
+/// Subtraction between &Complex Matrix & Complex<f64>
+impl<'a, T> Sub<T> for &'a ComplexMatrix
+where
+    T: Into<Complex<f64>> + Copy,
+{
+    type Output = ComplexMatrix;
+
+    fn sub(self, other: T) -> Self::Output {
+        self.fmap(|x| x - other.into())
+    }
+}
+
+/// Subtraction Complex Matrix with Complex<f64>
+///
+/// # Examples
+/// ```rust
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// fn main() {
+///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
+///                                    4.0+4.0i 5.0+5.0i");
+///     let a_exp = ml_complex_matrix("0.0+0.0i 1.0+1.0i;
+///                                    3.0+3.0i 4.0+4.0i");
+///     assert_eq!(a - Complex64::new(1_f64, 1_f64), a_exp);
+/// }
+/// ```
+impl Sub<ComplexMatrix> for Complex<f64> {
+    type Output = ComplexMatrix;
+
+    fn sub(self, other: ComplexMatrix) -> Self::Output {
+        -other.sub(self)
+    }
+}
+
+impl<'a> Sub<&'a ComplexMatrix> for f64 {
+    type Output = ComplexMatrix;
+
+    fn sub(self, other: &'a ComplexMatrix) -> Self::Output {
+        -other.sub(self)
     }
 }
 
