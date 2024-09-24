@@ -1,9 +1,14 @@
-use std::fmt;
+use std::{
+    fmt,
+    ops::{Index, IndexMut},
+};
 
 use num_complex::Complex;
-use rand_distr::num_traits::Zero;
+use rand_distr::num_traits::{zero, One, Zero};
 
-use crate::fuga::Shape;
+use crate::fuga::{
+    gemv, InnerProduct, LinearOp, MatrixProduct, Normed, Series, Shape, TypedVector, Vector,
+};
 
 /// R-like complex matrix structure
 ///
@@ -161,6 +166,24 @@ pub fn ml_complex_matrix(s: &str) -> ComplexMatrix {
         .collect::<Vec<Complex<f64>>>();
 
     complex_matrix(data, r, c, Shape::Row)
+}
+
+// ///  Pretty Print
+// impl fmt::Display for ComplexMatrix {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{}", self.spread());
+//     }
+// }
+
+/// PartialEq implements
+impl PartialEq for ComplexMatrix {
+    fn eq(&self, other: &ComplexMatrix) -> bool {
+        if self.shape == other.shape {
+            return self.data == other.data;
+        } else {
+            return false; // todo! self.eq(&other.change_shape())
+        }
+    }
 }
 
 impl ComplexMatrix {
@@ -324,6 +347,64 @@ impl ComplexMatrix {
         }
     }
 
+    /// Extract Column
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// fn main() {
+    ///     let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                             Complex64::new(2f64, 2f64),
+    ///                             Complex64::new(3f64, 3f64),
+    ///                             Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///         );
+    ///     assert_eq!(a.col(0), vec![Complex64::new(1f64, 1f64), Complex64::new(3f64, 3f64)]);
+    /// }
+    /// ```
+    pub fn col(&self, index: usize) -> Vec<Complex<f64>> {
+        assert!(index < self.col);
+        let mut container: Vec<Complex<f64>> = vec![Complex::zero(); self.row];
+        for i in 0..self.row {
+            container[i] = self[(i, index)];
+        }
+        container
+    }
+
+    /// Extract Row
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// fn main() {
+    ///     let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                             Complex64::new(2f64, 2f64),
+    ///                             Complex64::new(3f64, 3f64),
+    ///                             Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///         );
+    ///     assert_eq!(a.row(0), vec![Complex64::new(1f64, 1f64), Complex64::new(2f64, 2f64)]);
+    /// }
+    /// ```
+    pub fn row(&self, index: usize) -> Vec<Complex<f64>> {
+        assert!(index < self.row);
+        let mut container: Vec<Complex<f64>> = vec![Complex::zero(); self.col];
+        for i in 0..self.col {
+            container[i] = self[(index, i)];
+        }
+        container
+    }
+
     /// Extract diagonal components
     ///
     /// # Examples
@@ -413,22 +494,385 @@ impl ComplexMatrix {
     pub fn t(&self) -> Self {
         self.transpose()
     }
+
+    /// Should check shape
+    pub fn subs(&mut self, idx: usize, v: &Vec<Complex<f64>>) {
+        let p = &mut self.mut_ptr();
+        match self.shape {
+            Shape::Row => {
+                let c = self.col;
+                unsafe {
+                    p.add(idx * c).copy_from(v.as_ptr(), c);
+                }
+            }
+            Shape::Col => {
+                let r = self.row;
+                unsafe {
+                    p.add(idx * r).copy_from(v.as_ptr(), r);
+                }
+            }
+        }
+    }
+
+    /// Substitute Col
+    #[inline]
+    pub fn subs_col(&mut self, idx: usize, v: &Vec<Complex<f64>>) {
+        for i in 0..self.row {
+            self[(i, idx)] = v[i];
+        }
+    }
+
+    /// Substitute Row
+    #[inline]
+    pub fn subs_row(&mut self, idx: usize, v: &Vec<Complex<f64>>) {
+        for j in 0..self.col {
+            self[(idx, j)] = v[j];
+        }
+    }
+
+    /// From index operations
+    pub fn from_index<F, G>(f: F, size: (usize, usize)) -> ComplexMatrix
+    where
+        F: Fn(usize, usize) -> G + Copy,
+        G: Into<Complex<f64>>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let mut mat = complex_matrix(vec![Complex::zero(); row * col], row, col, Shape::Row);
+
+        for i in 0..row {
+            for j in 0..col {
+                mat[(i, j)] = f(i, j).into();
+            }
+        }
+        mat
+    }
+
+    /// Matrix to `Vec<Vec<Complex<f64>>>`
+    ///
+    /// To send `Matrix` to `inline-python`
+    pub fn to_vec(&self) -> Vec<Vec<Complex<f64>>> {
+        let mut result = vec![vec![Complex::zero(); self.col]; self.row];
+        for i in 0..self.row {
+            result[i] = self.row(i); // Sen: needs row implementation
+        }
+        result
+    }
+
+    pub fn to_diag(&self) -> ComplexMatrix {
+        assert_eq!(self.row, self.col, "Should be square matrix");
+        let mut result = complex_matrix(
+            vec![Complex::zero(); self.row * self.col],
+            self.row,
+            self.col,
+            Shape::Row,
+        );
+        let diag = self.diag();
+        for i in 0..self.row {
+            result[(i, i)] = diag[i];
+        }
+        result
+    }
+
+    /// Submatrix
+    ///
+    /// # Description
+    /// Return below elements of complex matrix to a new complex matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_complex_matrix("1.0+1.0i 2.0+2.0i 3.0+3.0i;
+    ///                                4.0+4.0i 5.0+5.0i 6.0+6.0i;
+    ///                                7.0+7.0i 8.0+8.0i 9.0+9.0i");
+    ///     let b = complex_matrix(vec![Complex64::new(5f64, 5f64),
+    ///                                 Complex64::new(6f64, 6f64),
+    ///                                 Complex64::new(8f64, 8f64),
+    ///                                 Complex64::new(9f64, 9f64)],
+    ///                             2, 2, Row
+    ///     );
+    ///     let c = a.submat((1, 1), (2, 2));
+    ///     assert_eq!(b, c);
+    /// }
+    /// ```
+    pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> ComplexMatrix {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        let mut result = complex_matrix(vec![Complex::zero(); row * col], row, col, self.shape);
+        for i in 0..row {
+            for j in 0..col {
+                result[(i, j)] = self[(start.0 + i, start.1 + j)];
+            }
+        }
+        result
+    }
+
+    /// Substitute complex matrix to specific position
+    ///
+    /// # Description
+    /// Substitute below elements of complex matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// fn main() {
+    ///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i 3.0+3.0i;
+    ///                                4.0+4.0i 5.0+5.0i 6.0+6.0i;
+    ///                                7.0+7.0i 8.0+8.0i 9.0+9.0i");
+    ///     let b = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row);
+    ///     let c = ml_complex_matrix("1.0+1.0i 2.0+2.0i 3.0+3.0i;
+    ///                                4.0+4.0i 1.0+1.0i 2.0+2.0i;
+    ///                                7.0+7.0i 3.0+3.0i 4.0+4.0i");
+    ///     a.subs_mat((1,1), (2,2), &b);
+    ///     assert_eq!(a, c);       
+    /// }
+    /// ```
+    pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &ComplexMatrix) {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        for i in 0..row {
+            for j in 0..col {
+                self[(start.0 + i, start.1 + j)] = m[(i, j)];
+            }
+        }
+    }
 }
 
-// ///  Pretty Print
-// impl fmt::Display for ComplexMatrix {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", self.spread());
-//     }
-// }
+// =============================================================================
+// Mathematics for Matrix
+// =============================================================================
+impl Vector for ComplexMatrix {
+    type Scalar = Complex<f64>;
 
-/// PartialEq implements
-impl PartialEq for ComplexMatrix {
-    fn eq(&self, other: &ComplexMatrix) -> bool {
-        if self.shape == other.shape {
-            return self.data == other.data;
+    fn add_vec(&self, other: &Self) -> Self {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+
+        let mut result = complex_matrix(self.data.clone(), self.row, self.col, self.shape);
+        for i in 0..self.row {
+            for j in 0..self.col {
+                result[(i, j)] += other[(i, j)];
+            }
+        }
+        result
+    }
+
+    fn sub_vec(&self, other: &Self) -> Self {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+
+        let mut result = complex_matrix(self.data.clone(), self.row, self.col, self.shape);
+        for i in 0..self.row {
+            for j in 0..self.col {
+                result[(i, j)] -= other[(i, j)];
+            }
+        }
+        result
+    }
+
+    fn mul_scalar(&self, other: Self::Scalar) -> Self {
+        unimplemented!()
+    }
+}
+
+impl Normed for ComplexMatrix {
+    type UnsignedScalar = Complex<f64>;
+
+    fn norm(&self, kind: crate::fuga::Norm) -> Complex<f64> {
+        unimplemented!()
+    }
+    fn normalize(&self, kind: crate::fuga::Norm) -> Self
+    where
+        Self: Sized,
+    {
+        unimplemented!()
+    }
+}
+
+/// Frobenius inner product
+impl InnerProduct for ComplexMatrix {
+    fn dot(&self, rhs: &Self) -> Complex<f64> {
+        if self.shape == rhs.shape {
+            self.data.dot(&rhs.data)
         } else {
-            return false; // todo! self.eq(&other.change_shape())
+            self.data.dot(&rhs.change_shape().data)
+        }
+    }
+}
+
+/// TODO: Transpose
+
+/// Matrix as Linear operator for Vector
+#[allow(non_snake_case)]
+impl LinearOp<Vec<Complex<f64>>, Vec<Complex<f64>>> for ComplexMatrix {
+    fn apply(&self, other: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
+        assert_eq!(self.col, other.len());
+        let mut c = vec![Complex::zero(); self.row];
+        // gemv(Complex::one(), self, other, Complex::zero(), &mut c);  // Todo: Sen
+        c
+    }
+}
+
+impl MatrixProduct for ComplexMatrix {
+    fn kronecker(&self, other: &Self) -> Self {
+        unimplemented!()
+    }
+
+    fn hadamard(&self, other: &Self) -> Self {
+        assert_eq!(self.row, other.row);
+        assert_eq!(self.col, other.col);
+
+        let r = self.row;
+        let c = self.col;
+
+        let mut m = complex_matrix(vec![Complex::zero(); r * c], r, c, self.shape);
+        for i in 0..r {
+            for j in 0..c {
+                m[(i, j)] = self[(i, j)] * other[(i, j)]
+            }
+        }
+        m
+    }
+}
+
+// =============================================================================
+// Common Properties of Matrix & Vec<f64>
+// =============================================================================
+/// `Complex Matrix` to `Vec<Complex<f64>>`
+impl Into<Vec<Complex<f64>>> for ComplexMatrix {
+    fn into(self) -> Vec<Complex<f64>> {
+        self.data
+    }
+}
+
+/// `&ComplexMatrix` to `&Vec<Complex<f64>>`
+impl<'a> Into<&'a Vec<Complex<f64>>> for &'a ComplexMatrix {
+    fn into(self) -> &'a Vec<Complex<f64>> {
+        &self.data
+    }
+}
+
+/// `Vec<Complex<f64>>` to `ComplexMatrix`
+impl Into<ComplexMatrix> for Vec<Complex<f64>> {
+    fn into(self) -> ComplexMatrix {
+        let l = self.len();
+        complex_matrix(self, l, 1, Shape::Col)
+    }
+}
+
+/// `&Vec<Complex<f64>>` to `ComplexMatrix`
+impl Into<ComplexMatrix> for &Vec<Complex<f64>> {
+    fn into(self) -> ComplexMatrix {
+        let l = self.len();
+        complex_matrix(self.clone(), l, 1, Shape::Col)
+    }
+}
+
+/// Index for Complex Matrix
+///
+/// `(usize, usize) -> Complex<f64>`
+///
+/// # Examples
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+///                             Complex64::new(2f64, 2f64),
+///                             Complex64::new(3f64, 3f64),
+///                             Complex64::new(4f64, 4f64)],
+///                             2, 2, Row
+///     );
+/// assert_eq!(a[(0,1)], Complex64::new(2f64, 2f64));
+/// ```
+impl Index<(usize, usize)> for ComplexMatrix {
+    type Output = Complex<f64>;
+
+    fn index(&self, pair: (usize, usize)) -> &Complex<f64> {
+        let p = self.ptr();
+        let i = pair.0;
+        let j = pair.1;
+        assert!(i < self.row && j < self.col, "Index out of range");
+        match self.shape {
+            Shape::Row => unsafe { &*p.add(i * self.col + j) },
+            Shape::Col => unsafe { &*p.add(i + j * self.row) },
+        }
+    }
+}
+
+/// IndexMut for Complex Matrix (Assign)
+///
+/// `(usize, usize) -> Complex<f64>`
+///
+/// # Examples
+/// ```rust
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+/// use peroxide::complex::matrix::*;
+///
+/// let mut a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+///                             Complex64::new(2f64, 2f64),
+///                             Complex64::new(3f64, 3f64),
+///                             Complex64::new(4f64, 4f64)],
+///                             2, 2, Row
+///     );
+/// assert_eq!(a[(0,1)], Complex64::new(2f64, 2f64));
+/// ```
+impl IndexMut<(usize, usize)> for ComplexMatrix {
+    fn index_mut(&mut self, pair: (usize, usize)) -> &mut Complex<f64> {
+        let i = pair.0;
+        let j = pair.1;
+        let r = self.row;
+        let c = self.col;
+        assert!(i < self.row && j < self.col, "Index out of range");
+        let p = self.mut_ptr();
+        match self.shape {
+            Shape::Row => {
+                let idx = i * c + j;
+                unsafe { &mut *p.add(idx) }
+            }
+            Shape::Col => {
+                let idx = i + j * r;
+                unsafe { &mut *p.add(idx) }
+            }
         }
     }
 }
