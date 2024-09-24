@@ -1,4 +1,4 @@
-use crate::structure::matrix::Matrix;
+use num_complex::Complex;
 
 /// Functional Programming tools for Vector
 pub trait FPVector {
@@ -25,17 +25,17 @@ pub trait FPVector {
 
 /// Functional Programming for Matrix
 pub trait FPMatrix {
-    fn take_row(&self, n: usize) -> Matrix;
-    fn take_col(&self, n: usize) -> Matrix;
-    fn skip_row(&self, n: usize) -> Matrix;
-    fn skip_col(&self, n: usize) -> Matrix;
-    fn fmap<F>(&self, f: F) -> Matrix
+    fn take_row(&self, n: usize) -> Self;
+    fn take_col(&self, n: usize) -> Self;
+    fn skip_row(&self, n: usize) -> Self;
+    fn skip_col(&self, n: usize) -> Self;
+    fn fmap<F>(&self, f: F) -> Self
     where
         F: Fn(f64) -> f64;
-    fn col_map<F>(&self, f: F) -> Matrix
+    fn col_map<F>(&self, f: F) -> Self
     where
         F: Fn(Vec<f64>) -> Vec<f64>;
-    fn row_map<F>(&self, f: F) -> Matrix
+    fn row_map<F>(&self, f: F) -> Self
     where
         F: Fn(Vec<f64>) -> Vec<f64>;
     fn col_mut_map<F>(&mut self, f: F)
@@ -48,7 +48,7 @@ pub trait FPMatrix {
     where
         F: Fn(f64, f64) -> f64,
         T: Into<f64>;
-    fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
     where
         F: Fn(f64, f64) -> f64;
     fn col_reduce<F>(&self, f: F) -> Vec<f64>
@@ -57,4 +57,40 @@ pub trait FPMatrix {
     fn row_reduce<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(Vec<f64>) -> f64;
+}
+
+/// Functional Programming for Complex Matrix
+pub trait FPComplexMatrix {
+    fn take_row(&self, n: usize) -> Self;
+    fn take_col(&self, n: usize) -> Self;
+    fn skip_row(&self, n: usize) -> Self;
+    fn skip_col(&self, n: usize) -> Self;
+    fn fmap<F>(&self, f: F) -> Self
+    where
+        F: Fn(Complex<f64>) -> Complex<f64>;
+    fn col_map<F>(&self, f: F) -> Self
+    where
+        F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>;
+    fn row_map<F>(&self, f: F) -> Self
+    where
+        F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>;
+    fn col_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>;
+    fn row_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>;
+    fn reduce<F, T>(&self, init: T, f: F) -> Complex<f64>
+    where
+        F: Fn(Complex<f64>, Complex<f64>) -> Complex<f64>,
+        T: Into<Complex<f64>>;
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+        F: Fn(Complex<f64>, Complex<f64>) -> Complex<f64>;
+    fn col_reduce<F>(&self, f: F) -> Vec<Complex<f64>>
+    where
+        F: Fn(Vec<Complex<f64>>) -> Complex<f64>;
+    fn row_reduce<F>(&self, f: F) -> Vec<Complex<f64>>
+    where
+        F: Fn(Vec<Complex<f64>>) -> Complex<f64>;
 }
