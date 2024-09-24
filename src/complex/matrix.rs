@@ -1,6 +1,7 @@
 use std::fmt;
 
 use num_complex::Complex;
+use rand_distr::num_traits::Zero;
 
 use crate::fuga::Shape;
 
@@ -162,7 +163,257 @@ pub fn ml_complex_matrix(s: &str) -> ComplexMatrix {
     complex_matrix(data, r, c, Shape::Row)
 }
 
-impl ComplexMatrix {}
+impl ComplexMatrix {
+    /// Raw pointer for `self.data`
+    pub fn ptr(&self) -> *const Complex<f64> {
+        &self.data[0] as *const Complex<f64>
+    }
+
+    /// Raw mutable pointer for `self.data`
+    pub fn mut_ptr(&mut self) -> *mut Complex<f64> {
+        &mut self.data[0] as *mut Complex<f64>
+    }
+
+    /// Slice of `self.data`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                             Complex64::new(2f64, 2f64),
+    ///                             Complex64::new(3f64, 3f64),
+    ///                             Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// let b = a.as_slice();
+    /// assert_eq!(b, &[Complex64::new(1f64, 1f64),
+    ///                 Complex64::new(2f64, 2f64),
+    ///                 Complex64::new(3f64, 3f64),
+    ///                 Complex64::new(4f64, 4f64)]);
+    /// ```
+    pub fn as_slice(&self) -> &[Complex<f64>] {
+        &self.data[..]
+    }
+
+    /// Mutable slice of `self.data`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let mut a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// let mut b = a.as_mut_slice();
+    /// b[1] = Complex64::new(5f64, 5f64);
+    /// assert_eq!(b, &[Complex64::new(1f64, 1f64),
+    ///                 Complex64::new(5f64, 5f64),
+    ///                 Complex64::new(3f64, 3f64),
+    ///                 Complex64::new(4f64, 4f64)]);
+    /// assert_eq!(a, complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                   Complex64::new(5f64, 5f64),
+    ///                                   Complex64::new(3f64, 3f64),
+    ///                                   Complex64::new(4f64, 4f64)],
+    ///                               2, 2, Row));
+    /// ```
+    pub fn as_mut_slice(&mut self) -> &mut [Complex<f64>] {
+        &mut self.data[..]
+    }
+
+    /// Change Bindings
+    ///
+    /// `Row` -> `Col` or `Col` -> `Row`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let mut a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// assert_eq!(a.shape, Row);
+    /// let b = a.change_shape();
+    /// assert_eq!(b.shape, Col);
+    /// ```
+    pub fn change_shape(&self) -> Self {
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r * c, self.data.len());
+        let l = r * c - 1;
+        let mut data: Vec<Complex<f64>> = self.data.clone();
+        let ref_data = &self.data;
+
+        match self.shape {
+            Shape::Row => {
+                for i in 0..l {
+                    let s = (i * c) % l;
+                    data[i] = ref_data[s];
+                }
+                data[l] = ref_data[l];
+                complex_matrix(data, r, c, Shape::Col)
+            }
+            Shape::Col => {
+                for i in 0..l {
+                    let s = (i * r) % l;
+                    data[i] = ref_data[s];
+                }
+                data[l] = ref_data[l];
+                complex_matrix(data, r, c, Shape::Row)
+            }
+        }
+    }
+
+    /// Change Bindings Mutably
+    ///
+    /// `Row` -> `Col` or `Col` -> `Row`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let mut a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// assert_eq!(a.shape, Row);
+    /// let b = a.change_shape_mut();
+    /// assert_eq!(b.shape, Col);
+    /// ```
+    pub fn change_shape_mut(&mut self) -> Self {
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r * c, self.data.len());
+        let l = r * c - 1;
+        let mut data: Vec<Complex<f64>> = self.data.clone();
+        let ref_data = &self.data;
+
+        match self.shape {
+            Shape::Row => {
+                for i in 0..l {
+                    let s = (i * c) % l;
+                    data[i] = ref_data[s];
+                }
+                data[l] = ref_data[l];
+                complex_matrix(data, r, c, Shape::Col)
+            }
+            Shape::Col => {
+                for i in 0..l {
+                    let s = (i * r) % l;
+                    data[i] = ref_data[s];
+                }
+                data[l] = ref_data[l];
+                complex_matrix(data, r, c, Shape::Row)
+            }
+        }
+    }
+
+    /// Extract diagonal components
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// fn main() {
+    ///     let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///          );
+    ///     assert_eq!(a.diag(), vec![Complex64::new(1f64, 1f64) ,Complex64::new(4f64, 4f64)]);
+    /// }
+    /// ```
+    pub fn diag(&self) -> Vec<Complex<f64>> {
+        let mut container = vec![Complex::zero(); self.row];
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r, c);
+
+        let c2 = c + 1;
+        for i in 0..r {
+            container[i] = self.data[i * c2];
+        }
+        container
+    }
+
+    /// Transpose
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                             Complex64::new(2f64, 2f64),
+    ///                             Complex64::new(3f64, 3f64),
+    ///                             Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// let a_t = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                               Complex64::new(2f64, 2f64),
+    ///                               Complex64::new(3f64, 3f64),
+    ///                               Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Col
+    ///     );
+    ///
+    /// assert_eq!(a.transpose(), a_t);
+    /// ```
+    pub fn transpose(&self) -> Self {
+        match self.shape {
+            Shape::Row => complex_matrix(self.data.clone(), self.col, self.row, Shape::Col),
+            Shape::Col => complex_matrix(self.data.clone(), self.col, self.row, Shape::Row),
+        }
+    }
+
+    /// R-like transpose function
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                             Complex64::new(2f64, 2f64),
+    ///                             Complex64::new(3f64, 3f64),
+    ///                             Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// let a_t = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                               Complex64::new(2f64, 2f64),
+    ///                               Complex64::new(3f64, 3f64),
+    ///                               Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Col
+    ///     );
+    ///
+    /// assert_eq!(a.t(), a_t);
+    /// ```
+    pub fn t(&self) -> Self {
+        self.transpose()
+    }
+}
 
 // ///  Pretty Print
 // impl fmt::Display for ComplexMatrix {
