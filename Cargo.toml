@@ -10,7 +10,14 @@ categories = ["science"]
 readme = "README.md"
 documentation = "https://axect.github.io/Peroxide_Doc"
 keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
-exclude = ["example_data/", "src/bin/", "benches/", "example/", "test_data/", "peroxide-ad2"]
+exclude = [
+    "example_data/",
+    "src/bin/",
+    "benches/",
+    "example/",
+    "test_data/",
+    "peroxide-ad2",
+]
 
 [badges]
 travis-ci = { repository = "axect/peroxide" }
@@ -25,24 +32,33 @@ rand = { version = "0.8", features = ["small_rng"] }
 rand_distr = "0.4"
 order-stat = "0.1"
 puruspe = "0.2"
-matrixmultiply = { version = "0.3", features = ["threading"] }
+matrixmultiply = { version = "0.3", features = ["threading", "cgemm"] }
 peroxide-ad = "0.3"
 peroxide-num = "0.1"
 anyhow = "1.0"
 paste = "1.0"
 #num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default-features = false }
-pyo3 = { version = "0.22", optional = true, features = ["auto-initialize", "gil-refs"] }
+pyo3 = { version = "0.22", optional = true, features = [
+    "auto-initialize",
+    "gil-refs",
+] }
 blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
-arrow2 = { version = "0.18", features = ["io_parquet", "io_parquet_compression"], optional = true }
+arrow2 = { version = "0.18", features = [
+    "io_parquet",
+    "io_parquet_compression",
+], optional = true }
 num-complex = { version = "0.4", optional = true }
-lambert_w = { version = "0.4.0", default-features = false, features = ["24bits", "50bits"] }
+lambert_w = { version = "0.4.0", default-features = false, features = [
+    "24bits",
+    "50bits",
+] }
 
 [package.metadata.docs.rs]
-rustdoc-args = [ "--html-in-header", "katex-header.html", "--cfg", "docsrs"]
+rustdoc-args = ["--html-in-header", "katex-header.html", "--cfg", "docsrs"]
 
 [features]
 default = []
