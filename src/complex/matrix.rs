@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::{bail, Result};
+use matrixmultiply::CGemmOption;
 use num_complex::Complex;
 use rand_distr::num_traits::{zero, One, Zero};
 
@@ -809,21 +810,6 @@ impl LinearOp<Vec<Complex<f64>>, Vec<Complex<f64>>> for ComplexMatrix {
 }
 
 /// R like cbind - concatenate two comlex matrix by column direction
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let a = matrix!(1;4;1, 2, 2, Col);
-///     let b = matrix!(5;8;1, 2, 2, Col);
-///     let c = matrix!(1;8;1, 2, 4, Col);
-///     assert_eq!(cbind(a,b)?, c);
-///     Ok(())
-/// }
-/// ```
 pub fn complex_cbind(m1: ComplexMatrix, m2: ComplexMatrix) -> Result<ComplexMatrix> {
     let mut temp = m1;
     if temp.shape != Shape::Col {
@@ -848,20 +834,6 @@ pub fn complex_cbind(m1: ComplexMatrix, m2: ComplexMatrix) -> Result<ComplexMatr
 }
 
 /// R like rbind - concatenate two complex matrix by row direction
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let a = matrix!(1;4;1, 2, 2, Row);
-///     let b = matrix!(5;8;1, 2, 2, Row);
-///     let c = matrix!(1;8;1, 4, 2, Row);
-///     assert_eq!(rbind(a,b)?, c);
-///     Ok(())
-/// }
 /// ```
 pub fn complex_rbind(m1: ComplexMatrix, m2: ComplexMatrix) -> Result<ComplexMatrix> {
     let mut temp = m1;
@@ -1275,17 +1247,16 @@ impl<'a> Mul<&'a ComplexMatrix> for Complex<f64> {
 ///                                    4.0+4.0i 5.0+5.0i");
 ///     let mut b = ml_complex_matrix("2.0+2.0i 2.0+2.0i;
 ///                                    5.0+5.0i 5.0+5.0i");
-///     let prod = ml_complex_matrix("2.0+2.0i 4.0+4.0i;
-///                                    20.0+20.0i 16.0+16.0i"); // to-do wrong values
-///     // assert_eq!(a * b, prod); // to-do: uncomment
+///     let prod = ml_complex_matrix("0.0+24.0i 0.0+24.0i;
+///                                    0.0+66.0i 0.0+66.0i");
+///     assert_eq!(a * b, prod);
 /// }
 /// ```
 impl Mul<ComplexMatrix> for ComplexMatrix {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
-        // matmul(&self, &other)    // ToDo
-        unimplemented!()
+        matmul(&self, &other)
     }
 }
 
@@ -1293,8 +1264,7 @@ impl<'a, 'b> Mul<&'b ComplexMatrix> for &'a ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn mul(self, other: &'b ComplexMatrix) -> Self::Output {
-        // matmul(self, other) // ToDo
-        unimplemented!()
+        matmul(self, other)
     }
 }
 
@@ -1329,24 +1299,29 @@ impl<'a, 'b> Mul<&'b Vec<Complex<f64>>> for &'a ComplexMatrix {
 /// fn main() {
 ///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
 ///                                    4.0+4.0i 5.0+5.0i");
-///     let a_exp = ml_complex_matrix("10.0+10.0i 20.0+29.0i;
-///                                    30.0+30.0i 40.0+40.0i");
-///     // assert_eq!(a * Complex64::new(10_f64, 10_f64), a_exp);  // to-do: uncomment
+///     let a_exp = vec![Complex64::new(10_f64, 10_f64)];
+///     assert_eq!(a * Complex64::new(10_f64, 10_f64), a_exp);
 /// }
 /// ```
 impl Mul<ComplexMatrix> for Vec<Complex<f64>> {
     type Output = Vec<Complex<f64>>;
 
     fn mul(self, other: ComplexMatrix) -> Self::Output {
-        unimplemented!()
+        assert_eq!(self.len(), other.row);
+        let mut c = vec![Complex::zero(); other.col];
+        complex_gevm(Complex::one(), &self, &other, Complex::zero(), &mut c);
+        c
     }
 }
 
-impl<'a, 'b> Mul<&'b ComplexMatrix> for &'a Vec<f64> {
-    type Output = Vec<f64>;
+impl<'a, 'b> Mul<&'b ComplexMatrix> for &'a Vec<Complex<f64>> {
+    type Output = Vec<Complex<f64>>;
 
     fn mul(self, other: &'b ComplexMatrix) -> Self::Output {
-        unimplemented!()
+        assert_eq!(self.len(), other.row);
+        let mut c = vec![Complex::zero(); other.col];
+        complex_gevm(Complex::one(), self, other, Complex::zero(), &mut c);
+        c
     }
 }
 
@@ -1979,5 +1954,165 @@ pub fn complex_inv_u(u: ComplexMatrix) -> ComplexMatrix {
 
             complex_combine(m1, m2, m3, m4)
         }
+    }
+}
+
+/// Matrix multiply back-ends
+pub fn matmul(a: &ComplexMatrix, b: &ComplexMatrix) -> ComplexMatrix {
+    assert_eq!(a.col, b.row);
+    let mut c = complex_matrix(vec![Complex::zero(); a.row * b.col], a.row, b.col, a.shape);
+    complex_gemm(Complex::one(), a, b, Complex::zero(), &mut c);
+    c
+}
+
+/// GEMM wrapper for Matrixmultiply
+///
+/// # Examples
+/// ```rust
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+/// use num_complex::Complex64;
+///
+/// use peroxide::complex::matrix::*;
+///
+/// fn main() {
+///     let a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
+///                                0.0+0.0i 1.0+1.0i");
+///     let b = ml_complex_matrix("1.0+1.0i 0.0+0.0i;
+///                                2.0+2.0i 1.0+1.0i");
+///     let mut c1 = ml_complex_matrix("1.0+1.0i 1.0+1.0i;
+///                                    1.0+1.0i 1.0+1.0i");
+///     let mul_val = ml_complex_matrix("-10.0+10.0i -4.0+4.0i;
+///                                      -4.0+4.0i -2.0+2.0i");
+///
+///     complex_gemm(Complex64::new(1.0, 1.0), &a, &b, Complex64::new(0.0, 0.0), &mut c1);
+///     assert_eq!(c1, mul_val);
+/// }
+pub fn complex_gemm(
+    alpha: Complex<f64>,
+    a: &ComplexMatrix,
+    b: &ComplexMatrix,
+    beta: Complex<f64>,
+    c: &mut ComplexMatrix,
+) {
+    let m = a.row;
+    let k = a.col;
+    let n = b.col;
+    let (rsa, csa) = match a.shape {
+        Shape::Row => (a.col as isize, 1isize),
+        Shape::Col => (1isize, a.row as isize),
+    };
+    let (rsb, csb) = match b.shape {
+        Shape::Row => (b.col as isize, 1isize),
+        Shape::Col => (1isize, b.row as isize),
+    };
+    let (rsc, csc) = match c.shape {
+        Shape::Row => (c.col as isize, 1isize),
+        Shape::Col => (1isize, c.row as isize),
+    };
+
+    unsafe {
+        matrixmultiply::zgemm(
+            // Requires crate feature "cgemm"
+            CGemmOption::Standard,
+            CGemmOption::Standard,
+            m,
+            k,
+            n,
+            [alpha.re, alpha.im],
+            a.ptr() as *const _,
+            rsa,
+            csa,
+            b.ptr() as *const _,
+            rsb,
+            csb,
+            [beta.re, beta.im],
+            c.mut_ptr() as *mut _,
+            rsc,
+            csc,
+        )
+    }
+}
+
+/// General Matrix-Vector multiplication
+pub fn complex_gemv(
+    alpha: Complex<f64>,
+    a: &ComplexMatrix,
+    b: &Vec<Complex<f64>>,
+    beta: Complex<f64>,
+    c: &mut Vec<Complex<f64>>,
+) {
+    let m = a.row;
+    let k = a.col;
+    let n = 1usize;
+    let (rsa, csa) = match a.shape {
+        Shape::Row => (a.col as isize, 1isize),
+        Shape::Col => (1isize, a.row as isize),
+    };
+    let (rsb, csb) = (1isize, 1isize);
+    let (rsc, csc) = (1isize, 1isize);
+
+    unsafe {
+        matrixmultiply::zgemm(
+            // Requires crate feature "cgemm"
+            CGemmOption::Standard,
+            CGemmOption::Standard,
+            m,
+            k,
+            n,
+            [alpha.re, alpha.im],
+            a.ptr() as *const _,
+            rsa,
+            csa,
+            b.as_ptr() as *const _,
+            rsb,
+            csb,
+            [beta.re, beta.im],
+            c.as_mut_ptr() as *mut _,
+            rsc,
+            csc,
+        )
+    }
+}
+
+/// General Vector-Matrix multiplication
+pub fn complex_gevm(
+    alpha: Complex<f64>,
+    a: &Vec<Complex<f64>>,
+    b: &ComplexMatrix,
+    beta: Complex<f64>,
+    c: &mut Vec<Complex<f64>>,
+) {
+    let m = 1usize;
+    let k = a.len();
+    let n = b.col;
+    let (rsa, csa) = (1isize, 1isize);
+    let (rsb, csb) = match b.shape {
+        Shape::Row => (b.col as isize, 1isize),
+        Shape::Col => (1isize, b.row as isize),
+    };
+    let (rsc, csc) = (1isize, 1isize);
+
+    unsafe {
+        matrixmultiply::zgemm(
+            // Requires crate feature "cgemm"
+            CGemmOption::Standard,
+            CGemmOption::Standard,
+            m,
+            k,
+            n,
+            [alpha.re, alpha.im],
+            a.as_ptr() as *const _,
+            rsa,
+            csa,
+            b.ptr() as *const _,
+            rsb,
+            csb,
+            [beta.re, beta.im],
+            c.as_mut_ptr() as *mut _,
+            rsc,
+            csc,
+        )
     }
 }
