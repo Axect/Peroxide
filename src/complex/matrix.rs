@@ -1,4 +1,5 @@
 use std::{
+    cmp::{max, min},
     fmt,
     ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub},
 };
@@ -6,14 +7,14 @@ use std::{
 use anyhow::{bail, Result};
 use matrixmultiply::CGemmOption;
 use num_complex::Complex;
-use rand_distr::num_traits::{zero, One, Zero};
+use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     fuga::{
-        gemv, nearly_eq, ConcatenateError, InnerProduct, LinearOp, MatrixProduct, Norm, Normed,
-        Series, Shape, TypedVector, Vector,
+        nearly_eq, tab, ConcatenateError, InnerProduct, LinearOp, MatrixProduct, Norm, Normed,
+        Shape, Vector,
     },
-    traits::fp::FPComplexMatrix,
+    traits::{fp::FPComplexMatrix, mutable::ComplexMutMatrix},
 };
 
 /// R-like complex matrix structure
@@ -174,20 +175,25 @@ pub fn ml_complex_matrix(s: &str) -> ComplexMatrix {
     complex_matrix(data, r, c, Shape::Row)
 }
 
-// ///  Pretty Print
-// impl fmt::Display for ComplexMatrix {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", self.spread());
-//     }
-// }
+///  Pretty Print
+impl fmt::Display for ComplexMatrix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.spread())
+    }
+}
 
 /// PartialEq implements
 impl PartialEq for ComplexMatrix {
     fn eq(&self, other: &ComplexMatrix) -> bool {
         if self.shape == other.shape {
-            return self.data == other.data;
+            self.data
+                .clone()
+                .into_iter()
+                .zip(other.data.clone())
+                .all(|(x, y)| nearly_eq(x.re, y.re) && nearly_eq(x.im, y.im))
+                && self.row == other.row
         } else {
-            return false; // todo! self.eq(&other.change_shape())
+            self.eq(&other.change_shape())
         }
     }
 }
@@ -351,6 +357,100 @@ impl ComplexMatrix {
                 complex_matrix(data, r, c, Shape::Row)
             }
         }
+    }
+
+    /// Spread data(1D vector) to 2D formatted String
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use num_complex::Complex64;
+    /// use peroxide::complex::matrix::*;
+    ///
+    /// let a = complex_matrix(vec![Complex64::new(1f64, 1f64),
+    ///                                 Complex64::new(2f64, 2f64),
+    ///                                 Complex64::new(3f64, 3f64),
+    ///                                 Complex64::new(4f64, 4f64)],
+    ///                             2, 2, Row
+    ///     );
+    /// println!("{}", a.spread()); // same as println!("{}", a);
+    /// // Result:
+    /// //       c[0] c[1]
+    /// // r[0]     1    3
+    /// // r[1]     2    4
+    /// ```
+    pub fn spread(&self) -> String {
+        assert_eq!(self.row * self.col, self.data.len());
+        let r = self.row;
+        let c = self.col;
+        let mut key_row = 20usize;
+        let mut key_col = 20usize;
+
+        if r > 100 || c > 100 || (r > 20 && c > 20) {
+            let part = if r <= 10 {
+                key_row = r;
+                key_col = 100;
+                self.take_col(100)
+            } else if c <= 10 {
+                key_row = 100;
+                key_col = c;
+                self.take_row(100)
+            } else {
+                self.take_row(20).take_col(20)
+            };
+            return format!(
+                "Result is too large to print - {}x{}\n only print {}x{} parts:\n{}",
+                self.row.to_string(),
+                self.col.to_string(),
+                key_row.to_string(),
+                key_col.to_string(),
+                part.spread()
+            );
+        }
+
+        // Find maximum length of data
+        let sample = self.data.clone();
+        let mut space: usize = sample
+            .into_iter()
+            .map(
+                |x| min(format!("{:.4}", x).len(), x.to_string().len()), // Choose minimum of approx vs normal
+            )
+            .fold(0, |x, y| max(x, y))
+            + 1;
+
+        if space < 5 {
+            space = 5;
+        }
+
+        let mut result = String::new();
+
+        result.push_str(&tab("", 5));
+        for i in 0..c {
+            result.push_str(&tab(&format!("c[{}]", i), space)); // Header
+        }
+        result.push('\n');
+
+        for i in 0..r {
+            result.push_str(&tab(&format!("r[{}]", i), 5));
+            for j in 0..c {
+                let st1 = format!("{:.4}", self[(i, j)]); // Round at fourth position
+                let st2 = self[(i, j)].to_string(); // Normal string
+                let mut st = st2.clone();
+
+                // Select more small thing
+                if st1.len() < st2.len() {
+                    st = st1;
+                }
+
+                result.push_str(&tab(&st, space));
+            }
+            if i == (r - 1) {
+                break;
+            }
+            result.push('\n');
+        }
+
+        return result;
     }
 
     /// Extract Column
@@ -777,7 +877,7 @@ impl Normed for ComplexMatrix {
         }
     }
 
-    fn normalize(&self, kind: Norm) -> Self
+    fn normalize(&self, _kind: Norm) -> Self
     where
         Self: Sized,
     {
@@ -804,7 +904,7 @@ impl LinearOp<Vec<Complex<f64>>, Vec<Complex<f64>>> for ComplexMatrix {
     fn apply(&self, other: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
         assert_eq!(self.col, other.len());
         let mut c = vec![Complex::zero(); self.row];
-        // gemv(Complex::one(), self, other, Complex::zero(), &mut c);  // Todo: Sen
+        complex_gemv(Complex::one(), self, other, Complex::zero(), &mut c);
         c
     }
 }
@@ -1287,22 +1387,6 @@ impl<'a, 'b> Mul<&'b Vec<Complex<f64>>> for &'a ComplexMatrix {
 }
 
 /// Matrix multiplication for `Vec<Complex<f64>>` vs `ComplexMatrix`
-///
-/// # Examples
-/// ```rust
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-/// use num_complex::Complex64;
-/// use peroxide::complex::matrix::*;
-///
-/// fn main() {
-///     let mut a = ml_complex_matrix("1.0+1.0i 2.0+2.0i;
-///                                    4.0+4.0i 5.0+5.0i");
-///     let a_exp = vec![Complex64::new(10_f64, 10_f64)];
-///     assert_eq!(a * Complex64::new(10_f64, 10_f64), a_exp);
-/// }
-/// ```
 impl Mul<ComplexMatrix> for Vec<Complex<f64>> {
     type Output = Vec<Complex<f64>>;
 
@@ -1600,14 +1684,30 @@ impl FPComplexMatrix for ComplexMatrix {
     where
         F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>,
     {
-        unimplemented!()
+        for i in 0..self.col {
+            unsafe {
+                let mut p = self.col_mut(i);
+                let fv = f(self.col(i));
+                for j in 0..p.len() {
+                    *p[j] = fv[j];
+                }
+            }
+        }
     }
 
     fn row_mut_map<F>(&mut self, f: F)
     where
         F: Fn(Vec<Complex<f64>>) -> Vec<Complex<f64>>,
     {
-        unimplemented!()
+        for i in 0..self.col {
+            unsafe {
+                let mut p = self.row_mut(i);
+                let fv = f(self.row(i));
+                for j in 0..p.len() {
+                    *p[j] = fv[j];
+                }
+            }
+        }
     }
 
     fn reduce<F, T>(&self, init: T, f: F) -> Complex<f64>
@@ -1789,6 +1889,78 @@ impl LinearAlgebra for ComplexMatrix {
             }
         }
         true
+    }
+}
+
+impl ComplexMutMatrix for ComplexMatrix {
+    unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut Complex<f64>> {
+        assert!(idx < self.col, "Index out of range");
+        match self.shape {
+            Shape::Col => {
+                let mut v: Vec<*mut Complex<f64>> = vec![&mut Complex::zero(); self.row];
+                let start_idx = idx * self.row;
+                let p = self.mut_ptr();
+                for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Row => {
+                let mut v: Vec<*mut Complex<f64>> = vec![&mut Complex::zero(); self.row];
+                let p = self.mut_ptr();
+                for i in 0..v.len() {
+                    v[i] = p.add(idx + i * self.col);
+                }
+                v
+            }
+        }
+    }
+
+    unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut Complex<f64>> {
+        assert!(idx < self.row, "Index out of range");
+        match self.shape {
+            Shape::Row => {
+                let mut v: Vec<*mut Complex<f64>> = vec![&mut Complex::zero(); self.col];
+                let start_idx = idx * self.col;
+                let p = self.mut_ptr();
+                for (i, j) in (start_idx..start_idx + v.len()).enumerate() {
+                    v[i] = p.add(j);
+                }
+                v
+            }
+            Shape::Col => {
+                let mut v: Vec<*mut Complex<f64>> = vec![&mut Complex::zero(); self.col];
+                let p = self.mut_ptr();
+                for i in 0..v.len() {
+                    v[i] = p.add(idx + i * self.row);
+                }
+                v
+            }
+        }
+    }
+
+    unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
+        match shape {
+            Shape::Col => swap_complex_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
+            Shape::Row => swap_complex_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
+        }
+    }
+
+    unsafe fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>, shape: Shape) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j, shape)
+        }
+    }
+}
+
+// ToDo: Move swap_complex_vec_ptr to low_level.rs
+pub unsafe fn swap_complex_vec_ptr(
+    lhs: &mut Vec<*mut Complex<f64>>,
+    rhs: &mut Vec<*mut Complex<f64>>,
+) {
+    assert_eq!(lhs.len(), rhs.len(), "Should use same length vectors");
+    for (&mut l, &mut r) in lhs.iter_mut().zip(rhs.iter_mut()) {
+        std::ptr::swap(l, r);
     }
 }
 
