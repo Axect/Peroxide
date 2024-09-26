@@ -11,13 +11,10 @@ use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     fuga::{
-        nearly_eq, tab, ConcatenateError, InnerProduct, LinearOp, MatrixProduct, Norm, Normed,
-        Shape, Vector,
+        nearly_eq, tab, ConcatenateError, FPMatrix, InnerProduct, LinearOp, MatrixProduct, Norm,
+        Normed, Shape, Vector,
     },
-    traits::{
-        fp::{FPComplexMatrix, FPVector},
-        mutable::ComplexMutMatrix,
-    },
+    traits::{fp::FPVector, mutable::ComplexMutMatrix},
 };
 
 /// R-like complex matrix structure
@@ -1510,7 +1507,9 @@ impl IndexMut<(usize, usize)> for ComplexMatrix {
 // Functional Programming Tools (Hand-written)
 // =============================================================================
 
-impl FPComplexMatrix for ComplexMatrix {
+impl FPMatrix for ComplexMatrix {
+    type Scalar = Complex<f64>;
+
     fn take_row(&self, n: usize) -> Self {
         if n >= self.row {
             return self.clone();
@@ -1598,7 +1597,7 @@ impl FPComplexMatrix for ComplexMatrix {
     /// use peroxide::fuga::*;
     /// use num_complex::Complex64;
     /// use peroxide::complex::matrix::*;
-    /// use peroxide::traits::fp::FPComplexMatrix;
+    /// use peroxide::traits::fp::FPMatrix;
     ///
     /// fn main() {
     ///     let x = complex_matrix(vec![Complex64::new(1f64, 1f64),
@@ -1644,7 +1643,7 @@ impl FPComplexMatrix for ComplexMatrix {
     /// use peroxide::fuga::*;
     /// use num_complex::Complex64;
     /// use peroxide::complex::matrix::*;
-    /// use peroxide::traits::fp::FPComplexMatrix;
+    /// use peroxide::traits::fp::FPMatrix;
     ///
     /// fn main() {
     ///     let x = complex_matrix(vec![Complex64::new(1f64, 1f64),
@@ -2217,7 +2216,7 @@ pub unsafe fn swap_complex_vec_ptr(
 /// use peroxide::fuga::*;
 /// use num_complex::Complex64;
 /// use peroxide::complex::matrix::*;
-/// use peroxide::traits::fp::FPComplexMatrix;
+/// use peroxide::traits::fp::FPMatrix;
 ///
 /// fn main() {
 ///     let x1 = complex_matrix(vec![Complex64::new(1f64, 1f64)], 1, 1, Row);
