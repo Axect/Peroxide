@@ -14,7 +14,7 @@ use crate::{
         nearly_eq, tab, ConcatenateError, FPMatrix, InnerProduct, LinearOp, MatrixProduct, Norm,
         Normed, Shape, Vector,
     },
-    traits::{fp::FPVector, mutable::ComplexMutMatrix},
+    traits::{fp::FPVector, mutable::MutMatrix},
 };
 
 /// R-like complex matrix structure
@@ -2134,7 +2134,9 @@ impl LinearAlgebra for ComplexMatrix {
     }
 }
 
-impl ComplexMutMatrix for ComplexMatrix {
+impl MutMatrix for ComplexMatrix {
+    type Scalar = Complex<f64>;
+
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut Complex<f64>> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {

@@ -3632,6 +3632,8 @@ pub fn solve(A: &Matrix, b: &Matrix, sk: SolveKind) -> Matrix {
 }
 
 impl MutMatrix for Matrix {
+    type Scalar = f64;
+
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
