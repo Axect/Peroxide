@@ -11,8 +11,8 @@ use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     fuga::{
-        nearly_eq, tab, ConcatenateError, FPMatrix, InnerProduct, LinearOp, MatrixProduct, Norm,
-        Normed, Shape, Vector,
+        nearly_eq, tab, Algorithm, ConcatenateError, FPMatrix, InnerProduct, LinearOp,
+        MatrixProduct, Norm, Normed, Shape, Vector,
     },
     traits::{fp::FPVector, mutable::MutMatrix},
 };
@@ -1861,6 +1861,12 @@ pub fn eye(n: usize) -> ComplexMatrix {
 // Linear Algebra
 // =============================================================================
 
+#[derive(Debug, Copy, Clone)]
+pub enum SolveKind {
+    LU,
+    WAZ,
+}
+
 /// Linear algebra trait
 pub trait LinearAlgebra {
     fn back_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
@@ -1876,8 +1882,8 @@ pub trait LinearAlgebra {
     fn block(&self) -> (ComplexMatrix, ComplexMatrix, ComplexMatrix, ComplexMatrix);
     fn inv(&self) -> ComplexMatrix;
     // fn pseudo_inv(&self) -> ComplexMatrix;
-    // fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<f64>;
-    // fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix;
+    fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<Complex<f64>>;
+    fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix;
     fn is_symmetric(&self) -> bool;
 }
 
@@ -2116,6 +2122,64 @@ impl LinearAlgebra for ComplexMatrix {
         self.lu().inv()
     }
 
+    /// Solve with Vector
+    ///
+    /// # Solve options
+    ///
+    /// * LU: Gaussian elimination with Complete pivoting LU (GECP)
+    /// * WAZ: Solve with WAZ decomposition
+    fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<Complex<f64>> {
+        match sk {
+            SolveKind::LU => {
+                let lu = self.lu();
+                let (p, q, l, u) = lu.extract();
+                let mut v = b.clone();
+                v.swap_with_perm(&p.into_iter().enumerate().collect());
+                let z = l.forward_subs(&v);
+                let mut y = u.back_subs(&z);
+                y.swap_with_perm(&q.into_iter().enumerate().rev().collect());
+                y
+            }
+            SolveKind::WAZ => {
+                unimplemented!()
+            }
+        }
+    }
+
+    fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix {
+        match sk {
+            SolveKind::LU => {
+                let lu = self.lu();
+                let (p, q, l, u) = lu.extract();
+                let mut x = complex_matrix(
+                    vec![Complex::zero(); self.col * m.col],
+                    self.col,
+                    m.col,
+                    Shape::Col,
+                );
+                for i in 0..m.col {
+                    let mut v = m.col(i).clone();
+                    for (r, &s) in p.iter().enumerate() {
+                        v.swap(r, s);
+                    }
+                    let z = l.forward_subs(&v);
+                    let mut y = u.back_subs(&z);
+                    for (r, &s) in q.iter().enumerate() {
+                        y.swap(r, s);
+                    }
+                    unsafe {
+                        let mut c = x.col_mut(i);
+                        copy_vec_ptr(&mut c, &y);
+                    }
+                }
+                x
+            }
+            SolveKind::WAZ => {
+                unimplemented!()
+            }
+        }
+    }
+
     fn is_symmetric(&self) -> bool {
         if self.row != self.col {
             return false;
@@ -2132,6 +2196,11 @@ impl LinearAlgebra for ComplexMatrix {
         }
         true
     }
+}
+
+#[allow(non_snake_case)]
+pub fn solve(A: &ComplexMatrix, b: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix {
+    A.solve_mat(b, sk)
 }
 
 impl MutMatrix for ComplexMatrix {
@@ -2205,6 +2274,14 @@ pub unsafe fn swap_complex_vec_ptr(
     assert_eq!(lhs.len(), rhs.len(), "Should use same length vectors");
     for (&mut l, &mut r) in lhs.iter_mut().zip(rhs.iter_mut()) {
         std::ptr::swap(l, r);
+    }
+}
+
+// ToDo: Move copy_vec_ptr to low_level.rs
+pub unsafe fn copy_vec_ptr(dst: &mut Vec<*mut Complex<f64>>, src: &Vec<Complex<f64>>) {
+    assert_eq!(dst.len(), src.len(), "Should use same length vectors");
+    for (&mut p, &s) in dst.iter_mut().zip(src) {
+        *p = s;
     }
 }
 
