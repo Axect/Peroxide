@@ -14,7 +14,7 @@ use crate::{
         nearly_eq, tab, ConcatenateError, InnerProduct, LinearOp, MatrixProduct, Norm, Normed,
         Shape, Vector,
     },
-    traits::{fp::FPComplexMatrix, mutable::ComplexMutMatrix},
+    traits::{fp::FPMatrix, mutable::MutMatrix},
 };
 
 /// R-like complex matrix structure
@@ -375,9 +375,9 @@ impl ComplexMatrix {
     ///     );
     /// println!("{}", a.spread()); // same as println!("{}", a);
     /// // Result:
-    /// //       c[0] c[1]
-    /// // r[0]     1    3
-    /// // r[1]     2    4
+    /// //       c[0]    c[1]
+    /// // r[0]  1+1i    3+3i
+    /// // r[1]  2+2i    4+4i
     /// ```
     pub fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
@@ -661,7 +661,7 @@ impl ComplexMatrix {
     pub fn to_vec(&self) -> Vec<Vec<Complex<f64>>> {
         let mut result = vec![vec![Complex::zero(); self.col]; self.row];
         for i in 0..self.row {
-            result[i] = self.row(i); // ToDo: needs row implementation
+            result[i] = self.row(i);
         }
         result
     }
@@ -1507,7 +1507,9 @@ impl IndexMut<(usize, usize)> for ComplexMatrix {
 // Functional Programming Tools (Hand-written)
 // =============================================================================
 
-impl FPComplexMatrix for ComplexMatrix {
+impl FPMatrix for ComplexMatrix {
+    type Scalar = Complex<f64>;
+
     fn take_row(&self, n: usize) -> Self {
         if n >= self.row {
             return self.clone();
@@ -1595,7 +1597,7 @@ impl FPComplexMatrix for ComplexMatrix {
     /// use peroxide::fuga::*;
     /// use num_complex::Complex64;
     /// use peroxide::complex::matrix::*;
-    /// use peroxide::traits::fp::FPComplexMatrix;
+    /// use peroxide::traits::fp::FPMatrix;
     ///
     /// fn main() {
     ///     let x = complex_matrix(vec![Complex64::new(1f64, 1f64),
@@ -1641,7 +1643,7 @@ impl FPComplexMatrix for ComplexMatrix {
     /// use peroxide::fuga::*;
     /// use num_complex::Complex64;
     /// use peroxide::complex::matrix::*;
-    /// use peroxide::traits::fp::FPComplexMatrix;
+    /// use peroxide::traits::fp::FPMatrix;
     ///
     /// fn main() {
     ///     let x = complex_matrix(vec![Complex64::new(1f64, 1f64),
@@ -1767,20 +1769,9 @@ impl FPComplexMatrix for ComplexMatrix {
 pub trait LinearAlgebra {
     fn back_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
     fn forward_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
-    // fn lu(&self) -> PQLU;
-    // fn waz(&self, d_form: Form) -> Option<WAZD>;
-    // fn qr(&self) -> QR;
-    // fn svd(&self) -> SVD;
-    // #[cfg(feature = "O3")]
-    // fn cholesky(&self, uplo: UPLO) -> Matrix;
-    // fn rref(&self) -> Matrix;
-    // fn det(&self) -> f64;
     fn block(&self) -> (ComplexMatrix, ComplexMatrix, ComplexMatrix, ComplexMatrix);
-    // fn inv(&self) -> ComplexMatrix;
-    // fn pseudo_inv(&self) -> Matrix;
-    // fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64>;
-    // fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix;
     fn is_symmetric(&self) -> bool;
+    // ToDo: Add other fn of this trait from src/structure/matrix.rs
 }
 
 impl LinearAlgebra for ComplexMatrix {
@@ -1892,7 +1883,9 @@ impl LinearAlgebra for ComplexMatrix {
     }
 }
 
-impl ComplexMutMatrix for ComplexMatrix {
+impl MutMatrix for ComplexMatrix {
+    type Scalar = Complex<f64>;
+
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut Complex<f64>> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
@@ -1974,7 +1967,7 @@ pub unsafe fn swap_complex_vec_ptr(
 /// use peroxide::fuga::*;
 /// use num_complex::Complex64;
 /// use peroxide::complex::matrix::*;
-/// use peroxide::traits::fp::FPComplexMatrix;
+/// use peroxide::traits::fp::FPMatrix;
 ///
 /// fn main() {
 ///     let x1 = complex_matrix(vec![Complex64::new(1f64, 1f64)], 1, 1, Row);

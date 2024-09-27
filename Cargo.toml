@@ -32,7 +32,7 @@ rand = { version = "0.8", features = ["small_rng"] }
 rand_distr = "0.4"
 order-stat = "0.1"
 puruspe = "0.2"
-matrixmultiply = { version = "0.3", features = ["threading", "cgemm"] }
+matrixmultiply = { version = "0.3", features = ["threading"] }
 peroxide-ad = "0.3"
 peroxide-num = "0.1"
 anyhow = "1.0"

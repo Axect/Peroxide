@@ -1,8 +1,8 @@
-// #[macro_use]
 extern crate peroxide;
-use num_complex::Complex64;
-use peroxide::{complex::matrix::ComplexMatrix, fuga::*};
+#[allow(unused_imports)]
+use peroxide::fuga::*;
 
+#[cfg(feature = "complex")]
 #[test]
 fn test_seq() {
     let v1 = ComplexMatrix {
