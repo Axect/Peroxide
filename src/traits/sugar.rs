@@ -1,15 +1,19 @@
-use crate::structure::matrix::{Matrix, Shape, matrix};
+use crate::structure::matrix::{matrix, Matrix, Shape};
 use crate::traits::fp::FPVector;
 use crate::util::non_macro::zeros_shape;
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// Syntactic sugar for Vector operations
-pub trait VecOps: Sized + FPVector 
-where Self::Scalar: Copy + Clone
-    + Add<Self::Scalar, Output=Self::Scalar>
-    + Sub<Self::Scalar, Output=Self::Scalar> 
-    + Mul<Self::Scalar, Output=Self::Scalar>
-    + Div<Self::Scalar, Output=Self::Scalar>
+pub trait VecOps: Sized + FPVector
+where
+    Self::Scalar: Copy
+        + Clone
+        + Add<Self::Scalar, Output = Self::Scalar>
+        + Sub<Self::Scalar, Output = Self::Scalar>
+        + Mul<Self::Scalar, Output = Self::Scalar>
+        + Div<Self::Scalar, Output = Self::Scalar>
+        + Send
+        + Sync,
 {
     //type Scalar;
     fn add_v(&self, v: &Self) -> Self {
@@ -449,7 +453,7 @@ impl ConvToMat for Vec<f64> {
     fn to_col(&self) -> Matrix {
         matrix(self.clone(), self.len(), 1, Shape::Col)
     }
-    
+
     fn to_row(&self) -> Matrix {
         matrix(self.clone(), 1, self.len(), Shape::Row)
     }

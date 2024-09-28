@@ -24,9 +24,9 @@ extern crate rand;
 use self::rand::distributions::uniform::SampleUniform;
 use self::rand::prelude::*;
 
+use crate::statistics::dist::{WeightedUniform, RNG};
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
-use crate::statistics::dist::{RNG, WeightedUniform};
 
 /// Small random number generator from seed
 ///
@@ -466,7 +466,9 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 ///     Ok(())
 /// }
 pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> anyhow::Result<Vec<f64>>
-where F: Fn(f64) -> f64 + Copy {
+where
+    F: Fn(f64) -> f64 + Copy + Send + Sync,
+{
     let mut rng = thread_rng();
 
     let mut result = vec![0f64; n];
@@ -482,7 +484,7 @@ where F: Fn(f64) -> f64 + Copy {
             if weight <= 0f64 {
                 continue;
             } else {
-                let y = rng.gen_range(0f64 ..=weight);
+                let y = rng.gen_range(0f64..=weight);
 
                 if y <= f(x) {
                     result[n - left_num] = x;
@@ -527,8 +529,17 @@ where F: Fn(f64) -> f64 + Copy {
 ///
 ///     Ok(())
 /// }
-pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64, rng: &mut R) -> anyhow::Result<Vec<f64>>
-    where F: Fn(f64) -> f64 + Copy {
+pub fn prs_with_rng<F, R: Rng + Clone>(
+    f: F,
+    n: usize,
+    (a, b): (f64, f64),
+    m: usize,
+    eps: f64,
+    rng: &mut R,
+) -> anyhow::Result<Vec<f64>>
+where
+    F: Fn(f64) -> f64 + Copy + Send + Sync,
+{
     let mut result = vec![0f64; n];
 
     let w = WeightedUniform::from_max_pool_1d(f, (a, b), m, eps)?;
@@ -542,7 +553,7 @@ pub fn prs_with_rng<F, R: Rng + Clone>(f: F, n: usize, (a, b): (f64, f64), m: us
             if weight <= 0f64 {
                 continue;
             } else {
-                let y = rng.gen_range(0f64 ..=weight);
+                let y = rng.gen_range(0f64..=weight);
 
                 if y <= f(x) {
                     result[n - left_num] = x;

@@ -161,19 +161,19 @@ impl Integral {
 ///     * `G30K61R`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
-    F: Fn(f64) -> f64 + Copy,
+    F: Fn(f64) -> f64 + Copy + Send + Sync,
 {
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
         Integral::NewtonCotes(n) => newton_cotes_quadrature(f, n, (a, b)),
-        method => gauss_kronrod_quadrature(f, (a,b), method),
+        method => gauss_kronrod_quadrature(f, (a, b), method),
     }
 }
 
 /// Newton Cotes Quadrature
 pub fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 where
-    F: Fn(f64) -> f64,
+    F: Fn(f64) -> f64 + Send + Sync,
 {
     let h = (b - a) / (n as f64);
     let node_x = seq(a, b, h);
@@ -217,9 +217,9 @@ where
 #[allow(non_snake_case)]
 pub fn gauss_kronrod_quadrature<F, T, S>(f: F, (a, b): (T, S), method: Integral) -> f64
 where
-     F: Fn(f64) -> f64 + Copy,
-     T: Into<f64>,
-     S: Into<f64>,
+    F: Fn(f64) -> f64 + Copy,
+    T: Into<f64>,
+    S: Into<f64>,
 {
     let (g, k) = method.get_gauss_kronrod_order();
     let tol = method.get_tol();
@@ -234,13 +234,9 @@ where
                 let G = gauss_legendre_quadrature(f, g as usize, (a, b));
                 let K = kronrod_quadrature(f, k as usize, (a, b));
                 let c = (a + b) / 2f64;
-                let tol_curr = if method.is_relative() {
-                    tol * G
-                } else {
-                    tol
-                };
+                let tol_curr = if method.is_relative() { tol * G } else { tol };
                 if (G - K).abs() < tol_curr || a == b || max_iter == 0 {
-                    if ! G.is_finite() {
+                    if !G.is_finite() {
                         return G;
                     }
                     I += G;
@@ -255,11 +251,11 @@ where
     I
 }
 
-pub fn kronrod_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64 
+pub fn kronrod_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 where
     F: Fn(f64) -> f64,
 {
-    (b - a) / 2f64 * unit_kronrod_quadrature(|x| f(x * (b-a) / 2f64 + (a + b) / 2f64), n)   
+    (b - a) / 2f64 * unit_kronrod_quadrature(|x| f(x * (b - a) / 2f64 + (a + b) / 2f64), n)
 }
 
 // =============================================================================
@@ -382,9 +378,9 @@ fn unit_kronrod_quadrature<F>(f: F, n: usize) -> f64
 where
     F: Fn(f64) -> f64,
 {
-    let (a,x) = kronrod_table(n);
+    let (a, x) = kronrod_table(n);
     let mut s = 0f64;
-    for i in 0 .. a.len() {
+    for i in 0..a.len() {
         s += a[i] * f(x[i]);
     }
     s
@@ -414,28 +410,28 @@ fn kronrod_table(n: usize) -> (Vec<f64>, Vec<f64>) {
 
     match n % 2 {
         0 => {
-            for i in 0 .. ref_node.len() {
+            for i in 0..ref_node.len() {
                 result_node[i] = ref_node[i];
                 result_weight[i] = ref_weight[i];
             }
 
-            for i in ref_node.len() .. n {
-                result_node[i] = -ref_node[n-i-1];
-                result_weight[i] = ref_weight[n-i-1];
+            for i in ref_node.len()..n {
+                result_node[i] = -ref_node[n - i - 1];
+                result_weight[i] = ref_weight[n - i - 1];
             }
         }
         1 => {
-            for i in 0 .. ref_node.len() {
+            for i in 0..ref_node.len() {
                 result_node[i] = ref_node[i];
                 result_weight[i] = ref_weight[i];
             }
 
-            for i in ref_node.len() .. n {
-                result_node[i] = -ref_node[n-i];
-                result_weight[i] = ref_weight[n-i];
+            for i in ref_node.len()..n {
+                result_node[i] = -ref_node[n - i];
+                result_weight[i] = ref_weight[n - i];
             }
         }
-        _ => unreachable!()
+        _ => unreachable!(),
     }
     (result_weight, result_node)
 }
@@ -922,7 +918,7 @@ const LEGENDRE_WEIGHT_25: [f64; 13] = [
     0.054904695975835192,
     0.040939156701306313,
     0.026354986615032137,
-    0.011393798501026288,    
+    0.011393798501026288,
 ];
 const LEGENDRE_WEIGHT_26: [f64; 13] = [
     0.118321415279262277,

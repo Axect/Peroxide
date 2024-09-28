@@ -267,6 +267,8 @@ extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
 
+use rayon::prelude::*;
+
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
     fp::FPVector,
@@ -295,10 +297,14 @@ impl FPVector for Vec<f64> {
     /// ```
     fn fmap<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(f64) -> f64,
+        F: Fn(f64) -> f64 + Sync + Send,
     {
+        // let mut v = self.clone();
+        // v.iter_mut().for_each(|x| *x = f(*x));
+        // v
+
         let mut v = self.clone();
-        v.iter_mut().for_each(|x| *x = f(*x));
+        v.par_iter_mut().for_each(|x| *x = f(*x));
         v
     }
 
@@ -317,17 +323,27 @@ impl FPVector for Vec<f64> {
     /// ```
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
-        F: Fn(f64, f64) -> f64,
-        T: Into<f64>,
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Send + Sync + Copy,
     {
         self.iter().fold(init.into(), |x, &y| f(x, y))
+        // self.par_iter()
+        //     .cloned()
+        //     .fold(|| init.into(), |x, y| f(x, y))
+        //     .sum::<f64>() // Combining fold and reduce to produce a single value
+        //                   // .reduce(|| init.into(), |x, y| f(x, y))  // can not use reduce instead of .sum(), since the fn f used might not be associative (e.g. check test_max_pool_1d)
+        //                   // https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html#method.reduce
     }
 
     fn zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
     where
-        F: Fn(f64, f64) -> f64,
+        F: Fn(f64, f64) -> f64 + Send + Sync,
     {
-        self.iter()
+        // self.iter()
+        //     .zip(other)
+        //     .map(|(x, y)| f(*x, *y))
+        //     .collect::<Vec<f64>>()
+        self.par_iter()
             .zip(other)
             .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>()
@@ -349,10 +365,14 @@ impl FPVector for Vec<f64> {
     /// ```
     fn filter<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(f64) -> bool,
+        F: Fn(f64) -> bool + Send + Sync,
     {
+        // self.clone()
+        //     .into_iter()
+        //     .filter(|x| f(*x))
+        //     .collect::<Vec<f64>>()
         self.clone()
-            .into_iter()
+            .into_par_iter()
             .filter(|x| f(*x))
             .collect::<Vec<f64>>()
     }
@@ -372,8 +392,16 @@ impl FPVector for Vec<f64> {
     /// }
     /// ```
     fn take(&self, n: usize) -> Vec<f64> {
-        let mut v = vec![0f64; n];
-        v[..n].copy_from_slice(&self[..n]);
+        // let mut v = vec![0f64; n];
+        // v[..n].copy_from_slice(&self[..n]);
+        // v
+        let mut v = vec![0_f64; n];
+        v[..n]
+            .par_iter_mut()
+            .zip(self[..n].par_iter())
+            .for_each(|(dest, src)| {
+                *dest = *src;
+            }); // parallel equivalent of copy_from_slice()
         v
     }
 
@@ -392,20 +420,29 @@ impl FPVector for Vec<f64> {
     /// }
     /// ```
     fn skip(&self, n: usize) -> Vec<f64> {
+        // let l = self.len();
+        // let mut v = vec![0f64; l - n];
+        // for (i, j) in (n..l).enumerate() {
+        //     v[i] = self[j];
+        // }
+        // v
         let l = self.len();
         let mut v = vec![0f64; l - n];
-        for (i, j) in (n..l).enumerate() {
-            v[i] = self[j];
-        }
+        v[..(l - n)]
+            .par_iter_mut()
+            .zip(self[n..l].par_iter())
+            .for_each(|(dest, src)| *dest = *src);
         v
     }
 
     fn sum(&self) -> f64 {
-        self.iter().sum()
+        // self.iter().sum()
+        self.par_iter().sum()
     }
 
     fn prod(&self) -> f64 {
-        self.iter().product()
+        // self.iter().product()
+        self.par_iter().product()
     }
 }
 
