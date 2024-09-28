@@ -12,8 +12,8 @@ use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     fuga::{
-        nearly_eq, tab, Algorithm, ConcatenateError, FPMatrix, InnerProduct, LinearOp,
-        MatrixProduct, Norm, Normed, Shape, Vector,
+        copy_vec_ptr, nearly_eq, swap_vec_ptr, tab, Algorithm, ConcatenateError, FPMatrix,
+        InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Shape, Vector,
     },
     traits::{fp::FPMatrix, mutable::MutMatrix},
 };
@@ -2250,8 +2250,8 @@ impl MutMatrix for ComplexMatrix {
 
     unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape) {
         match shape {
-            Shape::Col => swap_complex_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
-            Shape::Row => swap_complex_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
+            Shape::Col => swap_vec_ptr(&mut self.col_mut(idx1), &mut self.col_mut(idx2)),
+            Shape::Row => swap_vec_ptr(&mut self.row_mut(idx1), &mut self.row_mut(idx2)),
         }
     }
 
@@ -2357,25 +2357,6 @@ impl TrigOps for ComplexMatrix {
 
     fn atanh(&self) -> Self {
         self.fmap(|x| x.atanh())
-    }
-}
-
-// ToDo: Move swap_complex_vec_ptr to low_level.rs
-pub unsafe fn swap_complex_vec_ptr(
-    lhs: &mut Vec<*mut Complex<f64>>,
-    rhs: &mut Vec<*mut Complex<f64>>,
-) {
-    assert_eq!(lhs.len(), rhs.len(), "Should use same length vectors");
-    for (&mut l, &mut r) in lhs.iter_mut().zip(rhs.iter_mut()) {
-        std::ptr::swap(l, r);
-    }
-}
-
-// ToDo: Move copy_vec_ptr to low_level.rs
-pub unsafe fn copy_vec_ptr(dst: &mut Vec<*mut Complex<f64>>, src: &Vec<Complex<f64>>) {
-    assert_eq!(dst.len(), src.len(), "Should use same length vectors");
-    for (&mut p, &s) in dst.iter_mut().zip(src) {
-        *p = s;
     }
 }
 
