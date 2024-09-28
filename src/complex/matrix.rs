@@ -7,6 +7,7 @@ use std::{
 use anyhow::{bail, Result};
 use matrixmultiply::CGemmOption;
 use num_complex::Complex;
+use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 use rand_distr::num_traits::{One, Zero};
 
 use crate::{
@@ -2258,6 +2259,104 @@ impl MutMatrix for ComplexMatrix {
         for (i, j) in p.iter() {
             self.swap(*i, *j, shape)
         }
+    }
+}
+
+impl ExpLogOps for ComplexMatrix {
+    type Float = Complex<f64>;
+
+    fn exp(&self) -> Self {
+        self.fmap(|x| x.exp())
+    }
+    fn ln(&self) -> Self {
+        self.fmap(|x| x.ln())
+    }
+    fn log(&self, base: Self::Float) -> Self {
+        self.fmap(|x| x.ln() / base.ln()) // Using `Log: change of base` formula
+    }
+    fn log2(&self) -> Self {
+        self.fmap(|x| x.ln() / 2.0.ln()) // Using `Log: change of base` formula
+    }
+    fn log10(&self) -> Self {
+        self.fmap(|x| x.ln() / 10.0.ln()) // Using `Log: change of base` formula
+    }
+}
+
+impl PowOps for ComplexMatrix {
+    type Float = Complex<f64>;
+
+    fn powi(&self, n: i32) -> Self {
+        self.fmap(|x| x.powi(n))
+    }
+
+    fn powf(&self, f: Self::Float) -> Self {
+        self.fmap(|x| x.powc(f))
+    }
+
+    fn pow(&self, _f: Self) -> Self {
+        unimplemented!()
+    }
+
+    fn sqrt(&self) -> Self {
+        self.fmap(|x| x.sqrt())
+    }
+}
+
+impl TrigOps for ComplexMatrix {
+    fn sin_cos(&self) -> (Self, Self) {
+        let (sin, cos) = self.data.iter().map(|x| (x.sin(), x.cos())).unzip();
+        (
+            complex_matrix(sin, self.row, self.col, self.shape),
+            complex_matrix(cos, self.row, self.col, self.shape),
+        )
+    }
+
+    fn sin(&self) -> Self {
+        self.fmap(|x| x.sin())
+    }
+
+    fn cos(&self) -> Self {
+        self.fmap(|x| x.cos())
+    }
+
+    fn tan(&self) -> Self {
+        self.fmap(|x| x.tan())
+    }
+
+    fn sinh(&self) -> Self {
+        self.fmap(|x| x.sinh())
+    }
+
+    fn cosh(&self) -> Self {
+        self.fmap(|x| x.cosh())
+    }
+
+    fn tanh(&self) -> Self {
+        self.fmap(|x| x.tanh())
+    }
+
+    fn asin(&self) -> Self {
+        self.fmap(|x| x.asin())
+    }
+
+    fn acos(&self) -> Self {
+        self.fmap(|x| x.acos())
+    }
+
+    fn atan(&self) -> Self {
+        self.fmap(|x| x.atan())
+    }
+
+    fn asinh(&self) -> Self {
+        self.fmap(|x| x.asinh())
+    }
+
+    fn acosh(&self) -> Self {
+        self.fmap(|x| x.acosh())
+    }
+
+    fn atanh(&self) -> Self {
+        self.fmap(|x| x.atanh())
     }
 }
 
