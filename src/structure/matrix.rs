@@ -1435,21 +1435,49 @@ impl Matrix {
     ///
     /// To send `Matrix` to `inline-python`
     pub fn to_vec(&self) -> Vec<Vec<f64>> {
-        let mut result = vec![vec![0f64; self.col]; self.row];
-        for i in 0..self.row {
-            result[i] = self.row(i);
-        }
-        result
+        // let mut result = vec![vec![0f64; self.col]; self.row];
+        // for i in 0..self.row {
+        //     result[i] = self.row(i);
+        // }
+        // result
+
+        (0..self.row)
+            .into_par_iter()
+            .map(|i| self.row(i))
+            .collect::<Vec<Vec<f64>>>()
     }
 
+    /// To diagonal components
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.to_diag(), matrix(c!(1,0,0,4), 2, 2, Row));
+    /// }
     pub fn to_diag(&self) -> Matrix {
         assert_eq!(self.row, self.col, "Should be square matrix");
-        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
-        let diag = self.diag();
-        for i in 0..self.row {
-            result[(i, i)] = diag[i];
-        }
-        result
+        // let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
+        // let diag = self.diag();
+        // for i in 0..self.row {
+        //     result[(i, i)] = diag[i];
+        // }
+        // result
+
+        let data = (0..self.row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..self.col)
+                    .into_par_iter()
+                    .map(|j| if i == j { self.diag()[i] } else { 0_f64 })
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, self.row, self.col, Row)
     }
 
     /// Submatrix
@@ -1482,13 +1510,24 @@ impl Matrix {
     pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
         let row = end.0 - start.0 + 1;
         let col = end.1 - start.1 + 1;
-        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
-        for i in 0..row {
-            for j in 0..col {
-                result[(i, j)] = self[(start.0 + i, start.1 + j)];
-            }
-        }
-        result
+        // let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
+        // for i in 0..row {
+        //     for j in 0..col {
+        //         result[(i, j)] = self[(start.0 + i, start.1 + j)];
+        //     }
+        // }
+        // result
+
+        let data = (0..row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..col)
+                    .into_par_iter()
+                    .map(|j| self[(start.0 + i, start.1 + j)])
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, row, col, self.shape)
     }
 
     /// Substitute matrix to specific position
@@ -1576,12 +1615,26 @@ impl Vector for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
+                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                // for i in 0..self.row {
+                //     for j in 0..self.col {
+                //         result[(i, j)] += other[(i, j)];
+                //     }
+                // }
+                // result
+
                 let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] += other[(i, j)];
-                    }
-                }
+                result
+                    .data
+                    .par_iter_mut()
+                    .enumerate()
+                    .for_each(|(idx, value)| {
+                        let i = idx / self.col;
+                        let j = idx % self.col;
+
+                        *value += other[(i, j)];
+                    });
+
                 result
             }
         }
@@ -1606,12 +1659,25 @@ impl Vector for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
+                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                // for i in 0..self.row {
+                //     for j in 0..self.col {
+                //         result[(i, j)] -= other[(i, j)];
+                //     }
+                // }
+                // result
+
                 let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] -= other[(i, j)];
-                    }
-                }
+                result
+                    .data
+                    .par_iter_mut()
+                    .enumerate()
+                    .for_each(|(idx, val)| {
+                        let i = idx / self.col;
+                        let j = idx % self.col;
+                        *val -= other[(i, j)];
+                    });
+
                 result
             }
         }
@@ -1644,21 +1710,39 @@ impl Normed for Matrix {
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
-                let mut s = 0f64;
-                for i in 0..self.data.len() {
-                    s += self.data[i].powi(2);
-                }
+                // let mut s = 0f64;
+                // for i in 0..self.data.len() {
+                //     s += self.data[i].powi(2);
+                // }
+                // s.sqrt()
+                let s = self
+                    .data
+                    .clone()
+                    .into_par_iter()
+                    .fold(|| 0_f64, |acc, el| acc + el.powi(2))
+                    .sum::<f64>();
                 s.sqrt()
             }
             Norm::Lpq(p, q) => {
-                let mut s = 0f64;
-                for j in 0..self.col {
-                    let mut s_row = 0f64;
-                    for i in 0..self.row {
-                        s_row += self[(i, j)].powi(p as i32);
-                    }
-                    s += s_row.powf(q / p);
-                }
+                // let mut s = 0f64;
+                // for j in 0..self.col {
+                //     let mut s_row = 0f64;
+                //     for i in 0..self.row {
+                //         s_row += self[(i, j)].powi(p as i32);
+                //     }
+                //     s += s_row.powf(q / p);
+                // }
+                // s.powf(1f64 / q)
+                let s = (0..self.col)
+                    .into_par_iter()
+                    .map(|j| {
+                        let s_row = (0..self.row)
+                            .into_iter()
+                            .map(|i| self[(i, j)].powi(p as i32))
+                            .sum::<f64>();
+                        s_row.powf(q / p)
+                    })
+                    .sum::<f64>();
                 s.powf(1f64 / q)
             }
             Norm::L1 => {
@@ -1667,7 +1751,8 @@ impl Normed for Matrix {
                     Row => self.change_shape().norm(Norm::L1),
                     Col => {
                         for c in 0..self.col {
-                            let s = self.col(c).iter().sum();
+                            // let s = self.col(c).iter().sum();
+                            let s = self.col(c).par_iter().sum();
                             if s > m {
                                 m = s;
                             }
@@ -1682,7 +1767,8 @@ impl Normed for Matrix {
                     Col => self.change_shape().norm(Norm::LInf),
                     Row => {
                         for r in 0..self.row {
-                            let s = self.row(r).iter().sum();
+                            // let s = self.row(r).iter().sum();
+                            let s = self.row(r).par_iter().sum();
                             if s > m {
                                 m = s;
                             }
@@ -1779,16 +1865,26 @@ impl MatrixProduct for Matrix {
         assert_eq!(self.row, other.row);
         assert_eq!(self.col, other.col);
 
-        let r = self.row;
-        let c = self.col;
+        // let r = self.row;
+        // let c = self.col;
+        // let mut m = matrix(vec![0f64; r * c], r, c, self.shape);
+        // for i in 0..r {
+        //     for j in 0..c {
+        //         m[(i, j)] = self[(i, j)] * other[(i, j)]
+        //     }
+        // }
+        // m
 
-        let mut m = matrix(vec![0f64; r * c], r, c, self.shape);
-        for i in 0..r {
-            for j in 0..c {
-                m[(i, j)] = self[(i, j)] * other[(i, j)]
-            }
-        }
-        m
+        let m = (0..self.row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..self.col)
+                    .into_par_iter()
+                    .map(|j| self[(i, j)] * other[(i, j)])
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(m, self.row, self.col, self.shape)
     }
 }
 
