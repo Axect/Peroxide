@@ -31,7 +31,7 @@ pub trait FPMatrix {
     fn skip_col(&self, n: usize) -> Matrix;
     fn fmap<F>(&self, f: F) -> Matrix
     where
-        F: Fn(f64) -> f64;
+        F: Fn(f64) -> f64 + Send + Sync;
     fn col_map<F>(&self, f: F) -> Matrix
     where
         F: Fn(Vec<f64>) -> Vec<f64>;
@@ -46,15 +46,15 @@ pub trait FPMatrix {
         F: Fn(Vec<f64>) -> Vec<f64>;
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
-        F: Fn(f64, f64) -> f64,
-        T: Into<f64>;
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Copy + Clone + Send + Sync;
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
     where
-        F: Fn(f64, f64) -> f64;
+        F: Fn(f64, f64) -> f64 + Send + Sync;
     fn col_reduce<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(Vec<f64>) -> f64;
+        F: Fn(Vec<f64>) -> f64 + Send + Sync;
     fn row_reduce<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(Vec<f64>) -> f64;
+        F: Fn(Vec<f64>) -> f64 + Send + Sync;
 }

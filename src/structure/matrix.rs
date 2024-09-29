@@ -1952,12 +1952,24 @@ impl Add<Matrix> for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
+                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                // for i in 0..self.row {
+                //     for j in 0..self.col {
+                //         result[(i, j)] += other[(i, j)];
+                //     }
+                // }
+                // result
                 let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] += other[(i, j)];
-                    }
-                }
+                result
+                    .data
+                    .par_iter_mut()
+                    .enumerate()
+                    .for_each(|(idx, value)| {
+                        let i = idx / self.col;
+                        let j = idx % self.col;
+
+                        *value += other[(i, j)];
+                    });
                 result
             }
         }
@@ -1987,7 +1999,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
 /// ```
 impl<T> Add<T> for Matrix
 where
-    T: Into<f64> + Copy,
+    T: Into<f64> + Copy + Send + Sync,
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
@@ -2010,7 +2022,7 @@ where
 /// Element-wise addition between &Matrix & f64
 impl<'a, T> Add<T> for &'a Matrix
 where
-    T: Into<f64> + Copy,
+    T: Into<f64> + Copy + Send + Sync,
 {
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
@@ -2149,7 +2161,11 @@ impl Neg for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => matrix(
-                self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                // self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                self.data
+                    .into_par_iter()
+                    .map(|x: f64| -x)
+                    .collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -2175,9 +2191,14 @@ impl<'a> Neg for &'a Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => matrix(
+                // self.data
+                //     .clone()
+                //     .into_iter()
+                //     .map(|x: f64| -x)
+                //     .collect::<Vec<f64>>(),
                 self.data
                     .clone()
-                    .into_iter()
+                    .into_par_iter()
                     .map(|x: f64| -x)
                     .collect::<Vec<f64>>(),
                 self.row,
@@ -2224,12 +2245,24 @@ impl Sub<Matrix> for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
+                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                // for i in 0..self.row {
+                //     for j in 0..self.col {
+                //         result[(i, j)] -= other[(i, j)];
+                //     }
+                // }
+                // result
                 let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                for i in 0..self.row {
-                    for j in 0..self.col {
-                        result[(i, j)] -= other[(i, j)];
-                    }
-                }
+                result
+                    .data
+                    .par_iter_mut()
+                    .enumerate()
+                    .for_each(|(idx, value)| {
+                        let i = idx / self.col;
+                        let j = idx % self.col;
+
+                        *value -= other[(i, j)];
+                    });
                 result
             }
         }
@@ -2247,7 +2280,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
 /// Subtraction between Matrix & f64
 impl<T> Sub<T> for Matrix
 where
-    T: Into<f64> + Copy,
+    T: Into<f64> + Copy + Send + Sync,
 {
     type Output = Self;
 
@@ -2271,7 +2304,7 @@ where
 /// Subtraction between &Matrix & f64
 impl<'a, T> Sub<T> for &'a Matrix
 where
-    T: Into<f64> + Copy,
+    T: Into<f64> + Copy + Send + Sync,
 {
     type Output = Matrix;
 
@@ -2757,16 +2790,23 @@ impl FPMatrix for Matrix {
                 let new_data = self
                     .data
                     .clone()
-                    .into_iter()
+                    // .into_iter()
+                    .into_par_iter()
                     .take(n * self.col)
                     .collect::<Vec<f64>>();
                 matrix(new_data, n, self.col, Row)
             }
             Col => {
-                let mut temp_data: Vec<f64> = Vec::new();
-                for i in 0..n {
-                    temp_data.extend(self.row(i));
-                }
+                // let mut temp_data: Vec<f64> = Vec::new();
+                // for i in 0..n {
+                //     temp_data.extend(self.row(i));
+                // }
+                // matrix(temp_data, n, self.col, Row)
+
+                let temp_data = (0..n)
+                    .into_par_iter()
+                    .flat_map(|i| self.row(i))
+                    .collect::<Vec<f64>>();
                 matrix(temp_data, n, self.col, Row)
             }
         }
@@ -2781,16 +2821,23 @@ impl FPMatrix for Matrix {
                 let new_data = self
                     .data
                     .clone()
-                    .into_iter()
+                    // .into_iter()
+                    .into_par_iter()
                     .take(n * self.row)
                     .collect::<Vec<f64>>();
                 matrix(new_data, self.row, n, Col)
             }
             Row => {
-                let mut temp_data: Vec<f64> = Vec::new();
-                for i in 0..n {
-                    temp_data.extend(self.col(i));
-                }
+                // let mut temp_data: Vec<f64> = Vec::new();
+                // for i in 0..n {
+                //     temp_data.extend(self.col(i));
+                // }
+                // matrix(temp_data, self.row, n, Col)
+
+                let temp_data = (0..n)
+                    .into_par_iter()
+                    .flat_map(|i| self.col(i))
+                    .collect::<Vec<f64>>();
                 matrix(temp_data, self.row, n, Col)
             }
         }
@@ -2799,28 +2846,43 @@ impl FPMatrix for Matrix {
     fn skip_row(&self, n: usize) -> Self {
         assert!(n < self.row, "Skip range is larger than row of matrix");
 
-        let mut temp_data: Vec<f64> = Vec::new();
-        for i in n..self.row {
-            temp_data.extend(self.row(i));
-        }
+        // let mut temp_data: Vec<f64> = Vec::new();
+        // for i in n..self.row {
+        //     temp_data.extend(self.row(i));
+        // }
+        // matrix(temp_data, self.row - n, self.col, Row)
+
+        let temp_data = (n..self.row)
+            .into_par_iter()
+            .flat_map(|i| self.row(i))
+            .collect::<Vec<f64>>();
         matrix(temp_data, self.row - n, self.col, Row)
     }
 
     fn skip_col(&self, n: usize) -> Self {
         assert!(n < self.col, "Skip range is larger than col of matrix");
 
-        let mut temp_data: Vec<f64> = Vec::new();
-        for i in n..self.col {
-            temp_data.extend(self.col(i));
-        }
+        // let mut temp_data: Vec<f64> = Vec::new();
+        // for i in n..self.col {
+        //     temp_data.extend(self.col(i));
+        // }
+        // matrix(temp_data, self.row, self.col - n, Col)
+
+        let temp_data = (n..self.col)
+            .into_par_iter()
+            .flat_map(|i| self.col(i))
+            .collect::<Vec<f64>>();
         matrix(temp_data, self.row, self.col - n, Col)
     }
 
     fn fmap<F>(&self, f: F) -> Matrix
     where
-        F: Fn(f64) -> f64,
+        F: Fn(f64) -> f64 + Send + Sync,
     {
-        let result = self.data.iter().map(|x| f(*x)).collect::<Vec<f64>>();
+        // let result = self.data.iter().map(|x| f(*x)).collect::<Vec<f64>>();
+        // matrix(result, self.row, self.col, self.shape)
+
+        let result = self.data.par_iter().map(|x| f(*x)).collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
     }
 
@@ -2842,11 +2904,9 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Col);
-
         for i in 0..self.col {
             result.subs_col(i, &f(self.col(i)));
         }
-
         result
     }
 
@@ -2868,11 +2928,9 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
-
         for i in 0..self.row {
             result.subs_row(i, &f(self.row(i)));
         }
-
         result
     }
 
@@ -2908,25 +2966,38 @@ impl FPMatrix for Matrix {
 
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
-        F: Fn(f64, f64) -> f64,
-        T: Into<f64>,
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Send + Sync + Copy + Clone,
     {
-        self.data.iter().fold(init.into(), |x, y| f(x, *y))
+        // self.data.iter().fold(init.into(), |x, y| f(x, *y))
+        self.data
+            .clone()
+            .into_par_iter()
+            .fold(|| init.into(), |acc, y| f(acc, y))
+            .sum()
     }
 
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Self
     where
-        F: Fn(f64, f64) -> f64,
+        F: Fn(f64, f64) -> f64 + Send + Sync,
     {
         assert_eq!(self.data.len(), other.data.len());
         let mut a = other.clone();
         if self.shape != other.shape {
             a = a.change_shape();
         }
+        // let result = self
+        //     .data
+        //     .iter()
+        //     .zip(a.data.iter())
+        //     .map(|(x, y)| f(*x, *y))
+        //     .collect::<Vec<f64>>();
+        // matrix(result, self.row, self.col, self.shape)
+
         let result = self
             .data
-            .iter()
-            .zip(a.data.iter())
+            .par_iter()
+            .zip(a.data.par_iter())
             .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>();
         matrix(result, self.row, self.col, self.shape)
@@ -2934,24 +3005,34 @@ impl FPMatrix for Matrix {
 
     fn col_reduce<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(Vec<f64>) -> f64,
+        F: Fn(Vec<f64>) -> f64 + Send + Sync,
     {
-        let mut v = vec![0f64; self.col];
-        for i in 0..self.col {
-            v[i] = f(self.col(i));
-        }
-        v
+        // let mut v = vec![0f64; self.col];
+        // for i in 0..self.col {
+        //     v[i] = f(self.col(i));
+        // }
+        // v
+
+        (0..self.col)
+            .into_par_iter()
+            .map(|i| f(self.col(i)))
+            .collect::<Vec<f64>>()
     }
 
     fn row_reduce<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(Vec<f64>) -> f64,
+        F: Fn(Vec<f64>) -> f64 + Send + Sync,
     {
-        let mut v = vec![0f64; self.row];
-        for i in 0..self.row {
-            v[i] = f(self.row(i));
-        }
-        v
+        // let mut v = vec![0f64; self.row];
+        // for i in 0..self.row {
+        //     v[i] = f(self.row(i));
+        // }
+        // v
+
+        (0..self.row)
+            .into_par_iter()
+            .map(|i| f(self.row(i)))
+            .collect::<Vec<f64>>()
     }
 }
 
