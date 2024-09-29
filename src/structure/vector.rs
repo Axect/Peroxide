@@ -267,7 +267,7 @@ extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
 
-use rayon::prelude::*;
+use crate::rayon::prelude::*;
 
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::traits::{
