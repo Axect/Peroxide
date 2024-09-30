@@ -15,7 +15,7 @@ use crate::{
         copy_vec_ptr, nearly_eq, swap_vec_ptr, tab, Algorithm, ConcatenateError, FPMatrix,
         InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Shape, Vector,
     },
-    traits::{fp::FPMatrix, mutable::MutMatrix},
+    traits::{fp::FPVector, mutable::MutMatrix},
 };
 
 /// R-like complex matrix structure
@@ -376,9 +376,9 @@ impl ComplexMatrix {
     ///     );
     /// println!("{}", a.spread()); // same as println!("{}", a);
     /// // Result:
-    /// //       c[0]    c[1]
-    /// // r[0]  1+1i    3+3i
-    /// // r[1]  2+2i    4+4i
+    /// //       c[0] c[1]
+    /// // r[0]     1    3
+    /// // r[1]     2    4
     /// ```
     pub fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
@@ -662,7 +662,7 @@ impl ComplexMatrix {
     pub fn to_vec(&self) -> Vec<Vec<Complex<f64>>> {
         let mut result = vec![vec![Complex::zero(); self.col]; self.row];
         for i in 0..self.row {
-            result[i] = self.row(i);
+            result[i] = self.row(i); // ToDo: needs row implementation
         }
         result
     }
@@ -1873,6 +1873,12 @@ pub trait LinearAlgebra {
     fn back_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
     fn forward_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
     fn lu(&self) -> PQLU;
+    // fn waz(&self, d_form: Form) -> Option<WAZD>;
+    // fn qr(&self) -> QR;
+    // fn svd(&self) -> SVD;
+    // #[cfg(feature = "O3")]
+    // fn cholesky(&self, uplo: UPLO) -> ComplexMatrix;
+    // fn rref(&self) -> ComplexMatrix;
     fn det(&self) -> Complex<f64>;
     fn block(&self) -> (ComplexMatrix, ComplexMatrix, ComplexMatrix, ComplexMatrix);
     fn inv(&self) -> ComplexMatrix;
@@ -1880,7 +1886,6 @@ pub trait LinearAlgebra {
     fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<Complex<f64>>;
     fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix;
     fn is_symmetric(&self) -> bool;
-    // ToDo: Add other fn of this trait from src/structure/matrix.rs
 }
 
 impl LinearAlgebra for ComplexMatrix {
