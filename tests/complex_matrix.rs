@@ -5,6 +5,9 @@ use peroxide::fuga::*;
 #[cfg(feature = "complex")]
 #[test]
 fn test_seq() {
+    use num_complex::Complex64;
+    use peroxide::complex::matrix::ComplexMatrix;
+
     let v1 = ComplexMatrix {
         data: vec![
             Complex64::new(1f64, 1f64),
