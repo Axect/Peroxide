@@ -373,7 +373,7 @@ impl WeightedUniform<f64> {
     /// ```
     pub fn from_max_pool_1d<F>(f: F, (a, b): (f64, f64), n: usize, eps: f64) -> Result<Self>
     where
-        F: Fn(f64) -> f64 + Copy + Send + Sync,
+        F: Fn(f64) -> f64 + Copy,
     {
         // Find non-zero intervals
         let mut a = a;

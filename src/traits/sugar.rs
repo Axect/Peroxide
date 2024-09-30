@@ -11,9 +11,7 @@ where
         + Add<Self::Scalar, Output = Self::Scalar>
         + Sub<Self::Scalar, Output = Self::Scalar>
         + Mul<Self::Scalar, Output = Self::Scalar>
-        + Div<Self::Scalar, Output = Self::Scalar>
-        + Send
-        + Sync,
+        + Div<Self::Scalar, Output = Self::Scalar>,
 {
     //type Scalar;
     fn add_v(&self, v: &Self) -> Self {

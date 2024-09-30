@@ -161,7 +161,7 @@ impl Integral {
 ///     * `G30K61R`
 pub fn integrate<F>(f: F, (a, b): (f64, f64), method: Integral) -> f64
 where
-    F: Fn(f64) -> f64 + Copy + Send + Sync,
+    F: Fn(f64) -> f64 + Copy,
 {
     match method {
         Integral::GaussLegendre(n) => gauss_legendre_quadrature(f, n, (a, b)),
@@ -173,7 +173,7 @@ where
 /// Newton Cotes Quadrature
 pub fn newton_cotes_quadrature<F>(f: F, n: usize, (a, b): (f64, f64)) -> f64
 where
-    F: Fn(f64) -> f64 + Send + Sync,
+    F: Fn(f64) -> f64,
 {
     let h = (b - a) / (n as f64);
     let node_x = seq(a, b, h);

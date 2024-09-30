@@ -467,7 +467,7 @@ pub fn ziggurat(rng: &mut ThreadRng, sigma: f64) -> f64 {
 /// }
 pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> anyhow::Result<Vec<f64>>
 where
-    F: Fn(f64) -> f64 + Copy + Send + Sync,
+    F: Fn(f64) -> f64 + Copy,
 {
     let mut rng = thread_rng();
 
@@ -538,7 +538,7 @@ pub fn prs_with_rng<F, R: Rng + Clone>(
     rng: &mut R,
 ) -> anyhow::Result<Vec<f64>>
 where
-    F: Fn(f64) -> f64 + Copy + Send + Sync,
+    F: Fn(f64) -> f64 + Copy,
 {
     let mut result = vec![0f64; n];
 

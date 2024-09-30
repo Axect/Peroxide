@@ -270,6 +270,10 @@ use blas::{daxpy, ddot, dnrm2, idamax};
 use crate::rayon::prelude::*;
 
 use crate::structure::matrix::{matrix, Matrix, Row};
+use crate::traits::fp::ParallelFPVector;
+use crate::traits::general::ParallelAlgorithm;
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct};
+use crate::traits::mutable::ParallelMutFP;
 use crate::traits::{
     fp::FPVector,
     general::Algorithm,
@@ -277,7 +281,7 @@ use crate::traits::{
     mutable::MutFP,
     pointer::{Oxide, Redox, RedoxCommon},
 };
-// use std::cmp::min;
+use std::cmp::min;
 
 impl FPVector for Vec<f64> {
     type Scalar = f64;
@@ -297,14 +301,10 @@ impl FPVector for Vec<f64> {
     /// ```
     fn fmap<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(f64) -> f64 + Sync + Send,
+        F: Fn(f64) -> f64,
     {
-        // let mut v = self.clone();
-        // v.iter_mut().for_each(|x| *x = f(*x));
-        // v
-
         let mut v = self.clone();
-        v.par_iter_mut().for_each(|x| *x = f(*x));
+        v.iter_mut().for_each(|x| *x = f(*x));
         v
     }
 
@@ -323,28 +323,17 @@ impl FPVector for Vec<f64> {
     /// ```
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
-        F: Fn(f64, f64) -> f64 + Send + Sync,
-        T: Into<f64> + Send + Sync + Copy,
+        F: Fn(f64, f64) -> f64,
+        T: Into<f64> + Copy,
     {
         self.iter().fold(init.into(), |x, &y| f(x, y))
-
-        // self.par_iter()
-        //     .cloned()
-        //     .fold(|| init.into(), |x, y| f(x, y))
-        //     .sum::<f64>() // Combining fold and reduce to produce a single value
-        //                   // .reduce(|| init.into(), |x, y| f(x, y))  // can not use reduce instead of .sum(), since the fn f used might not be associative (e.g. check test_max_pool_1d)
-        //                   // https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html#method.reduce
     }
 
     fn zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
     where
-        F: Fn(f64, f64) -> f64 + Send + Sync,
+        F: Fn(f64, f64) -> f64,
     {
-        // self.iter()
-        //     .zip(other)
-        //     .map(|(x, y)| f(*x, *y))
-        //     .collect::<Vec<f64>>()
-        self.par_iter()
+        self.iter()
             .zip(other)
             .map(|(x, y)| f(*x, *y))
             .collect::<Vec<f64>>()
@@ -366,14 +355,10 @@ impl FPVector for Vec<f64> {
     /// ```
     fn filter<F>(&self, f: F) -> Vec<f64>
     where
-        F: Fn(f64) -> bool + Send + Sync,
+        F: Fn(f64) -> bool,
     {
-        // self.clone()
-        //     .into_iter()
-        //     .filter(|x| f(*x))
-        //     .collect::<Vec<f64>>()
         self.clone()
-            .into_par_iter()
+            .into_iter()
             .filter(|x| f(*x))
             .collect::<Vec<f64>>()
     }
@@ -393,16 +378,8 @@ impl FPVector for Vec<f64> {
     /// }
     /// ```
     fn take(&self, n: usize) -> Vec<f64> {
-        // let mut v = vec![0f64; n];
-        // v[..n].copy_from_slice(&self[..n]);
-        // v
-        let mut v = vec![0_f64; n];
-        v[..n]
-            .par_iter_mut()
-            .zip(self[..n].par_iter())
-            .for_each(|(dest, src)| {
-                *dest = *src;
-            }); // parallel equivalent of copy_from_slice()
+        let mut v = vec![0f64; n];
+        v[..n].copy_from_slice(&self[..n]);
         v
     }
 
@@ -421,12 +398,157 @@ impl FPVector for Vec<f64> {
     /// }
     /// ```
     fn skip(&self, n: usize) -> Vec<f64> {
-        // let l = self.len();
-        // let mut v = vec![0f64; l - n];
-        // for (i, j) in (n..l).enumerate() {
-        //     v[i] = self[j];
-        // }
-        // v
+        let l = self.len();
+        let mut v = vec![0f64; l - n];
+        for (i, j) in (n..l).enumerate() {
+            v[i] = self[j];
+        }
+        v
+    }
+
+    fn sum(&self) -> f64 {
+        self.iter().sum()
+    }
+
+    fn prod(&self) -> f64 {
+        self.iter().product()
+    }
+}
+
+impl ParallelFPVector for Vec<f64> {
+    type Scalar = f64;
+
+    /// par_fmap for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.par_fmap(|x| x*2f64), seq!(2,10,2));
+    /// }
+    /// ```
+    fn par_fmap<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(f64) -> f64 + Sync + Send,
+    {
+        let mut v = self.clone();
+        v.par_iter_mut().for_each(|x| *x = f(*x));
+        v
+    }
+
+    /// reduce for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = seq!(1,100,1);
+    ///     assert_eq!(a.par_reduce(0, |x,y| x + y), 5050f64);
+    /// }
+    /// ```
+    fn par_reduce<F, T>(&self, init: T, f: F) -> f64
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Send + Sync + Copy,
+    {
+        self.iter().fold(init.into(), |x, &y| f(x, y))
+
+        // Parallel version unimplemented
+
+        // self.par_iter()
+        //     .cloned()
+        //     .fold(|| init.into(), |x, y| f(x, y))
+        //     .sum::<f64>() // Combining fold and reduce to produce a single value
+        //                   // .reduce(|| init.into(), |x, y| f(x, y))  // can not use reduce instead of .sum(), since the fn f used might not be associative (e.g. check test_max_pool_1d)
+        //                   // https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html#method.reduce
+    }
+
+    fn par_zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+    {
+        self.par_iter()
+            .zip(other)
+            .map(|(x, y)| f(*x, *y))
+            .collect::<Vec<f64>>()
+    }
+
+    /// Filter for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.par_filter(|x| x > 3.);
+    ///     assert_eq!(b, c!(4,5));
+    /// }
+    /// ```
+    fn par_filter<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(f64) -> bool + Send + Sync,
+    {
+        self.clone()
+            .into_par_iter()
+            .filter(|x| f(*x))
+            .collect::<Vec<f64>>()
+    }
+
+    /// Take for `Vec<f64>` in Parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.par_take(3);
+    ///     assert_eq!(b, c!(1,2,3));
+    /// }
+    /// ```
+    fn par_take(&self, n: usize) -> Vec<f64> {
+        let mut v = vec![0_f64; n];
+        v[..n]
+            .par_iter_mut()
+            .zip(self[..n].par_iter())
+            .for_each(|(dest, src)| {
+                *dest = *src;
+            }); // parallel equivalent of copy_from_slice()
+        v
+    }
+
+    /// Skip for `Vec<f64>` in Parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.par_skip(3);
+    ///     assert_eq!(b, c!(4,5));
+    /// }
+    /// ```
+    fn par_skip(&self, n: usize) -> Vec<f64> {
         let l = self.len();
         let mut v = vec![0f64; l - n];
         v[..(l - n)]
@@ -436,13 +558,11 @@ impl FPVector for Vec<f64> {
         v
     }
 
-    fn sum(&self) -> f64 {
-        // self.iter().sum()
+    fn par_sum(&self) -> f64 {
         self.par_iter().sum()
     }
 
-    fn prod(&self) -> f64 {
-        // self.iter().product()
+    fn par_prod(&self) -> f64 {
         self.par_iter().product()
     }
 }
@@ -450,15 +570,23 @@ impl FPVector for Vec<f64> {
 /// Explicit version of `map`
 pub fn map<F, T>(f: F, xs: &[T]) -> Vec<T>
 where
+    F: Fn(T) -> T,
+    T: Default + Copy,
+{
+    let l = xs.len();
+    let mut result = vec![T::default(); l];
+    for i in 0..l {
+        result[i] = f(xs[i]);
+    }
+    result
+}
+
+/// Explicit version of `map` in parallel
+pub fn par_map<F, T>(f: F, xs: &[T]) -> Vec<T>
+where
     F: Fn(T) -> T + Send + Sync,
     T: Default + Copy + Send + Sync,
 {
-    // let l = xs.len();
-    // let mut result = vec![T::default(); l];
-    // for i in 0..l {
-    //     result[i] = f(xs[i]);
-    // }
-    // result
     let mut result = vec![T::default(); xs.len()];
     result.par_iter_mut().for_each(|x| *x = f(*x));
     result
@@ -481,15 +609,23 @@ where
 /// Explicit version of `zip_with`
 pub fn zip_with<F, T>(f: F, xs: &[T], ys: &[T]) -> Vec<T>
 where
+    F: Fn(T, T) -> T,
+    T: Default + Copy,
+{
+    let l = min(xs.len(), ys.len());
+    let mut result = vec![T::default(); l];
+    for i in 0..l {
+        result[i] = f(xs[i], ys[i]);
+    }
+    result
+}
+
+/// Explicit version of `zip_with` in parallel
+pub fn par_zip_with<F, T>(f: F, xs: &[T], ys: &[T]) -> Vec<T>
+where
     F: Fn(T, T) -> T + Send + Sync,
     T: Default + Copy + Send + Sync,
 {
-    // let l = min(xs.len(), ys.len());
-    // let mut result = vec![T::default(); l];
-    // for i in 0..l {
-    //     result[i] = f(xs[i], ys[i]);
-    // }
-    // result
     xs.par_iter()
         .zip(ys.into_par_iter())
         .map(|(x, y)| f(*x, *y))
@@ -501,21 +637,37 @@ impl MutFP for Vec<f64> {
 
     fn mut_map<F>(&mut self, f: F)
     where
-        F: Fn(Self::Scalar) -> Self::Scalar + Send + Sync,
+        F: Fn(Self::Scalar) -> Self::Scalar,
     {
-        // for x in self.iter_mut() {
-        //     *x = f(*x);
-        // }
-        self.par_iter_mut().for_each(|x| *x = f(*x));
+        for x in self.iter_mut() {
+            *x = f(*x);
+        }
     }
 
     fn mut_zip_with<F>(&mut self, f: F, other: &Self)
     where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    {
+        for i in 0..self.len() {
+            self[i] = f(self[i], other[i]);
+        }
+    }
+}
+
+impl ParallelMutFP for Vec<f64> {
+    type Scalar = f64;
+
+    fn par_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar + Send + Sync,
+    {
+        self.par_iter_mut().for_each(|x| *x = f(*x));
+    }
+
+    fn par_mut_zip_with<F>(&mut self, f: F, other: &Self)
+    where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync,
     {
-        // for i in 0..self.len() {
-        //     self[i] = f(self[i], other[i]);
-        // }
         self.par_iter_mut()
             .zip(other.into_par_iter())
             .for_each(|(x, y)| *x = f(*x, *y));
@@ -540,35 +692,15 @@ impl Algorithm for Vec<f64> {
         let l = self.len();
         let idx = (1..(l + 1)).collect::<Vec<usize>>();
 
-        // let mut vec_tup = self
-        //     .clone()
-        //     .into_iter()
-        //     .zip(idx.clone())
-        //     .collect::<Vec<(f64, usize)>>();
-        // vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
-        // let indices = vec_tup.into_iter().map(|(_, y)| y).collect::<Vec<usize>>();
-        // idx.into_iter()
-        //     .map(|x| indices.clone().into_iter().position(|t| t == x).unwrap())
-        //     .collect::<Vec<usize>>()
-
         let mut vec_tup = self
             .clone()
-            .into_par_iter()
+            .into_iter()
             .zip(idx.clone())
             .collect::<Vec<(f64, usize)>>();
         vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
-        let indices = vec_tup
-            .into_par_iter()
-            .map(|(_, y)| y)
-            .collect::<Vec<usize>>();
-        idx.into_par_iter()
-            .map(|x| {
-                indices
-                    .clone()
-                    .into_par_iter()
-                    .position_any(|t| t == x) // Note: position() is deprecated by rayon
-                    .unwrap()
-            })
+        let indices = vec_tup.into_iter().map(|(_, y)| y).collect::<Vec<usize>>();
+        idx.into_iter()
+            .map(|x| indices.clone().into_iter().position(|t| t == x).unwrap())
             .collect::<Vec<usize>>()
     }
 
@@ -634,41 +766,15 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            // self.into_iter()
-            //     .enumerate()
-            //     .fold((0usize, f64::MIN), |acc, (ics, &val)| {
-            //         if acc.1 < val {
-            //             (ics, val)
-            //         } else {
-            //             acc
-            //         }
-            //     })
-            //     .0
-
-            self.into_par_iter()
+            self.into_iter()
                 .enumerate()
-                .fold(
-                    || (0usize, f64::MIN),
-                    |acc, (ics, &val)| {
-                        if acc.1 < val {
-                            (ics, val)
-                        } else {
-                            acc
-                        }
-                    },
-                )
-                .reduce(
-                    // Note: need reduce and can nto simply do .max() because rayon::..max() requires Ord, which is stricter than PartialOrd
-                    // Hence combine the results from the parallel fold
-                    || (0usize, f64::MIN), // Identity element
-                    |acc1, acc2| {
-                        if acc1.1 < acc2.1 {
-                            acc2 // Return the pair with the larger value
-                        } else {
-                            acc1
-                        }
-                    },
-                )
+                .fold((0usize, f64::MIN), |acc, (ics, &val)| {
+                    if acc.1 < val {
+                        (ics, val)
+                    } else {
+                        acc
+                    }
+                })
                 .0
         }
     }
@@ -689,17 +795,161 @@ impl Algorithm for Vec<f64> {
     ///     assert_eq!(v2.arg_min(),4);
     /// }
     fn arg_min(&self) -> usize {
-        // self.iter()
-        //     .enumerate()
-        //     .fold((0usize, f64::MAX), |acc, (ics, &val)| {
-        //         if acc.1 > val {
-        //             (ics, val)
-        //         } else {
-        //             acc
-        //         }
-        //     })
-        //     .0
+        self.iter()
+            .enumerate()
+            .fold((0usize, f64::MAX), |acc, (ics, &val)| {
+                if acc.1 > val {
+                    (ics, val)
+                } else {
+                    acc
+                }
+            })
+            .0
+    }
 
+    fn max(&self) -> f64 {
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let idx: usize;
+            unsafe {
+                idx = idamax(n_i32, self, 1) - 1;
+            }
+            self[idx]
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.into_iter()
+                .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
+        }
+    }
+
+    fn min(&self) -> f64 {
+        self.iter()
+            .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
+    }
+
+    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j);
+        }
+    }
+}
+
+impl ParallelAlgorithm for Vec<f64> {
+    /// Assign rank in parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::general::ParallelAlgorithm;
+    ///
+    /// fn main() {
+    ///     let v = c!(7, 5, 9, 2, 8);
+    ///     assert_eq!(v.par_rank(), vec![2,3,0,4,1]);
+    /// }
+    /// ```
+    fn par_rank(&self) -> Vec<usize> {
+        let l = self.len();
+        let idx = (1..(l + 1)).collect::<Vec<usize>>();
+
+        let mut vec_tup = self
+            .clone()
+            .into_par_iter()
+            .zip(idx.clone())
+            .collect::<Vec<(f64, usize)>>();
+        vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
+        let indices = vec_tup
+            .into_par_iter()
+            .map(|(_, y)| y)
+            .collect::<Vec<usize>>();
+        idx.into_par_iter()
+            .map(|x| {
+                indices
+                    .clone()
+                    .into_par_iter()
+                    .position_any(|t| t == x) // Note: position() is deprecated by rayon
+                    .unwrap()
+            })
+            .collect::<Vec<usize>>()
+    }
+
+    /// arg max in Parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::general::ParallelAlgorithm;
+    ///
+    /// fn main() {
+    ///     let v = c!(1,3,2,4,3,7);
+    ///     assert_eq!(v.par_arg_max(),5);
+    ///
+    ///     let v2 = c!(1,3,2,5,6,6);
+    ///     assert_eq!(v2.par_arg_max(),4);
+    /// }
+    /// ```
+    fn par_arg_max(&self) -> usize {
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let idx: usize;
+            unsafe {
+                idx = idamax(n_i32, self, 1) - 1;
+            }
+            idx
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.into_par_iter()
+                .enumerate()
+                .fold(
+                    || (0usize, f64::MIN),
+                    |acc, (ics, &val)| {
+                        if acc.1 < val {
+                            (ics, val)
+                        } else {
+                            acc
+                        }
+                    },
+                )
+                .reduce(
+                    // Note: need reduce and can not simply do .max() because rayon::..max() requires Ord, which is stricter than PartialOrd
+                    // Hence combine the results from the parallel fold
+                    || (0usize, f64::MIN), // Identity element
+                    |acc1, acc2| {
+                        if acc1.1 < acc2.1 {
+                            acc2 // Return the pair with the larger value
+                        } else {
+                            acc1
+                        }
+                    },
+                )
+                .0
+        }
+    }
+
+    /// arg min in Parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::general::ParallelAlgorithm;
+    ///
+    /// fn main() {
+    ///     let v = c!(1,3,2,4,3,7);
+    ///     assert_eq!(v.par_arg_min(),0);
+    ///
+    ///     let v2 = c!(4,3,2,5,1,6);
+    ///     assert_eq!(v2.par_arg_min(),4);
+    /// }
+    fn par_arg_min(&self) -> usize {
         self.into_par_iter()
             .enumerate()
             .fold(
@@ -725,7 +975,7 @@ impl Algorithm for Vec<f64> {
             .0
     }
 
-    fn max(&self) -> f64 {
+    fn par_max(&self) -> f64 {
         #[cfg(feature = "O3")]
         {
             let n_i32 = self.len() as i32;
@@ -737,9 +987,6 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            // self.into_iter()
-            //     .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
-
             self.into_par_iter()
                 .fold(|| f64::MIN, |acc, &val| if acc < val { val } else { acc })
                 .reduce(
@@ -749,22 +996,13 @@ impl Algorithm for Vec<f64> {
         }
     }
 
-    fn min(&self) -> f64 {
-        // self.iter()
-        //     .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
-
+    fn par_min(&self) -> f64 {
         self.into_par_iter()
             .fold(|| f64::MAX, |acc, &val| if acc > val { val } else { acc })
             .reduce(
                 || f64::MAX,
                 |acc1, acc2| if acc1 > acc2 { acc2 } else { acc1 },
             )
-    }
-
-    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
-        for (i, j) in p.iter() {
-            self.swap(*i, *j);
-        }
     }
 }
 
@@ -802,8 +1040,49 @@ impl Normed for Vec<f64> {
                 }
                 #[cfg(not(feature = "O3"))]
                 {
-                    // self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+                    self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+                }
+            }
+            Norm::Lp(p) => {
+                assert!(
+                    p >= 1f64,
+                    "lp norm is only defined for p>=1, the given value was p={}",
+                    p
+                );
+                self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
+            }
+            Norm::LInf => self.iter().fold(0f64, |x, y| x.max(y.abs())),
+            Norm::F => unimplemented!(),
+            Norm::Lpq(_, _) => unimplemented!(),
+        }
+    }
+    fn normalize(&self, kind: Norm) -> Self
+    where
+        Self: Sized,
+    {
+        let denom = self.norm(kind);
+        self.fmap(|x| x / denom)
+    }
+}
 
+impl ParallelNormed for Vec<f64> {
+    type UnsignedScalar = f64;
+
+    fn par_norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::L1 => self.iter().map(|x| x.abs()).sum(),
+            Norm::L2 => {
+                #[cfg(feature = "O3")]
+                {
+                    let n_i32 = self.len() as i32;
+                    let res: f64;
+                    unsafe {
+                        res = dnrm2(n_i32, self, 1);
+                    }
+                    res
+                }
+                #[cfg(not(feature = "O3"))]
+                {
                     self.par_iter()
                         .map(|x| x.powi(2))
                         .sum::<Self::UnsignedScalar>()
@@ -816,14 +1095,11 @@ impl Normed for Vec<f64> {
                     "lp norm is only defined for p>=1, the given value was p={}",
                     p
                 );
-                // self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
-
                 self.par_iter()
                     .map(|x| x.powf(p))
                     .sum::<Self::UnsignedScalar>()
                     .powf(1_f64 / p)
             }
-            // Norm::LInf => self.iter().fold(0f64, |x, y| x.max(y.abs())),
             Norm::LInf => self
                 .par_iter()
                 .fold(|| 0f64, |x, y| x.max(y.abs()))
@@ -831,13 +1107,6 @@ impl Normed for Vec<f64> {
             Norm::F => unimplemented!(),
             Norm::Lpq(_, _) => unimplemented!(),
         }
-    }
-    fn normalize(&self, kind: Norm) -> Self
-    where
-        Self: Sized,
-    {
-        let denom = self.norm(kind);
-        self.fmap(|x| x / denom)
     }
 }
 
@@ -854,10 +1123,26 @@ impl InnerProduct for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            // self.iter()
-            //     .zip(rhs.iter())
-            //     .fold(0f64, |x, (y1, y2)| x + y1 * y2)
+            self.iter()
+                .zip(rhs.iter())
+                .fold(0f64, |x, (y1, y2)| x + y1 * y2)
+        }
+    }
+}
 
+impl ParallelInnerProduct for Vec<f64> {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let res: f64;
+            unsafe {
+                res = ddot(n_i32, self, 1, rhs, 1);
+            }
+            res
+        }
+        #[cfg(not(feature = "O3"))]
+        {
             self.par_iter()
                 .zip(rhs.into_par_iter())
                 .fold(|| 0_f64, |x, (y1, y2)| x + y1 * y2)
@@ -889,12 +1174,36 @@ impl VectorProduct for Vec<f64> {
                 v
             }
             3 => {
-                // let mut v = vec![0f64; 3];
-                // v[0] = self[1] * other[2] - self[2] * other[1];
-                // v[1] = self[2] * other[0] - self[0] * other[2];
-                // v[2] = self[0] * other[1] - self[1] * other[0];
-                // v
+                let mut v = vec![0f64; 3];
+                v[0] = self[1] * other[2] - self[2] * other[1];
+                v[1] = self[2] * other[0] - self[0] * other[2];
+                v[2] = self[0] * other[1] - self[1] * other[0];
+                v
+            }
+            _ => {
+                panic!("Cross product can be defined only in 2 or 3 dimension")
+            }
+        }
+    }
 
+    fn outer(&self, other: &Self) -> Matrix {
+        let m: Matrix = self.into();
+        let n = matrix(other.to_owned(), 1, other.len(), Row);
+        m * n
+    }
+}
+
+impl ParallelVectorProduct for Vec<f64> {
+    fn par_cross(&self, other: &Self) -> Self {
+        assert_eq!(self.len(), other.len());
+        // 2D cross product is ill-defined
+        match self.len() {
+            2 => {
+                let mut v = vec![0f64; 1];
+                v[0] = self[0] * other[1] - self[1] * other[0];
+                v
+            }
+            3 => {
                 let v = (0..3)
                     .into_par_iter()
                     .map(|index| {
@@ -908,12 +1217,6 @@ impl VectorProduct for Vec<f64> {
                 panic!("Cross product can be defined only in 2 or 3 dimension")
             }
         }
-    }
-
-    fn outer(&self, other: &Self) -> Matrix {
-        let m: Matrix = self.into();
-        let n = matrix(other.to_owned(), 1, other.len(), Row);
-        m * n
     }
 }
 
