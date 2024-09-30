@@ -615,7 +615,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::rayon::prelude::*;
 use crate::traits::fp::ParallelFPMatrix;
-use crate::traits::math::{ParallelMatrixProduct, ParallelNormed, ParallelVector};
+use crate::traits::math::{
+    ParallelInnerProduct, ParallelMatrixProduct, ParallelNormed, ParallelVector,
+};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
@@ -881,7 +883,7 @@ pub fn par_ml_matrix(s: &str) -> Matrix where {
     let str_rows: Vec<&str> = s.split(';').collect();
     let r = str_rows.len();
     let str_data = str_rows
-        .into_iter()
+        .into_par_iter()
         .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
         .collect::<Vec<Vec<&str>>>();
     let c = str_data[0].len();
@@ -1254,10 +1256,10 @@ impl Matrix {
     ///
     /// fn main() {
     ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    ///     assert_eq!(a.pub_col(0), c!(1,3));
+    ///     assert_eq!(a.par_col(0), c!(1,3));
     /// }
     /// ```
-    pub fn pub_col(&self, index: usize) -> Vec<f64> {
+    pub fn par_col(&self, index: usize) -> Vec<f64> {
         assert!(index < self.col);
 
         let container = (0..self.row)
@@ -1299,10 +1301,10 @@ impl Matrix {
     ///
     /// fn main() {
     ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    ///     assert_eq!(a.pub_row(0), c!(1,2));
+    ///     assert_eq!(a.par_row(0), c!(1,2));
     /// }
     /// ```
-    pub fn pub_row(&self, index: usize) -> Vec<f64> {
+    pub fn par_row(&self, index: usize) -> Vec<f64> {
         assert!(index < self.row);
 
         let container = (0..self.col)
@@ -1374,6 +1376,23 @@ impl Matrix {
         }
     }
 
+    /// Transpose in Parallel
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = par_matrix(vec![1,2,3,4], 2, 2, Row);
+    /// println!("{}", a.par_transpose()); // [[1,3],[2,4]]
+    /// assert_eq!(a.par_transpose(), matrix(vec![1,3,2,4], 2, 2, Row))
+    /// ```
+    pub fn par_transpose(&self) -> Self {
+        match self.shape {
+            Row => par_matrix(self.data.clone(), self.col, self.row, Col),
+            Col => par_matrix(self.data.clone(), self.col, self.row, Row),
+        }
+    }
+
     /// R-like transpose function
     ///
     /// # Examples
@@ -1389,6 +1408,23 @@ impl Matrix {
     /// ```
     pub fn t(&self) -> Self {
         self.transpose()
+    }
+
+    /// R-like transpose function in parallel
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = matrix!(1;4;1, 2, 2, Row);
+    ///     assert_eq!(a.transpose(), a.par_t());
+    /// }
+    /// ```
+    pub fn par_t(&self) -> Self {
+        self.par_transpose()
     }
 
     /// Write to CSV
@@ -1603,7 +1639,7 @@ impl Matrix {
         mat
     }
 
-    /// From index operations
+    /// From index operations in parallel
     pub fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
     where
         F: Fn(usize, usize) -> G + Copy + Send + Sync,
@@ -1948,7 +1984,7 @@ impl ParallelVector for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
-                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
                 result
                     .data
                     .par_iter_mut()
@@ -1984,7 +2020,7 @@ impl ParallelVector for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
-                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
                 result
                     .data
                     .par_iter_mut()
@@ -1999,10 +2035,32 @@ impl ParallelVector for Matrix {
             }
         }
     }
+
+    fn par_mul_scalar(&self, other: Self::Scalar) -> Self {
+        match () {
+            #[cfg(feature = "O3")]
+            () => {
+                let x = &self.data;
+                let mut y = vec![0f64; x.len()];
+                let a_f64 = other;
+                let n_i32 = x.len() as i32;
+
+                unsafe {
+                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
+                }
+                matrix(y, self.row, self.col, self.shape)
+            }
+            _ => {
+                let scalar = other;
+                self.par_fmap(|x| x * scalar)
+            }
+        }
+    }
 }
 
 impl Normed for Matrix {
     type UnsignedScalar = f64;
+
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -2143,6 +2201,17 @@ impl InnerProduct for Matrix {
             self.data.dot(&rhs.data)
         } else {
             self.data.dot(&rhs.change_shape().data)
+        }
+    }
+}
+
+/// Frobenius inner product in parallel
+impl ParallelInnerProduct for Matrix {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        if self.shape == rhs.shape {
+            self.data.par_dot(&rhs.data)
+        } else {
+            self.data.par_dot(&rhs.change_shape().data)
         }
     }
 }
@@ -2302,25 +2371,27 @@ impl Add<Matrix> for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
-                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                // for i in 0..self.row {
-                //     for j in 0..self.col {
-                //         result[(i, j)] += other[(i, j)];
-                //     }
-                // }
-                // result
-                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] += other[(i, j)];
+                    }
+                }
                 result
-                    .data
-                    .par_iter_mut()
-                    .enumerate()
-                    .for_each(|(idx, value)| {
-                        let i = idx / self.col;
-                        let j = idx % self.col;
 
-                        *value += other[(i, j)];
-                    });
-                result
+                // Note: Parallel version - how to add the implementation below?
+                // let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
+                // result
+                //     .data
+                //     .par_iter_mut()
+                //     .enumerate()
+                //     .for_each(|(idx, value)| {
+                //         let i = idx / self.col;
+                //         let j = idx % self.col;
+
+                //         *value += other[(i, j)];
+                //     });
+                // result
             }
         }
     }
@@ -2511,11 +2582,12 @@ impl Neg for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => matrix(
-                // self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
-                self.data
-                    .into_par_iter()
-                    .map(|x: f64| -x)
-                    .collect::<Vec<f64>>(),
+                self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
+                // Note: how to add parallel implementation below?
+                // self.data
+                //     .into_par_iter()
+                //     .map(|x: f64| -x)
+                //     .collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -2541,16 +2613,17 @@ impl<'a> Neg for &'a Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => matrix(
-                // self.data
-                //     .clone()
-                //     .into_iter()
-                //     .map(|x: f64| -x)
-                //     .collect::<Vec<f64>>(),
                 self.data
                     .clone()
-                    .into_par_iter()
+                    .into_iter()
                     .map(|x: f64| -x)
                     .collect::<Vec<f64>>(),
+                // Note: how to add parallel implementation below?
+                // self.data
+                //     .clone()
+                //     .into_par_iter()
+                //     .map(|x: f64| -x)
+                //     .collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -2595,25 +2668,26 @@ impl Sub<Matrix> for Matrix {
                 matrix(y, self.row, self.col, self.shape)
             }
             _ => {
-                // let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
-                // for i in 0..self.row {
-                //     for j in 0..self.col {
-                //         result[(i, j)] -= other[(i, j)];
-                //     }
-                // }
+                let mut result = matrix(self.data.clone(), self.row, self.col, self.shape);
+                for i in 0..self.row {
+                    for j in 0..self.col {
+                        result[(i, j)] -= other[(i, j)];
+                    }
+                }
+                result
+                // Note: how to add parallel implementation below?
+                // let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
                 // result
-                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
-                result
-                    .data
-                    .par_iter_mut()
-                    .enumerate()
-                    .for_each(|(idx, value)| {
-                        let i = idx / self.col;
-                        let j = idx % self.col;
+                //     .data
+                //     .par_iter_mut()
+                //     .enumerate()
+                //     .for_each(|(idx, value)| {
+                //         let i = idx / self.col;
+                //         let j = idx % self.col;
 
-                        *value -= other[(i, j)];
-                    });
-                result
+                //         *value -= other[(i, j)];
+                //     });
+                // result
             }
         }
     }

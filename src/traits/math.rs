@@ -107,6 +107,7 @@ pub trait ParallelVector {
     type Scalar;
     fn par_add_vec(&self, rhs: &Self) -> Self;
     fn par_sub_vec(&self, rhs: &Self) -> Self;
+    fn par_mul_scalar(&self, rhs: Self::Scalar) -> Self;
 }
 
 /// Normed Vector in Parallel
