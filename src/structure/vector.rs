@@ -327,6 +327,7 @@ impl FPVector for Vec<f64> {
         T: Into<f64> + Send + Sync + Copy,
     {
         self.iter().fold(init.into(), |x, &y| f(x, y))
+
         // self.par_iter()
         //     .cloned()
         //     .fold(|| init.into(), |x, y| f(x, y))
@@ -539,15 +540,35 @@ impl Algorithm for Vec<f64> {
         let l = self.len();
         let idx = (1..(l + 1)).collect::<Vec<usize>>();
 
+        // let mut vec_tup = self
+        //     .clone()
+        //     .into_iter()
+        //     .zip(idx.clone())
+        //     .collect::<Vec<(f64, usize)>>();
+        // vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
+        // let indices = vec_tup.into_iter().map(|(_, y)| y).collect::<Vec<usize>>();
+        // idx.into_iter()
+        //     .map(|x| indices.clone().into_iter().position(|t| t == x).unwrap())
+        //     .collect::<Vec<usize>>()
+
         let mut vec_tup = self
             .clone()
-            .into_iter()
+            .into_par_iter()
             .zip(idx.clone())
             .collect::<Vec<(f64, usize)>>();
         vec_tup.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap().reverse());
-        let indices = vec_tup.into_iter().map(|(_, y)| y).collect::<Vec<usize>>();
-        idx.into_iter()
-            .map(|x| indices.clone().into_iter().position(|t| t == x).unwrap())
+        let indices = vec_tup
+            .into_par_iter()
+            .map(|(_, y)| y)
+            .collect::<Vec<usize>>();
+        idx.into_par_iter()
+            .map(|x| {
+                indices
+                    .clone()
+                    .into_par_iter()
+                    .position_any(|t| t == x) // Note: position() is deprecated by rayon
+                    .unwrap()
+            })
             .collect::<Vec<usize>>()
     }
 
@@ -613,15 +634,41 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            self.into_iter()
+            // self.into_iter()
+            //     .enumerate()
+            //     .fold((0usize, f64::MIN), |acc, (ics, &val)| {
+            //         if acc.1 < val {
+            //             (ics, val)
+            //         } else {
+            //             acc
+            //         }
+            //     })
+            //     .0
+
+            self.into_par_iter()
                 .enumerate()
-                .fold((0usize, f64::MIN), |acc, (ics, &val)| {
-                    if acc.1 < val {
-                        (ics, val)
-                    } else {
-                        acc
-                    }
-                })
+                .fold(
+                    || (0usize, f64::MIN),
+                    |acc, (ics, &val)| {
+                        if acc.1 < val {
+                            (ics, val)
+                        } else {
+                            acc
+                        }
+                    },
+                )
+                .reduce(
+                    // Note: need reduce and can nto simply do .max() because rayon::..max() requires Ord, which is stricter than PartialOrd
+                    // Hence combine the results from the parallel fold
+                    || (0usize, f64::MIN), // Identity element
+                    |acc1, acc2| {
+                        if acc1.1 < acc2.1 {
+                            acc2 // Return the pair with the larger value
+                        } else {
+                            acc1
+                        }
+                    },
+                )
                 .0
         }
     }
@@ -642,15 +689,39 @@ impl Algorithm for Vec<f64> {
     ///     assert_eq!(v2.arg_min(),4);
     /// }
     fn arg_min(&self) -> usize {
-        self.iter()
+        // self.iter()
+        //     .enumerate()
+        //     .fold((0usize, f64::MAX), |acc, (ics, &val)| {
+        //         if acc.1 > val {
+        //             (ics, val)
+        //         } else {
+        //             acc
+        //         }
+        //     })
+        //     .0
+
+        self.into_par_iter()
             .enumerate()
-            .fold((0usize, f64::MAX), |acc, (ics, &val)| {
-                if acc.1 > val {
-                    (ics, val)
-                } else {
-                    acc
-                }
-            })
+            .fold(
+                || (0usize, f64::MAX),
+                |acc, (ics, &val)| {
+                    if acc.1 > val {
+                        (ics, val)
+                    } else {
+                        acc
+                    }
+                },
+            )
+            .reduce(
+                || (0usize, f64::MAX),
+                |acc1, acc2| {
+                    if acc1.1 > acc2.1 {
+                        acc2 // Return the pair with the smaller value
+                    } else {
+                        acc1
+                    }
+                },
+            )
             .0
     }
 
@@ -666,14 +737,28 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            self.into_iter()
-                .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
+            // self.into_iter()
+            //     .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
+
+            self.into_par_iter()
+                .fold(|| f64::MIN, |acc, &val| if acc < val { val } else { acc })
+                .reduce(
+                    || f64::MIN,
+                    |acc1, acc2| if acc1 < acc2 { acc2 } else { acc1 },
+                )
         }
     }
 
     fn min(&self) -> f64 {
-        self.iter()
-            .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
+        // self.iter()
+        //     .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
+
+        self.into_par_iter()
+            .fold(|| f64::MAX, |acc, &val| if acc > val { val } else { acc })
+            .reduce(
+                || f64::MAX,
+                |acc1, acc2| if acc1 > acc2 { acc2 } else { acc1 },
+            )
     }
 
     fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
@@ -718,6 +803,7 @@ impl Normed for Vec<f64> {
                 #[cfg(not(feature = "O3"))]
                 {
                     // self.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+
                     self.par_iter()
                         .map(|x| x.powi(2))
                         .sum::<Self::UnsignedScalar>()
@@ -731,12 +817,17 @@ impl Normed for Vec<f64> {
                     p
                 );
                 // self.iter().map(|x| x.powf(p)).sum::<f64>().powf(1f64 / p)
+
                 self.par_iter()
                     .map(|x| x.powf(p))
                     .sum::<Self::UnsignedScalar>()
                     .powf(1_f64 / p)
             }
-            Norm::LInf => self.iter().fold(0f64, |x, y| x.max(y.abs())),
+            // Norm::LInf => self.iter().fold(0f64, |x, y| x.max(y.abs())),
+            Norm::LInf => self
+                .par_iter()
+                .fold(|| 0f64, |x, y| x.max(y.abs()))
+                .reduce(|| 0f64, |acc1, acc2| acc1.max(acc2.abs())),
             Norm::F => unimplemented!(),
             Norm::Lpq(_, _) => unimplemented!(),
         }
@@ -766,6 +857,7 @@ impl InnerProduct for Vec<f64> {
             // self.iter()
             //     .zip(rhs.iter())
             //     .fold(0f64, |x, (y1, y2)| x + y1 * y2)
+
             self.par_iter()
                 .zip(rhs.into_par_iter())
                 .fold(|| 0_f64, |x, (y1, y2)| x + y1 * y2)
@@ -802,6 +894,7 @@ impl VectorProduct for Vec<f64> {
                 // v[1] = self[2] * other[0] - self[0] * other[2];
                 // v[2] = self[0] * other[1] - self[1] * other[0];
                 // v
+
                 let v = (0..3)
                     .into_par_iter()
                     .map(|index| {

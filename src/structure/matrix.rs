@@ -789,13 +789,14 @@ where
 /// }
 /// ```
 pub fn ml_matrix(s: &str) -> Matrix where {
-    // let str_rows: Vec<&str> = s.split(';').collect();
-    // let r = str_rows.len();
-    // let str_data = str_rows
-    //     .into_iter()
-    //     .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
-    //     .collect::<Vec<Vec<&str>>>();
-    // let c = str_data[0].len();
+    let str_rows: Vec<&str> = s.split(';').collect();
+    let r = str_rows.len();
+    let str_data = str_rows
+        .into_iter()
+        .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
+        .collect::<Vec<Vec<&str>>>();
+    let c = str_data[0].len();
+
     // let data = str_data
     //     .into_iter()
     //     .flat_map(|t| {
@@ -805,14 +806,6 @@ pub fn ml_matrix(s: &str) -> Matrix where {
     //     })
     //     .collect::<Vec<f64>>();
     // matrix(data, r, c, Row)
-
-    let str_rows: Vec<&str> = s.split(';').collect();
-    let r = str_rows.len();
-    let str_data = str_rows
-        .into_iter()
-        .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
-        .collect::<Vec<Vec<&str>>>();
-    let c = str_data[0].len();
 
     let data = str_data
         .into_par_iter()
@@ -2970,6 +2963,7 @@ impl FPMatrix for Matrix {
         T: Into<f64> + Send + Sync + Copy + Clone,
     {
         // self.data.iter().fold(init.into(), |x, y| f(x, *y))
+
         self.data
             .clone()
             .into_par_iter()
@@ -3061,11 +3055,23 @@ pub trait LinearAlgebra {
 }
 
 pub fn diag(n: usize) -> Matrix {
-    let mut v: Vec<f64> = vec![0f64; n * n];
-    for i in 0..n {
-        let idx = i * (n + 1);
-        v[idx] = 1f64;
-    }
+    // let mut v: Vec<f64> = vec![0f64; n * n];
+    // for i in 0..n {
+    //     let idx = i * (n + 1);
+    //     v[idx] = 1f64;
+    // }
+    // matrix(v, n, n, Row)
+
+    let v = (0..n * n)
+        .into_par_iter()
+        .map(|i| {
+            if i % (n + 1) == 0 {
+                1_f64 // Set diagonal elements to 1
+            } else {
+                0_f64 // All other elements are 0
+            }
+        })
+        .collect::<Vec<f64>>();
     matrix(v, n, n, Row)
 }
 
