@@ -1873,16 +1873,9 @@ pub trait LinearAlgebra {
     fn back_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
     fn forward_subs(&self, b: &Vec<Complex<f64>>) -> Vec<Complex<f64>>;
     fn lu(&self) -> PQLU;
-    // fn waz(&self, d_form: Form) -> Option<WAZD>;
-    // fn qr(&self) -> QR;
-    // fn svd(&self) -> SVD;
-    // #[cfg(feature = "O3")]
-    // fn cholesky(&self, uplo: UPLO) -> ComplexMatrix;
-    // fn rref(&self) -> ComplexMatrix;
     fn det(&self) -> Complex<f64>;
     fn block(&self) -> (ComplexMatrix, ComplexMatrix, ComplexMatrix, ComplexMatrix);
     fn inv(&self) -> ComplexMatrix;
-    // fn pseudo_inv(&self) -> ComplexMatrix;
     fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<Complex<f64>>;
     fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix;
     fn is_symmetric(&self) -> bool;
