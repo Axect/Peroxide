@@ -376,9 +376,9 @@ impl ComplexMatrix {
     ///     );
     /// println!("{}", a.spread()); // same as println!("{}", a);
     /// // Result:
-    /// //       c[0] c[1]
-    /// // r[0]     1    3
-    /// // r[1]     2    4
+    /// //       c[0]    c[1]
+    /// // r[0]  1+1i    3+3i
+    /// // r[1]  2+2i    4+4i
     /// ```
     pub fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
@@ -662,7 +662,7 @@ impl ComplexMatrix {
     pub fn to_vec(&self) -> Vec<Vec<Complex<f64>>> {
         let mut result = vec![vec![Complex::zero(); self.col]; self.row];
         for i in 0..self.row {
-            result[i] = self.row(i); // ToDo: needs row implementation
+            result[i] = self.row(i);
         }
         result
     }
@@ -1886,6 +1886,7 @@ pub trait LinearAlgebra {
     fn solve(&self, b: &Vec<Complex<f64>>, sk: SolveKind) -> Vec<Complex<f64>>;
     fn solve_mat(&self, m: &ComplexMatrix, sk: SolveKind) -> ComplexMatrix;
     fn is_symmetric(&self) -> bool;
+    // ToDo: Add other fn of this trait from src/structure/matrix.rs
 }
 
 impl LinearAlgebra for ComplexMatrix {
