@@ -11,8 +11,10 @@ pub trait MutFP {
 }
 
 pub trait MutMatrix {
-    unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64>;
-    unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut f64>;
+    type Scalar;
+
+    unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut Self::Scalar>;
+    unsafe fn row_mut(&mut self, idx: usize) -> Vec<*mut Self::Scalar>;
     unsafe fn swap(&mut self, idx1: usize, idx2: usize, shape: Shape);
     unsafe fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>, shape: Shape);
 }
