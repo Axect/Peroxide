@@ -132,19 +132,32 @@ impl Integral {
     }
 }
 
-// Types that can be integrated using Newton Cotes Quadrature
+/// Type that can be integrated using Newton Cotes Quadrature
 pub trait NCIntegrable: std::ops::Sub<Self, Output = Self> + Sized {
     type NodeY;
     type NCPolynomial;
 
+    /// Returns the image of `node_x` under function `f`, in a representation
+    /// (`Self::NodeY`) suitable for separately computing one Lagrange polynomial
+    /// for each of the degrees of freedom of `Self` (e.g. a `Vec` with as many
+    /// entries as the number of degrees of freedom).
     fn compute_node_y<F>(f: F, node_x: &[f64]) -> Self::NodeY
     where
         F: Fn(f64) -> Self;
 
+    /// Computes one [`Lagrange polynomial`](lagrange_polynomial) for each one
+    /// of the degrees of freedom of `Self`, returning them in a representation
+    /// (`Self::NCPolynomial`) suitable to separately performing operation on
+    /// them (e.g. [`Vec<Polynomial>`](Polynomial)).
     fn compute_polynomial(node_x: &[f64], node_y: &Self::NodeY) -> Self::NCPolynomial;
 
+    /// Separately integrates each of the polynomials obtained using
+    /// [`compute_polynomial`](NCIntegrable::compute_polynomial).
     fn integrate_polynomial(p: &Self::NCPolynomial) -> Self::NCPolynomial;
 
+    /// Separately evaluates each of the polynomial integrated using
+    /// [`integrate_polynomial`](NCIntegrable::integrate_polynomial) at `x`,
+    /// then recombines the result into a `Self`.
     fn evaluate_polynomial(p: &Self::NCPolynomial, x: f64) -> Self;
 }
 
@@ -172,10 +185,11 @@ impl NCIntegrable for f64 {
     }
 }
 
-// Types that can be integrated using Gauss Lagrange or Kronrod Quadrature
+/// Type that can be integrated using Gauss Legendre or Kronrod Quadrature
 pub trait GLKIntegrable:
     std::ops::Add<Self, Output = Self> + std::ops::Mul<f64, Output = Self> + Sized
 {
+    /// The neutral element of addition.
     const ZERO: Self;
 }
 
@@ -183,12 +197,18 @@ impl GLKIntegrable for f64 {
     const ZERO: Self = 0f64;
 }
 
-// Types that can be integrated using Gauss Kronrod Quadrature
+/// Type that can be integrated using Gauss Kronrod Quadrature
 pub trait GKIntegrable: GLKIntegrable + std::ops::Sub<Self, Output = Self> + Sized + Clone {
+    /// Returns `true` if this object is neither infinite nor NaN.
     fn is_finite(&self) -> bool;
 
+    /// Returns the value of the norm used by Gauss Kronrod Quadrature to
+    /// compute relative tolerances.
     fn gk_norm(&self) -> f64;
 
+    /// Returns true if this object is less than the tolerance passed as
+    /// the `tol` argument. By default, returns true if its [`gk_norm`](GKIntegrable::gk_norm)
+    /// is less than `tol`.
     fn is_within_tol(&self, tol: f64) -> bool {
         self.gk_norm() < tol
     }
@@ -207,9 +227,12 @@ impl GKIntegrable for f64 {
 /// Numerical Integration
 ///
 /// # Description
-/// `fn integrate(f, (a,b), method) -> f64`
+/// `fn integrate(f, (a,b), method) -> Y`
 ///
-/// * `f`: Target function (`Fn(f64) -> f64`)
+/// `Y` must implement [`GKIntegrable`] and [`NCIntegrable`], like `f64` or
+/// `C64` (`complex` feature only).
+///
+/// * `f`: Target function (`Fn(f64) -> Y`)
 /// * `(a,b)` : Target interval
 /// * `method` : Numerical integration method
 ///
@@ -261,14 +284,15 @@ where
 /// Gauss Legendre Quadrature
 ///
 /// # Type
-/// * `f, n, (a,b) -> f64`
-///     * `f`: Numerical function (`Fn(f64) -> f64`)
+/// * `f, n, (a,b) -> Y`
+///     * `Y` implements [`GLKIntegrable`], like `f64` or `C64` (`complex` feature
+///       only)
+///     * `f`: Numerical function (`Fn(f64) -> Y`)
 ///     * `n`: Order of Legendre polynomial (up to 16)
 ///     * `(a,b)`: Interval of integration
 ///
 /// # Reference
 /// * A. N. Lowan et al. (1942)
-/// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
 pub fn gauss_legendre_quadrature<F, Y>(f: F, n: usize, (a, b): (f64, f64)) -> Y
 where
     F: Fn(f64) -> Y,
@@ -280,15 +304,16 @@ where
 /// Gauss Kronrod Quadrature
 ///
 /// # Type
-/// * `f, (a,b), method -> f64`
-///     * `f`: Numerical function (`Fn(f64) -> f64 + Copy`)
+/// * `f, (a,b), method -> Y`
+///     * `Y` implements [`GKIntegrable`], like `f64` or `C64` (`complex` feature
+///       only)
+///     * `f`: Numerical function (`Fn(f64) -> Y + Copy`)
 ///     * `(a,b)`: Interval of integration
 ///     * `method`: Integration method
 ///         * `G7K15(tol)`
 ///
 /// # Reference
 /// * arXiv: [1003.4629](https://arxiv.org/abs/1003.4629)
-/// * [Keisan Online Calculator](https://keisan.casio.com/exec/system/1329114617)
 #[allow(non_snake_case)]
 pub fn gauss_kronrod_quadrature<F, T, S, Y>(f: F, (a, b): (T, S), method: Integral) -> Y
 where
