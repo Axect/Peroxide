@@ -11,11 +11,14 @@ use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 use rand_distr::num_traits::{One, Zero};
 
 use crate::{
-    fuga::{
-        copy_vec_ptr, nearly_eq, swap_vec_ptr, tab, Algorithm, ConcatenateError, FPMatrix,
-        InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Shape, Vector,
-    },
-    traits::{fp::FPVector, mutable::MutMatrix},
+    structure::matrix::Shape,
+    traits::fp::{FPMatrix, FPVector},
+    traits::general::Algorithm,
+    traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
+    traits::mutable::MutMatrix,
+    util::low_level::{copy_vec_ptr, swap_vec_ptr},
+    util::non_macro::ConcatenateError,
+    util::useful::{nearly_eq, tab},
 };
 
 /// R-like complex matrix structure
