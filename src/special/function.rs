@@ -135,7 +135,6 @@ pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
         LambertWAccuracyMode::Precise => lambert_w::lambert_w_0(z),
         LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_0(z),
     }
-    .unwrap_or(f64::NAN)
 }
 
 /// The secondary branch of the Lambert W function, W_-1(`z`).
@@ -155,7 +154,6 @@ pub fn lambert_wm1(z: f64, mode: LambertWAccuracyMode) -> f64 {
         LambertWAccuracyMode::Precise => lambert_w::lambert_w_m1(z),
         LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_m1(z),
     }
-    .unwrap_or(f64::NAN)
 }
 
 /// Decides the accuracy mode of the Lambert W functions.

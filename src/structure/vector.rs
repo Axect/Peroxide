@@ -473,6 +473,8 @@ impl MutFP for Vec<f64> {
 }
 
 impl Algorithm for Vec<f64> {
+    type Scalar = f64;
+
     /// Assign rank
     ///
     /// # Examples

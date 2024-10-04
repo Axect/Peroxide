@@ -1,3 +1,7 @@
+# Release 0.37.10 (in progress)
+
+- Update `lambert_w` dependency to `0.4.0` [#66](https://github.com/Axect/Peroxide/pull/66) (Thanks to [@JSorngard](https://github.com/JSorngard))
+
 # Release 0.37.9 (2024-07-31)
 
 - Fix inconsistent lambert w function name [#65](https://github.com/Axect/Peroxide/issues/65) (Thanks to [@JSorngard](https://github.com/JSorngard))

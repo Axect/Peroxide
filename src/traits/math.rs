@@ -60,8 +60,8 @@ pub trait VectorProduct: Vector {
 
 /// Matrix Products
 pub trait MatrixProduct {
-    fn kronecker(&self, other: &Self) -> Matrix;
-    fn hadamard(&self, other: &Self) -> Matrix;
+    fn kronecker(&self, other: &Self) -> Self;
+    fn hadamard(&self, other: &Self) -> Self;
 }
 
 // =============================================================================
