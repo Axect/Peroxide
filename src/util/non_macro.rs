@@ -15,9 +15,9 @@
 //! - zeros_shape
 //! - linspace
 //! - linspace_with_precision
-//! - randn
-//! - randn_with_rng
-//! - randn_with_distr
+//! - rand
+//! - rand_with_rng
+//! - rand_with_distr
 //!
 //! # Numpy like non-macro functions
 //!
@@ -318,9 +318,9 @@ where
 /// # Description
 ///
 /// Range = from 0 to 1
-pub fn randn(r: usize, c: usize) -> Matrix {
+pub fn rand(r: usize, c: usize) -> Matrix {
     let mut rng = thread_rng();
-    randn_with_rng(r, c, &mut rng)
+    rand_with_rng(r, c, &mut rng)
 }
 
 /// Rand matrix with specific rng
@@ -328,9 +328,9 @@ pub fn randn(r: usize, c: usize) -> Matrix {
 /// # Description
 ///
 /// Range = from 0 to 1
-pub fn randn_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
+pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
     let uniform = Uniform::new_inclusive(0f64, 1f64);
-    randn_with_distr(r, c, rng, uniform)
+    rand_with_distr(r, c, rng, uniform)
 }
 
 /// Rand matrix with specific rng and distribution
@@ -338,7 +338,7 @@ pub fn randn_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
 /// # Description
 ///
 /// Any range
-pub fn randn_with_distr<T: Into<f64>, R: Rng, D: Distribution<T>>(r: usize, c: usize, rng: &mut R, distr: D) -> Matrix {
+pub fn rand_with_distr<T: Into<f64>, R: Rng, D: Distribution<T>>(r: usize, c: usize, rng: &mut R, distr: D) -> Matrix {
     matrix(rng.sample_iter(distr).take(r*c).collect(), r, c, Row)
 }
 
