@@ -1,3 +1,4 @@
+use crate::fuga::Algorithm;
 use crate::traits::fp::FPVector;
 use crate::traits::math::{InnerProduct, Norm, Normed, Vector};
 use crate::traits::sugar::VecOps;
@@ -137,3 +138,37 @@ impl InnerProduct for Vec<Complex<f64>> {
 }
 
 impl VecOps for Vec<Complex<f64>> {}
+
+impl Algorithm for Vec<Complex<f64>> {
+    type Scalar = Complex<f64>;
+
+    fn rank(&self) -> Vec<usize> {
+        unimplemented!()
+    }
+
+    fn sign(&self) -> Complex<f64> {
+        unimplemented!()
+    }
+
+    fn arg_max(&self) -> usize {
+        unimplemented!()
+    }
+
+    fn arg_min(&self) -> usize {
+        unimplemented!()
+    }
+
+    fn max(&self) -> Complex<f64> {
+        unimplemented!()
+    }
+
+    fn min(&self) -> Complex<f64> {
+        unimplemented!()
+    }
+
+    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+        for (i, j) in p.iter() {
+            self.swap(*i, *j);
+        }
+    }
+}
