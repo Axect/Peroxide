@@ -17,6 +17,7 @@
 //! - linspace_with_precision
 //! - rand
 //! - rand_with_rng
+//! - rand_with_dist
 //!
 //! # Numpy like non-macro functions
 //!
@@ -31,6 +32,7 @@
 
 extern crate rand;
 use self::rand::prelude::*;
+use rand_distr::{Uniform, Distribution};
 use crate::structure::{
     matrix::Shape::{Col, Row},
     matrix::{matrix, Matrix, Shape},
@@ -317,14 +319,8 @@ where
 ///
 /// Range = from 0 to 1
 pub fn rand(r: usize, c: usize) -> Matrix {
-    let mut m = zeros(r, c);
     let mut rng = thread_rng();
-    for i in 0..r {
-        for j in 0..c {
-            m[(i, j)] = rng.gen_range(0f64..=1f64);
-        }
-    }
-    m
+    rand_with_rng(r, c, &mut rng)
 }
 
 /// Rand matrix with specific rng
@@ -333,13 +329,17 @@ pub fn rand(r: usize, c: usize) -> Matrix {
 ///
 /// Range = from 0 to 1
 pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
-    let mut m = zeros(r, c);
-    for i in 0..r {
-        for j in 0..c {
-            m[(i, j)] = rng.gen_range(0f64..=1f64);
-        }
-    }
-    m
+    let uniform = Uniform::new_inclusive(0f64, 1f64);
+    rand_with_dist(r, c, rng, uniform)
+}
+
+/// Rand matrix with specific rng and distribution
+///
+/// # Description
+///
+/// Any range
+pub fn rand_with_dist<T: Into<f64>, R: Rng, D: Distribution<T>>(r: usize, c: usize, rng: &mut R, dist: D) -> Matrix {
+    matrix(rng.sample_iter(dist).take(r*c).collect(), r, c, Row)
 }
 
 // ┌─────────────────────────────────────────────────────────┐
