@@ -17,7 +17,7 @@
 //! - linspace_with_precision
 //! - rand
 //! - rand_with_rng
-//! - rand_with_distr
+//! - rand_with_dist
 //!
 //! # Numpy like non-macro functions
 //!
@@ -330,7 +330,7 @@ pub fn rand(r: usize, c: usize) -> Matrix {
 /// Range = from 0 to 1
 pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
     let uniform = Uniform::new_inclusive(0f64, 1f64);
-    rand_with_distr(r, c, rng, uniform)
+    rand_with_dist(r, c, rng, uniform)
 }
 
 /// Rand matrix with specific rng and distribution
@@ -338,8 +338,8 @@ pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
 /// # Description
 ///
 /// Any range
-pub fn rand_with_distr<T: Into<f64>, R: Rng, D: Distribution<T>>(r: usize, c: usize, rng: &mut R, distr: D) -> Matrix {
-    matrix(rng.sample_iter(distr).take(r*c).collect(), r, c, Row)
+pub fn rand_with_dist<T: Into<f64>, R: Rng, D: Distribution<T>>(r: usize, c: usize, rng: &mut R, dist: D) -> Matrix {
+    matrix(rng.sample_iter(dist).take(r*c).collect(), r, c, Row)
 }
 
 // ┌─────────────────────────────────────────────────────────┐
