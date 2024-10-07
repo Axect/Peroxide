@@ -610,18 +610,14 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgesvd, dgetrf, dgetri, dgetrs, dorgqr, dpotrf};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-
-use crate::rayon::prelude::*;
-use crate::traits::fp::ParallelFPMatrix;
-use crate::traits::math::{
-    ParallelInnerProduct, ParallelMatrixProduct, ParallelNormed, ParallelVector,
-};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::structure::dataframe::{Series, TypedVector};
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::traits::sugar::ScalableMut;
 use crate::traits::{
     fp::{FPMatrix, FPVector},
@@ -760,14 +756,6 @@ where
     matrix(v, r, c, shape)
 }
 
-/// R-like matrix constructor (Explicit ver.) in parallel
-pub fn par_r_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
-where
-    T: Into<f64> + Send + Sync,
-{
-    par_matrix(v, r, c, shape)
-}
-
 /// Python-like matrix constructor
 ///
 /// # Examples
@@ -798,38 +786,6 @@ where
     matrix(data, r, c, Row)
 }
 
-/// Python-like matrix constructor in parallel
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() {
-///     let a = par_py_matrix(vec![c!(1,2), c!(3,4)]);
-///     let b = matrix(c!(1,2,3,4), 2, 2, Row);
-///     assert_eq!(a, b);
-/// }
-/// ```
-pub fn par_py_matrix<T>(v: Vec<Vec<T>>) -> Matrix
-where
-    T: Into<f64> + Copy + Send + Sync,
-{
-    let r = v.len();
-    let c = v[0].len();
-    let data = (0..r)
-        .into_par_iter()
-        .flat_map(|i| {
-            (0..c)
-                .into_par_iter()
-                .map(|j| v[i][j].into())
-                .collect::<Vec<f64>>()
-        })
-        .collect::<Vec<f64>>();
-    par_matrix(data, r, c, Row)
-}
-
 /// Matlab-like matrix constructor
 ///
 /// # Examples
@@ -852,7 +808,6 @@ pub fn ml_matrix(s: &str) -> Matrix where {
         .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
         .collect::<Vec<Vec<&str>>>();
     let c = str_data[0].len();
-
     let data = str_data
         .into_iter()
         .flat_map(|t| {
@@ -861,43 +816,7 @@ pub fn ml_matrix(s: &str) -> Matrix where {
                 .collect::<Vec<f64>>()
         })
         .collect::<Vec<f64>>();
-
     matrix(data, r, c, Row)
-}
-
-/// Matlab-like matrix constructor in parallel
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() {
-///     let a = par_ml_matrix("1 2; 3 4");
-///     let b = matrix(c!(1,2,3,4), 2, 2, Row);
-///     assert_eq!(a, b);
-/// }
-/// ```
-pub fn par_ml_matrix(s: &str) -> Matrix where {
-    let str_rows: Vec<&str> = s.split(';').collect();
-    let r = str_rows.len();
-    let str_data = str_rows
-        .into_par_iter()
-        .map(|x| x.trim().split(' ').collect::<Vec<&str>>())
-        .collect::<Vec<Vec<&str>>>();
-    let c = str_data[0].len();
-
-    let data = str_data
-        .into_par_iter()
-        .flat_map(|t| {
-            t.into_par_iter()
-                .map(|x| x.parse::<f64>().unwrap())
-                .collect::<Vec<f64>>()
-        })
-        .collect::<Vec<f64>>();
-
-    par_matrix(data, r, c, Row)
 }
 
 /// Pretty Print
@@ -911,17 +830,9 @@ impl fmt::Display for Matrix {
 impl PartialEq for Matrix {
     fn eq(&self, other: &Matrix) -> bool {
         if self.shape == other.shape {
-            // self.data
-            //     .clone()
-            //     .into_iter()
-            //     .zip(other.data.clone())
-            //     .all(|(x, y)| nearly_eq(x, y))
-            //     && self.row == other.row
-
-            // Note: the sequential version in this case can be replaced by the parallel version?
             self.data
                 .clone()
-                .into_par_iter()
+                .into_iter()
                 .zip(other.data.clone())
                 .all(|(x, y)| nearly_eq(x, y))
                 && self.row == other.row
@@ -1015,7 +926,7 @@ impl Matrix {
         }
     }
 
-    /// Change Bindings in Parallel
+    /// Change Bindings Mutably
     ///
     /// `Row` -> `Col` or `Col` -> `Row`
     ///
@@ -1025,49 +936,8 @@ impl Matrix {
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
     /// assert_eq!(a.shape, Row);
-    /// let b = a.par_change_shape();
+    /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
-    /// ```
-    pub fn par_change_shape(&self) -> Self {
-        let r = self.row;
-        let c = self.col;
-        assert_eq!(r * c, self.data.len());
-        let l = r * c - 1;
-        let ref_data = &self.data;
-
-        match self.shape {
-            Row => {
-                let mut data = (0..=l)
-                    .into_par_iter()
-                    .map(|i| ref_data[(i * c) % l])
-                    .collect::<Vec<f64>>();
-                data[l] = ref_data[l];
-                par_matrix(data, r, c, Col)
-            }
-            Col => {
-                let mut data = (0..=l)
-                    .into_par_iter()
-                    .map(|i| ref_data[(i * r) % l])
-                    .collect::<Vec<f64>>();
-                data[l] = ref_data[l];
-                par_matrix(data, r, c, Row)
-            }
-        }
-    }
-
-    /// Change Bindings Mutably
-    ///
-    /// `Row` -> `Col` or `Col` -> `Row`
-    ///
-    /// # Examples
-    /// ```
-    /// use peroxide::fuga::*;
-    ///
-    /// let mut a = matrix(vec![1,2,3,4,5,6,7,8,9],3,3,Row);
-    /// assert_eq!(a.shape, Row);
-    /// a.change_shape_mut();
-    /// assert_eq!(a, matrix(vec![1,4,7,2,5,8,3,6,9],3,3,Col));
-    /// assert_eq!(a.shape, Col);
     /// ```
     pub fn change_shape_mut(&mut self) {
         let r = self.row;
@@ -1090,47 +960,6 @@ impl Matrix {
                     let s = (i * r) % l;
                     self.data[i] = ref_data[s];
                 }
-                self.data[l] = ref_data[l];
-                self.shape = Row;
-            }
-        }
-    }
-
-    /// Change Bindings Mutably in Parallel
-    ///
-    /// `Row` -> `Col` or `Col` -> `Row`
-    ///
-    /// # Examples
-    /// ```
-    /// use peroxide::fuga::*;
-    ///
-    /// let mut a = matrix(vec![1,2,3,4,5,6,7,8,9],3,3,Row);
-    /// assert_eq!(a.shape, Row);
-    /// a.par_change_shape_mut();
-    /// assert_eq!(a, matrix(vec![1,4,7,2,5,8,3,6,9],3,3,Col));
-    /// assert_eq!(a.shape, Col);
-    /// ```
-    pub fn par_change_shape_mut(&mut self) {
-        let r = self.row;
-        let c = self.col;
-        assert_eq!(r * c, self.data.len());
-        let l = r * c - 1;
-        let ref_data = self.data.clone();
-
-        match self.shape {
-            Row => {
-                self.data = (0..=l)
-                    .into_par_iter()
-                    .map(|i| ref_data[(i * c) % l])
-                    .collect::<Vec<f64>>();
-                self.data[l] = ref_data[l];
-                self.shape = Col;
-            }
-            Col => {
-                self.data = (0..=l)
-                    .into_par_iter()
-                    .map(|i| ref_data[(i * r) % l])
-                    .collect::<Vec<f64>>();
                 self.data[l] = ref_data[l];
                 self.shape = Row;
             }
@@ -1246,29 +1075,6 @@ impl Matrix {
         container
     }
 
-    /// Extract Column in parallel
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    ///     assert_eq!(a.par_col(0), c!(1,3));
-    /// }
-    /// ```
-    pub fn par_col(&self, index: usize) -> Vec<f64> {
-        assert!(index < self.col);
-
-        let container = (0..self.row)
-            .into_par_iter()
-            .map(|i| self[(i, index)])
-            .collect::<Vec<f64>>();
-        container
-    }
-
     /// Extract Row
     ///
     /// # Examples
@@ -1291,29 +1097,6 @@ impl Matrix {
         container
     }
 
-    /// Extract Row in Parallel
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix(c!(1,2,3,4), 2, 2, Row);
-    ///     assert_eq!(a.par_row(0), c!(1,2));
-    /// }
-    /// ```
-    pub fn par_row(&self, index: usize) -> Vec<f64> {
-        assert!(index < self.row);
-
-        let container = (0..self.col)
-            .into_par_iter()
-            .map(|i| self[(index, i)])
-            .collect::<Vec<f64>>();
-        container
-    }
-
     /// Extract diagonal components
     ///
     /// # Examples
@@ -1328,34 +1111,14 @@ impl Matrix {
     /// }
     /// ```
     pub fn diag(&self) -> Vec<f64> {
-        assert_eq!(self.row, self.col);
         let mut container = vec![0f64; self.row];
-        for i in 0..self.row {
-            container[i] = self.data[i * (self.col + 1)];
+        let r = self.row;
+        let c = self.col;
+        assert_eq!(r, c);
+        let c2 = c + 1;
+        for i in 0..r {
+            container[i] = self.data[i * c2];
         }
-        container
-    }
-
-    /// Extract diagonal components in parallel
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.par_diag(), c!(1,4));
-    /// }
-    /// ```
-    pub fn par_diag(&self) -> Vec<f64> {
-        assert_eq!(self.row, self.col);
-
-        let container = (0..self.row)
-            .into_par_iter()
-            .map(|i| self.data[i * (self.col + 1)])
-            .collect::<Vec<f64>>();
         container
     }
 
@@ -1366,30 +1129,12 @@ impl Matrix {
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    /// println!("{}", a.transpose()); // [[1,3],[2,4]]
-    /// assert_eq!(a.transpose(), matrix(vec![1,3,2,4], 2, 2, Row))
+    /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
     pub fn transpose(&self) -> Self {
         match self.shape {
             Row => matrix(self.data.clone(), self.col, self.row, Col),
             Col => matrix(self.data.clone(), self.col, self.row, Row),
-        }
-    }
-
-    /// Transpose in Parallel
-    ///
-    /// # Examples
-    /// ```
-    /// use peroxide::fuga::*;
-    ///
-    /// let a = par_matrix(vec![1,2,3,4], 2, 2, Row);
-    /// println!("{}", a.par_transpose()); // [[1,3],[2,4]]
-    /// assert_eq!(a.par_transpose(), matrix(vec![1,3,2,4], 2, 2, Row))
-    /// ```
-    pub fn par_transpose(&self) -> Self {
-        match self.shape {
-            Row => par_matrix(self.data.clone(), self.col, self.row, Col),
-            Col => par_matrix(self.data.clone(), self.col, self.row, Row),
         }
     }
 
@@ -1408,23 +1153,6 @@ impl Matrix {
     /// ```
     pub fn t(&self) -> Self {
         self.transpose()
-    }
-
-    /// R-like transpose function in parallel
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.transpose(), a.par_t());
-    /// }
-    /// ```
-    pub fn par_t(&self) -> Self {
-        self.par_transpose()
     }
 
     /// Write to CSV
@@ -1671,28 +1399,6 @@ impl Matrix {
         result
     }
 
-    /// Matrix to `Vec<Vec<f64>>` in parallel
-    ///
-    /// To send `Matrix` to `inline-python`
-    pub fn par_to_vec(&self) -> Vec<Vec<f64>> {
-        (0..self.row)
-            .into_par_iter()
-            .map(|i| self.row(i))
-            .collect::<Vec<Vec<f64>>>()
-    }
-
-    /// To diagonal components
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.to_diag(), matrix(c!(1,0,0,4), 2, 2, Row));
-    /// }
     pub fn to_diag(&self) -> Matrix {
         assert_eq!(self.row, self.col, "Should be square matrix");
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
@@ -1701,34 +1407,6 @@ impl Matrix {
             result[(i, i)] = diag[i];
         }
         result
-    }
-
-    /// To diagonal components in parallel
-    ///
-    /// # Examples
-    /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = matrix!(1;4;1, 2, 2, Row);
-    ///     assert_eq!(a.par_to_diag(), matrix(c!(1,0,0,4), 2, 2, Row));
-    /// }
-    pub fn par_to_diag(&self) -> Matrix {
-        assert_eq!(self.row, self.col, "Should be square matrix");
-
-        let data = (0..self.row)
-            .into_par_iter()
-            .flat_map(|i| {
-                (0..self.col)
-                    .into_par_iter()
-                    .map(|j| if i == j { self.diag()[i] } else { 0_f64 })
-                    .collect::<Vec<f64>>()
-            })
-            .collect::<Vec<f64>>();
-
-        par_matrix(data, self.row, self.col, Row)
     }
 
     /// Submatrix
@@ -1768,49 +1446,6 @@ impl Matrix {
             }
         }
         result
-    }
-
-    /// Submatrix in parallel
-    ///
-    /// # Description
-    /// Return below elements of matrix to new matrix
-    ///
-    /// $$
-    /// \begin{pmatrix}
-    /// \\ddots & & & & \\\\
-    ///   & start & \\cdots & end.1 & \\\\
-    ///   & \\vdots & \\ddots & \\vdots & \\\\
-    ///   & end.0 & \\cdots & end & \\\\
-    ///   & & & & \\ddots
-    /// \end{pmatrix}
-    /// $$
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
-    ///     let b = ml_matrix("5 6;8 9");
-    ///     let c = a.par_submat((1, 1), (2, 2));
-    ///     assert_eq!(b, c);   
-    /// }
-    /// ```
-    pub fn par_submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
-        let row = end.0 - start.0 + 1;
-        let col = end.1 - start.1 + 1;
-
-        let data = (0..row)
-            .into_par_iter()
-            .flat_map(|i| {
-                (0..col)
-                    .into_par_iter()
-                    .map(|j| self[(start.0 + i, start.1 + j)])
-                    .collect::<Vec<f64>>()
-            })
-            .collect::<Vec<f64>>();
-        par_matrix(data, row, col, self.shape)
     }
 
     /// Substitute matrix to specific position
@@ -1961,106 +1596,8 @@ impl Vector for Matrix {
     }
 }
 
-impl ParallelVector for Matrix {
-    type Scalar = f64;
-
-    fn par_add_vec(&self, other: &Self) -> Self {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                if self.shape != other.shape {
-                    return self.add(&other.change_shape());
-                }
-                let x = &self.data;
-                let mut y = other.data.clone();
-                let n_i32 = x.len() as i32;
-                let a_f64 = 1f64;
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => {
-                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
-                result
-                    .data
-                    .par_iter_mut()
-                    .enumerate()
-                    .for_each(|(idx, value)| {
-                        let i = idx / self.col;
-                        let j = idx % self.col;
-
-                        *value += other[(i, j)];
-                    });
-
-                result
-            }
-        }
-    }
-
-    fn par_sub_vec(&self, other: &Self) -> Self {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                if self.shape != other.shape {
-                    return self.sub(&other.change_shape());
-                }
-                let x = &other.data;
-                let mut y = self.data.clone();
-                let n_i32 = x.len() as i32;
-                let a_f64 = -1f64;
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => {
-                let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
-                result
-                    .data
-                    .par_iter_mut()
-                    .enumerate()
-                    .for_each(|(idx, val)| {
-                        let i = idx / self.col;
-                        let j = idx % self.col;
-                        *val -= other[(i, j)];
-                    });
-
-                result
-            }
-        }
-    }
-
-    fn par_mul_scalar(&self, other: Self::Scalar) -> Self {
-        match () {
-            #[cfg(feature = "O3")]
-            () => {
-                let x = &self.data;
-                let mut y = vec![0f64; x.len()];
-                let a_f64 = other;
-                let n_i32 = x.len() as i32;
-
-                unsafe {
-                    daxpy(n_i32, a_f64, x, 1, &mut y, 1);
-                }
-                matrix(y, self.row, self.col, self.shape)
-            }
-            _ => {
-                let scalar = other;
-                self.par_fmap(|x| x * scalar)
-            }
-        }
-    }
-}
-
 impl Normed for Matrix {
     type UnsignedScalar = f64;
-
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -2133,12 +1670,10 @@ impl ParallelNormed for Matrix {
     fn par_norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
-                let s = self
-                    .data
-                    .clone()
-                    .into_par_iter()
-                    .fold(|| 0_f64, |acc, el| acc + el.powi(2))
-                    .sum::<f64>();
+                let mut s = 0f64;
+                for i in 0..self.data.len() {
+                    s += self.data[i].powi(2);
+                }
                 s.sqrt()
             }
             Norm::Lpq(p, q) => {
@@ -2175,7 +1710,7 @@ impl ParallelNormed for Matrix {
                     Col => self.change_shape().norm(Norm::LInf),
                     Row => {
                         for r in 0..self.row {
-                            let s = self.row(r).par_iter().sum();
+                            let s = self.row(r).iter().sum();
                             if s > m {
                                 m = s;
                             }
@@ -2279,6 +1814,7 @@ impl MatrixProduct for Matrix {
 
         let r = self.row;
         let c = self.col;
+
         let mut m = matrix(vec![0f64; r * c], r, c, self.shape);
         for i in 0..r {
             for j in 0..c {
@@ -2286,24 +1822,6 @@ impl MatrixProduct for Matrix {
             }
         }
         m
-    }
-}
-
-impl ParallelMatrixProduct for Matrix {
-    fn par_hadamard(&self, other: &Self) -> Matrix {
-        assert_eq!(self.row, other.row);
-        assert_eq!(self.col, other.col);
-
-        let m = (0..self.row)
-            .into_par_iter()
-            .flat_map(|i| {
-                (0..self.col)
-                    .into_par_iter()
-                    .map(|j| self[(i, j)] * other[(i, j)])
-                    .collect::<Vec<f64>>()
-            })
-            .collect::<Vec<f64>>();
-        par_matrix(m, self.row, self.col, self.shape)
     }
 }
 
@@ -2378,20 +1896,6 @@ impl Add<Matrix> for Matrix {
                     }
                 }
                 result
-
-                // Note: Parallel version - how to add the implementation below?
-                // let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
-                // result
-                //     .data
-                //     .par_iter_mut()
-                //     .enumerate()
-                //     .for_each(|(idx, value)| {
-                //         let i = idx / self.col;
-                //         let j = idx % self.col;
-
-                //         *value += other[(i, j)];
-                //     });
-                // result
             }
         }
     }
@@ -2420,7 +1924,7 @@ impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
 /// ```
 impl<T> Add<T> for Matrix
 where
-    T: Into<f64> + Copy + Send + Sync,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
     fn add(self, other: T) -> Self {
@@ -2443,7 +1947,7 @@ where
 /// Element-wise addition between &Matrix & f64
 impl<'a, T> Add<T> for &'a Matrix
 where
-    T: Into<f64> + Copy + Send + Sync,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
     fn add(self, other: T) -> Self::Output {
@@ -2583,11 +2087,6 @@ impl Neg for Matrix {
             }
             _ => matrix(
                 self.data.into_iter().map(|x: f64| -x).collect::<Vec<f64>>(),
-                // Note: how to add parallel implementation below?
-                // self.data
-                //     .into_par_iter()
-                //     .map(|x: f64| -x)
-                //     .collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -2618,12 +2117,6 @@ impl<'a> Neg for &'a Matrix {
                     .into_iter()
                     .map(|x: f64| -x)
                     .collect::<Vec<f64>>(),
-                // Note: how to add parallel implementation below?
-                // self.data
-                //     .clone()
-                //     .into_par_iter()
-                //     .map(|x: f64| -x)
-                //     .collect::<Vec<f64>>(),
                 self.row,
                 self.col,
                 self.shape,
@@ -2675,19 +2168,6 @@ impl Sub<Matrix> for Matrix {
                     }
                 }
                 result
-                // Note: how to add parallel implementation below?
-                // let mut result = par_matrix(self.data.clone(), self.row, self.col, self.shape);
-                // result
-                //     .data
-                //     .par_iter_mut()
-                //     .enumerate()
-                //     .for_each(|(idx, value)| {
-                //         let i = idx / self.col;
-                //         let j = idx % self.col;
-
-                //         *value -= other[(i, j)];
-                //     });
-                // result
             }
         }
     }
@@ -2704,7 +2184,7 @@ impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
 /// Subtraction between Matrix & f64
 impl<T> Sub<T> for Matrix
 where
-    T: Into<f64> + Copy + Send + Sync,
+    T: Into<f64> + Copy,
 {
     type Output = Self;
 
@@ -2728,7 +2208,7 @@ where
 /// Subtraction between &Matrix & f64
 impl<'a, T> Sub<T> for &'a Matrix
 where
-    T: Into<f64> + Copy + Send + Sync,
+    T: Into<f64> + Copy,
 {
     type Output = Matrix;
 
@@ -3299,9 +2779,11 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Col);
+
         for i in 0..self.col {
             result.subs_col(i, &f(self.col(i)));
         }
+
         result
     }
 
@@ -3323,9 +2805,11 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> Vec<f64>,
     {
         let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
+
         for i in 0..self.row {
             result.subs_row(i, &f(self.row(i)));
         }
+
         result
     }
 
@@ -3362,7 +2846,7 @@ impl FPMatrix for Matrix {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: Into<f64> + Copy + Clone,
+        T: Into<f64>,
     {
         self.data.iter().fold(init.into(), |x, y| f(x, *y))
     }
@@ -3408,135 +2892,6 @@ impl FPMatrix for Matrix {
     }
 }
 
-impl ParallelFPMatrix for Matrix {
-    fn par_take_row(&self, n: usize) -> Self {
-        if n >= self.row {
-            return self.clone();
-        }
-        match self.shape {
-            Row => {
-                let new_data = self
-                    .data
-                    .clone()
-                    .into_par_iter()
-                    .take(n * self.col)
-                    .collect::<Vec<f64>>();
-                par_matrix(new_data, n, self.col, Row)
-            }
-            Col => {
-                let temp_data = (0..n)
-                    .into_par_iter()
-                    .flat_map(|i| self.row(i))
-                    .collect::<Vec<f64>>();
-                par_matrix(temp_data, n, self.col, Row)
-            }
-        }
-    }
-
-    fn par_take_col(&self, n: usize) -> Self {
-        if n >= self.col {
-            return self.clone();
-        }
-        match self.shape {
-            Col => {
-                let new_data = self
-                    .data
-                    .clone()
-                    .into_par_iter()
-                    .take(n * self.row)
-                    .collect::<Vec<f64>>();
-                par_matrix(new_data, self.row, n, Col)
-            }
-            Row => {
-                let temp_data = (0..n)
-                    .into_par_iter()
-                    .flat_map(|i| self.col(i))
-                    .collect::<Vec<f64>>();
-                par_matrix(temp_data, self.row, n, Col)
-            }
-        }
-    }
-
-    fn par_skip_row(&self, n: usize) -> Self {
-        assert!(n < self.row, "Skip range is larger than row of matrix");
-
-        let temp_data = (n..self.row)
-            .into_par_iter()
-            .flat_map(|i| self.row(i))
-            .collect::<Vec<f64>>();
-        par_matrix(temp_data, self.row - n, self.col, Row)
-    }
-
-    fn par_skip_col(&self, n: usize) -> Self {
-        assert!(n < self.col, "Skip range is larger than col of matrix");
-
-        let temp_data = (n..self.col)
-            .into_par_iter()
-            .flat_map(|i| self.col(i))
-            .collect::<Vec<f64>>();
-        par_matrix(temp_data, self.row, self.col - n, Col)
-    }
-
-    fn par_fmap<F>(&self, f: F) -> Matrix
-    where
-        F: Fn(f64) -> f64 + Send + Sync,
-    {
-        let result = self.data.par_iter().map(|x| f(*x)).collect::<Vec<f64>>();
-        par_matrix(result, self.row, self.col, self.shape)
-    }
-
-    fn par_reduce<F, T>(&self, init: T, f: F) -> f64
-    where
-        F: Fn(f64, f64) -> f64 + Send + Sync,
-        T: Into<f64> + Send + Sync + Copy + Clone,
-    {
-        self.data
-            .clone()
-            .into_par_iter()
-            .fold(|| init.into(), |acc, y| f(acc, y))
-            .sum()
-    }
-
-    fn par_zip_with<F>(&self, f: F, other: &Matrix) -> Self
-    where
-        F: Fn(f64, f64) -> f64 + Send + Sync,
-    {
-        assert_eq!(self.data.len(), other.data.len());
-        let mut a = other.clone();
-        if self.shape != other.shape {
-            a = a.change_shape();
-        }
-
-        let result = self
-            .data
-            .par_iter()
-            .zip(a.data.par_iter())
-            .map(|(x, y)| f(*x, *y))
-            .collect::<Vec<f64>>();
-        par_matrix(result, self.row, self.col, self.shape)
-    }
-
-    fn par_col_reduce<F>(&self, f: F) -> Vec<f64>
-    where
-        F: Fn(Vec<f64>) -> f64 + Send + Sync,
-    {
-        (0..self.col)
-            .into_par_iter()
-            .map(|i| f(self.col(i)))
-            .collect::<Vec<f64>>()
-    }
-
-    fn par_row_reduce<F>(&self, f: F) -> Vec<f64>
-    where
-        F: Fn(Vec<f64>) -> f64 + Send + Sync,
-    {
-        (0..self.row)
-            .into_par_iter()
-            .map(|i| f(self.row(i)))
-            .collect::<Vec<f64>>()
-    }
-}
-
 // =============================================================================
 // Linear Algebra
 // =============================================================================
@@ -3568,20 +2923,6 @@ pub fn diag(n: usize) -> Matrix {
         v[idx] = 1f64;
     }
     matrix(v, n, n, Row)
-}
-
-pub fn par_diag(n: usize) -> Matrix {
-    let v = (0..n * n)
-        .into_par_iter()
-        .map(|i| {
-            if i % (n + 1) == 0 {
-                1_f64 // Set diagonal elements to 1
-            } else {
-                0_f64 // All other elements are 0
-            }
-        })
-        .collect::<Vec<f64>>();
-    par_matrix(v, n, n, Row)
 }
 
 /// Data structure for Complete Pivoting LU decomposition
