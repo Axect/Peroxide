@@ -76,11 +76,6 @@ pub trait ParallelFPVector {
     fn par_filter<F>(&self, f: F) -> Self
     where
         F: Fn(Self::Scalar) -> bool + Send + Sync;
-
-    fn par_take(&self, n: usize) -> Self;
-    fn par_skip(&self, n: usize) -> Self;
-    fn par_sum(&self) -> Self::Scalar;
-    fn par_prod(&self) -> Self::Scalar;
 }
 
 /// Functional Programming for Matrix in Parallel (Uses Rayon crate)
@@ -101,16 +96,4 @@ pub trait ParallelFPMatrix {
     fn par_row_reduce<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(Vec<f64>) -> f64 + Send + Sync;
-    fn par_take_row(&self, n: usize) -> Matrix;
-    fn par_take_col(&self, n: usize) -> Matrix;
-    fn par_skip_row(&self, n: usize) -> Matrix;
-    fn par_skip_col(&self, n: usize) -> Matrix;
-
-    // These are not in parallel:
-    // fn col_map<F>(&self, f: F) -> Matrix
-    // where
-    //     F: Fn(Vec<f64>) -> Vec<f64>;
-    // fn row_map<F>(&self, f: F) -> Matrix
-    // where
-    //     F: Fn(Vec<f64>) -> Vec<f64>;
 }
