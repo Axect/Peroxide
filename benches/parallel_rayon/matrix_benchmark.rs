@@ -4,23 +4,6 @@ use peroxide::{
     traits::math::{ParallelInnerProduct, ParallelNormed},
 };
 
-pub fn par_matrix_benchmark(cr: &mut Criterion) {
-    let v: Vec<f64> = (0..1000000)
-        .into_iter()
-        .map(|i: i32| 2.0 * (i as f64))
-        .collect::<Vec<f64>>();
-
-    // Result: 1000x1000 matrix: 630.92 µs
-    cr.bench_function("ser_matrix_bench", |b| {
-        b.iter(|| black_box(matrix(v.clone(), 1000, 1000, Shape::Row)))
-    });
-
-    // Result: 1000x1000 matrix: 9.6995 ms
-    cr.bench_function("par_matrix_bench", |b| {
-        b.iter(|| black_box(par_matrix(v.clone(), 1000, 1000, Shape::Row)))
-    });
-}
-
 pub fn par_matrix_from_index_benchmark(cr: &mut Criterion) {
     let f = |x: usize, y: usize| 2.0 * (x as f64) * (y as f64);
     let size: (usize, usize) = (1000, 1000);
@@ -112,7 +95,6 @@ pub fn par_matrix_inner_prod_benchmark(cr: &mut Criterion) {
 
 criterion_group!(
     benches,
-    par_matrix_benchmark,
     par_matrix_from_index_benchmark,
     par_matrix_norm_lpq_benchmark,
     par_matrix_norm_l1_benchmark,

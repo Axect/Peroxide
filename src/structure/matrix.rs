@@ -723,31 +723,6 @@ where
     }
 }
 
-/// R-like matrix constructor in parallel
-///
-/// # Examples
-/// ```
-/// #[macro_use]
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// fn main() {
-///     let a = par_matrix(c!(1,2,3,4), 2, 2, Row);
-///     a.print(); // Print matrix
-/// }
-/// ```
-pub fn par_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
-where
-    T: Into<f64> + Send + Sync,
-{
-    Matrix {
-        data: v.into_par_iter().map(|t| t.into()).collect::<Vec<f64>>(),
-        row: r,
-        col: c,
-        shape,
-    }
-}
-
 /// R-like matrix constructor (Explicit ver.)
 pub fn r_matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
@@ -1385,7 +1360,7 @@ impl Matrix {
                     .collect::<Vec<f64>>()
             })
             .collect::<Vec<f64>>();
-        par_matrix(data, row, col, Row)
+        matrix(data, row, col, Row)
     }
 
     /// Matrix to `Vec<Vec<f64>>`
