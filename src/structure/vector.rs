@@ -454,21 +454,15 @@ impl ParallelFPVector for Vec<f64> {
     ///     assert_eq!(a.par_reduce(0, |x,y| x + y), 5050f64);
     /// }
     /// ```
-    fn par_reduce<F, T>(&self, init: T, f: F) -> f64
+    fn par_reduce<F, T>(&self, _init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64 + Send + Sync,
         T: Into<f64> + Send + Sync + Copy,
     {
-        self.iter().fold(init.into(), |x, &y| f(x, y))
-
-        // Parallel version unimplemented
-
-        // self.par_iter()
-        //     .cloned()
-        //     .fold(|| init.into(), |x, y| f(x, y))
-        //     .sum::<f64>() // Combining fold and reduce to produce a single value
-        //                   // .reduce(|| init.into(), |x, y| f(x, y))  // can not use reduce instead of .sum(), since the fn f used might not be associative (e.g. check test_max_pool_1d)
-        //                   // https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html#method.reduce
+        self.par_iter()
+            .cloned()
+            .reduce_with(|x, y| f(x, y))
+            .expect("Unable to perform parallel reduce operation")
     }
 
     fn par_zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
