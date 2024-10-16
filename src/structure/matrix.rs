@@ -192,7 +192,7 @@
 //! To write columns or rows, `DataFrame` and `nc` feature could be the best choice.
 //!
 //! * `nc` feature should be required - `netcdf` or `libnetcdf` are prerequisites.
-//! 
+//!
 //! ```no_run
 //! #[macro_use]
 //! extern crate peroxide;
@@ -596,10 +596,10 @@
 //!     }
 //!     ```
 
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 extern crate csv;
 
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 
 #[cfg(feature = "O3")]
@@ -609,30 +609,32 @@ extern crate lapack;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
-use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd, dpotrf};
+use lapack::{dgecon, dgeqrf, dgesvd, dgetrf, dgetri, dgetrs, dorgqr, dpotrf};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
+use crate::structure::dataframe::{Series, TypedVector};
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
+use crate::traits::sugar::ScalableMut;
 use crate::traits::{
-    general::Algorithm,
     fp::{FPMatrix, FPVector},
+    general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
 };
 use crate::util::{
-    low_level::{swap_vec_ptr, copy_vec_ptr},
+    low_level::{copy_vec_ptr, swap_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
     useful::{nearly_eq, tab},
 };
-use crate::structure::dataframe::{Series, TypedVector};
+use peroxide_num::{ExpLogOps, Numeric, PowOps, TrigOps};
 use std::cmp::{max, min};
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
-use crate::traits::sugar::ScalableMut;
-use peroxide_num::{ExpLogOps, PowOps, TrigOps, Numeric};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -1143,7 +1145,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1174,7 +1176,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1190,7 +1192,7 @@ impl Matrix {
         Ok(())
     }
 
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_with_header(
         &self,
         file_path: &str,
@@ -1212,7 +1214,7 @@ impl Matrix {
         Ok(())
     }
 
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_with_header_round(
         &self,
         file_path: &str,
@@ -1260,7 +1262,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<dyn Error>> {
         let mut rdr = ReaderBuilder::new()
             .has_headers(header)
@@ -1340,6 +1342,27 @@ impl Matrix {
         mat
     }
 
+    /// From index operations in parallel
+    pub fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy + Send + Sync,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let data = (0..row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..col)
+                    .into_par_iter()
+                    .map(|j| f(i, j).into())
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, row, col, Row)
+    }
+
     /// Matrix to `Vec<Vec<f64>>`
     ///
     /// To send `Matrix` to `inline-python`
@@ -1365,7 +1388,7 @@ impl Matrix {
     ///
     /// # Description
     /// Return below elements of matrix to new matrix
-    /// 
+    ///
     /// $$
     /// \begin{pmatrix}
     /// \\ddots & & & & \\\\
@@ -1380,7 +1403,7 @@ impl Matrix {
     /// ```
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
     ///     let b = ml_matrix("5 6;8 9");
@@ -1392,8 +1415,8 @@ impl Matrix {
         let row = end.0 - start.0 + 1;
         let col = end.1 - start.1 + 1;
         let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
-        for i in 0 .. row {
-            for j in 0 .. col {
+        for i in 0..row {
+            for j in 0..col {
                 result[(i, j)] = self[(start.0 + i, start.1 + j)];
             }
         }
@@ -1404,7 +1427,7 @@ impl Matrix {
     ///
     /// # Description
     /// Substitute below elements of matrix
-    /// 
+    ///
     /// $$
     /// \begin{pmatrix}
     /// \\ddots & & & & \\\\
@@ -1414,12 +1437,12 @@ impl Matrix {
     ///   & & & & \\ddots
     /// \end{pmatrix}
     /// $$
-    /// 
+    ///
     /// # Examples
     /// ```
     /// extern crate peroxide;
     /// use peroxide::fuga::*;
-    /// 
+    ///
     /// fn main() {
     ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
     ///     let b = ml_matrix("1 2;3 4");
@@ -1431,8 +1454,8 @@ impl Matrix {
     pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
         let row = end.0 - start.0 + 1;
         let col = end.1 - start.1 + 1;
-        for i in 0 .. row {
-            for j in 0 .. col {
+        for i in 0..row {
+            for j in 0..col {
                 self[(start.0 + i, start.1 + j)] = m[(i, j)];
             }
         }
@@ -1616,6 +1639,71 @@ impl Normed for Matrix {
     }
 }
 
+impl ParallelNormed for Matrix {
+    type UnsignedScalar = f64;
+
+    fn par_norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::F => {
+                let mut s = 0f64;
+                for i in 0..self.data.len() {
+                    s += self.data[i].powi(2);
+                }
+                s.sqrt()
+            }
+            Norm::Lpq(p, q) => {
+                let s = (0..self.col)
+                    .into_par_iter()
+                    .map(|j| {
+                        let s_row = (0..self.row)
+                            .into_iter()
+                            .map(|i| self[(i, j)].powi(p as i32))
+                            .sum::<f64>();
+                        s_row.powf(q / p)
+                    })
+                    .sum::<f64>();
+                s.powf(1f64 / q)
+            }
+            Norm::L1 => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Row => self.change_shape().norm(Norm::L1),
+                    Col => {
+                        for c in 0..self.col {
+                            let s = self.col(c).par_iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::LInf => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Col => self.change_shape().norm(Norm::LInf),
+                    Row => {
+                        for r in 0..self.row {
+                            let s = self.row(r).iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::L2 => {
+                let a = &self.t() * self;
+                let eig = eigen(&a, EigenMethod::Jacobi);
+                eig.eigenvalue.norm(Norm::LInf)
+            }
+            Norm::Lp(_) => unimplemented!(),
+        }
+    }
+}
+
 /// Frobenius inner product
 impl InnerProduct for Matrix {
     fn dot(&self, rhs: &Self) -> f64 {
@@ -1623,6 +1711,17 @@ impl InnerProduct for Matrix {
             self.data.dot(&rhs.data)
         } else {
             self.data.dot(&rhs.change_shape().data)
+        }
+    }
+}
+
+/// Frobenius inner product in parallel
+impl ParallelInnerProduct for Matrix {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        if self.shape == rhs.shape {
+            self.data.par_dot(&rhs.data)
+        } else {
+            self.data.par_dot(&rhs.change_shape().data)
         }
     }
 }
@@ -2918,7 +3017,7 @@ impl SVD {
 
     pub fn s_mat(&self) -> Matrix {
         let mut mat = zeros(self.u.col, self.vt.row);
-        for i in 0 .. mat.row.min(mat.col) {
+        for i in 0..mat.row.min(mat.col) {
             mat[(i, i)] = self.s[i];
         }
         mat
@@ -2961,11 +3060,7 @@ impl SVD {
             }
         }
 
-        SVD {
-            s,
-            u,
-            vt,
-        }
+        SVD { s, u, vt }
     }
 }
 
@@ -3151,7 +3246,7 @@ impl LinearAlgebra for Matrix {
     #[allow(non_snake_case)]
     fn qr(&self) -> QR {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgeqrf = lapack_dgeqrf(self);
                 match opt_dgeqrf {
@@ -3159,10 +3254,7 @@ impl LinearAlgebra for Matrix {
                     Some(dgeqrf) => {
                         let q = dgeqrf.get_Q();
                         let r = dgeqrf.get_R();
-                        QR {
-                            q,
-                            r
-                        }
+                        QR { q, r }
                     }
                 }
             }
@@ -3209,7 +3301,7 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn svd(&self) -> SVD {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgesvd = lapack_dgesvd(self);
                 match opt_dgesvd {
@@ -3218,14 +3310,12 @@ impl LinearAlgebra for Matrix {
                         SVD_STATUS::Diverge(i) => {
                             panic!("Divergent occurs in SVD - {} iterations", i)
                         }
-                        SVD_STATUS::Success => {
-                            SVD {
-                                s: dgesvd.s,
-                                u: dgesvd.u,
-                                vt: dgesvd.vt,
-                            }
-                        }
-                    }
+                        SVD_STATUS::Success => SVD {
+                            s: dgesvd.s,
+                            u: dgesvd.u,
+                            vt: dgesvd.vt,
+                        },
+                    },
                 }
             }
             _ => {
@@ -3465,7 +3555,9 @@ impl LinearAlgebra for Matrix {
                     None => panic!("Singular matrix (opt_dgrf)"),
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::NonSingular => lapack_dgetri(&dgrf).unwrap(),
-                        LAPACK_STATUS::Singular => panic!("Singular matrix (LAPACK_STATUS Singular)"),
+                        LAPACK_STATUS::Singular => {
+                            panic!("Singular matrix (LAPACK_STATUS Singular)")
+                        }
                     },
                 }
             }
@@ -3500,13 +3592,13 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn pseudo_inv(&self) -> Self {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let svd = self.svd();
                 let row = svd.vt.row;
                 let col = svd.u.row;
                 let mut sp = zeros(row, col);
-                for i in 0 .. row.min(col) {
+                for i in 0..row.min(col) {
                     sp[(i, i)] = 1f64 / svd.s[i];
                 }
                 svd.vt.t() * sp * svd.u.t()
@@ -3620,9 +3712,9 @@ impl LinearAlgebra for Matrix {
             return false;
         }
 
-        for i in 0 .. self.row {
-            for j in i .. self.col {
-                if !nearly_eq(self[(i,j)], self[(j,i)]) {
+        for i in 0..self.row {
+            for j in i..self.col {
+                if !nearly_eq(self[(i, j)], self[(j, i)]) {
                     return false;
                 }
             }
@@ -3721,7 +3813,6 @@ impl Div<Matrix> for Matrix {
         self.mul(m.inv())
     }
 }
-
 
 impl ExpLogOps for Matrix {
     type Float = f64;
@@ -4248,7 +4339,7 @@ pub enum POSITIVE_STATUS {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum UPLO {
     Upper,
-    Lower
+    Lower,
 }
 
 /// Temporary data structure from `dgetrf`
@@ -4279,7 +4370,7 @@ pub struct DGESVD {
 pub struct DPOTRF {
     pub fact_mat: Matrix,
     pub uplo: UPLO,
-    pub status: POSITIVE_STATUS
+    pub status: POSITIVE_STATUS,
 }
 
 ///// Temporary data structure from `dgeev`
@@ -4473,7 +4564,22 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
 
             // Workspace query
             unsafe {
-                dgesvd(jobu, jobvt, m, n, &mut A.data, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut work, lwork, &mut info);
+                dgesvd(
+                    jobu,
+                    jobvt,
+                    m,
+                    n,
+                    &mut A.data,
+                    lda,
+                    &mut s,
+                    &mut u,
+                    ldu,
+                    &mut vt,
+                    ldvt,
+                    &mut work,
+                    lwork,
+                    &mut info,
+                );
             }
 
             let optimal_lwork = work[0] as usize;
@@ -4532,35 +4638,23 @@ pub fn lapack_dpotrf(mat: &Matrix, UPLO: UPLO) -> Option<DPOTRF> {
             let mut info = 0i32;
             let uplo = match UPLO {
                 UPLO::Upper => b'U',
-                UPLO::Lower => b'L'
+                UPLO::Lower => b'L',
             };
 
-            unsafe {
-                dpotrf(
-                    uplo,
-                    N,
-                    &mut A.data,
-                    lda,
-                    &mut info,
-                )
-            }
+            unsafe { dpotrf(uplo, N, &mut A.data, lda, &mut info) }
 
             if info == 0 {
-                Some(
-                    DPOTRF {
-                        fact_mat: matrix(A.data, mat.row, mat.col, Col),
-                        uplo: UPLO,
-                        status: POSITIVE_STATUS::Success
-                    }
-                )
+                Some(DPOTRF {
+                    fact_mat: matrix(A.data, mat.row, mat.col, Col),
+                    uplo: UPLO,
+                    status: POSITIVE_STATUS::Success,
+                })
             } else if info > 0 {
-                Some(
-                    DPOTRF {
-                        fact_mat: matrix(A.data, mat.row, mat.col, Col),
-                        uplo: UPLO,
-                        status: POSITIVE_STATUS::Failed(info)
-                    }
-                )
+                Some(DPOTRF {
+                    fact_mat: matrix(A.data, mat.row, mat.col, Col),
+                    uplo: UPLO,
+                    status: POSITIVE_STATUS::Failed(info),
+                })
             } else {
                 None
             }
@@ -4674,8 +4768,8 @@ impl DPOTRF {
         let mat = &self.fact_mat;
         let n = mat.col;
         let mut result = matrix(vec![0f64; n.pow(2)], n, n, mat.shape);
-        for i in 0 .. n {
-            for j in i .. n {
+        for i in 0..n {
+            for j in i..n {
                 result[(i, j)] = mat[(i, j)];
             }
         }
@@ -4691,8 +4785,8 @@ impl DPOTRF {
         let n = mat.col;
         let mut result = matrix(vec![0f64; n.pow(2)], n, n, mat.shape);
 
-        for i in 0 .. n {
-            for j in 0 .. i+1 {
+        for i in 0..n {
+            for j in 0..i + 1 {
                 result[(i, j)] = mat[(i, j)];
             }
         }

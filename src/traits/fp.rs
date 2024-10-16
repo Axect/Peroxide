@@ -10,7 +10,7 @@ pub trait FPVector {
     fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
     where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-        T: Into<Self::Scalar>;
+        T: Into<Self::Scalar> + Copy;
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
     where
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar;
@@ -47,7 +47,7 @@ pub trait FPMatrix {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: Into<f64>;
+        T: Into<f64> + Copy + Clone;
     fn zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
     where
         F: Fn(f64, f64) -> f64;
@@ -57,4 +57,43 @@ pub trait FPMatrix {
     fn row_reduce<F>(&self, f: F) -> Vec<f64>
     where
         F: Fn(Vec<f64>) -> f64;
+}
+
+/// Functional Programming tools for Vector in Parallel (Uses Rayon crate)
+pub trait ParallelFPVector {
+    type Scalar;
+
+    fn par_fmap<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar + Send + Sync;
+    fn par_reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync,
+        T: Into<Self::Scalar> + Send + Sync + Copy;
+    fn par_zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync;
+    fn par_filter<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> bool + Send + Sync;
+}
+
+/// Functional Programming for Matrix in Parallel (Uses Rayon crate)
+pub trait ParallelFPMatrix {
+    fn par_fmap<F>(&self, f: F) -> Matrix
+    where
+        F: Fn(f64) -> f64 + Send + Sync;
+    fn par_reduce<F, T>(&self, init: T, f: F) -> f64
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Copy + Clone + Send + Sync;
+    fn par_zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync;
+    fn par_col_reduce<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(Vec<f64>) -> f64 + Send + Sync;
+    fn par_row_reduce<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(Vec<f64>) -> f64 + Send + Sync;
 }

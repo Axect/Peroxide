@@ -208,3 +208,5 @@ pub mod util;
 
 #[cfg(feature = "complex")]
 pub mod complex;
+
+extern crate rayon;
