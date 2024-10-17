@@ -125,17 +125,16 @@ pub fn phi(x: f64) -> f64 {
 /// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
 /// for only 24 bits, but with faster execution time.
 /// 
-/// Wrapper of the `lambert_w_0` and `sp_lambert_w_0` functions of the `lambert_w` crate.
+/// Wrapper of the `lambert_w_0` and `sp_lambert_w_0` functions of the `puruspe` crate.
 ///
 /// # Reference
 ///
 /// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
 pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
     match mode {
-        LambertWAccuracyMode::Precise => lambert_w::lambert_w_0(z),
-        LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_0(z),
+        LambertWAccuracyMode::Precise => puruspe::lambert_w0(z),
+        LambertWAccuracyMode::Simple => puruspe::sp_lambert_w0(z),
     }
-    .unwrap_or(f64::NAN)
 }
 
 /// The secondary branch of the Lambert W function, W_-1(`z`).
@@ -145,17 +144,16 @@ pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
 /// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
 /// for only 24 bits, but with faster execution time.
 /// 
-/// Wrapper of the `lambert_w_m1` and `sp_lambert_w_m1` functions of the `lambert_w` crate.
+/// Wrapper of the `lambert_w_m1` and `sp_lambert_w_m1` functions of the `puruspe` crate.
 /// 
 /// # Reference
 ///
 /// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)
 pub fn lambert_wm1(z: f64, mode: LambertWAccuracyMode) -> f64 {
     match mode {
-        LambertWAccuracyMode::Precise => lambert_w::lambert_w_m1(z),
-        LambertWAccuracyMode::Simple => lambert_w::sp_lambert_w_m1(z),
+        LambertWAccuracyMode::Precise => puruspe::lambert_wm1(z),
+        LambertWAccuracyMode::Simple => puruspe::sp_lambert_wm1(z),
     }
-    .unwrap_or(f64::NAN)
 }
 
 /// Decides the accuracy mode of the Lambert W functions.
