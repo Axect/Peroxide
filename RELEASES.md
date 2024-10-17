@@ -1,6 +1,6 @@
 # Release 0.37.10 (in progress)
 
-- Update `lambert_w` dependency to `0.4.0` [#66](https://github.com/Axect/Peroxide/pull/66) (Thanks to [@JSorngard](https://github.com/JSorngard))
+- Update `puruspe` dependency to `0.3.0`, remove `lambert_w` dependency [#79](https://github.com/Axect/Peroxide/pull/79) (Thanks to [@JSorngard](https://github.com/JSorngard))
 
 # Release 0.37.9 (2024-07-31)
 

@@ -22,7 +22,7 @@
 //!   - Lambert W function (principal branch W₀ and secondary branch W₋₁)
 //! 
 //! Many of these functions are implemented using efficient numerical approximations
-//! or by wrapping functions from other crates (e.g., `puruspe`, `lambert_w`).
+//! or by wrapping functions from other crates (e.g., `puruspe`).
 //! 
 //! The module also includes an enum `LambertWAccuracyMode` to control the
 //! accuracy-speed trade-off for Lambert W function calculations.
