@@ -164,6 +164,13 @@ pub use crate::traits::{
     sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
 };
 
+#[cfg(feature = "parallel")]
+pub use crate::traits::{
+    fp::{ParallelFPVector, ParallelFPMatrix},
+    math::{ParallelInnerProduct, ParallelMatrixProduct, ParallelNormed, ParallelVector, ParallelVectorProduct},
+    mutable::ParallelMutFP,
+};
+
 #[allow(unused_imports)]
 pub use crate::structure::{
     matrix::*, 

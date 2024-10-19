@@ -1576,6 +1576,16 @@ impl Vector for Matrix {
 
 impl Normed for Matrix {
     type UnsignedScalar = f64;
+
+    /// Norm of Matrix
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -1646,6 +1656,16 @@ impl Normed for Matrix {
 impl ParallelNormed for Matrix {
     type UnsignedScalar = f64;
 
+    /// Parallel version of norm
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.par_norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
+    ///
     fn par_norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
