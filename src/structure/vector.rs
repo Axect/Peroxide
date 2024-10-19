@@ -267,7 +267,7 @@ extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
 #[cfg(feature = "parallel")]
-use crate::rayon::iter::ParalleIterator;
+use crate::rayon::iter::{ParallelIterator, IntoParallelIterator, IntoParallelRefIterator, IndexedParallelIterator, IntoParallelRefMutIterator};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
 #[cfg(feature = "parallel")]
