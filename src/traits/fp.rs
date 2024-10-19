@@ -60,6 +60,7 @@ pub trait FPMatrix {
 }
 
 /// Functional Programming tools for Vector in Parallel (Uses Rayon crate)
+#[cfg(feature = "parallel")]
 pub trait ParallelFPVector {
     type Scalar;
 
@@ -79,6 +80,7 @@ pub trait ParallelFPVector {
 }
 
 /// Functional Programming for Matrix in Parallel (Uses Rayon crate)
+#[cfg(feature = "parallel")]
 pub trait ParallelFPMatrix {
     fn par_fmap<F>(&self, f: F) -> Matrix
     where
