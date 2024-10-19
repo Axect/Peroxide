@@ -267,7 +267,12 @@ extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
 
+use crate::rayon::prelude::*;
+
 use crate::structure::matrix::{matrix, Matrix, Row};
+use crate::traits::fp::ParallelFPVector;
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct};
+use crate::traits::mutable::ParallelMutFP;
 use crate::traits::{
     fp::FPVector,
     general::Algorithm,
@@ -318,7 +323,7 @@ impl FPVector for Vec<f64> {
     fn reduce<F, T>(&self, init: T, f: F) -> f64
     where
         F: Fn(f64, f64) -> f64,
-        T: Into<f64>,
+        T: Into<f64> + Copy,
     {
         self.iter().fold(init.into(), |x, &y| f(x, y))
     }
@@ -409,6 +414,93 @@ impl FPVector for Vec<f64> {
     }
 }
 
+impl ParallelFPVector for Vec<f64> {
+    type Scalar = f64;
+
+    /// par_fmap for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.par_fmap(|x| x*2f64), seq!(2,10,2));
+    /// }
+    /// ```
+    fn par_fmap<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(f64) -> f64 + Sync + Send,
+    {
+        let mut v = self.clone();
+        v.par_iter_mut().for_each(|x| *x = f(*x));
+        v
+    }
+
+    /// reduce for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = seq!(1,100,1);
+    ///     assert_eq!(a.par_reduce(0, |x,y| x + y), 5050f64);
+    /// }
+    /// ```
+    fn par_reduce<F, T>(&self, _init: T, f: F) -> f64
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+        T: Into<f64> + Send + Sync + Copy,
+    {
+        self.par_iter()
+            .cloned()
+            .reduce_with(|x, y| f(x, y))
+            .expect("Unable to perform parallel reduce operation")
+    }
+
+    fn par_zip_with<F>(&self, f: F, other: &Vec<f64>) -> Vec<f64>
+    where
+        F: Fn(f64, f64) -> f64 + Send + Sync,
+    {
+        self.par_iter()
+            .zip(other)
+            .map(|(x, y)| f(*x, *y))
+            .collect::<Vec<f64>>()
+    }
+
+    /// Filter for `Vec<f64>`
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    /// use peroxide::traits::fp::ParallelFPVector;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     let b = a.par_filter(|x| x > 3.);
+    ///     assert_eq!(b, c!(4,5));
+    /// }
+    /// ```
+    fn par_filter<F>(&self, f: F) -> Vec<f64>
+    where
+        F: Fn(f64) -> bool + Send + Sync,
+    {
+        self.clone()
+            .into_par_iter()
+            .filter(|x| f(*x))
+            .collect::<Vec<f64>>()
+    }
+}
+
 /// Explicit version of `map`
 pub fn map<F, T>(f: F, xs: &[T]) -> Vec<T>
 where
@@ -423,6 +515,17 @@ where
     result
 }
 
+/// Explicit version of `map` in parallel
+pub fn par_map<F, T>(f: F, xs: &[T]) -> Vec<T>
+where
+    F: Fn(T) -> T + Send + Sync,
+    T: Default + Copy + Send + Sync,
+{
+    let mut result = vec![T::default(); xs.len()];
+    result.par_iter_mut().for_each(|x| *x = f(*x));
+    result
+}
+
 /// Explicit version of `reduce`
 pub fn reduce<F, T>(f: F, init: T, xs: &[T]) -> T
 where
@@ -434,6 +537,7 @@ where
         s = f(s, x);
     }
     s
+    // Parallel version: !unimplemented()
 }
 
 /// Explicit version of `zip_with`
@@ -448,6 +552,18 @@ where
         result[i] = f(xs[i], ys[i]);
     }
     result
+}
+
+/// Explicit version of `zip_with` in parallel
+pub fn par_zip_with<F, T>(f: F, xs: &[T], ys: &[T]) -> Vec<T>
+where
+    F: Fn(T, T) -> T + Send + Sync,
+    T: Default + Copy + Send + Sync,
+{
+    xs.par_iter()
+        .zip(ys.into_par_iter())
+        .map(|(x, y)| f(*x, *y))
+        .collect::<Vec<T>>()
 }
 
 impl MutFP for Vec<f64> {
@@ -469,6 +585,26 @@ impl MutFP for Vec<f64> {
         for i in 0..self.len() {
             self[i] = f(self[i], other[i]);
         }
+    }
+}
+
+impl ParallelMutFP for Vec<f64> {
+    type Scalar = f64;
+
+    fn par_mut_map<F>(&mut self, f: F)
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar + Send + Sync,
+    {
+        self.par_iter_mut().for_each(|x| *x = f(*x));
+    }
+
+    fn par_mut_zip_with<F>(&mut self, f: F, other: &Self)
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync,
+    {
+        self.par_iter_mut()
+            .zip(other.into_par_iter())
+            .for_each(|(x, y)| *x = f(*x, *y));
     }
 }
 
@@ -695,6 +831,51 @@ impl Normed for Vec<f64> {
     }
 }
 
+impl ParallelNormed for Vec<f64> {
+    type UnsignedScalar = f64;
+
+    fn par_norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::L1 => self.iter().map(|x| x.abs()).sum(),
+            Norm::L2 => {
+                #[cfg(feature = "O3")]
+                {
+                    let n_i32 = self.len() as i32;
+                    let res: f64;
+                    unsafe {
+                        res = dnrm2(n_i32, self, 1);
+                    }
+                    res
+                }
+                #[cfg(not(feature = "O3"))]
+                {
+                    self.par_iter()
+                        .map(|x| x.powi(2))
+                        .sum::<Self::UnsignedScalar>()
+                        .sqrt()
+                }
+            }
+            Norm::Lp(p) => {
+                assert!(
+                    p >= 1f64,
+                    "lp norm is only defined for p>=1, the given value was p={}",
+                    p
+                );
+                self.par_iter()
+                    .map(|x| x.powf(p))
+                    .sum::<Self::UnsignedScalar>()
+                    .powf(1_f64 / p)
+            }
+            Norm::LInf => self
+                .par_iter()
+                .fold(|| 0f64, |x, y| x.max(y.abs()))
+                .reduce(|| 0f64, |acc1, acc2| acc1.max(acc2.abs())),
+            Norm::F => unimplemented!(),
+            Norm::Lpq(_, _) => unimplemented!(),
+        }
+    }
+}
+
 impl InnerProduct for Vec<f64> {
     fn dot(&self, rhs: &Self) -> f64 {
         #[cfg(feature = "O3")]
@@ -715,6 +896,27 @@ impl InnerProduct for Vec<f64> {
     }
 }
 
+impl ParallelInnerProduct for Vec<f64> {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        #[cfg(feature = "O3")]
+        {
+            let n_i32 = self.len() as i32;
+            let res: f64;
+            unsafe {
+                res = ddot(n_i32, self, 1, rhs, 1);
+            }
+            res
+        }
+        #[cfg(not(feature = "O3"))]
+        {
+            self.par_iter()
+                .zip(rhs.into_par_iter())
+                .fold(|| 0_f64, |x, (y1, y2)| x + y1 * y2)
+                .sum::<f64>()
+        }
+    }
+}
+
 impl LinearOp<Vec<f64>, f64> for Vec<f64> {
     fn apply(&self, rhs: &Vec<f64>) -> f64 {
         self.dot(rhs)
@@ -731,18 +933,22 @@ impl VectorProduct for Vec<f64> {
     fn cross(&self, other: &Self) -> Self {
         assert_eq!(self.len(), other.len());
         // 2D cross product is ill-defined
-        if self.len() == 2 {
-            let mut v = vec![0f64; 1];
-            v[0] = self[0] * other[1] - self[1] * other[0];
-            v
-        } else if self.len() == 3 {
-            let mut v = vec![0f64; 3];
-            v[0] = self[1] * other[2] - self[2] * other[1];
-            v[1] = self[2] * other[0] - self[0] * other[2];
-            v[2] = self[0] * other[1] - self[1] * other[0];
-            v
-        } else {
-            panic!("Cross product can be defined only in 2 or 3 dimension")
+        match self.len() {
+            2 => {
+                let mut v = vec![0f64; 1];
+                v[0] = self[0] * other[1] - self[1] * other[0];
+                v
+            }
+            3 => {
+                let mut v = vec![0f64; 3];
+                v[0] = self[1] * other[2] - self[2] * other[1];
+                v[1] = self[2] * other[0] - self[0] * other[2];
+                v[2] = self[0] * other[1] - self[1] * other[0];
+                v
+            }
+            _ => {
+                panic!("Cross product can be defined only in 2 or 3 dimension")
+            }
         }
     }
 
@@ -750,6 +956,33 @@ impl VectorProduct for Vec<f64> {
         let m: Matrix = self.into();
         let n = matrix(other.to_owned(), 1, other.len(), Row);
         m * n
+    }
+}
+
+impl ParallelVectorProduct for Vec<f64> {
+    fn par_cross(&self, other: &Self) -> Self {
+        assert_eq!(self.len(), other.len());
+        // 2D cross product is ill-defined
+        match self.len() {
+            2 => {
+                let mut v = vec![0f64; 1];
+                v[0] = self[0] * other[1] - self[1] * other[0];
+                v
+            }
+            3 => {
+                let v = (0..3)
+                    .into_par_iter()
+                    .map(|index| {
+                        self[(index + 1) % 3] * other[(index + 2) % 3]
+                            - self[(index + 2) % 3] * other[(index + 1) % 3]
+                    })
+                    .collect::<Vec<f64>>();
+                v
+            }
+            _ => {
+                panic!("Cross product can be defined only in 2 or 3 dimension")
+            }
+        }
     }
 }
 

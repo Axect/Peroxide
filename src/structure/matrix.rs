@@ -610,12 +610,14 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgesvd, dgetrf, dgetri, dgetrs, dorgqr, dpotrf};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::structure::dataframe::{Series, TypedVector};
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::traits::sugar::ScalableMut;
 use crate::traits::{
     fp::{FPMatrix, FPVector},
@@ -1340,6 +1342,27 @@ impl Matrix {
         mat
     }
 
+    /// From index operations in parallel
+    pub fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy + Send + Sync,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let data = (0..row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..col)
+                    .into_par_iter()
+                    .map(|j| f(i, j).into())
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, row, col, Row)
+    }
+
     /// Matrix to `Vec<Vec<f64>>`
     ///
     /// To send `Matrix` to `inline-python`
@@ -1616,6 +1639,71 @@ impl Normed for Matrix {
     }
 }
 
+impl ParallelNormed for Matrix {
+    type UnsignedScalar = f64;
+
+    fn par_norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::F => {
+                let mut s = 0f64;
+                for i in 0..self.data.len() {
+                    s += self.data[i].powi(2);
+                }
+                s.sqrt()
+            }
+            Norm::Lpq(p, q) => {
+                let s = (0..self.col)
+                    .into_par_iter()
+                    .map(|j| {
+                        let s_row = (0..self.row)
+                            .into_iter()
+                            .map(|i| self[(i, j)].powi(p as i32))
+                            .sum::<f64>();
+                        s_row.powf(q / p)
+                    })
+                    .sum::<f64>();
+                s.powf(1f64 / q)
+            }
+            Norm::L1 => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Row => self.change_shape().norm(Norm::L1),
+                    Col => {
+                        for c in 0..self.col {
+                            let s = self.col(c).par_iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::LInf => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Col => self.change_shape().norm(Norm::LInf),
+                    Row => {
+                        for r in 0..self.row {
+                            let s = self.row(r).iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::L2 => {
+                let a = &self.t() * self;
+                let eig = eigen(&a, EigenMethod::Jacobi);
+                eig.eigenvalue.norm(Norm::LInf)
+            }
+            Norm::Lp(_) => unimplemented!(),
+        }
+    }
+}
+
 /// Frobenius inner product
 impl InnerProduct for Matrix {
     fn dot(&self, rhs: &Self) -> f64 {
@@ -1623,6 +1711,17 @@ impl InnerProduct for Matrix {
             self.data.dot(&rhs.data)
         } else {
             self.data.dot(&rhs.change_shape().data)
+        }
+    }
+}
+
+/// Frobenius inner product in parallel
+impl ParallelInnerProduct for Matrix {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        if self.shape == rhs.shape {
+            self.data.par_dot(&rhs.data)
+        } else {
+            self.data.par_dot(&rhs.change_shape().data)
         }
     }
 }
