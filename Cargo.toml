@@ -40,20 +40,14 @@ anyhow = "1.0"
 paste = "1.0"
 #num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default-features = false }
-pyo3 = { version = "0.22", optional = true, features = [
-    "auto-initialize",
-    "gil-refs",
-] }
+pyo3 = { version = "0.22", optional = true, features = ["auto-initialize", "gil-refs"] }
 blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
-arrow2 = { version = "0.18", features = [
-    "io_parquet",
-    "io_parquet_compression",
-], optional = true }
+arrow2 = { version = "0.18", features = ["io_parquet", "io_parquet_compression"], optional = true }
 num-complex = { version = "0.4", optional = true }
-rayon = "1.10"
+rayon = { version = "1.10", optional = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html", "--cfg", "docsrs"]
@@ -65,6 +59,7 @@ plot = ["pyo3"]
 nc = ["netcdf"]
 parquet = ["arrow2"]
 complex = ["num-complex", "matrixmultiply/cgemm"]
+parallel = ["rayon"]
 
 [[bench]]
 path = "benches/parallel_rayon/matrix_benchmark.rs"

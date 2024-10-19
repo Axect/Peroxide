@@ -610,6 +610,7 @@ extern crate lapack;
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
 use lapack::{dgecon, dgeqrf, dgesvd, dgetrf, dgetri, dgetrs, dorgqr, dpotrf};
+#[cfg(feature = "parallel")]
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -617,7 +618,6 @@ use serde::{Deserialize, Serialize};
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::structure::dataframe::{Series, TypedVector};
-use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::traits::sugar::ScalableMut;
 use crate::traits::{
     fp::{FPMatrix, FPVector},
@@ -625,6 +625,8 @@ use crate::traits::{
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
 };
+#[cfg(feature = "parallel")]
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::util::{
     low_level::{copy_vec_ptr, swap_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
@@ -1342,27 +1344,6 @@ impl Matrix {
         mat
     }
 
-    /// From index operations in parallel
-    pub fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
-    where
-        F: Fn(usize, usize) -> G + Copy + Send + Sync,
-        G: Into<f64>,
-    {
-        let row = size.0;
-        let col = size.1;
-
-        let data = (0..row)
-            .into_par_iter()
-            .flat_map(|i| {
-                (0..col)
-                    .into_par_iter()
-                    .map(|j| f(i, j).into())
-                    .collect::<Vec<f64>>()
-            })
-            .collect::<Vec<f64>>();
-        matrix(data, row, col, Row)
-    }
-
     /// Matrix to `Vec<Vec<f64>>`
     ///
     /// To send `Matrix` to `inline-python`
@@ -1480,6 +1461,28 @@ impl Matrix {
         let v: Vec<f64> = series.to_vec();
         matrix(v, row, col, shape)
     }
+
+    /// From index operations in parallel
+    #[cfg(feature = "parallel")]
+    fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy + Send + Sync,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let data = (0..row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..col)
+                    .into_par_iter()
+                    .map(|j| f(i, j).into())
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, row, col, Row)
+    }
 }
 
 // =============================================================================
@@ -1573,6 +1576,16 @@ impl Vector for Matrix {
 
 impl Normed for Matrix {
     type UnsignedScalar = f64;
+
+    /// Norm of Matrix
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -1639,9 +1652,20 @@ impl Normed for Matrix {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelNormed for Matrix {
     type UnsignedScalar = f64;
 
+    /// Parallel version of norm
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.par_norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
+    ///
     fn par_norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -1716,6 +1740,7 @@ impl InnerProduct for Matrix {
 }
 
 /// Frobenius inner product in parallel
+#[cfg(feature = "parallel")]
 impl ParallelInnerProduct for Matrix {
     fn par_dot(&self, rhs: &Self) -> f64 {
         if self.shape == rhs.shape {

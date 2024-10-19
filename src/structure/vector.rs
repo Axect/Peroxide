@@ -266,13 +266,16 @@
 extern crate blas;
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
-
-use crate::rayon::prelude::*;
+#[cfg(feature = "parallel")]
+use crate::rayon::iter::{ParallelIterator, IntoParallelIterator, IntoParallelRefIterator, IndexedParallelIterator, IntoParallelRefMutIterator};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
-use crate::traits::fp::ParallelFPVector;
-use crate::traits::math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct};
-use crate::traits::mutable::ParallelMutFP;
+#[cfg(feature = "parallel")]
+use crate::traits::{
+    fp::ParallelFPVector,
+    math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct},
+    mutable::ParallelMutFP,
+};
 use crate::traits::{
     fp::FPVector,
     general::Algorithm,
@@ -414,6 +417,7 @@ impl FPVector for Vec<f64> {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelFPVector for Vec<f64> {
     type Scalar = f64;
 
@@ -516,6 +520,7 @@ where
 }
 
 /// Explicit version of `map` in parallel
+#[cfg(feature = "parallel")]
 pub fn par_map<F, T>(f: F, xs: &[T]) -> Vec<T>
 where
     F: Fn(T) -> T + Send + Sync,
@@ -537,7 +542,6 @@ where
         s = f(s, x);
     }
     s
-    // Parallel version: !unimplemented()
 }
 
 /// Explicit version of `zip_with`
@@ -555,6 +559,7 @@ where
 }
 
 /// Explicit version of `zip_with` in parallel
+#[cfg(feature = "parallel")]
 pub fn par_zip_with<F, T>(f: F, xs: &[T], ys: &[T]) -> Vec<T>
 where
     F: Fn(T, T) -> T + Send + Sync,
@@ -588,6 +593,7 @@ impl MutFP for Vec<f64> {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelMutFP for Vec<f64> {
     type Scalar = f64;
 
@@ -831,6 +837,7 @@ impl Normed for Vec<f64> {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelNormed for Vec<f64> {
     type UnsignedScalar = f64;
 
@@ -896,6 +903,7 @@ impl InnerProduct for Vec<f64> {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelInnerProduct for Vec<f64> {
     fn par_dot(&self, rhs: &Self) -> f64 {
         #[cfg(feature = "O3")]
@@ -959,6 +967,7 @@ impl VectorProduct for Vec<f64> {
     }
 }
 
+#[cfg(feature = "parallel")]
 impl ParallelVectorProduct for Vec<f64> {
     fn par_cross(&self, other: &Self) -> Self {
         assert_eq!(self.len(), other.len());

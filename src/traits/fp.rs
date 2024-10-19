@@ -60,6 +60,7 @@ pub trait FPMatrix {
 }
 
 /// Functional Programming tools for Vector in Parallel (Uses Rayon crate)
+#[cfg(feature = "parallel")]
 pub trait ParallelFPVector {
     type Scalar;
 
@@ -79,21 +80,24 @@ pub trait ParallelFPVector {
 }
 
 /// Functional Programming for Matrix in Parallel (Uses Rayon crate)
+#[cfg(feature = "parallel")]
 pub trait ParallelFPMatrix {
-    fn par_fmap<F>(&self, f: F) -> Matrix
+    type Scalar;
+
+    fn par_fmap<F>(&self, f: F) -> Self
     where
-        F: Fn(f64) -> f64 + Send + Sync;
-    fn par_reduce<F, T>(&self, init: T, f: F) -> f64
+        F: Fn(Self::Scalar) -> Self::Scalar + Send + Sync;
+    fn par_reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
     where
-        F: Fn(f64, f64) -> f64 + Send + Sync,
-        T: Into<f64> + Copy + Clone + Send + Sync;
-    fn par_zip_with<F>(&self, f: F, other: &Matrix) -> Matrix
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync,
+        T: Into<Self::Scalar> + Copy + Clone + Send + Sync;
+    fn par_zip_with<F>(&self, f: F, other: &Self) -> Self
     where
-        F: Fn(f64, f64) -> f64 + Send + Sync;
-    fn par_col_reduce<F>(&self, f: F) -> Vec<f64>
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar + Send + Sync;
+    fn par_col_reduce<F>(&self, f: F) -> Vec<Self::Scalar>
     where
-        F: Fn(Vec<f64>) -> f64 + Send + Sync;
-    fn par_row_reduce<F>(&self, f: F) -> Vec<f64>
+        F: Fn(Vec<Self::Scalar>) -> Self::Scalar + Send + Sync;
+    fn par_row_reduce<F>(&self, f: F) -> Vec<Self::Scalar>
     where
-        F: Fn(Vec<f64>) -> f64 + Send + Sync;
+        F: Fn(Vec<Self::Scalar>) -> Self::Scalar + Send + Sync;
 }
