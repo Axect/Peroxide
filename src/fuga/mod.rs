@@ -157,6 +157,7 @@ pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
+    matrix::MatrixTrait,
     mutable::{MutFP, MutMatrix},
     num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
@@ -171,7 +172,14 @@ pub use crate::traits::{
     mutable::ParallelMutFP,
 };
 
+#[cfg(feature = "complex")]
+pub use crate::complex::{
+    C64,
+    matrix::*,
+};
+
 #[allow(unused_imports)]
+#[allow(ambiguous_glob_reexports)]
 pub use crate::structure::{
     matrix::*, 
     polynomial::*, 

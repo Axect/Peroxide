@@ -112,6 +112,7 @@ pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
 use crate::numerical::utils::jacobian;
 use crate::structure::matrix::{LinearAlgebra, Matrix};
+use crate::traits::matrix::MatrixTrait;
 use crate::structure::ad::{AD, ADVec};
 use crate::util::useful::max;
 use std::collections::HashMap;

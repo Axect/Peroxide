@@ -1,4 +1,5 @@
 use crate::structure::matrix::{matrix, Matrix, Shape};
+use crate::traits::matrix::MatrixTrait;
 use crate::traits::fp::FPVector;
 use crate::util::non_macro::zeros_shape;
 use std::ops::{Add, Div, Mul, Sub};

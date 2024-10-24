@@ -4,6 +4,7 @@
 
 pub use self::EigenMethod::*;
 use crate::structure::matrix::Matrix;
+use crate::traits::matrix::MatrixTrait;
 use crate::util::non_macro::eye_shape;
 
 #[derive(Debug, Copy, Clone)]

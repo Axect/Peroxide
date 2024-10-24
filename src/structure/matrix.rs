@@ -624,6 +624,7 @@ use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
+    matrix::MatrixTrait,
 };
 #[cfg(feature = "parallel")]
 use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
@@ -821,14 +822,16 @@ impl PartialEq for Matrix {
 
 /// Main matrix structure
 #[allow(dead_code)]
-impl Matrix {
+impl MatrixTrait for Matrix {
+    type Scalar = f64;
+
     /// Raw pointer for `self.data`
-    pub fn ptr(&self) -> *const f64 {
+    fn ptr(&self) -> *const f64 {
         &self.data[0] as *const f64
     }
 
     /// Raw mutable pointer for `self.data`
-    pub fn mut_ptr(&mut self) -> *mut f64 {
+    fn mut_ptr(&mut self) -> *mut f64 {
         &mut self.data[0] as *mut f64
     }
 
@@ -842,7 +845,7 @@ impl Matrix {
     /// let b = a.as_slice();
     /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
     /// ```
-    pub fn as_slice(&self) -> &[f64] {
+    fn as_slice(&self) -> &[f64] {
         &self.data[..]
     }
 
@@ -858,7 +861,7 @@ impl Matrix {
     /// assert_eq!(b, &[5f64, 2f64, 3f64, 4f64]);
     /// assert_eq!(a, matrix(vec![5,2,3,4], 2, 2, Col));
     /// ```
-    pub fn as_mut_slice(&mut self) -> &mut [f64] {
+    fn as_mut_slice(&mut self) -> &mut [f64] {
         &mut self.data[..]
     }
 
@@ -875,7 +878,7 @@ impl Matrix {
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
     /// ```
-    pub fn change_shape(&self) -> Self {
+    fn change_shape(&self) -> Self {
         let r = self.row;
         let c = self.col;
         assert_eq!(r * c, self.data.len());
@@ -916,7 +919,7 @@ impl Matrix {
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
     /// ```
-    pub fn change_shape_mut(&mut self) {
+    fn change_shape_mut(&mut self) {
         let r = self.row;
         let c = self.col;
         assert_eq!(r * c, self.data.len());
@@ -956,7 +959,7 @@ impl Matrix {
     /// // r[0]     1    3
     /// // r[1]     2    4
     /// ```
-    pub fn spread(&self) -> String {
+    fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
         let r = self.row;
         let c = self.col;
@@ -977,10 +980,10 @@ impl Matrix {
             };
             return format!(
                 "Result is too large to print - {}x{}\nonly print {}x{} parts:\n{}",
-                self.row.to_string(),
-                self.col.to_string(),
-                key_row.to_string(),
-                key_col.to_string(),
+                self.row,
+                self.col,
+                key_row,
+                key_col,
                 part.spread()
             );
         }
@@ -992,7 +995,7 @@ impl Matrix {
             .map(
                 |x| min(format!("{:.4}", x).len(), x.to_string().len()), // Choose minimum of approx vs normal
             )
-            .fold(0, |x, y| max(x, y))
+            .fold(0, max)
             + 1;
 
         if space < 5 {
@@ -1027,7 +1030,7 @@ impl Matrix {
             result.push('\n');
         }
 
-        return result;
+        result
     }
 
     /// Extract Column
@@ -1043,7 +1046,7 @@ impl Matrix {
     ///     assert_eq!(a.col(0), c!(1,3));
     /// }
     /// ```
-    pub fn col(&self, index: usize) -> Vec<f64> {
+    fn col(&self, index: usize) -> Vec<f64> {
         assert!(index < self.col);
         let mut container: Vec<f64> = vec![0f64; self.row];
         for i in 0..self.row {
@@ -1065,7 +1068,7 @@ impl Matrix {
     ///     assert_eq!(a.row(0), c!(1,2));
     /// }
     /// ```
-    pub fn row(&self, index: usize) -> Vec<f64> {
+    fn row(&self, index: usize) -> Vec<f64> {
         assert!(index < self.row);
         let mut container: Vec<f64> = vec![0f64; self.col];
         for i in 0..self.col {
@@ -1087,7 +1090,7 @@ impl Matrix {
     ///     assert_eq!(a.diag(), c!(1,4));
     /// }
     /// ```
-    pub fn diag(&self) -> Vec<f64> {
+    fn diag(&self) -> Vec<f64> {
         let mut container = vec![0f64; self.row];
         let r = self.row;
         let c = self.col;
@@ -1108,7 +1111,7 @@ impl Matrix {
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
     /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
-    pub fn transpose(&self) -> Self {
+    fn transpose(&self) -> Self {
         match self.shape {
             Row => matrix(self.data.clone(), self.col, self.row, Col),
             Col => matrix(self.data.clone(), self.col, self.row, Row),
@@ -1128,10 +1131,146 @@ impl Matrix {
     ///     assert_eq!(a.transpose(), a.t());
     /// }
     /// ```
-    pub fn t(&self) -> Self {
+    fn t(&self) -> Self {
         self.transpose()
     }
 
+    /// Substitute Col
+    #[inline]
+    fn subs_col(&mut self, idx: usize, v: &[f64]) {
+        for i in 0..self.row {
+            self[(i, idx)] = v[i];
+        }
+    }
+
+    /// Substitute Row
+    #[inline]
+    fn subs_row(&mut self, idx: usize, v: &[f64]) {
+        for j in 0..self.col {
+            self[(idx, j)] = v[j];
+        }
+    }
+
+    /// From index operations
+    fn from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let mut mat = matrix(vec![0f64; row * col], row, col, Row);
+
+        for i in 0..row {
+            for j in 0..col {
+                mat[(i, j)] = f(i, j).into();
+            }
+        }
+        mat
+    }
+
+    /// Matrix to `Vec<Vec<f64>>`
+    ///
+    /// To send `Matrix` to `inline-python`
+    fn to_vec(&self) -> Vec<Vec<f64>> {
+        let mut result = vec![vec![0f64; self.col]; self.row];
+        for i in 0..self.row {
+            result[i] = self.row(i);
+        }
+        result
+    }
+
+    fn to_diag(&self) -> Matrix {
+        assert_eq!(self.row, self.col, "Should be square matrix");
+        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
+        let diag = self.diag();
+        for i in 0..self.row {
+            result[(i, i)] = diag[i];
+        }
+        result
+    }
+
+    /// Submatrix
+    ///
+    /// # Description
+    /// Return below elements of matrix to new matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("5 6;8 9");
+    ///     let c = a.submat((1, 1), (2, 2));
+    ///     assert_eq!(b, c);   
+    /// }
+    /// ```
+    fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
+        let row = end.0 + 1 - start.0;
+        let col = end.1 + 1 - start.1;
+        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
+        for i in 0..row {
+            for j in 0..col {
+                result[(i, j)] = self[(start.0 + i, start.1 + j)];
+            }
+        }
+        result
+    }
+
+    /// Substitute matrix to specific position
+    ///
+    /// # Description
+    /// Substitute below elements of matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("1 2;3 4");
+    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
+    ///     a.subs_mat((1,1), (2,2), &b);
+    ///     assert_eq!(a, c);       
+    /// }
+    /// ```
+    fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        for i in 0..row {
+            for j in 0..col {
+                self[(start.0 + i, start.1 + j)] = m[(i, j)];
+            }
+        }
+    }
+
+}
+
+impl Matrix {
     /// Write to CSV
     ///
     /// # Examples
@@ -1289,159 +1428,6 @@ impl Matrix {
 
         Ok(m)
     }
-
-    /// Should check shape
-    pub fn subs(&mut self, idx: usize, v: &Vec<f64>) {
-        let p = &mut self.mut_ptr();
-        match self.shape {
-            Row => {
-                let c = self.col;
-                unsafe {
-                    p.add(idx * c).copy_from(v.as_ptr(), c);
-                }
-            }
-            Col => {
-                let r = self.row;
-                unsafe {
-                    p.add(idx * r).copy_from(v.as_ptr(), r);
-                }
-            }
-        }
-    }
-
-    /// Substitute Col
-    #[inline]
-    pub fn subs_col(&mut self, idx: usize, v: &Vec<f64>) {
-        for i in 0..self.row {
-            self[(i, idx)] = v[i];
-        }
-    }
-
-    /// Substitute Row
-    #[inline]
-    pub fn subs_row(&mut self, idx: usize, v: &Vec<f64>) {
-        for j in 0..self.col {
-            self[(idx, j)] = v[j];
-        }
-    }
-
-    /// From index operations
-    pub fn from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
-    where
-        F: Fn(usize, usize) -> G + Copy,
-        G: Into<f64>,
-    {
-        let row = size.0;
-        let col = size.1;
-
-        let mut mat = matrix(vec![0f64; row * col], row, col, Row);
-
-        for i in 0..row {
-            for j in 0..col {
-                mat[(i, j)] = f(i, j).into();
-            }
-        }
-        mat
-    }
-
-    /// Matrix to `Vec<Vec<f64>>`
-    ///
-    /// To send `Matrix` to `inline-python`
-    pub fn to_vec(&self) -> Vec<Vec<f64>> {
-        let mut result = vec![vec![0f64; self.col]; self.row];
-        for i in 0..self.row {
-            result[i] = self.row(i);
-        }
-        result
-    }
-
-    pub fn to_diag(&self) -> Matrix {
-        assert_eq!(self.row, self.col, "Should be square matrix");
-        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
-        let diag = self.diag();
-        for i in 0..self.row {
-            result[(i, i)] = diag[i];
-        }
-        result
-    }
-
-    /// Submatrix
-    ///
-    /// # Description
-    /// Return below elements of matrix to new matrix
-    ///
-    /// $$
-    /// \begin{pmatrix}
-    /// \\ddots & & & & \\\\
-    ///   & start & \\cdots & end.1 & \\\\
-    ///   & \\vdots & \\ddots & \\vdots & \\\\
-    ///   & end.0 & \\cdots & end & \\\\
-    ///   & & & & \\ddots
-    /// \end{pmatrix}
-    /// $$
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
-    ///     let b = ml_matrix("5 6;8 9");
-    ///     let c = a.submat((1, 1), (2, 2));
-    ///     assert_eq!(b, c);   
-    /// }
-    /// ```
-    pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
-        let row = end.0 - start.0 + 1;
-        let col = end.1 - start.1 + 1;
-        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
-        for i in 0..row {
-            for j in 0..col {
-                result[(i, j)] = self[(start.0 + i, start.1 + j)];
-            }
-        }
-        result
-    }
-
-    /// Substitute matrix to specific position
-    ///
-    /// # Description
-    /// Substitute below elements of matrix
-    ///
-    /// $$
-    /// \begin{pmatrix}
-    /// \\ddots & & & & \\\\
-    ///   & start & \\cdots & end.1 & \\\\
-    ///   & \\vdots & \\ddots & \\vdots & \\\\
-    ///   & end.0 & \\cdots & end & \\\\
-    ///   & & & & \\ddots
-    /// \end{pmatrix}
-    /// $$
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    ///
-    /// fn main() {
-    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
-    ///     let b = ml_matrix("1 2;3 4");
-    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
-    ///     a.subs_mat((1,1), (2,2), &b);
-    ///     assert_eq!(a, c);       
-    /// }
-    /// ```
-    pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
-        let row = end.0 - start.0 + 1;
-        let col = end.1 - start.1 + 1;
-        for i in 0..row {
-            for j in 0..col {
-                self[(start.0 + i, start.1 + j)] = m[(i, j)];
-            }
-        }
-    }
-
     /// Matrix from series
     ///
     /// # Example
@@ -1483,6 +1469,7 @@ impl Matrix {
             .collect::<Vec<f64>>();
         matrix(data, row, col, Row)
     }
+
 }
 
 // =============================================================================
@@ -1750,8 +1737,6 @@ impl ParallelInnerProduct for Matrix {
         }
     }
 }
-
-/// TODO: Transpose
 
 /// Matrix as Linear operator for Vector
 #[allow(non_snake_case)]

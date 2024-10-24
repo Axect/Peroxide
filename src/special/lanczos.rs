@@ -2,6 +2,7 @@
 
 use crate::statistics::ops::{double_factorial, factorial, C};
 use crate::structure::matrix::Matrix;
+use crate::traits::matrix::MatrixTrait;
 use crate::traits::pointer::{Oxide, RedoxCommon};
 use crate::util::non_macro::zeros;
 use crate::util::useful::sgn;

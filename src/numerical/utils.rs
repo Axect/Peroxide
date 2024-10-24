@@ -1,4 +1,5 @@
 use crate::structure::matrix::*;
+use crate::traits::matrix::MatrixTrait;
 use crate::structure::ad::*;
 use crate::structure::ad::AD::*;
 use crate::util::non_macro::{cat, zeros};

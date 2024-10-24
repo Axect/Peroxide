@@ -49,6 +49,7 @@ use crate::structure::ad::AD;
 use crate::traits::{
     fp::FPVector,
     math::{LinearOp, Vector},
+    matrix::MatrixTrait,
 };
 use std::ops::{Add, Deref, Div, Mul, Sub};
 

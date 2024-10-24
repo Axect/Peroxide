@@ -38,6 +38,7 @@ use crate::structure::{
     matrix::{matrix, Matrix, Shape},
 };
 use crate::traits::float::FloatWithPrecision;
+use crate::traits::matrix::MatrixTrait;
 use anyhow::{Result, bail};
 
 #[derive(Debug, Copy, Clone)]
