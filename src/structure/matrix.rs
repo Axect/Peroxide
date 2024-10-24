@@ -624,7 +624,7 @@ use crate::traits::{
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
     mutable::MutMatrix,
-    matrix::MatrixTrait,
+    matrix::{MatrixTrait, LinearAlgebra, PQLU, WAZD, QR, SVD, Form, SolveKind},
 };
 #[cfg(feature = "parallel")]
 use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
@@ -2882,27 +2882,6 @@ impl FPMatrix for Matrix {
 // =============================================================================
 // Linear Algebra
 // =============================================================================
-
-/// Linear algebra trait
-pub trait LinearAlgebra {
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn lu(&self) -> PQLU;
-    fn waz(&self, d_form: Form) -> Option<WAZD>;
-    fn qr(&self) -> QR;
-    fn svd(&self) -> SVD;
-    #[cfg(feature = "O3")]
-    fn cholesky(&self, uplo: UPLO) -> Matrix;
-    fn rref(&self) -> Matrix;
-    fn det(&self) -> f64;
-    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
-    fn inv(&self) -> Matrix;
-    fn pseudo_inv(&self) -> Matrix;
-    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64>;
-    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix;
-    fn is_symmetric(&self) -> bool;
-}
-
 pub fn diag(n: usize) -> Matrix {
     let mut v: Vec<f64> = vec![0f64; n * n];
     for i in 0..n {
@@ -2912,30 +2891,7 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
-/// Data structure for Complete Pivoting LU decomposition
-///
-/// # Usage
-/// ```rust
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// let a = ml_matrix("1 2;3 4");
-/// let pqlu = a.lu();
-/// let (p, q, l, u) = pqlu.extract();
-/// // p, q are permutations
-/// // l, u are matrices
-/// l.print(); // lower triangular
-/// u.print(); // upper triangular
-/// ```
-#[derive(Debug, Clone)]
-pub struct PQLU {
-    pub p: Vec<usize>,
-    pub q: Vec<usize>,
-    pub l: Matrix,
-    pub u: Matrix,
-}
-
-impl PQLU {
+impl PQLU<Matrix> {
     pub fn extract(&self) -> (Vec<usize>, Vec<usize>, Matrix, Matrix) {
         (
             self.p.clone(),
@@ -2982,43 +2938,7 @@ impl PQLU {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct WAZD {
-    pub w: Matrix,
-    pub z: Matrix,
-    pub d: Matrix,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum Form {
-    Diagonal,
-    Identity,
-}
-
-#[derive(Debug, Clone)]
-pub struct QR {
-    pub q: Matrix,
-    pub r: Matrix,
-}
-
-impl QR {
-    pub fn q(&self) -> &Matrix {
-        &self.q
-    }
-
-    pub fn r(&self) -> &Matrix {
-        &self.r
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SVD {
-    pub s: Vec<f64>,
-    pub u: Matrix,
-    pub vt: Matrix,
-}
-
-impl SVD {
+impl SVD<Matrix> {
     pub fn u(&self) -> &Matrix {
         &self.u
     }
@@ -3076,15 +2996,9 @@ impl SVD {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum SolveKind {
-    LU,
-    WAZ,
-}
-
-impl LinearAlgebra for Matrix {
+impl LinearAlgebra<Matrix> for Matrix {
     /// Backward Substitution for Upper Triangular
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+    fn back_subs(&self, b: &[f64]) -> Vec<f64> {
         let n = self.col;
         let mut y = vec![0f64; n];
         y[n - 1] = b[n - 1] / self[(n - 1, n - 1)];
@@ -3099,7 +3013,7 @@ impl LinearAlgebra for Matrix {
     }
 
     /// Forward substitution for Lower Triangular
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+    fn forward_subs(&self, b: &[f64]) -> Vec<f64> {
         let n = self.col;
         let mut y = vec![0f64; n];
         y[0] = b[0] / self[(0, 0)];
@@ -3127,8 +3041,6 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// fn main() {
@@ -3137,11 +3049,11 @@ impl LinearAlgebra for Matrix {
     ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
     ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
     ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
-    ///     assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
-    ///     assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
+    ///     assert_eq!(l, matrix(vec![1,0,0.5,1],2,2,Row));
+    ///     assert_eq!(u, matrix(vec![4,3,0,-0.5],2,2,Row));
     /// }
     /// ```
-    fn lu(&self) -> PQLU {
+    fn lu(&self) -> PQLU<Matrix> {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
@@ -3173,7 +3085,7 @@ impl LinearAlgebra for Matrix {
         PQLU { p, q, l, u }
     }
 
-    fn waz(&self, d_form: Form) -> Option<WAZD> {
+    fn waz(&self, d_form: Form) -> Option<WAZD<Matrix>> {
         match d_form {
             Form::Diagonal => {
                 let n = self.row;
@@ -3241,7 +3153,6 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Example
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// fn main() {
@@ -3256,7 +3167,7 @@ impl LinearAlgebra for Matrix {
     /// }
     /// ```
     #[allow(non_snake_case)]
-    fn qr(&self) -> QR {
+    fn qr(&self) -> QR<Matrix> {
         match () {
             #[cfg(feature = "O3")]
             () => {
@@ -3298,7 +3209,6 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
     /// fn main() {
@@ -3311,7 +3221,7 @@ impl LinearAlgebra for Matrix {
     ///     a.print();
     /// }
     /// ```
-    fn svd(&self) -> SVD {
+    fn svd(&self) -> SVD<Matrix> {
         match () {
             #[cfg(feature = "O3")]
             () => {
@@ -3634,7 +3544,7 @@ impl LinearAlgebra for Matrix {
     ///
     /// * Biswa Nath Datta, *Numerical Linear Algebra and Applications, Second Edition*
     /// * Ke Chen, *Matrix Preconditioning Techniques and Applications*, Cambridge Monographs on Applied and Computational Mathematics
-    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64> {
+    fn solve(&self, b: &[f64], sk: SolveKind) -> Vec<f64> {
         match sk {
             #[cfg(feature = "O3")]
             SolveKind::LU => {
@@ -3733,11 +3643,6 @@ impl LinearAlgebra for Matrix {
         }
         true
     }
-}
-
-#[allow(non_snake_case)]
-pub fn solve(A: &Matrix, b: &Matrix, sk: SolveKind) -> Matrix {
-    A.solve_mat(b, sk)
 }
 
 impl MutMatrix for Matrix {
