@@ -40,7 +40,7 @@ pub trait LinearAlgebra<M:MatrixTrait> {
     #[cfg(feature = "O3")]
     fn cholesky(&self, uplo: UPLO) -> M;
     fn rref(&self) -> M;
-    fn det(&self) -> f64;
+    fn det(&self) -> M::Scalar;
     fn block(&self) -> (M, M, M, M);
     fn inv(&self) -> M;
     fn pseudo_inv(&self) -> M;
