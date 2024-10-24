@@ -151,7 +151,7 @@ use std::fmt;
 use self::QType::*;
 //use crate::structure::dataframe::*;
 use crate::structure::matrix::*;
-use crate::traits::matrix::MatrixTrait;
+use crate::traits::matrix::{MatrixTrait, LinearAlgebra};
 use order_stat::kth_by;
 
 /// Statistics Trait

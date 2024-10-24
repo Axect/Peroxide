@@ -8,9 +8,10 @@ use crate::numerical::{
 };
 #[cfg(feature = "parquet")]
 use crate::structure::dataframe::{DataFrame, WithParquet};
-use crate::structure::matrix::{self, Matrix};
+use crate::structure::matrix::Matrix;
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
+use crate::traits::matrix::{MatrixTrait, LinearAlgebra, PQLU, WAZD, QR, Form, SolveKind};
 #[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
 #[cfg(feature = "parquet")]
@@ -28,22 +29,22 @@ pub fn integrate<F: Fn(f64) -> f64 + Copy>(f: F, (a, b): (f64, f64)) -> f64 {
 }
 
 /// Simple Linear algebra
-pub trait SimplerLinearAlgebra {
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn lu(&self) -> matrix::PQLU;
-    fn waz_diag(&self) -> Option<matrix::WAZD>;
-    fn waz(&self) -> Option<matrix::WAZD>;
-    fn qr(&self) -> matrix::QR;
+pub trait SimplerLinearAlgebra<M:MatrixTrait> {
+    fn back_subs(&self, b: &[f64]) -> Vec<f64>;
+    fn forward_subs(&self, b: &[f64]) -> Vec<f64>;
+    fn lu(&self) -> PQLU<M>;
+    fn waz_diag(&self) -> Option<WAZD<M>>;
+    fn waz(&self) -> Option<WAZD<M>>;
+    fn qr(&self) -> QR<M>;
     #[cfg(feature = "O3")]
-    fn cholesky(&self) -> Matrix;
-    fn rref(&self) -> Matrix;
+    fn cholesky(&self) -> M;
+    fn rref(&self) -> M;
     fn det(&self) -> f64;
-    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
-    fn inv(&self) -> Matrix;
-    fn pseudo_inv(&self) -> Matrix;
-    fn solve(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn solve_mat(&self, m: &Matrix) -> Matrix;
+    fn block(&self) -> (M, M, M, M);
+    fn inv(&self) -> M;
+    fn pseudo_inv(&self) -> M;
+    fn solve(&self, b: &[f64]) -> Vec<f64>;
+    fn solve_mat(&self, m: &M) -> M;
     fn is_symmetric(&self) -> bool;
 }
 
@@ -74,73 +75,73 @@ impl SimpleNorm for Matrix {
     }
 }
 
-impl SimplerLinearAlgebra for Matrix {
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
-        matrix::LinearAlgebra::back_subs(self, b)
+impl SimplerLinearAlgebra<Matrix> for Matrix {
+    fn back_subs(&self, b: &[f64]) -> Vec<f64> {
+        LinearAlgebra::back_subs(self, b)
     }
 
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64> {
-        matrix::LinearAlgebra::forward_subs(self, b)
+    fn forward_subs(&self, b: &[f64]) -> Vec<f64> {
+        LinearAlgebra::forward_subs(self, b)
     }
 
-    fn lu(&self) -> matrix::PQLU {
-        matrix::LinearAlgebra::lu(self)
+    fn lu(&self) -> PQLU<Matrix> {
+        LinearAlgebra::lu(self)
     }
 
-    fn waz_diag(&self) -> Option<matrix::WAZD> {
-        matrix::LinearAlgebra::waz(self, matrix::Form::Diagonal)
+    fn waz_diag(&self) -> Option<WAZD<Matrix>> {
+        LinearAlgebra::waz(self, Form::Diagonal)
     }
 
-    fn waz(&self) -> Option<matrix::WAZD> {
-        matrix::LinearAlgebra::waz(self, matrix::Form::Identity)
+    fn waz(&self) -> Option<WAZD<Matrix>> {
+        LinearAlgebra::waz(self, Form::Identity)
     }
 
-    fn qr(&self) -> matrix::QR {
-        matrix::LinearAlgebra::qr(self)
+    fn qr(&self) -> QR<Matrix> {
+        LinearAlgebra::qr(self)
     }
 
     #[cfg(feature = "O3")]
     fn cholesky(&self) -> Matrix {
-        matrix::LinearAlgebra::cholesky(self, matrix::UPLO::Lower)
+        LinearAlgebra::cholesky(self, UPLO::Lower)
     }
 
     fn rref(&self) -> Matrix {
-        matrix::LinearAlgebra::rref(self)
+        LinearAlgebra::rref(self)
     }
 
     fn det(&self) -> f64 {
-        matrix::LinearAlgebra::det(self)
+        LinearAlgebra::det(self)
     }
 
     fn block(&self) -> (Matrix, Matrix, Matrix, Matrix) {
-        matrix::LinearAlgebra::block(self)
+        LinearAlgebra::block(self)
     }
 
     fn inv(&self) -> Matrix {
-        matrix::LinearAlgebra::inv(self)
+        LinearAlgebra::inv(self)
     }
 
     fn pseudo_inv(&self) -> Matrix {
-        matrix::LinearAlgebra::pseudo_inv(self)
+        LinearAlgebra::pseudo_inv(self)
     }
 
-    fn solve(&self, b: &Vec<f64>) -> Vec<f64> {
-        matrix::LinearAlgebra::solve(self, b, matrix::SolveKind::LU)
+    fn solve(&self, b: &[f64]) -> Vec<f64> {
+        LinearAlgebra::solve(self, b, SolveKind::LU)
     }
 
     fn solve_mat(&self, m: &Matrix) -> Matrix {
-        matrix::LinearAlgebra::solve_mat(self, m, matrix::SolveKind::LU)
+        LinearAlgebra::solve_mat(self, m, SolveKind::LU)
     }
 
     fn is_symmetric(&self) -> bool {
-        matrix::LinearAlgebra::is_symmetric(self)
+        LinearAlgebra::is_symmetric(self)
     }
 }
 
 /// Simple solve
 #[allow(non_snake_case)]
 pub fn solve(A: &Matrix, m: &Matrix) -> Matrix {
-    matrix::solve(A, m, matrix::SolveKind::LU)
+    crate::traits::matrix::solve(A, m, SolveKind::LU)
 }
 
 /// Simple Chebyshev Polynomial (First Kind)

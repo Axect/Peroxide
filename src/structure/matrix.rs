@@ -3049,8 +3049,8 @@ impl LinearAlgebra<Matrix> for Matrix {
     ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
     ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
     ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
-    ///     assert_eq!(l, matrix(vec![1,0,0.5,1],2,2,Row));
-    ///     assert_eq!(u, matrix(vec![4,3,0,-0.5],2,2,Row));
+    ///     assert_eq!(l, matrix(vec![1.0,0.0,0.5,1.0],2,2,Row));
+    ///     assert_eq!(u, matrix(vec![4.0,3.0,0.0,-0.5],2,2,Row));
     /// }
     /// ```
     fn lu(&self) -> PQLU<Matrix> {
@@ -3563,7 +3563,7 @@ impl LinearAlgebra<Matrix> for Matrix {
             SolveKind::LU => {
                 let lu = self.lu();
                 let (p, q, l, u) = lu.extract();
-                let mut v = b.clone();
+                let mut v = b.to_vec();
                 v.swap_with_perm(&p.into_iter().enumerate().collect());
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
@@ -3575,7 +3575,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                     None => panic!("Can't solve by WAZ with Singular matrix!"),
                     Some(obj) => obj,
                 };
-                let x = &wazd.w.t() * b;
+                let x = &wazd.w.t() * &b.to_vec();
                 let x = &wazd.z * &x;
                 x
             }
