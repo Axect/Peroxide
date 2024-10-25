@@ -1,9 +1,9 @@
 use crate::numerical::utils::jacobian;
-use crate::structure::matrix::*;
 use crate::structure::ad::*;
 use crate::traits::{
     math::{Norm, Normed, Vector},
     mutable::MutFP,
+    matrix::LinearAlgebra,
 };
 
 /// Newton-Raphson Method

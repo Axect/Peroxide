@@ -278,6 +278,7 @@ use crate::structure::matrix::*;
 use crate::structure::polynomial::*;
 #[allow(unused_imports)]
 use crate::structure::vector::*;
+use crate::traits::matrix::LinearAlgebra;
 #[allow(unused_imports)]
 use crate::util::non_macro::*;
 use crate::util::useful::zip_range;

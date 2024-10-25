@@ -157,6 +157,7 @@ pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector, VectorProduct},
+    matrix::{MatrixTrait, LinearAlgebra},
     mutable::{MutFP, MutMatrix},
     num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
@@ -171,7 +172,14 @@ pub use crate::traits::{
     mutable::ParallelMutFP,
 };
 
+#[cfg(feature = "complex")]
+pub use crate::complex::{
+    C64,
+    matrix::*,
+};
+
 #[allow(unused_imports)]
+#[allow(ambiguous_glob_reexports)]
 pub use crate::structure::{
     matrix::*, 
     polynomial::*, 
@@ -226,11 +234,11 @@ pub use crate::numerical::integral::Integral::{
 pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,
 };
-pub use crate::structure::matrix::{
+pub use crate::traits::matrix::{
     Form::{Diagonal, Identity},
     SolveKind::{LU, WAZ},
-    UPLO::{Upper, Lower}
 };
+pub use crate::structure::matrix::UPLO::{Upper, Lower};
 pub use crate::structure::dataframe::DType::*;
 pub use crate::structure::ad::AD::*;
 pub use crate::numerical::spline::SlopeMethod::{Akima, Quadratic};

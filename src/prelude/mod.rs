@@ -153,6 +153,7 @@ pub use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Vector, VectorProduct},
+    matrix::{MatrixTrait, PQLU, QR, WAZD},
     mutable::{MutFP, MutMatrix},
     num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
@@ -169,7 +170,7 @@ pub use crate::structure::{
     ad::AD::*,
     matrix::{
         combine, diag, gemm, gemv, gen_householder, inv_l, inv_u, matrix, ml_matrix, py_matrix,
-        r_matrix, Col, Matrix, Row, Shape, PQLU, QR, WAZD,
+        r_matrix, Col, Matrix, Row, Shape, 
     },
     polynomial::{Polynomial,poly,Calculus,lagrange_polynomial,legendre_polynomial},
     vector::*,
@@ -183,6 +184,15 @@ pub use crate::structure::dataframe::WithCSV;
 
 #[cfg(feature="nc")]
 pub use crate::structure::dataframe::WithNetCDF;
+
+#[cfg(feature = "complex")]
+#[allow(ambiguous_glob_reexports)]
+pub use crate::complex::{
+    C64,
+    matrix::*,
+    vector::*,
+    integral::*,
+};
 
 pub use simpler::{solve, SimplerLinearAlgebra};
 
