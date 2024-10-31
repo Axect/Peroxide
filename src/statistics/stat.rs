@@ -151,7 +151,7 @@ use std::fmt;
 use self::QType::*;
 //use crate::structure::dataframe::*;
 use crate::structure::matrix::*;
-use crate::traits::fp::FPVector;
+use crate::traits::matrix::{LinearAlgebra, MatrixTrait};
 use order_stat::kth_by;
 
 /// Statistics Trait
@@ -174,6 +174,8 @@ impl Statistics for Vec<f64> {
 
     /// Mean
     ///
+    /// Uses welfords online algorithm for numerically stable computation.
+    ///
     /// # Examples
     /// ```
     /// #[macro_use]
@@ -186,10 +188,19 @@ impl Statistics for Vec<f64> {
     /// }
     /// ```
     fn mean(&self) -> f64 {
-        self.reduce(0f64, |x, y| x + y) / (self.len() as f64)
+        let mut xn = 0f64;
+        let mut n = 0f64;
+
+        for x in self.iter() {
+            n += 1f64;
+            xn += (x - xn) / n;
+        }
+        xn
     }
 
     /// Variance
+    ///
+    /// Uses welfords online algorithm for numerically stable computation.
     ///
     /// # Examples
     /// ```
@@ -203,17 +214,18 @@ impl Statistics for Vec<f64> {
     /// }
     /// ```
     fn var(&self) -> f64 {
-        let mut ss = 0f64;
-        let mut s = 0f64;
-        let mut l = 0f64;
+        let mut xn = 0f64;
+        let mut n = 0f64;
+        let mut m2n: f64 = 0f64;
 
-        for x in self.into_iter() {
-            ss += x.powf(2f64);
-            s += *x;
-            l += 1f64;
+        for x in self.iter() {
+            n += 1f64;
+            let diff_1 = x - xn;
+            xn += diff_1 / n;
+            m2n += diff_1 * (x - xn);
         }
-        assert_ne!(l, 1f64);
-        (ss / l - (s / l).powf(2f64)) * l / (l - 1f64)
+        assert_ne!(n, 1f64);
+        m2n / (n - 1f64)
     }
 
     /// Standard Deviation
@@ -237,6 +249,91 @@ impl Statistics for Vec<f64> {
         unimplemented!()
     }
     fn cor(&self) -> Vec<f64> {
+        unimplemented!()
+    }
+}
+
+impl Statistics for Vec<f32> {
+    type Array = Vec<f32>;
+    type Value = f32;
+
+    /// Mean
+    ///
+    /// Uses welfords online algorithm for numerically stable computation.
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.mean(), 3.0);
+    /// }
+    /// ```
+    fn mean(&self) -> f32 {
+        let mut xn = 0f32;
+        let mut n = 0f32;
+
+        for x in self.iter() {
+            n += 1f32;
+            xn += (x - xn) / n;
+        }
+        xn
+    }
+
+    /// Variance
+    ///
+    /// Uses welfords online algorithm for numerically stable computation.
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3,4,5);
+    ///     assert_eq!(a.var(), 2.5);
+    /// }
+    /// ```
+    fn var(&self) -> f32 {
+        let mut xn = 0f32;
+        let mut n = 0f32;
+        let mut m2n: f32 = 0f32;
+
+        for x in self.iter() {
+            n += 1f32;
+            let diff_1 = x - xn;
+            xn += diff_1 / n;
+            m2n += diff_1 * (x - xn);
+        }
+        assert_ne!(n, 1f32);
+        m2n / (n - 1f32)
+    }
+
+    /// Standard Deviation
+    ///
+    /// # Examples
+    /// ```
+    /// #[macro_use]
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = c!(1,2,3);
+    ///     assert!(nearly_eq(a.sd(), 1f64)); // Floating Number Error
+    /// }
+    /// ```
+    fn sd(&self) -> f32 {
+        self.var().sqrt()
+    }
+
+    fn cov(&self) -> Vec<f32> {
+        unimplemented!()
+    }
+    fn cor(&self) -> Vec<f32> {
         unimplemented!()
     }
 }
@@ -571,7 +668,7 @@ pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
 // Confusion Matrix
 // =============================================================================
 /// Confusion Matrix
-/// 
+///
 /// * `TP` : True Positive
 /// * `TN` : True Negative
 /// * `FP` : False Positive
@@ -619,7 +716,7 @@ pub struct ConfusionMatrix {
 
 impl ConfusionMatrix {
     /// Create Confusion Matrix
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use peroxide::fuga::*;
@@ -656,12 +753,7 @@ impl ConfusionMatrix {
             }
         }
 
-        Self {
-            TP,
-            TN,
-            FP,
-            FN,
-        }
+        Self { TP, TN, FP, FN }
     }
 
     /// Condition Positive
@@ -809,10 +901,10 @@ impl ConfusionMatrix {
     /// To Matrix
     pub fn to_matrix(&self) -> Matrix {
         let mut m = matrix(vec![0f64; 4], 2, 2, Row);
-        m[(0,0)] = self.TP as f64;
-        m[(0,1)] = self.FP as f64;
-        m[(1,0)] = self.FN as f64;
-        m[(1,1)] = self.TN as f64;
+        m[(0, 0)] = self.TP as f64;
+        m[(0, 1)] = self.FP as f64;
+        m[(1, 0)] = self.FN as f64;
+        m[(1, 1)] = self.TN as f64;
         m
     }
 

@@ -60,8 +60,8 @@ pub trait VectorProduct: Vector {
 
 /// Matrix Products
 pub trait MatrixProduct {
-    fn kronecker(&self, other: &Self) -> Matrix;
-    fn hadamard(&self, other: &Self) -> Matrix;
+    fn kronecker(&self, other: &Self) -> Self;
+    fn hadamard(&self, other: &Self) -> Self;
 }
 
 // =============================================================================
@@ -96,4 +96,42 @@ impl Normed for f64 {
     {
         self / self.abs()
     }
+}
+
+// =============================================================================
+// Implementation for parallel traits
+// =============================================================================
+
+/// Mathematical Vector in Parallel
+#[cfg(feature = "parallel")]
+pub trait ParallelVector {
+    type Scalar;
+    fn par_add_vec(&self, rhs: &Self) -> Self;
+    fn par_sub_vec(&self, rhs: &Self) -> Self;
+    fn par_mul_scalar(&self, rhs: Self::Scalar) -> Self;
+}
+
+/// Normed Vector in Parallel
+#[cfg(feature = "parallel")]
+pub trait ParallelNormed: Vector {
+    type UnsignedScalar;
+    fn par_norm(&self, kind: Norm) -> Self::UnsignedScalar;
+}
+
+/// Inner product Vector in Parallel
+#[cfg(feature = "parallel")]
+pub trait ParallelInnerProduct: ParallelNormed {
+    fn par_dot(&self, rhs: &Self) -> Self::Scalar;
+}
+
+/// Matrix Products in Parallel
+#[cfg(feature = "parallel")]
+pub trait ParallelMatrixProduct {
+    fn par_hadamard(&self, other: &Self) -> Self;
+}
+
+/// Vector Products in Parallel
+#[cfg(feature = "parallel")]
+pub trait ParallelVectorProduct: Vector {
+    fn par_cross(&self, other: &Self) -> Self;
 }

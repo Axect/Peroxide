@@ -43,12 +43,13 @@
 //! ```
 //!
 //! `ox()` and `red()` come from oxidation and reduction.
+use crate::structure::ad::AD;
 use crate::structure::matrix::{Matrix, Shape};
 use crate::structure::sparse::SPMatrix;
-use crate::structure::ad::AD;
 use crate::traits::{
     fp::FPVector,
     math::{LinearOp, Vector},
+    matrix::MatrixTrait,
 };
 use std::ops::{Add, Deref, Div, Mul, Sub};
 
@@ -78,7 +79,7 @@ impl RedoxCommon for Redox<Vec<f64>> {
     type ToRedox = Vec<f64>;
     fn from_vec(vec: Self::ToRedox) -> Self {
         Self {
-            data: Box::new(vec)
+            data: Box::new(vec),
         }
     }
 
@@ -91,7 +92,7 @@ impl RedoxCommon for Redox<Vec<AD>> {
     type ToRedox = Vec<AD>;
     fn from_vec(vec: Self::ToRedox) -> Self {
         Self {
-            data: Box::new(vec)
+            data: Box::new(vec),
         }
     }
 

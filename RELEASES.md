@@ -1,3 +1,25 @@
+# Release 0.38.0
+
+## New features - Complex & Parallel
+
+- `complex` feature
+  - Implement complex vector, matrix and integral [#35](https://github.com/Axect/Peroxide/issues/35) (Thanks to [@GComitini](https://github.com/GComitini) and [@soumyasen1809](https://github.com/soumyasen1809))
+
+- `parallel` feature
+  - Implement some parallel functions [#72](https://github.com/Axect/Peroxide/issues/72) (Thanks to [@soumyasen1809](https://github.com/soumyasen1809))
+
+## Generic Matrix - MatrixTrait
+
+- Implement `MatrixTrait` for Matrix (Scalar = f64)
+- Implement `MatrixTrait` for ComplexMatrix (Scalar = C64)
+- `LinearAlgebra` and `solve` depend on `MatrixTrait`
+
+## Other changes
+
+- Update `puruspe` dependency to `0.3.0`, remove `lambert_w` dependency [#79](https://github.com/Axect/Peroxide/pull/79) (Thanks to [@JSorngard](https://github.com/JSorngard))
+
+- Add `hermite_polynomial` and `bessel_polynomial` [#80](https://github.com/Axect/Peroxide/pull/80) (Thanks to [@jgrage](https://github.com/jgrage))
+
 # Release 0.37.9 (2024-07-31)
 
 - Fix inconsistent lambert w function name [#65](https://github.com/Axect/Peroxide/issues/65) (Thanks to [@JSorngard](https://github.com/JSorngard))

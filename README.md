@@ -40,6 +40,8 @@ Peroxide provides various features.
 - `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
 - `O3` - BLAS & LAPACK (Perfect performance but little bit hard to set-up - Strongly recommend to look [Peroxide with BLAS](https://github.com/Axect/Peroxide_BLAS))
 - `plot` - With matplotlib of python, we can draw any plots.
+- `complex` - With complex numbers (vector, matrix and integral)
+- `parallel` - With some parallel functions
 - `nc` - To handle netcdf file format with DataFrame
 - `csv` - To handle csv file format with Matrix or DataFrame
 - `parquet` - To handle parquet file format with DataFrame
@@ -311,7 +313,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.37.7`
+Corresponding to `0.38.0`
 
 ## Pre-requisite
 
@@ -321,55 +323,38 @@ Corresponding to `0.37.7`
 
 ## Install
 
-- Run below commands in your project directory
+### Basic Installation
+```bash
+cargo add peroxide
+```
 
-1. Default
+### Featured Installation
+```bash
+cargo add peroxide --features "<FEATURES>"
+```
 
-    ```bash
-    cargo add peroxide
-    ```
+### Available Features
 
-2. OpenBLAS
+* `O3`: Adds OpenBLAS support
+* `plot`: Enables plotting functionality
+* `complex`: Supports complex number operations
+* `parallel`: Enables parallel processing capabilities
+* `nc`: Adds NetCDF support for DataFrame
+* `csv`: Adds CSV support for DataFrame
+* `parquet`: Adds Parquet support for DataFrame
+* `serde`: Enables serialization/deserialization for Matrix and polynomial
 
-    ```bash
-    cargo add peroxide --features O3
-    ```
+### Install Examples
 
-3. Plot
+Single feature installation:
+```bash
+cargo add peroxide --features "plot"
+```
 
-    ```bash
-    cargo add peroxide --features plot
-    ```
-
-4. NetCDF dependency for DataFrame
-
-    ```bash
-    cargo add peroxide --features nc
-    ```
-
-5. CSV dependency for DataFrame
-
-    ```bash
-    cargo add peroxide --features csv
-    ```
-
-6. Parquet dependency for DataFrame
-
-    ```bash
-    cargo add peroxide --features parquet
-    ```
-
-7. Serialize or Deserialize with Matrix or polynomial
-
-    ```bash
-    cargo add peroxide --features serde
-    ```
-
-8. All features
-
-    ```bash
-    cargo add peroxide --features "O3 plot nc csv parquet serde"
-    ```
+Multiple features installation:
+```bash
+cargo add peroxide --features "O3 plot nc csv parquet serde"
+```
 
 ## Useful tips for features
 
@@ -388,6 +373,11 @@ Corresponding to `0.37.7`
 
 - __src__
   - [lib.rs](src/lib.rs) : `mod` and `re-export`
+  - __complex__: For complex vector, matrix & integrals.
+    - [mod.rs](src/complex/mod.rs)
+    - [integrate.rs](src/complex/integrate.rs) : Complex integral
+    - [matrix.rs](src/complex/matrix.rs) : Complex matrix
+    - [vector.rs](src/complex/vector.rs) : Complex vector
   - __fuga__ : Fuga for controlling numerical algorithms.
     - [mod.rs](src/fuga/mod.rs)
   - __macros__ : Macro files
@@ -434,6 +424,7 @@ Corresponding to `0.37.7`
     - [fp.rs](src/traits/fp.rs) : Functional programming toolbox
     - [general.rs](src/traits/general.rs) : General algorithms
     - [math.rs](src/traits/math.rs) : Mathematics
+    - [matrix.rs](src/traits/matrix.rs) : Matrix traits
     - [mutable.rs](src/traits/mutable.rs) : Mutable toolbox
     - [num.rs](src/traits/num.rs) : Number, Real and more operations
     - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience

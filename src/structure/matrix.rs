@@ -192,7 +192,7 @@
 //! To write columns or rows, `DataFrame` and `nc` feature could be the best choice.
 //!
 //! * `nc` feature should be required - `netcdf` or `libnetcdf` are prerequisites.
-//! 
+//!
 //! ```no_run
 //! #[macro_use]
 //! extern crate peroxide;
@@ -462,8 +462,7 @@
 //!
 //! ## Tips for LU, Det, Inverse
 //!
-//! * If you save `self.lu()` rather than the direct use of `self.det()` or `self.lu()` then you
-//! can get better performance (via memoization)
+//! * If you save `self.lu()` rather than the direct use of `self.det()` or `self.lu()` then you can get better performance (via memoization)
 //!
 //! ```rust
 //! use peroxide::fuga::*;
@@ -596,10 +595,10 @@
 //!     }
 //!     ```
 
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 extern crate csv;
 
-#[cfg(feature="csv")]
+#[cfg(feature = "csv")]
 use self::csv::{ReaderBuilder, StringRecord, WriterBuilder};
 
 #[cfg(feature = "O3")]
@@ -609,30 +608,35 @@ extern crate lapack;
 #[cfg(feature = "O3")]
 use blas::{daxpy, dgemm, dgemv};
 #[cfg(feature = "O3")]
-use lapack::{dgecon, dgeqrf, dgetrf, dgetri, dgetrs, dorgqr, dgesvd, dpotrf};
+use lapack::{dgecon, dgeqrf, dgesvd, dgetrf, dgetri, dgetrs, dorgqr, dpotrf};
+#[cfg(feature = "parallel")]
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
+use crate::structure::dataframe::{Series, TypedVector};
+#[cfg(feature = "parallel")]
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
+use crate::traits::sugar::ScalableMut;
 use crate::traits::{
-    general::Algorithm,
     fp::{FPMatrix, FPVector},
+    general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
+    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
     mutable::MutMatrix,
 };
 use crate::util::{
-    low_level::{swap_vec_ptr, copy_vec_ptr},
+    low_level::{copy_vec_ptr, swap_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
     useful::{nearly_eq, tab},
 };
-use crate::structure::dataframe::{Series, TypedVector};
+use peroxide_num::{ExpLogOps, Numeric, PowOps, TrigOps};
 use std::cmp::{max, min};
 pub use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
-use crate::traits::sugar::ScalableMut;
-use peroxide_num::{ExpLogOps, PowOps, TrigOps, Numeric};
 
 pub type Perms = Vec<(usize, usize)>;
 
@@ -817,14 +821,16 @@ impl PartialEq for Matrix {
 
 /// Main matrix structure
 #[allow(dead_code)]
-impl Matrix {
+impl MatrixTrait for Matrix {
+    type Scalar = f64;
+
     /// Raw pointer for `self.data`
-    pub fn ptr(&self) -> *const f64 {
+    fn ptr(&self) -> *const f64 {
         &self.data[0] as *const f64
     }
 
     /// Raw mutable pointer for `self.data`
-    pub fn mut_ptr(&mut self) -> *mut f64 {
+    fn mut_ptr(&mut self) -> *mut f64 {
         &mut self.data[0] as *mut f64
     }
 
@@ -838,7 +844,7 @@ impl Matrix {
     /// let b = a.as_slice();
     /// assert_eq!(b, &[1f64,2f64,3f64,4f64]);
     /// ```
-    pub fn as_slice(&self) -> &[f64] {
+    fn as_slice(&self) -> &[f64] {
         &self.data[..]
     }
 
@@ -854,7 +860,7 @@ impl Matrix {
     /// assert_eq!(b, &[5f64, 2f64, 3f64, 4f64]);
     /// assert_eq!(a, matrix(vec![5,2,3,4], 2, 2, Col));
     /// ```
-    pub fn as_mut_slice(&mut self) -> &mut [f64] {
+    fn as_mut_slice(&mut self) -> &mut [f64] {
         &mut self.data[..]
     }
 
@@ -871,7 +877,7 @@ impl Matrix {
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
     /// ```
-    pub fn change_shape(&self) -> Self {
+    fn change_shape(&self) -> Self {
         let r = self.row;
         let c = self.col;
         assert_eq!(r * c, self.data.len());
@@ -912,7 +918,7 @@ impl Matrix {
     /// let b = a.change_shape();
     /// assert_eq!(b.shape, Col);
     /// ```
-    pub fn change_shape_mut(&mut self) {
+    fn change_shape_mut(&mut self) {
         let r = self.row;
         let c = self.col;
         assert_eq!(r * c, self.data.len());
@@ -952,7 +958,7 @@ impl Matrix {
     /// // r[0]     1    3
     /// // r[1]     2    4
     /// ```
-    pub fn spread(&self) -> String {
+    fn spread(&self) -> String {
         assert_eq!(self.row * self.col, self.data.len());
         let r = self.row;
         let c = self.col;
@@ -973,10 +979,10 @@ impl Matrix {
             };
             return format!(
                 "Result is too large to print - {}x{}\nonly print {}x{} parts:\n{}",
-                self.row.to_string(),
-                self.col.to_string(),
-                key_row.to_string(),
-                key_col.to_string(),
+                self.row,
+                self.col,
+                key_row,
+                key_col,
                 part.spread()
             );
         }
@@ -988,7 +994,7 @@ impl Matrix {
             .map(
                 |x| min(format!("{:.4}", x).len(), x.to_string().len()), // Choose minimum of approx vs normal
             )
-            .fold(0, |x, y| max(x, y))
+            .fold(0, max)
             + 1;
 
         if space < 5 {
@@ -1023,7 +1029,7 @@ impl Matrix {
             result.push('\n');
         }
 
-        return result;
+        result
     }
 
     /// Extract Column
@@ -1039,7 +1045,7 @@ impl Matrix {
     ///     assert_eq!(a.col(0), c!(1,3));
     /// }
     /// ```
-    pub fn col(&self, index: usize) -> Vec<f64> {
+    fn col(&self, index: usize) -> Vec<f64> {
         assert!(index < self.col);
         let mut container: Vec<f64> = vec![0f64; self.row];
         for i in 0..self.row {
@@ -1061,7 +1067,7 @@ impl Matrix {
     ///     assert_eq!(a.row(0), c!(1,2));
     /// }
     /// ```
-    pub fn row(&self, index: usize) -> Vec<f64> {
+    fn row(&self, index: usize) -> Vec<f64> {
         assert!(index < self.row);
         let mut container: Vec<f64> = vec![0f64; self.col];
         for i in 0..self.col {
@@ -1083,7 +1089,7 @@ impl Matrix {
     ///     assert_eq!(a.diag(), c!(1,4));
     /// }
     /// ```
-    pub fn diag(&self) -> Vec<f64> {
+    fn diag(&self) -> Vec<f64> {
         let mut container = vec![0f64; self.row];
         let r = self.row;
         let c = self.col;
@@ -1104,7 +1110,7 @@ impl Matrix {
     /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
     /// println!("{}", a); // [[1,3],[2,4]]
     /// ```
-    pub fn transpose(&self) -> Self {
+    fn transpose(&self) -> Self {
         match self.shape {
             Row => matrix(self.data.clone(), self.col, self.row, Col),
             Col => matrix(self.data.clone(), self.col, self.row, Row),
@@ -1124,10 +1130,145 @@ impl Matrix {
     ///     assert_eq!(a.transpose(), a.t());
     /// }
     /// ```
-    pub fn t(&self) -> Self {
+    fn t(&self) -> Self {
         self.transpose()
     }
 
+    /// Substitute Col
+    #[inline]
+    fn subs_col(&mut self, idx: usize, v: &[f64]) {
+        for i in 0..self.row {
+            self[(i, idx)] = v[i];
+        }
+    }
+
+    /// Substitute Row
+    #[inline]
+    fn subs_row(&mut self, idx: usize, v: &[f64]) {
+        for j in 0..self.col {
+            self[(idx, j)] = v[j];
+        }
+    }
+
+    /// From index operations
+    fn from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let mut mat = matrix(vec![0f64; row * col], row, col, Row);
+
+        for i in 0..row {
+            for j in 0..col {
+                mat[(i, j)] = f(i, j).into();
+            }
+        }
+        mat
+    }
+
+    /// Matrix to `Vec<Vec<f64>>`
+    ///
+    /// To send `Matrix` to `inline-python`
+    fn to_vec(&self) -> Vec<Vec<f64>> {
+        let mut result = vec![vec![0f64; self.col]; self.row];
+        for i in 0..self.row {
+            result[i] = self.row(i);
+        }
+        result
+    }
+
+    fn to_diag(&self) -> Matrix {
+        assert_eq!(self.row, self.col, "Should be square matrix");
+        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
+        let diag = self.diag();
+        for i in 0..self.row {
+            result[(i, i)] = diag[i];
+        }
+        result
+    }
+
+    /// Submatrix
+    ///
+    /// # Description
+    /// Return below elements of matrix to new matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("5 6;8 9");
+    ///     let c = a.submat((1, 1), (2, 2));
+    ///     assert_eq!(b, c);   
+    /// }
+    /// ```
+    fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
+        let row = end.0 + 1 - start.0;
+        let col = end.1 + 1 - start.1;
+        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
+        for i in 0..row {
+            for j in 0..col {
+                result[(i, j)] = self[(start.0 + i, start.1 + j)];
+            }
+        }
+        result
+    }
+
+    /// Substitute matrix to specific position
+    ///
+    /// # Description
+    /// Substitute below elements of matrix
+    ///
+    /// $$
+    /// \begin{pmatrix}
+    /// \\ddots & & & & \\\\
+    ///   & start & \\cdots & end.1 & \\\\
+    ///   & \\vdots & \\ddots & \\vdots & \\\\
+    ///   & end.0 & \\cdots & end & \\\\
+    ///   & & & & \\ddots
+    /// \end{pmatrix}
+    /// $$
+    ///
+    /// # Examples
+    /// ```
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
+    ///     let b = ml_matrix("1 2;3 4");
+    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
+    ///     a.subs_mat((1,1), (2,2), &b);
+    ///     assert_eq!(a, c);       
+    /// }
+    /// ```
+    fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
+        let row = end.0 - start.0 + 1;
+        let col = end.1 - start.1 + 1;
+        for i in 0..row {
+            for j in 0..col {
+                self[(start.0 + i, start.1 + j)] = m[(i, j)];
+            }
+        }
+    }
+}
+
+impl Matrix {
     /// Write to CSV
     ///
     /// # Examples
@@ -1143,7 +1284,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write(&self, file_path: &str) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1174,7 +1315,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_round(&self, file_path: &str, round: usize) -> Result<(), Box<dyn Error>> {
         let mut wtr = WriterBuilder::new().from_path(file_path)?;
         let r = self.row;
@@ -1190,7 +1331,7 @@ impl Matrix {
         Ok(())
     }
 
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_with_header(
         &self,
         file_path: &str,
@@ -1212,7 +1353,7 @@ impl Matrix {
         Ok(())
     }
 
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn write_with_header_round(
         &self,
         file_path: &str,
@@ -1260,7 +1401,7 @@ impl Matrix {
     ///     Ok(())
     /// }
     /// ```
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     pub fn read(file_path: &str, header: bool, delimiter: char) -> Result<Matrix, Box<dyn Error>> {
         let mut rdr = ReaderBuilder::new()
             .has_headers(header)
@@ -1285,159 +1426,6 @@ impl Matrix {
 
         Ok(m)
     }
-
-    /// Should check shape
-    pub fn subs(&mut self, idx: usize, v: &Vec<f64>) {
-        let p = &mut self.mut_ptr();
-        match self.shape {
-            Row => {
-                let c = self.col;
-                unsafe {
-                    p.add(idx * c).copy_from(v.as_ptr(), c);
-                }
-            }
-            Col => {
-                let r = self.row;
-                unsafe {
-                    p.add(idx * r).copy_from(v.as_ptr(), r);
-                }
-            }
-        }
-    }
-
-    /// Substitute Col
-    #[inline]
-    pub fn subs_col(&mut self, idx: usize, v: &Vec<f64>) {
-        for i in 0..self.row {
-            self[(i, idx)] = v[i];
-        }
-    }
-
-    /// Substitute Row
-    #[inline]
-    pub fn subs_row(&mut self, idx: usize, v: &Vec<f64>) {
-        for j in 0..self.col {
-            self[(idx, j)] = v[j];
-        }
-    }
-
-    /// From index operations
-    pub fn from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
-    where
-        F: Fn(usize, usize) -> G + Copy,
-        G: Into<f64>,
-    {
-        let row = size.0;
-        let col = size.1;
-
-        let mut mat = matrix(vec![0f64; row * col], row, col, Row);
-
-        for i in 0..row {
-            for j in 0..col {
-                mat[(i, j)] = f(i, j).into();
-            }
-        }
-        mat
-    }
-
-    /// Matrix to `Vec<Vec<f64>>`
-    ///
-    /// To send `Matrix` to `inline-python`
-    pub fn to_vec(&self) -> Vec<Vec<f64>> {
-        let mut result = vec![vec![0f64; self.col]; self.row];
-        for i in 0..self.row {
-            result[i] = self.row(i);
-        }
-        result
-    }
-
-    pub fn to_diag(&self) -> Matrix {
-        assert_eq!(self.row, self.col, "Should be square matrix");
-        let mut result = matrix(vec![0f64; self.row * self.col], self.row, self.col, Row);
-        let diag = self.diag();
-        for i in 0..self.row {
-            result[(i, i)] = diag[i];
-        }
-        result
-    }
-
-    /// Submatrix
-    ///
-    /// # Description
-    /// Return below elements of matrix to new matrix
-    /// 
-    /// $$
-    /// \begin{pmatrix}
-    /// \\ddots & & & & \\\\
-    ///   & start & \\cdots & end.1 & \\\\
-    ///   & \\vdots & \\ddots & \\vdots & \\\\
-    ///   & end.0 & \\cdots & end & \\\\
-    ///   & & & & \\ddots
-    /// \end{pmatrix}
-    /// $$
-    ///
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    /// 
-    /// fn main() {
-    ///     let a = ml_matrix("1 2 3;4 5 6;7 8 9");
-    ///     let b = ml_matrix("5 6;8 9");
-    ///     let c = a.submat((1, 1), (2, 2));
-    ///     assert_eq!(b, c);   
-    /// }
-    /// ```
-    pub fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Matrix {
-        let row = end.0 - start.0 + 1;
-        let col = end.1 - start.1 + 1;
-        let mut result = matrix(vec![0f64; row * col], row, col, self.shape);
-        for i in 0 .. row {
-            for j in 0 .. col {
-                result[(i, j)] = self[(start.0 + i, start.1 + j)];
-            }
-        }
-        result
-    }
-
-    /// Substitute matrix to specific position
-    ///
-    /// # Description
-    /// Substitute below elements of matrix
-    /// 
-    /// $$
-    /// \begin{pmatrix}
-    /// \\ddots & & & & \\\\
-    ///   & start & \\cdots & end.1 & \\\\
-    ///   & \\vdots & \\ddots & \\vdots & \\\\
-    ///   & end.0 & \\cdots & end & \\\\
-    ///   & & & & \\ddots
-    /// \end{pmatrix}
-    /// $$
-    /// 
-    /// # Examples
-    /// ```
-    /// extern crate peroxide;
-    /// use peroxide::fuga::*;
-    /// 
-    /// fn main() {
-    ///     let mut a = ml_matrix("1 2 3;4 5 6;7 8 9");
-    ///     let b = ml_matrix("1 2;3 4");
-    ///     let c = ml_matrix("1 2 3;4 1 2;7 3 4");
-    ///     a.subs_mat((1,1), (2,2), &b);
-    ///     assert_eq!(a, c);       
-    /// }
-    /// ```
-    pub fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Matrix) {
-        let row = end.0 - start.0 + 1;
-        let col = end.1 - start.1 + 1;
-        for i in 0 .. row {
-            for j in 0 .. col {
-                self[(start.0 + i, start.1 + j)] = m[(i, j)];
-            }
-        }
-    }
-
     /// Matrix from series
     ///
     /// # Example
@@ -1456,6 +1444,28 @@ impl Matrix {
     pub fn from_series(series: &Series, row: usize, col: usize, shape: Shape) -> Self {
         let v: Vec<f64> = series.to_vec();
         matrix(v, row, col, shape)
+    }
+
+    /// From index operations in parallel
+    #[cfg(feature = "parallel")]
+    fn par_from_index<F, G>(f: F, size: (usize, usize)) -> Matrix
+    where
+        F: Fn(usize, usize) -> G + Copy + Send + Sync,
+        G: Into<f64>,
+    {
+        let row = size.0;
+        let col = size.1;
+
+        let data = (0..row)
+            .into_par_iter()
+            .flat_map(|i| {
+                (0..col)
+                    .into_par_iter()
+                    .map(|j| f(i, j).into())
+                    .collect::<Vec<f64>>()
+            })
+            .collect::<Vec<f64>>();
+        matrix(data, row, col, Row)
     }
 }
 
@@ -1550,6 +1560,16 @@ impl Vector for Matrix {
 
 impl Normed for Matrix {
     type UnsignedScalar = f64;
+
+    /// Norm of Matrix
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
     fn norm(&self, kind: Norm) -> f64 {
         match kind {
             Norm::F => {
@@ -1616,6 +1636,82 @@ impl Normed for Matrix {
     }
 }
 
+#[cfg(feature = "parallel")]
+impl ParallelNormed for Matrix {
+    type UnsignedScalar = f64;
+
+    /// Parallel version of norm
+    ///
+    /// # Example
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2;3 4");
+    /// assert_eq!(a.par_norm(Norm::F), (1f64 + 4f64 + 9f64 + 16f64).sqrt());
+    /// ```
+    ///
+    fn par_norm(&self, kind: Norm) -> f64 {
+        match kind {
+            Norm::F => {
+                let mut s = 0f64;
+                for i in 0..self.data.len() {
+                    s += self.data[i].powi(2);
+                }
+                s.sqrt()
+            }
+            Norm::Lpq(p, q) => {
+                let s = (0..self.col)
+                    .into_par_iter()
+                    .map(|j| {
+                        let s_row = (0..self.row)
+                            .into_iter()
+                            .map(|i| self[(i, j)].powi(p as i32))
+                            .sum::<f64>();
+                        s_row.powf(q / p)
+                    })
+                    .sum::<f64>();
+                s.powf(1f64 / q)
+            }
+            Norm::L1 => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Row => self.change_shape().norm(Norm::L1),
+                    Col => {
+                        for c in 0..self.col {
+                            let s = self.col(c).par_iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::LInf => {
+                let mut m = f64::MIN;
+                match self.shape {
+                    Col => self.change_shape().norm(Norm::LInf),
+                    Row => {
+                        for r in 0..self.row {
+                            let s = self.row(r).iter().sum();
+                            if s > m {
+                                m = s;
+                            }
+                        }
+                        m
+                    }
+                }
+            }
+            Norm::L2 => {
+                let a = &self.t() * self;
+                let eig = eigen(&a, EigenMethod::Jacobi);
+                eig.eigenvalue.norm(Norm::LInf)
+            }
+            Norm::Lp(_) => unimplemented!(),
+        }
+    }
+}
+
 /// Frobenius inner product
 impl InnerProduct for Matrix {
     fn dot(&self, rhs: &Self) -> f64 {
@@ -1627,7 +1723,17 @@ impl InnerProduct for Matrix {
     }
 }
 
-/// TODO: Transpose
+/// Frobenius inner product in parallel
+#[cfg(feature = "parallel")]
+impl ParallelInnerProduct for Matrix {
+    fn par_dot(&self, rhs: &Self) -> f64 {
+        if self.shape == rhs.shape {
+            self.data.par_dot(&rhs.data)
+        } else {
+            self.data.par_dot(&rhs.change_shape().data)
+        }
+    }
+}
 
 /// Matrix as Linear operator for Vector
 #[allow(non_snake_case)]
@@ -2561,6 +2667,8 @@ impl IndexMut<(usize, usize)> for Matrix {
 // =============================================================================
 
 impl FPMatrix for Matrix {
+    type Scalar = f64;
+
     fn take_row(&self, n: usize) -> Self {
         if n >= self.row {
             return self.clone();
@@ -2643,12 +2751,10 @@ impl FPMatrix for Matrix {
     /// ```rust
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let x = ml_matrix("1 2;3 4;5 6");
-    ///     let y = x.col_map(|c| c.fmap(|t| t - c.mean()));
+    /// let x = ml_matrix("1 2;3 4;5 6");
+    /// let y = x.col_map(|c| c.fmap(|t| t - c.mean()));
     ///
-    ///     assert_eq!(y, ml_matrix("-2 -2;0 0;2 2"));
-    /// }
+    /// assert_eq!(y, ml_matrix("-2 -2;0 0;2 2"));
     /// ```
     fn col_map<F>(&self, f: F) -> Matrix
     where
@@ -2669,12 +2775,10 @@ impl FPMatrix for Matrix {
     /// ```rust
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let x = ml_matrix("1 2 3;4 5 6");
-    ///     let y = x.row_map(|r| r.fmap(|t| t - r.mean()));
+    /// let x = ml_matrix("1 2 3;4 5 6");
+    /// let y = x.row_map(|r| r.fmap(|t| t - r.mean()));
     ///
-    ///     assert_eq!(y, ml_matrix("-1 0 1;-1 0 1"));
-    /// }
+    /// assert_eq!(y, ml_matrix("-1 0 1;-1 0 1"));
     /// ```
     fn row_map<F>(&self, f: F) -> Matrix
     where
@@ -2771,27 +2875,6 @@ impl FPMatrix for Matrix {
 // =============================================================================
 // Linear Algebra
 // =============================================================================
-
-/// Linear algebra trait
-pub trait LinearAlgebra {
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64>;
-    fn lu(&self) -> PQLU;
-    fn waz(&self, d_form: Form) -> Option<WAZD>;
-    fn qr(&self) -> QR;
-    fn svd(&self) -> SVD;
-    #[cfg(feature = "O3")]
-    fn cholesky(&self, uplo: UPLO) -> Matrix;
-    fn rref(&self) -> Matrix;
-    fn det(&self) -> f64;
-    fn block(&self) -> (Matrix, Matrix, Matrix, Matrix);
-    fn inv(&self) -> Matrix;
-    fn pseudo_inv(&self) -> Matrix;
-    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64>;
-    fn solve_mat(&self, m: &Matrix, sk: SolveKind) -> Matrix;
-    fn is_symmetric(&self) -> bool;
-}
-
 pub fn diag(n: usize) -> Matrix {
     let mut v: Vec<f64> = vec![0f64; n * n];
     for i in 0..n {
@@ -2801,30 +2884,7 @@ pub fn diag(n: usize) -> Matrix {
     matrix(v, n, n, Row)
 }
 
-/// Data structure for Complete Pivoting LU decomposition
-///
-/// # Usage
-/// ```rust
-/// extern crate peroxide;
-/// use peroxide::fuga::*;
-///
-/// let a = ml_matrix("1 2;3 4");
-/// let pqlu = a.lu();
-/// let (p, q, l, u) = pqlu.extract();
-/// // p, q are permutations
-/// // l, u are matrices
-/// l.print(); // lower triangular
-/// u.print(); // upper triangular
-/// ```
-#[derive(Debug, Clone)]
-pub struct PQLU {
-    pub p: Vec<usize>,
-    pub q: Vec<usize>,
-    pub l: Matrix,
-    pub u: Matrix,
-}
-
-impl PQLU {
+impl PQLU<Matrix> {
     pub fn extract(&self) -> (Vec<usize>, Vec<usize>, Matrix, Matrix) {
         (
             self.p.clone(),
@@ -2871,43 +2931,7 @@ impl PQLU {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct WAZD {
-    pub w: Matrix,
-    pub z: Matrix,
-    pub d: Matrix,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum Form {
-    Diagonal,
-    Identity,
-}
-
-#[derive(Debug, Clone)]
-pub struct QR {
-    pub q: Matrix,
-    pub r: Matrix,
-}
-
-impl QR {
-    pub fn q(&self) -> &Matrix {
-        &self.q
-    }
-
-    pub fn r(&self) -> &Matrix {
-        &self.r
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct SVD {
-    pub s: Vec<f64>,
-    pub u: Matrix,
-    pub vt: Matrix,
-}
-
-impl SVD {
+impl SVD<Matrix> {
     pub fn u(&self) -> &Matrix {
         &self.u
     }
@@ -2918,7 +2942,7 @@ impl SVD {
 
     pub fn s_mat(&self) -> Matrix {
         let mut mat = zeros(self.u.col, self.vt.row);
-        for i in 0 .. mat.row.min(mat.col) {
+        for i in 0..mat.row.min(mat.col) {
             mat[(i, i)] = self.s[i];
         }
         mat
@@ -2961,23 +2985,13 @@ impl SVD {
             }
         }
 
-        SVD {
-            s,
-            u,
-            vt,
-        }
+        SVD { s, u, vt }
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum SolveKind {
-    LU,
-    WAZ,
-}
-
-impl LinearAlgebra for Matrix {
+impl LinearAlgebra<Matrix> for Matrix {
     /// Backward Substitution for Upper Triangular
-    fn back_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+    fn back_subs(&self, b: &[f64]) -> Vec<f64> {
         let n = self.col;
         let mut y = vec![0f64; n];
         y[n - 1] = b[n - 1] / self[(n - 1, n - 1)];
@@ -2992,7 +3006,7 @@ impl LinearAlgebra for Matrix {
     }
 
     /// Forward substitution for Lower Triangular
-    fn forward_subs(&self, b: &Vec<f64>) -> Vec<f64> {
+    fn forward_subs(&self, b: &[f64]) -> Vec<f64> {
         let n = self.col;
         let mut y = vec![0f64; n];
         y[0] = b[0] / self[(0, 0)];
@@ -3014,27 +3028,23 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Caution
     /// It returns `Option<PQLU>` - You should unwrap to obtain real value.
-    /// `PQLU` has four field - `p`, `q`, `l`, `u`.
-    /// `p`, `q` are permutations.
-    /// `l`, `u` are matrices.
+    /// - `PQLU` has four field - `p`, `q`, `l`, `u`.
+    ///   - `p`, `q` are permutations.
+    ///   - `l`, `u` are matrices.
     ///
     /// # Examples
     /// ```
-    /// #[macro_use]
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    ///     let pqlu = a.lu();
-    ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-    ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
-    ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
-    ///     assert_eq!(l, matrix(c!(1,0,0.5,1),2,2,Row));
-    ///     assert_eq!(u, matrix(c!(4,3,0,-0.5),2,2,Row));
-    /// }
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    /// let pqlu = a.lu();
+    /// let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+    /// assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
+    /// assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
+    /// assert_eq!(l, matrix(vec![1.0,0.0,0.5,1.0],2,2,Row));
+    /// assert_eq!(u, matrix(vec![4.0,3.0,0.0,-0.5],2,2,Row));
     /// ```
-    fn lu(&self) -> PQLU {
+    fn lu(&self) -> PQLU<Matrix> {
         assert_eq!(self.col, self.row);
         let n = self.row;
         let len: usize = n * n;
@@ -3066,7 +3076,7 @@ impl LinearAlgebra for Matrix {
         PQLU { p, q, l, u }
     }
 
-    fn waz(&self, d_form: Form) -> Option<WAZD> {
+    fn waz(&self, d_form: Form) -> Option<WAZD<Matrix>> {
         match d_form {
             Form::Diagonal => {
                 let n = self.row;
@@ -3134,24 +3144,21 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Example
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("12 -51 4;6 167 -68; -4 24 -41");
-    ///     let qr = a.qr();
-    ///     let r = ml_matrix("-14 -21 14; 0 -175 70; 0 0 -35");
-    ///     #[cfg(feature="O3")]
-    ///     {
-    ///         assert_eq!(r, qr.r);
-    ///     }
-    ///     qr.r.print();
+    /// let a = ml_matrix("12 -51 4;6 167 -68; -4 24 -41");
+    /// let qr = a.qr();
+    /// let r = ml_matrix("-14 -21 14; 0 -175 70; 0 0 -35");
+    /// #[cfg(feature="O3")]
+    /// {
+    ///     assert_eq!(r, qr.r);
     /// }
+    /// qr.r.print();
     /// ```
     #[allow(non_snake_case)]
-    fn qr(&self) -> QR {
+    fn qr(&self) -> QR<Matrix> {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgeqrf = lapack_dgeqrf(self);
                 match opt_dgeqrf {
@@ -3159,10 +3166,7 @@ impl LinearAlgebra for Matrix {
                     Some(dgeqrf) => {
                         let q = dgeqrf.get_Q();
                         let r = dgeqrf.get_R();
-                        QR {
-                            q,
-                            r
-                        }
+                        QR { q, r }
                     }
                 }
             }
@@ -3194,22 +3198,19 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("3 2 2;2 3 -2");
-    ///     #[cfg(feature="O3")]
-    ///     {
-    ///         let svd = a.svd();
-    ///         assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
-    ///     }
-    ///     a.print();
+    /// let a = ml_matrix("3 2 2;2 3 -2");
+    /// #[cfg(feature="O3")]
+    /// {
+    ///     let svd = a.svd();
+    ///     assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
     /// }
+    /// a.print();
     /// ```
-    fn svd(&self) -> SVD {
+    fn svd(&self) -> SVD<Matrix> {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let opt_dgesvd = lapack_dgesvd(self);
                 match opt_dgesvd {
@@ -3218,14 +3219,12 @@ impl LinearAlgebra for Matrix {
                         SVD_STATUS::Diverge(i) => {
                             panic!("Divergent occurs in SVD - {} iterations", i)
                         }
-                        SVD_STATUS::Success => {
-                            SVD {
-                                s: dgesvd.s,
-                                u: dgesvd.u,
-                                vt: dgesvd.vt,
-                            }
-                        }
-                    }
+                        SVD_STATUS::Success => SVD {
+                            s: dgesvd.s,
+                            u: dgesvd.u,
+                            vt: dgesvd.vt,
+                        },
+                    },
                 }
             }
             _ => {
@@ -3238,21 +3237,18 @@ impl LinearAlgebra for Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("1 2;2 5");
-    ///     #[cfg(feature = "O3")]
-    ///     {
-    ///         let u = a.cholesky(Upper);
-    ///         let l = a.cholesky(Lower);
+    /// let a = ml_matrix("1 2;2 5");
+    /// #[cfg(feature = "O3")]
+    /// {
+    ///     let u = a.cholesky(Upper);
+    ///     let l = a.cholesky(Lower);
     ///
-    ///         assert_eq!(u, ml_matrix("1 2;0 1"));
-    ///         assert_eq!(l, ml_matrix("1 0;2 1"));
-    ///     }
-    ///     a.print();
+    ///     assert_eq!(u, ml_matrix("1 2;0 1"));
+    ///     assert_eq!(l, ml_matrix("1 0;2 1"));
     /// }
+    /// a.print();
     /// ```
     #[cfg(feature = "O3")]
     fn cholesky(&self, uplo: UPLO) -> Matrix {
@@ -3465,7 +3461,9 @@ impl LinearAlgebra for Matrix {
                     None => panic!("Singular matrix (opt_dgrf)"),
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::NonSingular => lapack_dgetri(&dgrf).unwrap(),
-                        LAPACK_STATUS::Singular => panic!("Singular matrix (LAPACK_STATUS Singular)"),
+                        LAPACK_STATUS::Singular => {
+                            panic!("Singular matrix (LAPACK_STATUS Singular)")
+                        }
                     },
                 }
             }
@@ -3500,13 +3498,13 @@ impl LinearAlgebra for Matrix {
     /// ```
     fn pseudo_inv(&self) -> Self {
         match () {
-            #[cfg(feature="O3")]
+            #[cfg(feature = "O3")]
             () => {
                 let svd = self.svd();
                 let row = svd.vt.row;
                 let col = svd.u.row;
                 let mut sp = zeros(row, col);
-                for i in 0 .. row.min(col) {
+                for i in 0..row.min(col) {
                     sp[(i, i)] = 1f64 / svd.s[i];
                 }
                 svd.vt.t() * sp * svd.u.t()
@@ -3530,7 +3528,7 @@ impl LinearAlgebra for Matrix {
     ///
     /// * Biswa Nath Datta, *Numerical Linear Algebra and Applications, Second Edition*
     /// * Ke Chen, *Matrix Preconditioning Techniques and Applications*, Cambridge Monographs on Applied and Computational Mathematics
-    fn solve(&self, b: &Vec<f64>, sk: SolveKind) -> Vec<f64> {
+    fn solve(&self, b: &[f64], sk: SolveKind) -> Vec<f64> {
         match sk {
             #[cfg(feature = "O3")]
             SolveKind::LU => {
@@ -3549,7 +3547,7 @@ impl LinearAlgebra for Matrix {
             SolveKind::LU => {
                 let lu = self.lu();
                 let (p, q, l, u) = lu.extract();
-                let mut v = b.clone();
+                let mut v = b.to_vec();
                 v.swap_with_perm(&p.into_iter().enumerate().collect());
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
@@ -3561,7 +3559,7 @@ impl LinearAlgebra for Matrix {
                     None => panic!("Can't solve by WAZ with Singular matrix!"),
                     Some(obj) => obj,
                 };
-                let x = &wazd.w.t() * b;
+                let x = &wazd.w.t() * &b.to_vec();
                 let x = &wazd.z * &x;
                 x
             }
@@ -3620,9 +3618,9 @@ impl LinearAlgebra for Matrix {
             return false;
         }
 
-        for i in 0 .. self.row {
-            for j in i .. self.col {
-                if !nearly_eq(self[(i,j)], self[(j,i)]) {
+        for i in 0..self.row {
+            for j in i..self.col {
+                if !nearly_eq(self[(i, j)], self[(j, i)]) {
                     return false;
                 }
             }
@@ -3631,12 +3629,9 @@ impl LinearAlgebra for Matrix {
     }
 }
 
-#[allow(non_snake_case)]
-pub fn solve(A: &Matrix, b: &Matrix, sk: SolveKind) -> Matrix {
-    A.solve_mat(b, sk)
-}
-
 impl MutMatrix for Matrix {
+    type Scalar = f64;
+
     unsafe fn col_mut(&mut self, idx: usize) -> Vec<*mut f64> {
         assert!(idx < self.col, "Index out of range");
         match self.shape {
@@ -3721,7 +3716,6 @@ impl Div<Matrix> for Matrix {
         self.mul(m.inv())
     }
 }
-
 
 impl ExpLogOps for Matrix {
     type Float = f64;
@@ -4248,7 +4242,7 @@ pub enum POSITIVE_STATUS {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum UPLO {
     Upper,
-    Lower
+    Lower,
 }
 
 /// Temporary data structure from `dgetrf`
@@ -4279,7 +4273,7 @@ pub struct DGESVD {
 pub struct DPOTRF {
     pub fact_mat: Matrix,
     pub uplo: UPLO,
-    pub status: POSITIVE_STATUS
+    pub status: POSITIVE_STATUS,
 }
 
 ///// Temporary data structure from `dgeev`
@@ -4473,7 +4467,22 @@ pub fn lapack_dgesvd(mat: &Matrix) -> Option<DGESVD> {
 
             // Workspace query
             unsafe {
-                dgesvd(jobu, jobvt, m, n, &mut A.data, lda, &mut s, &mut u, ldu, &mut vt, ldvt, &mut work, lwork, &mut info);
+                dgesvd(
+                    jobu,
+                    jobvt,
+                    m,
+                    n,
+                    &mut A.data,
+                    lda,
+                    &mut s,
+                    &mut u,
+                    ldu,
+                    &mut vt,
+                    ldvt,
+                    &mut work,
+                    lwork,
+                    &mut info,
+                );
             }
 
             let optimal_lwork = work[0] as usize;
@@ -4532,35 +4541,23 @@ pub fn lapack_dpotrf(mat: &Matrix, UPLO: UPLO) -> Option<DPOTRF> {
             let mut info = 0i32;
             let uplo = match UPLO {
                 UPLO::Upper => b'U',
-                UPLO::Lower => b'L'
+                UPLO::Lower => b'L',
             };
 
-            unsafe {
-                dpotrf(
-                    uplo,
-                    N,
-                    &mut A.data,
-                    lda,
-                    &mut info,
-                )
-            }
+            unsafe { dpotrf(uplo, N, &mut A.data, lda, &mut info) }
 
             if info == 0 {
-                Some(
-                    DPOTRF {
-                        fact_mat: matrix(A.data, mat.row, mat.col, Col),
-                        uplo: UPLO,
-                        status: POSITIVE_STATUS::Success
-                    }
-                )
+                Some(DPOTRF {
+                    fact_mat: matrix(A.data, mat.row, mat.col, Col),
+                    uplo: UPLO,
+                    status: POSITIVE_STATUS::Success,
+                })
             } else if info > 0 {
-                Some(
-                    DPOTRF {
-                        fact_mat: matrix(A.data, mat.row, mat.col, Col),
-                        uplo: UPLO,
-                        status: POSITIVE_STATUS::Failed(info)
-                    }
-                )
+                Some(DPOTRF {
+                    fact_mat: matrix(A.data, mat.row, mat.col, Col),
+                    uplo: UPLO,
+                    status: POSITIVE_STATUS::Failed(info),
+                })
             } else {
                 None
             }
@@ -4674,8 +4671,8 @@ impl DPOTRF {
         let mat = &self.fact_mat;
         let n = mat.col;
         let mut result = matrix(vec![0f64; n.pow(2)], n, n, mat.shape);
-        for i in 0 .. n {
-            for j in i .. n {
+        for i in 0..n {
+            for j in i..n {
                 result[(i, j)] = mat[(i, j)];
             }
         }
@@ -4691,8 +4688,8 @@ impl DPOTRF {
         let n = mat.col;
         let mut result = matrix(vec![0f64; n.pow(2)], n, n, mat.shape);
 
-        for i in 0 .. n {
-            for j in 0 .. i+1 {
+        for i in 0..n {
+            for j in 0..i + 1 {
                 result[(i, j)] = mat[(i, j)];
             }
         }

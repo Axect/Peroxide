@@ -12,7 +12,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         vec![1f64, 2f64],
     ];
 
- 
     let spline = BSpline::clamped(degree, knots, control_points.clone())?;
     let t = linspace(0f64, 3f64, 200);
     let (x, y): (Vec<f64>, Vec<f64>) = spline.eval_vec(&t).into_iter().unzip();
@@ -23,8 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let control_y = control_points.iter().map(|v| v[1]).collect::<Vec<f64>>();
 
         let mut plt = Plot2D::new();
-        plt
-            .insert_pair((x.clone(), y.clone()))
+        plt.insert_pair((x.clone(), y.clone()))
             .insert_pair((control_x.clone(), control_y.clone()))
             .set_plot_type(vec![(1, PlotType::Scatter)])
             .set_color(vec![(0, "darkblue"), (1, "red")])

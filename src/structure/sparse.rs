@@ -2,13 +2,14 @@
 //!
 //! * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
 
-use crate::structure::matrix::{Form, LinearAlgebra, Matrix, SolveKind, PQLU, QR, WAZD, SVD};
+use crate::structure::matrix::Matrix;
 use crate::traits::math::LinearOp;
+use crate::traits::matrix::{Form, LinearAlgebra, SolveKind, PQLU, QR, SVD, WAZD};
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
+#[cfg(feature = "O3")]
+use crate::fuga::UPLO;
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
-#[cfg(feature="O3")]
-use crate::fuga::UPLO;
 
 #[derive(Debug, Clone)]
 pub struct SPMatrix {
@@ -138,32 +139,32 @@ impl LinearOp<Vec<f64>, Vec<f64>> for SPMatrix {
 /// Linear algebra for sparse matrix
 ///
 /// **Caution** : In every ops in this trait, there is converting process to dense matrix
-impl LinearAlgebra for SPMatrix {
-    fn back_subs(&self, _b: &Vec<f64>) -> Vec<f64> {
+impl LinearAlgebra<Matrix> for SPMatrix {
+    fn back_subs(&self, _b: &[f64]) -> Vec<f64> {
         unimplemented!()
     }
 
-    fn forward_subs(&self, _b: &Vec<f64>) -> Vec<f64> {
+    fn forward_subs(&self, _b: &[f64]) -> Vec<f64> {
         unimplemented!()
     }
 
-    fn lu(&self) -> PQLU {
+    fn lu(&self) -> PQLU<Matrix> {
         self.to_dense().lu()
     }
 
-    fn waz(&self, _d_form: Form) -> Option<WAZD> {
+    fn waz(&self, _d_form: Form) -> Option<WAZD<Matrix>> {
         unimplemented!()
     }
 
-    fn qr(&self) -> QR {
+    fn qr(&self) -> QR<Matrix> {
         self.to_dense().qr()
     }
 
-    fn svd(&self) -> SVD {
+    fn svd(&self) -> SVD<Matrix> {
         unimplemented!()
     }
 
-    #[cfg(feature="O3")]
+    #[cfg(feature = "O3")]
     fn cholesky(&self, _uplo: UPLO) -> Matrix {
         unimplemented!()
     }
@@ -188,7 +189,7 @@ impl LinearAlgebra for SPMatrix {
         self.to_dense().pseudo_inv()
     }
 
-    fn solve(&self, _b: &Vec<f64>, _sk: SolveKind) -> Vec<f64> {
+    fn solve(&self, _b: &[f64], _sk: SolveKind) -> Vec<f64> {
         unimplemented!()
     }
 

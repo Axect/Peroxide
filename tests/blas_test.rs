@@ -3,7 +3,7 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 #[test]
-#[cfg(feature = "native")]
+#[cfg(feature = "O3")]
 fn daxpy_test() {
     let a = ml_matrix("1 2; 3 4");
     let b = matrix(vec![1, 3, 2, 4], 2, 2, Col);
@@ -14,7 +14,7 @@ fn daxpy_test() {
 }
 
 #[test]
-#[cfg(feature = "native")]
+#[cfg(feature = "O3")]
 fn dgemv_test() {
     let a = ml_matrix("1 2;3 4");
     let b = c![1, 2];
@@ -24,7 +24,7 @@ fn dgemv_test() {
 }
 
 #[test]
-#[cfg(feature = "native")]
+#[cfg(feature = "O3")]
 fn dgemm_test() {
     // 2x2
     let a = ml_matrix("1 2;3 4");

@@ -96,7 +96,7 @@
 //!
 //! ```rust
 //! use peroxide::fuga::*;
-//! 
+//!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let knots = vec![0f64, 1f64, 2f64, 3f64];
 //!     let degree = 3;
@@ -108,17 +108,17 @@
 //!         vec![0.8, 1f64],
 //!         vec![1f64, 2f64],
 //!     ];
-//! 
+//!
 //!  
 //!     let spline = BSpline::clamped(degree, knots, control_points.clone())?;
 //!     let t = linspace(0f64, 3f64, 200);
 //!     let (x, y): (Vec<f64>, Vec<f64>) = spline.eval_vec(&t).into_iter().unzip();
-//! 
+//!
 //!     # #[cfg(feature = "plot")]
 //!     # {
 //!         let control_x = control_points.iter().map(|v| v[0]).collect::<Vec<f64>>();
 //!         let control_y = control_points.iter().map(|v| v[1]).collect::<Vec<f64>>();
-//! 
+//!
 //!         let mut plt = Plot2D::new();
 //!         plt
 //!             .insert_pair((x.clone(), y.clone()))
@@ -132,13 +132,13 @@
 //!             .set_path("example_data/b_spline_test.png")
 //!             .savefig()?;
 //!     # }
-//! 
+//!
 //!     let mut df = DataFrame::new(vec![]);
 //!     df.push("t", Series::new(t));
 //!     df.push("x", Series::new(x));
 //!     df.push("y", Series::new(y));
 //!     df.print();
-//! 
+//!
 //!     Ok(())
 //! }
 //! ```
@@ -270,7 +270,6 @@
 //!
 //! - Gary D. Knott, *Interpolating Splines*, Birkhäuser Boston, MA, (2000).
 /// - [Wikipedia - Irwin-Hall distribution](https://en.wikipedia.org/wiki/Irwin%E2%80%93Hall_distribution#Special_cases)
-
 use self::SplineError::{NotEnoughNodes, NotEqualNodes, NotEqualSlopes, RedundantNodeX};
 #[allow(unused_imports)]
 use crate::structure::matrix::*;
@@ -278,16 +277,17 @@ use crate::structure::matrix::*;
 use crate::structure::polynomial::*;
 #[allow(unused_imports)]
 use crate::structure::vector::*;
+use crate::traits::matrix::LinearAlgebra;
 #[allow(unused_imports)]
 use crate::util::non_macro::*;
 use crate::util::useful::zip_range;
+use anyhow::{bail, Result};
 use peroxide_num::PowOps;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::convert::From;
 use std::ops::{Index, Range};
-use anyhow::{Result, bail};
 
 pub trait Spline<T> {
     fn eval(&self, t: f64) -> T;
@@ -702,11 +702,7 @@ impl PolynomialSpline for CubicHermiteSpline {
 }
 
 impl CubicHermiteSpline {
-    pub fn from_nodes_with_slopes(
-        node_x: &[f64],
-        node_y: &[f64],
-        m: &[f64],
-    ) -> Result<Self> {
+    pub fn from_nodes_with_slopes(node_x: &[f64], node_y: &[f64], m: &[f64]) -> Result<Self> {
         let n = node_x.len();
         if n < 3 {
             bail!(NotEnoughNodes);
@@ -744,11 +740,7 @@ impl CubicHermiteSpline {
         })
     }
 
-    pub fn from_nodes(
-        node_x: &[f64],
-        node_y: &[f64],
-        slope_method: SlopeMethod,
-    ) -> Result<Self> {
+    pub fn from_nodes(node_x: &[f64], node_y: &[f64], slope_method: SlopeMethod) -> Result<Self> {
         match slope_method {
             SlopeMethod::Akima => CubicHermiteSpline::from_nodes_with_slopes(
                 node_x,
@@ -933,7 +925,11 @@ pub struct UnitCubicBasis {
 
 impl UnitCubicBasis {
     pub fn new(x_min: f64, x_max: f64, scale: f64) -> Self {
-        Self { x_min, x_max, scale }
+        Self {
+            x_min,
+            x_max,
+            scale,
+        }
     }
 
     pub fn eval(&self, x: f64) -> f64 {
@@ -966,17 +962,17 @@ impl UnitCubicBasis {
 /// ```rust
 /// use peroxide::fuga::*;
 /// use core::ops::Range;
-/// 
+///
 /// # #[allow(unused_variables)]
 /// fn main() -> anyhow::Result<()> {
 ///     let cubic_b_spline = CubicBSplineBases::from_interval((0f64, 1f64), 5);
 ///     let x = linspace(0f64, 1f64, 1000);
 ///     let y = cubic_b_spline.eval_vec(&x);
-/// 
+///
 /// #   #[cfg(feature = "plot")] {
 ///     let mut plt = Plot2D::new();
 ///     plt.set_domain(x.clone());
-/// 
+///
 ///     for basis in &cubic_b_spline.bases {
 ///         plt.insert_image(basis.eval_vec(&x));
 ///     }
@@ -1013,9 +1009,14 @@ impl CubicBSplineBases {
         let (ranges, bases) = nodes
             .iter()
             .zip(nodes.iter().skip(4))
-            .map(|(a, b)| (Range { start: *a, end: *b }, UnitCubicBasis::new(*a, *b, 1f64)))
+            .map(|(a, b)| {
+                (
+                    Range { start: *a, end: *b },
+                    UnitCubicBasis::new(*a, *b, 1f64),
+                )
+            })
             .unzip();
-        
+
         Self::new(ranges, bases)
     }
 
@@ -1036,7 +1037,8 @@ impl CubicBSplineBases {
     }
 
     pub fn eval(&self, x: f64) -> f64 {
-        self.ranges.iter()
+        self.ranges
+            .iter()
             .enumerate()
             .filter(|(_, range)| range.contains(&x))
             .fold(0f64, |acc, (i, _)| {
@@ -1108,7 +1110,11 @@ impl BSpline {
             bail!("The number of knots ({}) should be equal to the number of control points ({}) + degree ({}) + 1", knots.len(), control_points.len(), degree);
         }
 
-        Ok(Self { degree, knots, control_points })
+        Ok(Self {
+            degree,
+            knots,
+            control_points,
+        })
     }
 
     /// Create new clamped B-Spline
@@ -1134,7 +1140,11 @@ impl BSpline {
             bail!("The number of knots ({}) should be equal to the number of control points ({}) + degree ({}) + 1", knots.len(), control_points.len(), degree);
         }
 
-        Ok(Self { degree, knots, control_points })
+        Ok(Self {
+            degree,
+            knots,
+            control_points,
+        })
     }
 
     /// Obtain basis function via Cox-de Boor algorithm
@@ -1145,7 +1155,9 @@ impl BSpline {
 
         // Initialize 0th degree basis functions
         for (j, B_j) in B.iter_mut().enumerate() {
-            if (self.knots[i + j] <= t && t < self.knots[i + j + 1]) || (i + j == self.knots.len() - (p + 2) && t == self.knots[i + j + 1]) {
+            if (self.knots[i + j] <= t && t < self.knots[i + j + 1])
+                || (i + j == self.knots.len() - (p + 2) && t == self.knots[i + j + 1])
+            {
                 B_j[0] = 1f64;
             } else {
                 B_j[0] = 0f64;
@@ -1154,20 +1166,21 @@ impl BSpline {
 
         // Compute the basis functions for higher degree
         for k in 1..=p {
-            for j in 0..=(p-k) {
-                let a = if self.knots[i + j + k] == self.knots[i+j] {
+            for j in 0..=(p - k) {
+                let a = if self.knots[i + j + k] == self.knots[i + j] {
                     0f64
                 } else {
-                    (t - self.knots[i+j]) / (self.knots[i+j+k] - self.knots[i+j])
+                    (t - self.knots[i + j]) / (self.knots[i + j + k] - self.knots[i + j])
                 };
 
-                let b = if self.knots[i + j + k + 1] == self.knots[i+j+1] {
+                let b = if self.knots[i + j + k + 1] == self.knots[i + j + 1] {
                     0f64
                 } else {
-                    (self.knots[i+j+k+1] - t) / (self.knots[i+j+k+1] - self.knots[i+j+1])
+                    (self.knots[i + j + k + 1] - t)
+                        / (self.knots[i + j + k + 1] - self.knots[i + j + 1])
                 };
 
-                B[j][k] = a * B[j][k-1] + b * B[j+1][k-1];
+                B[j][k] = a * B[j][k - 1] + b * B[j + 1][k - 1];
             }
         }
 
@@ -1182,7 +1195,7 @@ impl Spline<(f64, f64)> for BSpline {
 
         let mut x = 0f64;
         let mut y = 0f64;
-        for i in 0 .. n {
+        for i in 0..n {
             let B = self.cox_de_boor(t, i);
             x += B * self.control_points[i][0];
             y += B * self.control_points[i][1];

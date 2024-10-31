@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.37.9"
+version = "0.38.0"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -10,21 +10,29 @@ categories = ["science"]
 readme = "README.md"
 documentation = "https://axect.github.io/Peroxide_Doc"
 keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
-exclude = ["example_data/", "src/bin/", "benches/", "example/", "test_data/", "peroxide-ad2"]
+exclude = [
+    "example_data/",
+    "src/bin/",
+    "benches/",
+    "example/",
+    "test_data/",
+    "peroxide-ad2",
+]
 
 [badges]
 travis-ci = { repository = "axect/peroxide" }
 maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
-float-cmp = "0.9"
+float-cmp = "0.10"
+criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [dependencies]
 csv = { version = "1.3", optional = true, default-features = false }
 rand = { version = "0.8", features = ["small_rng"] }
 rand_distr = "0.4"
 order-stat = "0.1"
-puruspe = "0.2"
+puruspe = "0.3"
 matrixmultiply = { version = "0.3", features = ["threading"] }
 peroxide-ad = "0.3"
 peroxide-num = "0.1"
@@ -39,10 +47,10 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 json = { version = "0.12", optional = true }
 arrow2 = { version = "0.18", features = ["io_parquet", "io_parquet_compression"], optional = true }
 num-complex = { version = "0.4", optional = true }
-lambert_w = { version = "0.3.0", default-features = false, features = ["24bits", "50bits"] }
+rayon = { version = "1.10", optional = true }
 
 [package.metadata.docs.rs]
-rustdoc-args = [ "--html-in-header", "katex-header.html", "--cfg", "docsrs"]
+rustdoc-args = ["--html-in-header", "katex-header.html", "--cfg", "docsrs"]
 
 [features]
 default = []
@@ -51,3 +59,4 @@ plot = ["pyo3"]
 nc = ["netcdf"]
 parquet = ["arrow2"]
 complex = ["num-complex", "matrixmultiply/cgemm"]
+parallel = ["rayon"]

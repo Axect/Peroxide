@@ -17,6 +17,7 @@
 //! - linspace_with_precision
 //! - rand
 //! - rand_with_rng
+//! - rand_with_dist
 //!
 //! # Numpy like non-macro functions
 //!
@@ -36,7 +37,9 @@ use crate::structure::{
     matrix::{matrix, Matrix, Shape},
 };
 use crate::traits::float::FloatWithPrecision;
-use anyhow::{Result, bail};
+use crate::traits::matrix::MatrixTrait;
+use anyhow::{bail, Result};
+use rand_distr::{Distribution, Uniform};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ConcatenateError {
@@ -46,7 +49,10 @@ pub enum ConcatenateError {
 impl std::fmt::Display for ConcatenateError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            ConcatenateError::DifferentLength => write!(f, "To concatenate, vectors or matrices must have the same length"),
+            ConcatenateError::DifferentLength => write!(
+                f,
+                "To concatenate, vectors or matrices must have the same length"
+            ),
         }
     }
 }
@@ -62,7 +68,7 @@ impl std::fmt::Display for ConcatenateError {
 ///
 /// let a = seq(1, 10, 2);
 /// assert_eq!(a, vec![1f64,3f64,5f64,7f64,9f64]);
-/// 
+///
 /// let b = seq(1, 1, 1);
 /// assert_eq!(b, vec![1f64]);
 /// ```
@@ -248,11 +254,11 @@ pub fn eye_shape(n: usize, shape: Shape) -> Matrix {
 }
 
 /// MATLAB like linspace
-/// 
+///
 /// # Examples
 /// ```
 /// use peroxide::fuga::*;
-/// 
+///
 /// let a = linspace(1, 10, 10);
 /// assert_eq!(a, seq(1,10,1));
 /// assert_eq!(a.len(), 10);
@@ -317,14 +323,8 @@ where
 ///
 /// Range = from 0 to 1
 pub fn rand(r: usize, c: usize) -> Matrix {
-    let mut m = zeros(r, c);
     let mut rng = thread_rng();
-    for i in 0..r {
-        for j in 0..c {
-            m[(i, j)] = rng.gen_range(0f64..=1f64);
-        }
-    }
-    m
+    rand_with_rng(r, c, &mut rng)
 }
 
 /// Rand matrix with specific rng
@@ -333,20 +333,29 @@ pub fn rand(r: usize, c: usize) -> Matrix {
 ///
 /// Range = from 0 to 1
 pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
-    let mut m = zeros(r, c);
-    for i in 0..r {
-        for j in 0..c {
-            m[(i, j)] = rng.gen_range(0f64..=1f64);
-        }
-    }
-    m
+    let uniform = Uniform::new_inclusive(0f64, 1f64);
+    rand_with_dist(r, c, rng, uniform)
+}
+
+/// Rand matrix with specific rng and distribution
+///
+/// # Description
+///
+/// Any range
+pub fn rand_with_dist<T: Into<f64>, R: Rng, D: Distribution<T>>(
+    r: usize,
+    c: usize,
+    rng: &mut R,
+    dist: D,
+) -> Matrix {
+    matrix(rng.sample_iter(dist).take(r * c).collect(), r, c, Row)
 }
 
 // ┌─────────────────────────────────────────────────────────┐
 //  Numpy like non-macro functions
 // └─────────────────────────────────────────────────────────┘
 /// Numpy like logspace
-/// 
+///
 /// # Examples
 /// ```
 /// use peroxide::fuga::*;
@@ -370,7 +379,7 @@ where
 
     assert!(e >= s);
 
-    let step: f64 = if length > 1 { 
+    let step: f64 = if length > 1 {
         (e - s) / (length as f64 - 1f64)
     } else {
         0f64
