@@ -1904,7 +1904,7 @@ impl LinearAlgebra<ComplexMatrix> for ComplexMatrix {
         PQLU { p, q, l, u }
     }
 
-    fn waz(&self, d_form: Form) -> Option<WAZD<ComplexMatrix>> {
+    fn waz(&self, _d_form: Form) -> Option<WAZD<ComplexMatrix>> {
         unimplemented!()
     }
 

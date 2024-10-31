@@ -462,8 +462,7 @@
 //!
 //! ## Tips for LU, Det, Inverse
 //!
-//! * If you save `self.lu()` rather than the direct use of `self.det()` or `self.lu()` then you
-//! can get better performance (via memoization)
+//! * If you save `self.lu()` rather than the direct use of `self.det()` or `self.lu()` then you can get better performance (via memoization)
 //!
 //! ```rust
 //! use peroxide::fuga::*;
@@ -2754,12 +2753,10 @@ impl FPMatrix for Matrix {
     /// ```rust
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let x = ml_matrix("1 2;3 4;5 6");
-    ///     let y = x.col_map(|c| c.fmap(|t| t - c.mean()));
+    /// let x = ml_matrix("1 2;3 4;5 6");
+    /// let y = x.col_map(|c| c.fmap(|t| t - c.mean()));
     ///
-    ///     assert_eq!(y, ml_matrix("-2 -2;0 0;2 2"));
-    /// }
+    /// assert_eq!(y, ml_matrix("-2 -2;0 0;2 2"));
     /// ```
     fn col_map<F>(&self, f: F) -> Matrix
     where
@@ -2780,12 +2777,10 @@ impl FPMatrix for Matrix {
     /// ```rust
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let x = ml_matrix("1 2 3;4 5 6");
-    ///     let y = x.row_map(|r| r.fmap(|t| t - r.mean()));
+    /// let x = ml_matrix("1 2 3;4 5 6");
+    /// let y = x.row_map(|r| r.fmap(|t| t - r.mean()));
     ///
-    ///     assert_eq!(y, ml_matrix("-1 0 1;-1 0 1"));
-    /// }
+    /// assert_eq!(y, ml_matrix("-1 0 1;-1 0 1"));
     /// ```
     fn row_map<F>(&self, f: F) -> Matrix
     where
@@ -3035,23 +3030,21 @@ impl LinearAlgebra<Matrix> for Matrix {
     ///
     /// # Caution
     /// It returns `Option<PQLU>` - You should unwrap to obtain real value.
-    /// `PQLU` has four field - `p`, `q`, `l`, `u`.
-    /// `p`, `q` are permutations.
-    /// `l`, `u` are matrices.
+    /// - `PQLU` has four field - `p`, `q`, `l`, `u`.
+    ///   - `p`, `q` are permutations.
+    ///   - `l`, `u` are matrices.
     ///
     /// # Examples
     /// ```
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = matrix(vec![1,2,3,4], 2, 2, Row);
-    ///     let pqlu = a.lu();
-    ///     let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
-    ///     assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
-    ///     assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
-    ///     assert_eq!(l, matrix(vec![1.0,0.0,0.5,1.0],2,2,Row));
-    ///     assert_eq!(u, matrix(vec![4.0,3.0,0.0,-0.5],2,2,Row));
-    /// }
+    /// let a = matrix(vec![1,2,3,4], 2, 2, Row);
+    /// let pqlu = a.lu();
+    /// let (p,q,l,u) = (pqlu.p, pqlu.q, pqlu.l, pqlu.u);
+    /// assert_eq!(p, vec![1]); // swap 0 & 1 (Row)
+    /// assert_eq!(q, vec![1]); // swap 0 & 1 (Col)
+    /// assert_eq!(l, matrix(vec![1.0,0.0,0.5,1.0],2,2,Row));
+    /// assert_eq!(u, matrix(vec![4.0,3.0,0.0,-0.5],2,2,Row));
     /// ```
     fn lu(&self) -> PQLU<Matrix> {
         assert_eq!(self.col, self.row);
@@ -3155,16 +3148,14 @@ impl LinearAlgebra<Matrix> for Matrix {
     /// ```
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("12 -51 4;6 167 -68; -4 24 -41");
-    ///     let qr = a.qr();
-    ///     let r = ml_matrix("-14 -21 14; 0 -175 70; 0 0 -35");
-    ///     #[cfg(feature="O3")]
-    ///     {
-    ///         assert_eq!(r, qr.r);
-    ///     }
-    ///     qr.r.print();
+    /// let a = ml_matrix("12 -51 4;6 167 -68; -4 24 -41");
+    /// let qr = a.qr();
+    /// let r = ml_matrix("-14 -21 14; 0 -175 70; 0 0 -35");
+    /// #[cfg(feature="O3")]
+    /// {
+    ///     assert_eq!(r, qr.r);
     /// }
+    /// qr.r.print();
     /// ```
     #[allow(non_snake_case)]
     fn qr(&self) -> QR<Matrix> {
@@ -3211,15 +3202,13 @@ impl LinearAlgebra<Matrix> for Matrix {
     /// ```
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("3 2 2;2 3 -2");
-    ///     #[cfg(feature="O3")]
-    ///     {
-    ///         let svd = a.svd();
-    ///         assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
-    ///     }
-    ///     a.print();
+    /// let a = ml_matrix("3 2 2;2 3 -2");
+    /// #[cfg(feature="O3")]
+    /// {
+    ///     let svd = a.svd();
+    ///     assert!(eq_vec(&vec![5f64, 3f64], &svd.s, 1e-7));
     /// }
+    /// a.print();
     /// ```
     fn svd(&self) -> SVD<Matrix> {
         match () {
@@ -3250,21 +3239,18 @@ impl LinearAlgebra<Matrix> for Matrix {
     ///
     /// # Examples
     /// ```
-    /// extern crate peroxide;
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let a = ml_matrix("1 2;2 5");
-    ///     #[cfg(feature = "O3")]
-    ///     {
-    ///         let u = a.cholesky(Upper);
-    ///         let l = a.cholesky(Lower);
+    /// let a = ml_matrix("1 2;2 5");
+    /// #[cfg(feature = "O3")]
+    /// {
+    ///     let u = a.cholesky(Upper);
+    ///     let l = a.cholesky(Lower);
     ///
-    ///         assert_eq!(u, ml_matrix("1 2;0 1"));
-    ///         assert_eq!(l, ml_matrix("1 0;2 1"));
-    ///     }
-    ///     a.print();
+    ///     assert_eq!(u, ml_matrix("1 2;0 1"));
+    ///     assert_eq!(l, ml_matrix("1 0;2 1"));
     /// }
+    /// a.print();
     /// ```
     #[cfg(feature = "O3")]
     fn cholesky(&self, uplo: UPLO) -> Matrix {

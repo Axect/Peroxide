@@ -187,8 +187,7 @@
 //!
 //!     * `nc` feature should be required
 //!     * `libnetcdf` dependency should be required
-//!     * `Char`, `Bool` are saved as `U8` type. Thus, for reading `Char` or `Bool` type nc file,
-//!     explicit type casting is required.
+//!     * `Char`, `Bool` are saved as `U8` type. Thus, for reading `Char` or `Bool` type nc file, explicit type casting is required.
 //!
 //!     ```
 //!     #[macro_use]
@@ -226,8 +225,7 @@
 //!     ```
 //! 
 //!     * `parquet` feature should be required
-//!     * `Char` is saved with `String` type. Thus, for reading `Char` type parquet file,
-//!     the output type is `String`.
+//!     * `Char` is saved with `String` type. Thus, for reading `Char` type parquet file, the output type is `String`.
 //!     * **Caution** : For different length `Bool` type column, missing values are filled with `false`.
 //!     ```
 //!     #[macro_use]
@@ -1398,7 +1396,7 @@ impl DataFrame {
 
     /// Push new pair of head, Series to DataFrame
     pub fn push(&mut self, name: &str, series: Series) {
-        if self.ics.len() > 0 {
+        if !self.ics.is_empty() {
             assert_eq!(self.ics.iter().find(|x| x.as_str() == name), None, "Repetitive index!");
         }
         self.ics.push(name.to_string());
@@ -1466,8 +1464,7 @@ impl DataFrame {
                 result.push('\n');
             }
             result.push_str(&tab("...", lc1));
-            for j in 0 .. self.data.len() {
-                let space = space_vec[j];
+            for &space in space_vec.iter() {
                 result.push_str(&tab("...", space));
             }
             result.push('\n');

@@ -51,7 +51,7 @@ impl fmt::Display for Polynomial {
             let coef_0 = self.coef[1];
 
             if coef_1 == 1. {
-                result.push_str("x");
+                result.push('x');
             } else if coef_1 == -1. {
                 result.push_str("-x");
             } else {

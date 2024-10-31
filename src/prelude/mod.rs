@@ -177,7 +177,6 @@ pub use crate::structure::{
     dataframe::{
         DataFrame, DType, DTypeArray, DTypeValue, Series, Scalar, TypedScalar, TypedVector
     },
-    //complex::C64,
 };
 #[cfg(feature="csv")]
 pub use crate::structure::dataframe::WithCSV;
@@ -187,6 +186,7 @@ pub use crate::structure::dataframe::WithNetCDF;
 
 #[cfg(feature = "complex")]
 #[allow(ambiguous_glob_reexports)]
+#[allow(unused_imports)]
 pub use crate::complex::{
     C64,
     matrix::*,
