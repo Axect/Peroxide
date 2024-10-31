@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.37.9"
+version = "0.38.0"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -24,7 +24,7 @@ travis-ci = { repository = "axect/peroxide" }
 maintenance = { status = "actively-developed" }
 
 [dev-dependencies]
-float-cmp = "0.9"
+float-cmp = "0.10"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [dependencies]
@@ -60,8 +60,3 @@ nc = ["netcdf"]
 parquet = ["arrow2"]
 complex = ["num-complex", "matrixmultiply/cgemm"]
 parallel = ["rayon"]
-
-[[bench]]
-path = "benches/parallel_rayon/matrix_benchmark.rs"
-name = "matrix_benchmark"
-harness = false
