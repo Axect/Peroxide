@@ -617,3 +617,49 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
         }
     }
 }
+
+/// Hermite Polynomial
+///
+/// # Description
+/// Generate `n`-th order Hermite polynomial. The physics convention
+/// H_n(x) = (-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2} is used.
+pub fn hermite_polynomial(n: usize) -> Polynomial {
+    let mut prev = Polynomial::new(vec![1f64]);         // 1
+    let mut curr = Polynomial::new(vec![2f64, 0f64]);   // 2x
+
+    match n {
+        0 => prev,
+        1 => curr,
+        _ => {
+            for idx in 1 .. n {
+                let k = idx as f64;
+                std::mem::swap(&mut prev, &mut curr);
+                curr = poly(vec![2f64, 0f64]) * prev.clone() - 2.0*k*curr;
+            }
+            curr
+        }
+    }
+}
+
+/// Bessel Polynomial
+///
+/// # Description
+/// Generate `n`-th order Bessel polynomial. Definition according to
+/// Krall and Fink (1949).
+pub fn bessel_polynomial(n: usize) -> Polynomial {
+    let mut prev = Polynomial::new(vec![1f64]);         // 1
+    let mut curr = Polynomial::new(vec![1f64, 1f64]);   // x + 1
+
+    match n {
+        0 => prev,
+        1 => curr,
+        _ => {
+            for idx in 1 .. n {
+                let k = idx as f64;
+                std::mem::swap(&mut prev, &mut curr);
+                curr = (2.0*k+1.0) * poly(vec![1f64, 0f64]) * prev.clone() + curr;
+            }
+            curr
+        }
+    }
+}
