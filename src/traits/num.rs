@@ -24,9 +24,9 @@
 //!     }
 //!     ```
 
-use std::ops::{Neg, Add, Sub, Mul, Div};
 use crate::structure::ad::AD;
-use peroxide_num::{PowOps, TrigOps, ExpLogOps};
+use peroxide_num::{ExpLogOps, PowOps, TrigOps};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 pub trait Real:
     PowOps

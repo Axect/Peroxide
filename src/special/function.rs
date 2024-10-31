@@ -122,9 +122,9 @@ pub fn phi(x: f64) -> f64 {
 ///
 /// Returns [`NAN`](f64::NAN) if the given input is smaller than -1/e (≈ -0.36787944117144233).
 ///
-/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
+/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode
 /// for only 24 bits, but with faster execution time.
-/// 
+///
 /// Wrapper of the `lambert_w_0` and `sp_lambert_w_0` functions of the `puruspe` crate.
 ///
 /// # Reference
@@ -141,11 +141,11 @@ pub fn lambert_w0(z: f64, mode: LambertWAccuracyMode) -> f64 {
 ///
 /// Returns [`NAN`](f64::NAN) if the given input is positive or smaller than -1/e (≈ -0.36787944117144233).
 ///
-/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode 
+/// Use [`Precise`](LambertWAccuracyMode::Precise) for 50 bits of accuracy and the [`Simple`](LambertWAccuracyMode::Simple) mode
 /// for only 24 bits, but with faster execution time.
-/// 
+///
 /// Wrapper of the `lambert_w_m1` and `sp_lambert_w_m1` functions of the `puruspe` crate.
-/// 
+///
 /// # Reference
 ///
 /// [Toshio Fukushima, Precise and fast computation of Lambert W function by piecewise minimax rational function approximation with variable transformation](https://www.researchgate.net/publication/346309410_Precise_and_fast_computation_of_Lambert_W_function_by_piecewise_minimax_rational_function_approximation_with_variable_transformation)

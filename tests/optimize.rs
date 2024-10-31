@@ -43,10 +43,10 @@ fn test_GD() {
 }
 
 fn f(x: &Vec<f64>, p: Vec<AD>) -> Option<Vec<AD>> {
-    Some (
+    Some(
         x.iter()
             .map(|t| AD1(*t, 0f64))
             .map(|t| p[0] * t.powi(2) + p[1] * t + p[2])
-            .collect()
+            .collect(),
     )
 }

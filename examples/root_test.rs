@@ -1,12 +1,24 @@
-use peroxide::fuga::*;
 use anyhow::Result;
+use peroxide::fuga::*;
 
 fn main() -> Result<()> {
     let problem = Cubic;
-    let bisect = BisectionMethod { max_iter: 100, tol: 1e-6 };
-    let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
-    let false_pos = FalsePositionMethod { max_iter: 100, tol: 1e-6 };
-    let secant = SecantMethod { max_iter: 100, tol: 1e-6 };
+    let bisect = BisectionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let newton = NewtonMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let false_pos = FalsePositionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let secant = SecantMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
     let result_bisect = bisect.find(&problem)?;
     let result_newton = newton.find(&problem)?;
     let result_false_pos = false_pos.find(&problem)?;

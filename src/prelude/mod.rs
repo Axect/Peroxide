@@ -145,7 +145,7 @@
 #[allow(unused_imports)]
 pub use crate::macros::{julia_macro::*, matlab_macro::*, r_macro::*};
 
-pub use peroxide_ad::{ad_function, ad_closure};
+pub use peroxide_ad::{ad_closure, ad_function};
 
 pub mod simpler;
 
@@ -157,42 +157,37 @@ pub use crate::traits::{
     mutable::{MutFP, MutMatrix},
     num::Real,
     pointer::{MatrixPtr, Oxide, Redox, RedoxCommon},
-    sugar::{Scalable, ScalableMut, VecOps, ConvToMat},
+    sugar::{ConvToMat, Scalable, ScalableMut, VecOps},
 };
 
-pub use peroxide_num::{ExpLogOps, TrigOps, PowOps};
+pub use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 
 pub use simpler::SimpleNorm;
 
+#[cfg(feature = "csv")]
+pub use crate::structure::dataframe::WithCSV;
 #[allow(unused_imports)]
 pub use crate::structure::{
-    ad::*,
     ad::AD::*,
+    ad::*,
+    dataframe::{
+        DType, DTypeArray, DTypeValue, DataFrame, Scalar, Series, TypedScalar, TypedVector,
+    },
     matrix::{
         combine, diag, gemm, gemv, gen_householder, inv_l, inv_u, matrix, ml_matrix, py_matrix,
-        r_matrix, Col, Matrix, Row, Shape, 
+        r_matrix, Col, Matrix, Row, Shape,
     },
-    polynomial::{Polynomial,poly,Calculus,lagrange_polynomial,legendre_polynomial},
+    polynomial::{lagrange_polynomial, legendre_polynomial, poly, Calculus, Polynomial},
     vector::*,
-    dataframe::{
-        DataFrame, DType, DTypeArray, DTypeValue, Series, Scalar, TypedScalar, TypedVector
-    },
 };
-#[cfg(feature="csv")]
-pub use crate::structure::dataframe::WithCSV;
 
-#[cfg(feature="nc")]
+#[cfg(feature = "nc")]
 pub use crate::structure::dataframe::WithNetCDF;
 
 #[cfg(feature = "complex")]
 #[allow(ambiguous_glob_reexports)]
 #[allow(unused_imports)]
-pub use crate::complex::{
-    C64,
-    matrix::*,
-    vector::*,
-    integral::*,
-};
+pub use crate::complex::{integral::*, matrix::*, vector::*, C64};
 
 pub use simpler::{solve, SimplerLinearAlgebra};
 
@@ -204,8 +199,8 @@ pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
 
 #[allow(unused_imports)]
 pub use crate::special::function::{
-    beta, erf, erfc, gamma, gaussian, inc_beta, inc_gamma, inv_erf, inv_erfc, inv_inc_gamma,
-    inv_inc_beta, ln_gamma, phi, poch,
+    beta, erf, erfc, gamma, gaussian, inc_beta, inc_gamma, inv_erf, inv_erfc, inv_inc_beta,
+    inv_inc_gamma, ln_gamma, phi, poch,
 };
 
 #[allow(unused_imports)]
@@ -215,19 +210,21 @@ pub use crate::numerical::{
     ode::*,
     optimize::*,
     root::*,
-    spline::{cubic_spline, CubicSpline, CubicHermiteSpline, Spline},
+    spline::{cubic_spline, CubicHermiteSpline, CubicSpline, Spline},
     utils::*,
 };
 
-pub use simpler::{eigen, integrate, chebyshev_polynomial, cubic_hermite_spline, lambert_w0, lambert_wm1};
+pub use simpler::{
+    chebyshev_polynomial, cubic_hermite_spline, eigen, integrate, lambert_w0, lambert_wm1,
+};
 
 #[allow(unused_imports)]
 pub use crate::statistics::stat::Metric::*;
 
-#[cfg(feature="parquet")]
+#[cfg(feature = "parquet")]
 pub use simpler::SimpleParquet;
 
-#[cfg(feature="plot")]
+#[cfg(feature = "plot")]
 pub use crate::util::plot::*;
 
 pub use anyhow;

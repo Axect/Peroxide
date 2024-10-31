@@ -1,8 +1,10 @@
 use std::ops::{Index, IndexMut};
 
-pub trait MatrixTrait: Sized + Index<(usize, usize), Output=Self::Scalar> + IndexMut<(usize, usize)> {
+pub trait MatrixTrait:
+    Sized + Index<(usize, usize), Output = Self::Scalar> + IndexMut<(usize, usize)>
+{
     type Scalar;
-    fn ptr(&self) -> *const Self::Scalar; 
+    fn ptr(&self) -> *const Self::Scalar;
     fn mut_ptr(&mut self) -> *mut Self::Scalar;
     fn as_slice(&self) -> &[Self::Scalar];
     fn as_mut_slice(&mut self) -> &mut [Self::Scalar];
@@ -13,7 +15,9 @@ pub trait MatrixTrait: Sized + Index<(usize, usize), Output=Self::Scalar> + Inde
     fn row(&self, index: usize) -> Vec<Self::Scalar>;
     fn diag(&self) -> Vec<Self::Scalar>;
     fn transpose(&self) -> Self;
-    fn t(&self) -> Self { self.transpose() }
+    fn t(&self) -> Self {
+        self.transpose()
+    }
     fn subs_col(&mut self, idx: usize, v: &[Self::Scalar]);
     fn subs_row(&mut self, idx: usize, v: &[Self::Scalar]);
     fn from_index<F, G>(f: F, size: (usize, usize)) -> Self
@@ -30,7 +34,7 @@ pub trait MatrixTrait: Sized + Index<(usize, usize), Output=Self::Scalar> + Inde
 //  For Linear Algebra
 // └─────────────────────────────────────────────────────────┘
 /// Linear algebra trait
-pub trait LinearAlgebra<M:MatrixTrait> {
+pub trait LinearAlgebra<M: MatrixTrait> {
     fn back_subs(&self, b: &[M::Scalar]) -> Vec<M::Scalar>;
     fn forward_subs(&self, b: &[M::Scalar]) -> Vec<M::Scalar>;
     fn lu(&self) -> PQLU<M>;
@@ -50,7 +54,7 @@ pub trait LinearAlgebra<M:MatrixTrait> {
 }
 
 #[allow(non_snake_case)]
-pub fn solve<M:MatrixTrait + LinearAlgebra<M>>(A: &M, b: &M, sk: SolveKind) -> M {
+pub fn solve<M: MatrixTrait + LinearAlgebra<M>>(A: &M, b: &M, sk: SolveKind) -> M {
     A.solve_mat(b, sk)
 }
 
@@ -101,7 +105,7 @@ pub enum SolveKind {
     WAZ,
 }
 
-impl<M:MatrixTrait> QR<M> {
+impl<M: MatrixTrait> QR<M> {
     pub fn q(&self) -> &M {
         &self.q
     }
@@ -117,4 +121,3 @@ pub struct SVD<M: MatrixTrait> {
     pub u: M,
     pub vt: M,
 }
-

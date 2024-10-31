@@ -5,10 +5,10 @@ use crate::statistics::stat::ConfusionMatrix;
 #[allow(unused_imports)]
 use crate::structure::{
     ad::AD,
+    dataframe::{DType, DTypeArray, DataFrame, Scalar, Series},
     matrix::Matrix,
     multinomial::Multinomial,
     polynomial::Polynomial,
-    dataframe::{DataFrame, DTypeArray, Series, Scalar, DType},
 };
 use rand::distributions::uniform::SampleUniform;
 use std::fmt::{Debug, LowerExp, UpperExp};
@@ -189,14 +189,10 @@ macro_rules! format_float_vec {
     ($self:expr) => {{
         let mut result = String::new();
         result.push_str("[");
-        for i in 0 .. $self.len() {
+        for i in 0..$self.len() {
             let st1 = $self[i].fmt_lower_exp(2);
             let st2 = $self[i].to_string();
-            let st = if st1.len() < st2.len() {
-                st1
-            } else {
-                st2
-            };
+            let st = if st1.len() < st2.len() { st1 } else { st2 };
             result.push_str(&st);
             if i == $self.len() - 1 {
                 break;
@@ -426,9 +422,9 @@ impl Printable for ConfusionMatrix {
 }
 
 /// Format float number into lower exponent notation with '+' sign
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use peroxide::fuga::*;
 ///
@@ -439,7 +435,7 @@ impl Printable for ConfusionMatrix {
 /// ```
 pub trait LowerExpWithPlus: LowerExp {
     fn fmt_lower_exp(&self, precision: usize) -> String {
-        let mut s = format!("{:.p$e}", self, p=precision);
+        let mut s = format!("{:.p$e}", self, p = precision);
         let s_old = s.clone();
         let mut e = s.split_off(s.find('e').unwrap());
         if e.starts_with("e-") {
@@ -455,9 +451,9 @@ impl LowerExpWithPlus for f32 {}
 impl LowerExpWithPlus for f64 {}
 
 /// Format float number into upper exponent notation with '+' sign
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use peroxide::fuga::*;
 ///
@@ -468,7 +464,7 @@ impl LowerExpWithPlus for f64 {}
 /// ```
 pub trait UpperExpWithPlus: UpperExp {
     fn fmt_upper_exp(&self, precision: usize) -> String {
-        let mut s = format!("{:.p$E}", self, p=precision);
+        let mut s = format!("{:.p$E}", self, p = precision);
         let s_old = s.clone();
         let mut e = s.split_off(s.find('E').unwrap());
         if e.starts_with("E-") {

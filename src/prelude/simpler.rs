@@ -11,7 +11,7 @@ use crate::structure::dataframe::{DataFrame, WithParquet};
 use crate::structure::matrix::Matrix;
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
-use crate::traits::matrix::{MatrixTrait, LinearAlgebra, PQLU, WAZD, QR, Form, SolveKind};
+use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, WAZD};
 #[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
 #[cfg(feature = "parquet")]
@@ -29,7 +29,7 @@ pub fn integrate<F: Fn(f64) -> f64 + Copy>(f: F, (a, b): (f64, f64)) -> f64 {
 }
 
 /// Simple Linear algebra
-pub trait SimplerLinearAlgebra<M:MatrixTrait> {
+pub trait SimplerLinearAlgebra<M: MatrixTrait> {
     fn back_subs(&self, b: &[f64]) -> Vec<f64>;
     fn forward_subs(&self, b: &[f64]) -> Vec<f64>;
     fn lu(&self) -> PQLU<M>;

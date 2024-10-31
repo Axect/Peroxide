@@ -3,7 +3,7 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let a = Series::new(vec![1,2,3,4]);
+    let a = Series::new(vec![1, 2, 3, 4]);
     let b = Series::new(c!(0.1, 0.2, 0.3, 0.4));
     let c = Series::new(vec![true, false, true, false]);
     let d = Series::new(vec!['a', 'b', 'c', 'd']);
@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     df.print();
 
-    #[cfg(feature="csv")]
+    #[cfg(feature = "csv")]
     {
         df.write_csv("example_data/df_csv.csv")?;
 

@@ -487,14 +487,23 @@ impl Plot for Plot2D {
             let ylabel = self.ylabel.clone();
             let legends = self.legends.clone();
             let path = self.path.clone();
-            let markers = self.markers.iter().map(|(i, x)| (i, format!("{}", x))).collect::<Vec<_>>();
-            let line_style = self.line_style.iter().map(|(i, x)| (i, format!("{}", x))).collect::<Vec<_>>();
+            let markers = self
+                .markers
+                .iter()
+                .map(|(i, x)| (i, format!("{}", x)))
+                .collect::<Vec<_>>();
+            let line_style = self
+                .line_style
+                .iter()
+                .map(|(i, x)| (i, format!("{}", x)))
+                .collect::<Vec<_>>();
             let color = self.color.clone();
             let alpha = self.alpha.clone();
             let plot_type = self.plot_type.clone();
 
             // Global variables to plot
-            let globals = vec![("plt", py.import_bound("matplotlib.pyplot")?)].into_py_dict_bound(py);
+            let globals =
+                vec![("plt", py.import_bound("matplotlib.pyplot")?)].into_py_dict_bound(py);
             globals.as_gil_ref().set_item("x", x)?;
             globals.as_gil_ref().set_item("y", ys)?;
             globals.as_gil_ref().set_item("pair", pairs)?;
@@ -515,16 +524,14 @@ impl Plot for Plot2D {
 
             // Plot Code
             let mut plot_string = match self.style {
-                PlotStyle::Default => {
-                    "\
+                PlotStyle::Default => "\
                     plt.rc(\"text\", usetex=True)\n\
-                    plt.rc(\"font\", family=\"serif\")\n".to_string()
-                }
-                PlotStyle::Science => {
-                    "\
+                    plt.rc(\"font\", family=\"serif\")\n"
+                    .to_string(),
+                PlotStyle::Science => "\
                     import scienceplots\n\
-                    plt.style.use(\"science\")\n".to_string()
-                }
+                    plt.style.use(\"science\")\n"
+                    .to_string(),
                 _ => format!(
                     "\
                     import scienceplots\n\
@@ -550,11 +557,15 @@ impl Plot for Plot2D {
                 plot_string.push_str(&format!("plt.ylabel(r\"{}\")\n", y)[..]);
             }
             match self.xscale {
-                PlotScale::Linear => plot_string.push_str(&"plt.xscale(\"linear\")\n".to_string()[..]),
+                PlotScale::Linear => {
+                    plot_string.push_str(&"plt.xscale(\"linear\")\n".to_string()[..])
+                }
                 PlotScale::Log => plot_string.push_str(&"plt.xscale(\"log\")\n".to_string()[..]),
             }
             match self.yscale {
-                PlotScale::Linear => plot_string.push_str(&"plt.yscale(\"linear\")\n".to_string()[..]),
+                PlotScale::Linear => {
+                    plot_string.push_str(&"plt.yscale(\"linear\")\n".to_string()[..])
+                }
                 PlotScale::Log => plot_string.push_str(&"plt.yscale(\"log\")\n".to_string()[..]),
             }
             if self.xlim.is_some() {
@@ -566,17 +577,20 @@ impl Plot for Plot2D {
 
             for i in 0..y_length {
                 let mut inner_string = format!("x,y[{}]", i);
-                let is_corresponding_marker = !markers.is_empty() && (markers.iter().any(|(&j, _)| j == i));
+                let is_corresponding_marker =
+                    !markers.is_empty() && (markers.iter().any(|(&j, _)| j == i));
                 if is_corresponding_marker {
                     let marker = markers.iter().find(|(&j, _)| j == i).unwrap().1.as_str();
                     inner_string.push_str(&format!(",marker=\"{}\"", marker)[..]);
                 }
-                let is_corresponding_line_style = !line_style.is_empty() && (line_style.iter().any(|(&j, _)| j == i));
+                let is_corresponding_line_style =
+                    !line_style.is_empty() && (line_style.iter().any(|(&j, _)| j == i));
                 if is_corresponding_line_style {
                     let style = line_style.iter().find(|(&j, _)| j == i).unwrap().1.as_str();
                     inner_string.push_str(&format!(",linestyle=\"{}\"", style)[..]);
                 }
-                let is_corresponding_color = !color.is_empty() && (color.iter().any(|(j, _)| j == &i));
+                let is_corresponding_color =
+                    !color.is_empty() && (color.iter().any(|(j, _)| j == &i));
                 if is_corresponding_color {
                     let color = color.iter().find(|(j, _)| j == &i).unwrap().1.as_str();
                     inner_string.push_str(&format!(",color=\"{}\"", color)[..]);
@@ -584,12 +598,14 @@ impl Plot for Plot2D {
                 if !legends.is_empty() {
                     inner_string.push_str(&format!(",label=r\"{}\"", legends[i])[..]);
                 }
-                let is_corresponding_alpha = !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &i));
+                let is_corresponding_alpha =
+                    !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &i));
                 if is_corresponding_alpha {
                     let alpha = alpha.iter().find(|(j, _)| j == &i).unwrap().1;
                     inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
-                let is_corresponding_plot_type = !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &i));
+                let is_corresponding_plot_type =
+                    !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &i));
                 if is_corresponding_plot_type {
                     let plot_type = plot_type.iter().find(|(j, _)| j == &i).unwrap().1;
                     match plot_type {
@@ -609,32 +625,56 @@ impl Plot for Plot2D {
             }
             for i in 0..pair_length {
                 let mut inner_string = format!("pair[{}][0],pair[{}][1]", i, i);
-                let is_corresponding_marker = !markers.is_empty() && (markers.iter().any(|(&j, _)| j == (i + y_length)));
+                let is_corresponding_marker =
+                    !markers.is_empty() && (markers.iter().any(|(&j, _)| j == (i + y_length)));
                 if is_corresponding_marker {
-                    let marker = markers.iter().find(|(&j, _)| j == (i + y_length)).unwrap().1.as_str();
+                    let marker = markers
+                        .iter()
+                        .find(|(&j, _)| j == (i + y_length))
+                        .unwrap()
+                        .1
+                        .as_str();
                     inner_string.push_str(&format!(",marker=\"{}\"", marker)[..]);
                 }
-                let is_corresponding_line_style = !line_style.is_empty() && (line_style.iter().any(|(&j, _)| j == (i + y_length)));
+                let is_corresponding_line_style = !line_style.is_empty()
+                    && (line_style.iter().any(|(&j, _)| j == (i + y_length)));
                 if is_corresponding_line_style {
-                    let style = line_style.iter().find(|(&j, _)| j == (i + y_length)).unwrap().1.as_str();
+                    let style = line_style
+                        .iter()
+                        .find(|(&j, _)| j == (i + y_length))
+                        .unwrap()
+                        .1
+                        .as_str();
                     inner_string.push_str(&format!(",linestyle=\"{}\"", style)[..]);
                 }
-                let is_corresponding_color = !color.is_empty() && (color.iter().any(|(j, _)| j == &(i + y_length)));
+                let is_corresponding_color =
+                    !color.is_empty() && (color.iter().any(|(j, _)| j == &(i + y_length)));
                 if is_corresponding_color {
-                    let color = color.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1.as_str();
+                    let color = color
+                        .iter()
+                        .find(|(j, _)| j == &(i + y_length))
+                        .unwrap()
+                        .1
+                        .as_str();
                     inner_string.push_str(&format!(",color=\"{}\"", color)[..]);
                 }
                 if !legends.is_empty() {
                     inner_string.push_str(&format!(",label=r\"{}\"", legends[i + y_length])[..]);
                 }
-                let is_corresponding_alpha = !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &(i + y_length)));
+                let is_corresponding_alpha =
+                    !alpha.is_empty() && (alpha.iter().any(|(j, _)| j == &(i + y_length)));
                 if is_corresponding_alpha {
                     let alpha = alpha.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1;
                     inner_string.push_str(&format!(",alpha={}", alpha)[..]);
                 }
-                let is_corresponding_plot_type = !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &(i + y_length)));
+                let is_corresponding_plot_type =
+                    !plot_type.is_empty() && (plot_type.iter().any(|(j, _)| j == &(i + y_length)));
                 if is_corresponding_plot_type {
-                    let plot_type = plot_type.iter().find(|(j, _)| j == &(i + y_length)).unwrap().1;
+                    let plot_type = plot_type
+                        .iter()
+                        .find(|(j, _)| j == &(i + y_length))
+                        .unwrap()
+                        .1;
                     match plot_type {
                         PlotType::Scatter => {
                             plot_string.push_str(&format!("plt.scatter({})\n", inner_string)[..]);
@@ -656,7 +696,8 @@ impl Plot for Plot2D {
             }
 
             if self.tight {
-                plot_string.push_str(&format!("plt.savefig(pa, dpi={}, bbox_inches='tight')", dpi)[..]);
+                plot_string
+                    .push_str(&format!("plt.savefig(pa, dpi={}, bbox_inches='tight')", dpi)[..]);
             } else {
                 plot_string.push_str(&format!("plt.savefig(pa, dpi={})", dpi)[..]);
             }

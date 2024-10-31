@@ -617,16 +617,16 @@ use serde::{Deserialize, Serialize};
 pub use self::Shape::{Col, Row};
 use crate::numerical::eigen::{eigen, EigenMethod};
 use crate::structure::dataframe::{Series, TypedVector};
+#[cfg(feature = "parallel")]
+use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::traits::sugar::ScalableMut;
 use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
+    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
     mutable::MutMatrix,
-    matrix::{MatrixTrait, LinearAlgebra, PQLU, WAZD, QR, SVD, Form, SolveKind},
 };
-#[cfg(feature = "parallel")]
-use crate::traits::math::{ParallelInnerProduct, ParallelNormed};
 use crate::util::{
     low_level::{copy_vec_ptr, swap_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
@@ -1266,7 +1266,6 @@ impl MatrixTrait for Matrix {
             }
         }
     }
-
 }
 
 impl Matrix {
@@ -1468,7 +1467,6 @@ impl Matrix {
             .collect::<Vec<f64>>();
         matrix(data, row, col, Row)
     }
-
 }
 
 // =============================================================================

@@ -264,24 +264,27 @@
 
 #[cfg(feature = "O3")]
 extern crate blas;
+#[cfg(feature = "parallel")]
+use crate::rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    IntoParallelRefMutIterator, ParallelIterator,
+};
 #[cfg(feature = "O3")]
 use blas::{daxpy, ddot, dnrm2, idamax};
-#[cfg(feature = "parallel")]
-use crate::rayon::iter::{ParallelIterator, IntoParallelIterator, IntoParallelRefIterator, IndexedParallelIterator, IntoParallelRefMutIterator};
 
 use crate::structure::matrix::{matrix, Matrix, Row};
-#[cfg(feature = "parallel")]
-use crate::traits::{
-    fp::ParallelFPVector,
-    math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct},
-    mutable::ParallelMutFP,
-};
 use crate::traits::{
     fp::FPVector,
     general::Algorithm,
     math::{InnerProduct, LinearOp, Norm, Normed, Vector, VectorProduct},
     mutable::MutFP,
     pointer::{Oxide, Redox, RedoxCommon},
+};
+#[cfg(feature = "parallel")]
+use crate::traits::{
+    fp::ParallelFPVector,
+    math::{ParallelInnerProduct, ParallelNormed, ParallelVectorProduct},
+    mutable::ParallelMutFP,
 };
 use std::cmp::min;
 

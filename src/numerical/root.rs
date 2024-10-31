@@ -66,26 +66,26 @@
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
 //! use anyhow::Result;
-//! 
+//!
 //! fn main() -> Result<()> {
 //!     let root_bisect = bisection!(f, (0.0, 2.0), 100, 1e-6)?;
 //!     let root_newton = newton!(f, 0.0, 100, 1e-6)?;
 //!     let root_false_pos = false_position!(f, (0.0, 2.0), 100, 1e-6)?;
 //!     let root_secant = secant!(f, (0.0, 2.0), 100, 1e-6)?;
-//! 
+//!
 //!     println!("root_bisect: {}", root_bisect);
 //!     println!("root_newton: {}", root_newton);
 //!     println!("root_false_pos: {}", root_false_pos);
 //!     println!("root_secant: {}", root_secant);
-//! 
+//!
 //!     assert!(f(root_bisect).abs() < 1e-6);
 //!     assert!(f(root_newton).abs() < 1e-6);
 //!     assert!(f(root_false_pos).abs() < 1e-6);
 //!     assert!(f(root_secant).abs() < 1e-6);
-//! 
+//!
 //!     Ok(())
 //! }
-//! 
+//!
 //! #[ad_function]
 //! fn f(x: f64) -> f64 {
 //!     (x - 1f64).powi(3)
@@ -212,9 +212,9 @@
 //! The `Cosine` struct implements the `RootFindingProblem` trait for the `f64` initial guess type.
 //! The initial guess is set to `0.0`, which is a point where the derivative of the cosine function is 0.
 //! This leads to the `NewtonMethod` returning a `RootError::ZeroDerivative` error, which is handled in the example.
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 
-use crate::traits::math::{Normed, Norm, LinearOp};
+use crate::traits::math::{LinearOp, Norm, Normed};
 use crate::traits::sugar::{ConvToMat, VecOps};
 use crate::util::non_macro::zeros;
 
@@ -247,12 +247,15 @@ macro_rules! bisection {
         }
 
         let problem = BisectionProblem { f: $f };
-        let bisection = BisectionMethod { max_iter: $max_iter, tol: $tol };
+        let bisection = BisectionMethod {
+            max_iter: $max_iter,
+            tol: $tol,
+        };
         match bisection.find(&problem) {
             Ok(root) => Ok(root[0]),
             Err(e) => Err(e),
         }
-    }}
+    }};
 }
 
 /// High level macro for newton (using Automatic differentiation)
@@ -284,7 +287,7 @@ macro_rules! newton {
 
         impl RootFindingProblem<1, 1, f64> for NewtonProblem {
             fn initial_guess(&self) -> f64 {
-                $x 
+                $x
             }
 
             fn function(&self, x: [f64; 1]) -> Result<[f64; 1]> {
@@ -300,12 +303,15 @@ macro_rules! newton {
         }
 
         let problem = NewtonProblem;
-        let newton = NewtonMethod { max_iter: $max_iter, tol: $tol };
+        let newton = NewtonMethod {
+            max_iter: $max_iter,
+            tol: $tol,
+        };
         match newton.find(&problem) {
             Ok(root) => Ok(root[0]),
             Err(e) => Err(e),
         }
-    }}
+    }};
 }
 
 /// High level macro for false position
@@ -334,12 +340,15 @@ macro_rules! false_position {
         }
 
         let problem = FalsePositionProblem { f: $f };
-        let false_position = FalsePositionMethod { max_iter: $max_iter, tol: $tol };
+        let false_position = FalsePositionMethod {
+            max_iter: $max_iter,
+            tol: $tol,
+        };
         match false_position.find(&problem) {
             Ok(root) => Ok(root[0]),
             Err(e) => Err(e),
         }
-    }}
+    }};
 }
 
 /// High level macro for secant
@@ -368,14 +377,16 @@ macro_rules! secant {
         }
 
         let problem = SecantProblem { f: $f };
-        let secant = SecantMethod { max_iter: $max_iter, tol: $tol };
+        let secant = SecantMethod {
+            max_iter: $max_iter,
+            tol: $tol,
+        };
         match secant.find(&problem) {
             Ok(root) => Ok(root[0]),
             Err(e) => Err(e),
         }
-    }}
+    }};
 }
-
 
 // ┌─────────────────────────────────────────────────────────┐
 //  Type aliases
@@ -459,7 +470,7 @@ impl<const I: usize> std::fmt::Display for RootError<I> {
             RootError::NoRoot => write!(f, "There is no root in the interval"),
             RootError::NotConverge(a) => write!(f, "Not yet converge. Our guess is {:?}", a),
             RootError::ZeroDerivative(a) => write!(f, "Zero derivative in {:?}", a),
-            RootError::ZeroSecant(a,b) => write!(f, "Zero secant in ({:?}, {:?})", a, b),
+            RootError::ZeroSecant(a, b) => write!(f, "Zero secant in ({:?}, {:?})", a, b),
         }
     }
 }
@@ -483,7 +494,7 @@ impl<const I: usize> std::fmt::Display for RootError<I> {
 macro_rules! single_function {
     ($problem:expr, $x:expr) => {{
         $problem.function([$x])?[0]
-    }}
+    }};
 }
 
 /// Macro for single derivative
@@ -505,7 +516,7 @@ macro_rules! single_function {
 macro_rules! single_derivative {
     ($problem:expr, $x:expr) => {{
         $problem.derivative([$x])?[0][0]
-    }}
+    }};
 }
 
 // ┌─────────────────────────────────────────────────────────┐
@@ -542,10 +553,7 @@ impl RootFinder<1, 1, (f64, f64)> for BisectionMethod {
         self.tol
     }
 
-    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
-        &self,
-        problem: &P,
-    ) -> Result<[f64; 1]> {
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(&self, problem: &P) -> Result<[f64; 1]> {
         let state = problem.initial_guess();
         let (mut a, mut b) = state;
         let mut fa = single_function!(problem, a);
@@ -613,10 +621,7 @@ impl RootFinder<1, 1, f64> for NewtonMethod {
     fn tol(&self) -> f64 {
         self.tol
     }
-    fn find<P: RootFindingProblem<1, 1, f64>>(
-        &self,
-        problem: &P,
-    ) -> Result<[f64; 1]> {
+    fn find<P: RootFindingProblem<1, 1, f64>>(&self, problem: &P) -> Result<[f64; 1]> {
         let mut x = problem.initial_guess();
 
         for _ in 0..self.max_iter {
@@ -667,10 +672,7 @@ impl RootFinder<1, 1, (f64, f64)> for SecantMethod {
     fn tol(&self) -> f64 {
         self.tol
     }
-    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
-        &self,
-        problem: &P,
-    ) -> Result<[f64; 1]> {
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(&self, problem: &P) -> Result<[f64; 1]> {
         let state = problem.initial_guess();
         let (mut x0, mut x1) = state;
         let mut f0 = single_function!(problem, x0);
@@ -729,10 +731,7 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
     fn tol(&self) -> f64 {
         self.tol
     }
-    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(
-        &self,
-        problem: &P,
-    ) -> Result<[f64; 1]> {
+    fn find<P: RootFindingProblem<1, 1, (f64, f64)>>(&self, problem: &P) -> Result<[f64; 1]> {
         let state = problem.initial_guess();
         let (mut a, mut b) = state;
         let mut fa = single_function!(problem, a);
@@ -792,7 +791,7 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 /// ```rust
 /// use peroxide::fuga::*;
 /// use peroxide::numerical::root::{Pt, Intv};
-/// 
+///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let problem = CircleTangentLine;
 ///     let broyden = BroydenMethod { max_iter: 100, tol: 1e-6, rtol: 1e-6 };
@@ -805,9 +804,9 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 ///
 ///     Ok(())
 /// }
-/// 
+///
 /// struct CircleTangentLine;
-/// 
+///
 /// impl RootFindingProblem<2, 2, Intv<2>> for CircleTangentLine {
 ///     fn function(&self, x: Pt<2>) -> anyhow::Result<Pt<2>> {
 ///         Ok([
@@ -815,7 +814,7 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 ///             x[0] + x[1] - 2f64.sqrt()
 ///         ])
 ///     }
-/// 
+///
 ///     fn initial_guess(&self) -> Intv<2> {
 ///         ([0.0, 0.1], [-0.1, 0.2])
 ///     }
@@ -836,10 +835,7 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
     fn tol(&self) -> f64 {
         self.tol
     }
-    fn find<P: RootFindingProblem<I, O, Intv<I>>>(
-        &self,
-        problem: &P,
-    ) -> Result<Pt<I>> {
+    fn find<P: RootFindingProblem<I, O, Intv<I>>>(&self, problem: &P) -> Result<Pt<I>> {
         // Init state
         let state = problem.initial_guess();
         let (mut x0, mut x1) = state;
@@ -857,11 +853,19 @@ impl<const I: usize, const O: usize> RootFinder<I, O, Intv<I>> for BroydenMethod
             if fx1.norm(Norm::L2) < self.tol {
                 return Ok(x1);
             }
-            let dx = x1.iter().zip(x0.iter()).map(|(x1, x0)| x1 - x0).collect::<Vec<_>>();
+            let dx = x1
+                .iter()
+                .zip(x0.iter())
+                .map(|(x1, x0)| x1 - x0)
+                .collect::<Vec<_>>();
             if dx.norm(Norm::L2) < self.rtol {
                 return Ok(x1);
             }
-            let df = fx1.iter().zip(fx0.iter()).map(|(fx1, fx0)| fx1 - fx0).collect::<Vec<_>>();
+            let df = fx1
+                .iter()
+                .zip(fx0.iter())
+                .map(|(fx1, fx0)| fx1 - fx0)
+                .collect::<Vec<_>>();
 
             let denom = dx.add_v(&H.apply(&df));
             let right = &dx.to_row() * &H;

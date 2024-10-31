@@ -4,18 +4,13 @@ use peroxide::fuga::*;
 fn main() -> Result<(), Box<dyn Error>> {
     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
     let basic_ode_solver = BasicODESolver::new(rkf);
-    let (t_vec, y_vec) = basic_ode_solver.solve(
-        &Test,
-        (0f64, 10f64),
-        0.01,
-    )?;
+    let (t_vec, y_vec) = basic_ode_solver.solve(&Test, (0f64, 10f64), 0.01)?;
     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
     #[cfg(feature = "plot")]
     {
         let mut plt = Plot2D::new();
-        plt
-            .set_domain(t_vec)
+        plt.set_domain(t_vec)
             .insert_image(y_vec)
             .set_xlabel(r"$t$")
             .set_ylabel(r"$y$")

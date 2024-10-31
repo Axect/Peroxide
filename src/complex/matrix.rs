@@ -11,16 +11,16 @@ use peroxide_num::{ExpLogOps, PowOps, TrigOps};
 use rand_distr::num_traits::{One, Zero};
 
 use crate::{
+    complex::C64,
     structure::matrix::Shape,
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    traits::matrix::{MatrixTrait, LinearAlgebra, Form, SolveKind, PQLU, WAZD, QR, SVD},
+    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
     traits::mutable::MutMatrix,
     util::low_level::{copy_vec_ptr, swap_vec_ptr},
     util::non_macro::ConcatenateError,
     util::useful::{nearly_eq, tab},
-    complex::C64,
 };
 
 /// R-like complex matrix structure
@@ -79,10 +79,7 @@ where
     T: Into<C64>,
 {
     ComplexMatrix {
-        data: v
-            .into_iter()
-            .map(|t| t.into())
-            .collect::<Vec<C64>>(),
+        data: v.into_iter().map(|t| t.into()).collect::<Vec<C64>>(),
         row: r,
         col: c,
         shape,
@@ -1115,10 +1112,7 @@ impl Neg for ComplexMatrix {
 
     fn neg(self) -> Self {
         cmatrix(
-            self.data
-                .into_iter()
-                .map(|x: C64| -x)
-                .collect::<Vec<C64>>(),
+            self.data.into_iter().map(|x: C64| -x).collect::<Vec<C64>>(),
             self.row,
             self.col,
             self.shape,
@@ -1522,11 +1516,7 @@ impl FPMatrix for ComplexMatrix {
     where
         F: Fn(C64) -> C64,
     {
-        let result = self
-            .data
-            .iter()
-            .map(|x| f(*x))
-            .collect::<Vec<C64>>();
+        let result = self.data.iter().map(|x| f(*x)).collect::<Vec<C64>>();
         cmatrix(result, self.row, self.col, self.shape)
     }
 
@@ -1908,14 +1898,22 @@ impl LinearAlgebra<ComplexMatrix> for ComplexMatrix {
         unimplemented!()
     }
 
-    fn qr(&self) -> QR<ComplexMatrix> { unimplemented!() }
+    fn qr(&self) -> QR<ComplexMatrix> {
+        unimplemented!()
+    }
 
-    fn svd(&self) -> SVD<ComplexMatrix> { unimplemented!() }
+    fn svd(&self) -> SVD<ComplexMatrix> {
+        unimplemented!()
+    }
 
     #[cfg(feature = "O3")]
-    fn cholesky(&self, uplo: UPLO) -> ComplexMatrix { unimplemented!() }
+    fn cholesky(&self, uplo: UPLO) -> ComplexMatrix {
+        unimplemented!()
+    }
 
-    fn rref(&self) -> ComplexMatrix { unimplemented!() }
+    fn rref(&self) -> ComplexMatrix {
+        unimplemented!()
+    }
 
     /// Determinant
     ///
@@ -2481,13 +2479,7 @@ pub fn cmatmul(a: &ComplexMatrix, b: &ComplexMatrix) -> ComplexMatrix {
 ///     cgemm(C64::new(1.0, 1.0), &a, &b, C64::new(0.0, 0.0), &mut c1);
 ///     assert_eq!(c1, mul_val);
 /// }
-pub fn cgemm(
-    alpha: C64,
-    a: &ComplexMatrix,
-    b: &ComplexMatrix,
-    beta: C64,
-    c: &mut ComplexMatrix,
-) {
+pub fn cgemm(alpha: C64, a: &ComplexMatrix, b: &ComplexMatrix, beta: C64, c: &mut ComplexMatrix) {
     let m = a.row;
     let k = a.col;
     let n = b.col;
@@ -2528,13 +2520,7 @@ pub fn cgemm(
 }
 
 /// General Matrix-Vector multiplication
-pub fn cgemv(
-    alpha: C64,
-    a: &ComplexMatrix,
-    b: &Vec<C64>,
-    beta: C64,
-    c: &mut Vec<C64>,
-) {
+pub fn cgemv(alpha: C64, a: &ComplexMatrix, b: &Vec<C64>, beta: C64, c: &mut Vec<C64>) {
     let m = a.row;
     let k = a.col;
     let n = 1usize;
@@ -2569,13 +2555,7 @@ pub fn cgemv(
 }
 
 /// General Vector-Matrix multiplication
-pub fn complex_gevm(
-    alpha: C64,
-    a: &Vec<C64>,
-    b: &ComplexMatrix,
-    beta: C64,
-    c: &mut Vec<C64>,
-) {
+pub fn complex_gevm(alpha: C64, a: &Vec<C64>, b: &ComplexMatrix, beta: C64, c: &mut Vec<C64>) {
     let m = 1usize;
     let k = a.len();
     let n = b.col;
