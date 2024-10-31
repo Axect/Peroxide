@@ -6,8 +6,8 @@ use crate::util::useful::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use peroxide_num::PowOps;
 use crate::traits::fp::FPVector;
+use peroxide_num::PowOps;
 use std::cmp::{max, min};
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
@@ -51,7 +51,7 @@ impl fmt::Display for Polynomial {
             let coef_0 = self.coef[1];
 
             if coef_1 == 1. {
-                result.push_str("x");
+                result.push('x');
             } else if coef_1 == -1. {
                 result.push_str("-x");
             } else {
@@ -303,7 +303,7 @@ where
     type Output = Self;
     fn add(self, other: T) -> Self {
         let mut new_coef = self.coef.clone();
-        new_coef[self.coef.len()-1] += other.into();
+        new_coef[self.coef.len() - 1] += other.into();
         Self::new(new_coef)
     }
 }
@@ -322,7 +322,7 @@ where
     type Output = Self;
     fn sub(self, other: T) -> Self {
         let mut new_coef = self.coef.clone();
-        new_coef[self.coef.len()-1] -= other.into();
+        new_coef[self.coef.len() - 1] -= other.into();
         Self::new(new_coef)
     }
 }
@@ -555,7 +555,7 @@ pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
             let fixed_val = node_x[i];
             let prod = node_y[i];
             let mut id = poly(vec![1f64]);
-    
+
             for j in 0..l {
                 if j == i {
                     continue;
@@ -594,7 +594,7 @@ pub fn legendre_polynomial(n: usize) -> Polynomial {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpecialKind {
     First,
-    Second
+    Second,
 }
 
 /// Chebyshev Polynomial
@@ -609,7 +609,7 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
         0 => prev,
         1 => curr,
         _ => {
-            for _i in 1 .. n {
+            for _i in 1..n {
                 std::mem::swap(&mut prev, &mut curr);
                 curr = poly(vec![2f64, 0f64]) * prev.clone() - curr;
             }
@@ -624,17 +624,17 @@ pub fn chebyshev_polynomial(n: usize, kind: SpecialKind) -> Polynomial {
 /// Generate `n`-th order Hermite polynomial. The physics convention
 /// H_n(x) = (-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2} is used.
 pub fn hermite_polynomial(n: usize) -> Polynomial {
-    let mut prev = Polynomial::new(vec![1f64]);         // 1
-    let mut curr = Polynomial::new(vec![2f64, 0f64]);   // 2x
+    let mut prev = Polynomial::new(vec![1f64]); // 1
+    let mut curr = Polynomial::new(vec![2f64, 0f64]); // 2x
 
     match n {
         0 => prev,
         1 => curr,
         _ => {
-            for idx in 1 .. n {
+            for idx in 1..n {
                 let k = idx as f64;
                 std::mem::swap(&mut prev, &mut curr);
-                curr = poly(vec![2f64, 0f64]) * prev.clone() - 2.0*k*curr;
+                curr = poly(vec![2f64, 0f64]) * prev.clone() - 2.0 * k * curr;
             }
             curr
         }
@@ -647,17 +647,17 @@ pub fn hermite_polynomial(n: usize) -> Polynomial {
 /// Generate `n`-th order Bessel polynomial. Definition according to
 /// Krall and Fink (1949).
 pub fn bessel_polynomial(n: usize) -> Polynomial {
-    let mut prev = Polynomial::new(vec![1f64]);         // 1
-    let mut curr = Polynomial::new(vec![1f64, 1f64]);   // x + 1
+    let mut prev = Polynomial::new(vec![1f64]); // 1
+    let mut curr = Polynomial::new(vec![1f64, 1f64]); // x + 1
 
     match n {
         0 => prev,
         1 => curr,
         _ => {
-            for idx in 1 .. n {
+            for idx in 1..n {
                 let k = idx as f64;
                 std::mem::swap(&mut prev, &mut curr);
-                curr = (2.0*k+1.0) * poly(vec![1f64, 0f64]) * prev.clone() + curr;
+                curr = (2.0 * k + 1.0) * poly(vec![1f64, 0f64]) * prev.clone() + curr;
             }
             curr
         }

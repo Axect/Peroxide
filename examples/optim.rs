@@ -21,20 +21,17 @@ fn main() {
 
     // Optimizer setting
     let mut opt = Optimizer::new(data, quad);
-    let p = opt.set_init_param(n_init)
+    let p = opt
+        .set_init_param(n_init)
         .set_max_iter(50)
         .set_method(LevenbergMarquardt)
         .optimize();
-    p.print();                  // Optimized parameter
-    opt.get_error().print();    // Optimized RMSE
+    p.print(); // Optimized parameter
+    opt.get_error().print(); // Optimized RMSE
 }
 
 fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
-    Some(
-        x.clone().into_iter()
-            .map(|t| pow_temp(t, n[0]))
-            .collect()
-    )
+    Some(x.clone().into_iter().map(|t| pow_temp(t, n[0])).collect())
 }
 
 #[inline]

@@ -105,17 +105,12 @@
 //! ```
 //!
 
-use peroxide_num::{ExpLogOps, PowOps, TrigOps};
-use crate::statistics::ops::C;
-use crate::traits::{
-    stable::StableFn,
-    fp::FPVector,
-    math::Vector,
-    sugar::VecOps,
-};
-use std::iter::{FromIterator, DoubleEndedIterator, ExactSizeIterator};
-use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 use self::AD::{AD0, AD1, AD2};
+use crate::statistics::ops::C;
+use crate::traits::{fp::FPVector, math::Vector, stable::StableFn, sugar::VecOps};
+use peroxide_num::{ExpLogOps, PowOps, TrigOps};
+use std::iter::{DoubleEndedIterator, ExactSizeIterator, FromIterator};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum AD {
@@ -197,8 +192,8 @@ impl AD {
     pub fn empty(&self) -> Self {
         match self {
             AD0(_) => AD0(0f64),
-            AD1(_,_) => AD1(0f64, 0f64),
-            AD2(_,_,_) => AD2(0f64, 0f64, 0f64),
+            AD1(_, _) => AD1(0f64, 0f64),
+            AD2(_, _, _) => AD2(0f64, 0f64, 0f64),
         }
     }
 
@@ -231,10 +226,10 @@ impl AD {
     pub fn set_ddx(&mut self, ddx: f64) {
         match self {
             AD0(_) => panic!("Can't set ddx for AD0"),
-            AD1(_,_) => panic!("Can't set ddx for AD1"),
-            AD2(_,_,ddt) => {
+            AD1(_, _) => panic!("Can't set ddx for AD1"),
+            AD2(_, _, ddt) => {
                 *ddt = ddx;
-            } 
+            }
         }
     }
 
@@ -314,8 +309,8 @@ impl AD {
     unsafe fn x_ptr(&self) -> Option<*const f64> {
         match self {
             AD0(x) => Some(x),
-            AD1(x,_) => Some(x),
-            AD2(x,_,_) => Some(x),
+            AD1(x, _) => Some(x),
+            AD2(x, _, _) => Some(x),
         }
     }
 
@@ -323,8 +318,8 @@ impl AD {
     unsafe fn dx_ptr(&self) -> Option<*const f64> {
         match self {
             AD0(_) => None,
-            AD1(_,dx) => Some(dx),
-            AD2(_,dx,_) => Some(dx),
+            AD1(_, dx) => Some(dx),
+            AD2(_, dx, _) => Some(dx),
         }
     }
 
@@ -332,32 +327,32 @@ impl AD {
     unsafe fn ddx_ptr(&self) -> Option<*const f64> {
         match self {
             AD0(_) => None,
-            AD1(_,_) => None,
-            AD2(_,_,ddx) => Some(ddx),
+            AD1(_, _) => None,
+            AD2(_, _, ddx) => Some(ddx),
         }
     }
 
     unsafe fn x_mut_ptr(&mut self) -> Option<*mut f64> {
         match self {
             AD0(x) => Some(&mut *x),
-            AD1(x,_) => Some(&mut *x),
-            AD2(x,_,_) => Some(&mut *x),
+            AD1(x, _) => Some(&mut *x),
+            AD2(x, _, _) => Some(&mut *x),
         }
     }
 
     unsafe fn dx_mut_ptr(&mut self) -> Option<*mut f64> {
         match self {
             AD0(_) => None,
-            AD1(_,dx) => Some(&mut *dx),
-            AD2(_,dx,_) => Some(&mut *dx),
+            AD1(_, dx) => Some(&mut *dx),
+            AD2(_, dx, _) => Some(&mut *dx),
         }
     }
 
     unsafe fn ddx_mut_ptr(&mut self) -> Option<*mut f64> {
         match self {
             AD0(_) => None,
-            AD1(_,_) => None,
-            AD2(_,_,ddx) => Some(&mut *ddx),
+            AD1(_, _) => None,
+            AD2(_, _, ddx) => Some(&mut *ddx),
         }
     }
 }
@@ -513,7 +508,7 @@ impl<'a> Iterator for ADIterMut<'a> {
         let l = self.ad.len();
         if self.index + self.r_index < l {
             unsafe {
-                let result= match self.index {
+                let result = match self.index {
                     0 => self.ad.x_mut_ptr(),
                     1 => self.ad.dx_mut_ptr(),
                     2 => self.ad.ddx_mut_ptr(),
@@ -522,7 +517,7 @@ impl<'a> Iterator for ADIterMut<'a> {
                 self.index += 1;
                 match result {
                     None => None,
-                    Some(ad) => Some(&mut *ad)
+                    Some(ad) => Some(&mut *ad),
                 }
             }
         } else {
@@ -622,10 +617,7 @@ impl Add<AD> for AD {
         let ord = self.order().max(rhs.order());
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
-        a.into_iter()
-            .zip(b)
-            .map(|(x, y)| x + y)
-            .collect()
+        a.into_iter().zip(b).map(|(x, y)| x + y).collect()
     }
 }
 
@@ -636,10 +628,7 @@ impl Sub<AD> for AD {
         let ord = self.order().max(rhs.order());
         let (a, b) = (self.to_order(ord), rhs.to_order(ord));
 
-        a.into_iter()
-            .zip(b)
-            .map(|(x, y)| x - y)
-            .collect()
+        a.into_iter().zip(b).map(|(x, y)| x - y).collect()
     }
 }
 
@@ -673,10 +662,16 @@ impl Div<AD> for AD {
         let mut z = a;
         z[0] = a[0] / b[0];
         let y0 = 1f64 / b[0];
-        for i in 1 .. z.len() {
+        for i in 1..z.len() {
             let mut s = 0f64;
-            for (j, (&y1, &z1)) in b.iter().skip(1).take(i).zip(z.iter().take(i).rev()).enumerate() {
-                s += (C(i, j+1) as f64) * y1 * z1;
+            for (j, (&y1, &z1)) in b
+                .iter()
+                .skip(1)
+                .take(i)
+                .zip(z.iter().take(i).rev())
+                .enumerate()
+            {
+                s += (C(i, j + 1) as f64) * y1 * z1;
             }
             z[i] = y0 * (a[i] - s);
         }
@@ -690,12 +685,15 @@ impl ExpLogOps for AD {
     fn exp(&self) -> Self {
         let mut z = self.empty();
         z[0] = self[0].exp();
-        for i in 1 .. z.len() {
-            z[i] = z.iter()
+        for i in 1..z.len() {
+            z[i] = z
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&z1, &x1))| x + (C(i-1, k) as f64) * x1 * z1);
+                .fold(0f64, |x, (k, (&z1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * z1
+                });
         }
         z
     }
@@ -704,10 +702,16 @@ impl ExpLogOps for AD {
         let mut z = self.empty();
         z[0] = self[0].ln();
         let x0 = 1f64 / self[0];
-        for i in 1 .. z.len() {
+        for i in 1..z.len() {
             let mut s = 0f64;
-            for (k, (&z1, &x1)) in z.iter().skip(1).take(i-1).zip(self.iter().skip(1).take(i-1).rev()).enumerate() {
-                s += (C(i-1, k+1) as f64) * z1 * x1;
+            for (k, (&z1, &x1)) in z
+                .iter()
+                .skip(1)
+                .take(i - 1)
+                .zip(self.iter().skip(1).take(i - 1).rev())
+                .enumerate()
+            {
+                s += (C(i - 1, k + 1) as f64) * z1 * x1;
             }
             z[i] = x0 * (self[i] - s);
         }
@@ -732,7 +736,7 @@ impl PowOps for AD {
 
     fn powi(&self, n: i32) -> Self {
         let mut z = *self;
-        for _i in 1 .. n {
+        for _i in 1..n {
             z = z * *self;
         }
         z
@@ -742,10 +746,16 @@ impl PowOps for AD {
         let ln_x = self.ln();
         let mut z = self.empty();
         z[0] = self.x().powf(f);
-        for i in 1 .. z.len() {
+        for i in 1..z.len() {
             let mut s = 0f64;
-            for (j, (&z1, &ln_x1)) in z.iter().skip(1).take(i-1).zip(ln_x.iter().skip(1).take(i-1).rev()).enumerate() {
-                s += (C(i-1, j+1) as f64) * z1 * ln_x1;
+            for (j, (&z1, &ln_x1)) in z
+                .iter()
+                .skip(1)
+                .take(i - 1)
+                .zip(ln_x.iter().skip(1).take(i - 1).rev())
+                .enumerate()
+            {
+                s += (C(i - 1, j + 1) as f64) * z1 * ln_x1;
             }
             z[i] = f * (z[0] * ln_x[i] + s);
         }
@@ -757,10 +767,16 @@ impl PowOps for AD {
         let p = y * ln_x;
         let mut z = self.empty();
         z[0] = self.x().powf(y.x());
-        for n in 1 .. z.len() {
+        for n in 1..z.len() {
             let mut s = 0f64;
-            for (k, (&z1, &p1)) in z.iter().skip(1).take(n-1).zip(p.iter().skip(1).take(n-1).rev()).enumerate() {
-                s += (C(n-1, k+1) as f64) * z1 * p1; 
+            for (k, (&z1, &p1)) in z
+                .iter()
+                .skip(1)
+                .take(n - 1)
+                .zip(p.iter().skip(1).take(n - 1).rev())
+                .enumerate()
+            {
+                s += (C(n - 1, k + 1) as f64) * z1 * p1;
             }
             z[n] = z[0] * p[n] + s;
         }
@@ -778,17 +794,23 @@ impl TrigOps for AD {
         let mut v = self.empty();
         u[0] = self[0].sin();
         v[0] = self[0].cos();
-        for i in 1 .. u.len() {
-            u[i] = v.iter()
+        for i in 1..u.len() {
+            u[i] = v
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
-            v[i] = u.iter()
+                .fold(0f64, |x, (k, (&v1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * v1
+                });
+            v[i] = u
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                .fold(0f64, |x, (k, (&u1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * u1
+                });
         }
         (u, v)
     }
@@ -803,17 +825,23 @@ impl TrigOps for AD {
         let mut v = self.empty();
         u[0] = self[0].sinh();
         v[0] = self[0].cosh();
-        for i in 1 .. u.len() {
-            u[i] = v.iter()
+        for i in 1..u.len() {
+            u[i] = v
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
-            v[i] = u.iter()
+                .fold(0f64, |x, (k, (&v1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * v1
+                });
+            v[i] = u
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                .fold(0f64, |x, (k, (&u1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * u1
+                });
         }
         u
     }
@@ -823,17 +851,23 @@ impl TrigOps for AD {
         let mut v = self.empty();
         u[0] = self[0].sinh();
         v[0] = self[0].cosh();
-        for i in 1 .. u.len() {
-            u[i] = v.iter()
+        for i in 1..u.len() {
+            u[i] = v
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
-            v[i] = u.iter()
+                .fold(0f64, |x, (k, (&v1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * v1
+                });
+            v[i] = u
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                .fold(0f64, |x, (k, (&u1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * u1
+                });
         }
         v
     }
@@ -843,17 +877,23 @@ impl TrigOps for AD {
         let mut v = self.empty();
         u[0] = self[0].sinh();
         v[0] = self[0].cosh();
-        for i in 1 .. u.len() {
-            u[i] = v.iter()
+        for i in 1..u.len() {
+            u[i] = v
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| x + (C(i-1, k) as f64) * x1 * v1);
-            v[i] = u.iter()
+                .fold(0f64, |x, (k, (&v1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * v1
+                });
+            v[i] = u
+                .iter()
                 .take(i)
                 .zip(self.iter().skip(1).take(i).rev())
                 .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| x + (C(i-1, k) as f64) * x1 * u1);
+                .fold(0f64, |x, (k, (&u1, &x1))| {
+                    x + (C(i - 1, k) as f64) * x1 * u1
+                });
         }
         u / v
     }
@@ -862,12 +902,15 @@ impl TrigOps for AD {
         let dx = 1f64 / (1f64 - self.powi(2)).sqrt();
         let mut z = self.empty();
         z[0] = self[0].asin();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -876,12 +919,15 @@ impl TrigOps for AD {
         let dx = (-1f64) / (1f64 - self.powi(2)).sqrt();
         let mut z = self.empty();
         z[0] = self[0].acos();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -890,12 +936,15 @@ impl TrigOps for AD {
         let dx = 1f64 / (1f64 + self.powi(2));
         let mut z = self.empty();
         z[0] = self[0].atan();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -904,12 +953,15 @@ impl TrigOps for AD {
         let dx = 1f64 / (1f64 + self.powi(2)).sqrt();
         let mut z = self.empty();
         z[0] = self[0].asinh();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -918,12 +970,15 @@ impl TrigOps for AD {
         let dx = 1f64 / (self.powi(2) - 1f64).sqrt();
         let mut z = self.empty();
         z[0] = self[0].acosh();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -932,12 +987,15 @@ impl TrigOps for AD {
         let dx = 1f64 / (1f64 - self.powi(2));
         let mut z = self.empty();
         z[0] = self[0].atanh();
-        for n in 1 .. z.len() {
-            z[n] = dx.iter()
+        for n in 1..z.len() {
+            z[n] = dx
+                .iter()
                 .take(n)
                 .zip(self.iter().skip(1).take(n).rev())
                 .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| s + (C(n-1, k) as f64) * x1 * q1);
+                .fold(0f64, |s, (k, (&q1, &x1))| {
+                    s + (C(n - 1, k) as f64) * x1 * q1
+                });
         }
         z
     }
@@ -1237,7 +1295,10 @@ impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
 impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<f64>> for ADFn<F> {
     type Output = Vec<f64>;
     fn call_stable(&self, target: Vec<f64>) -> Self::Output {
-        ((self.f)(target.iter().map(|&t| AD::from(t)).collect())).iter().map(|&t| t.x()).collect()
+        ((self.f)(target.iter().map(|&t| AD::from(t)).collect()))
+            .iter()
+            .map(|&t| t.x())
+            .collect()
     }
 }
 
@@ -1251,7 +1312,10 @@ impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<AD>> for ADFn<F> {
 impl<'a, F: Fn(&Vec<AD>) -> Vec<AD>> StableFn<&'a Vec<f64>> for ADFn<F> {
     type Output = Vec<f64>;
     fn call_stable(&self, target: &'a Vec<f64>) -> Self::Output {
-        ((self.f)(&target.iter().map(|&t| AD::from(t)).collect())).iter().map(|&t| t.x()).collect()
+        ((self.f)(&target.iter().map(|&t| AD::from(t)).collect()))
+            .iter()
+            .map(|&t| t.x())
+            .collect()
     }
 }
 
@@ -1300,26 +1364,33 @@ impl FPVector for Vec<AD> {
 
     fn fmap<F>(&self, f: F) -> Self
     where
-            F: Fn(Self::Scalar) -> Self::Scalar {
+        F: Fn(Self::Scalar) -> Self::Scalar,
+    {
         self.iter().map(|&x| f(x)).collect()
     }
 
     fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
     where
-            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
-            T: Into<Self::Scalar> {
-        self.iter().fold(init.into(), |x, &y| f(x,y))
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+        T: Into<Self::Scalar>,
+    {
+        self.iter().fold(init.into(), |x, &y| f(x, y))
     }
 
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
     where
-            F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar {
-        self.iter().zip(other.iter()).map(|(&x, &y)| f(x, y)).collect()
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    {
+        self.iter()
+            .zip(other.iter())
+            .map(|(&x, &y)| f(x, y))
+            .collect()
     }
 
     fn filter<F>(&self, f: F) -> Self
     where
-            F: Fn(Self::Scalar) -> bool {
+        F: Fn(Self::Scalar) -> bool,
+    {
         self.iter().filter(|&x| f(*x)).cloned().collect()
     }
 

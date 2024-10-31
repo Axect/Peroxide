@@ -151,7 +151,7 @@ use std::fmt;
 use self::QType::*;
 //use crate::structure::dataframe::*;
 use crate::structure::matrix::*;
-use crate::traits::matrix::{MatrixTrait, LinearAlgebra};
+use crate::traits::matrix::{LinearAlgebra, MatrixTrait};
 use order_stat::kth_by;
 
 /// Statistics Trait
@@ -668,7 +668,7 @@ pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
 // Confusion Matrix
 // =============================================================================
 /// Confusion Matrix
-/// 
+///
 /// * `TP` : True Positive
 /// * `TN` : True Negative
 /// * `FP` : False Positive
@@ -716,7 +716,7 @@ pub struct ConfusionMatrix {
 
 impl ConfusionMatrix {
     /// Create Confusion Matrix
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use peroxide::fuga::*;
@@ -753,12 +753,7 @@ impl ConfusionMatrix {
             }
         }
 
-        Self {
-            TP,
-            TN,
-            FP,
-            FN,
-        }
+        Self { TP, TN, FP, FN }
     }
 
     /// Condition Positive
@@ -906,10 +901,10 @@ impl ConfusionMatrix {
     /// To Matrix
     pub fn to_matrix(&self) -> Matrix {
         let mut m = matrix(vec![0f64; 4], 2, 2, Row);
-        m[(0,0)] = self.TP as f64;
-        m[(0,1)] = self.FP as f64;
-        m[(1,0)] = self.FN as f64;
-        m[(1,1)] = self.TN as f64;
+        m[(0, 0)] = self.TP as f64;
+        m[(0, 1)] = self.FP as f64;
+        m[(1, 0)] = self.FN as f64;
+        m[(1, 1)] = self.TN as f64;
         m
     }
 

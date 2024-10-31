@@ -1,12 +1,21 @@
-use peroxide::fuga::*;
 use anyhow::Result;
+use peroxide::fuga::*;
 
 #[test]
 fn test_cubic_root() -> Result<()> {
     let problem = Cubic;
-    let bisect = BisectionMethod { max_iter: 100, tol: 1e-6 };
-    let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
-    let false_pos = FalsePositionMethod { max_iter: 100, tol: 1e-6 };
+    let bisect = BisectionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let newton = NewtonMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let false_pos = FalsePositionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
     let root_bisect = bisect.find(&problem)?;
     let root_newton = newton.find(&problem)?;
     let root_false_pos = false_pos.find(&problem)?;
@@ -54,9 +63,18 @@ impl RootFindingProblem<1, 1, f64> for Cubic {
 #[test]
 fn test_sine_root() -> Result<()> {
     let problem = Sine;
-    let bisect = BisectionMethod { max_iter: 100, tol: 1e-6 };
-    let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
-    let false_pos = FalsePositionMethod { max_iter: 100, tol: 1e-6 };
+    let bisect = BisectionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let newton = NewtonMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
+    let false_pos = FalsePositionMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
     let root_bisect = bisect.find(&problem)?;
     let root_newton = newton.find(&problem)?;
     let root_false_pos = false_pos.find(&problem)?;
@@ -104,7 +122,10 @@ impl RootFindingProblem<1, 1, f64> for Sine {
 #[test]
 fn test_cosine_root() -> Result<()> {
     let problem = Cosine;
-    let newton = NewtonMethod { max_iter: 100, tol: 1e-6 };
+    let newton = NewtonMethod {
+        max_iter: 100,
+        tol: 1e-6,
+    };
     let root_newton = match newton.find(&problem) {
         Ok(x) => x,
         Err(e) => {

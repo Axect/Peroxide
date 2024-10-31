@@ -1,4 +1,4 @@
-use peroxide::fuga::{*, LambertWAccuracyMode::*};
+use peroxide::fuga::{LambertWAccuracyMode::*, *};
 
 #[test]
 fn lambert_w_test() {

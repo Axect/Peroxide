@@ -3,7 +3,7 @@ extern crate peroxide;
 use peroxide::fuga::*;
 
 fn main() {
-    let x = c!(1,2,3,4);
+    let x = c!(1, 2, 3, 4);
     let a = Series::new(x);
     a.print();
     println!("");
@@ -19,7 +19,7 @@ fn main() {
     df.print();
     println!("");
 
-    df["1"] = Series::new(c!(5,6,7,8));
+    df["1"] = Series::new(c!(5, 6, 7, 8));
 
     df.print();
     println!("");

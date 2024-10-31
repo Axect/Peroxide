@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate peroxide;
-use peroxide::fuga::*;
 use anyhow::Result;
+use peroxide::fuga::*;
 
 fn main() -> Result<()> {
     let root_bisect = bisection!(f, (0.0, 2.0), 100, 1e-6)?;
