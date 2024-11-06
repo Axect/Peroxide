@@ -105,6 +105,13 @@ pub enum SolveKind {
     WAZ,
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum UPLO {
+    Upper,
+    Lower,
+}
+
 impl<M: MatrixTrait> QR<M> {
     pub fn q(&self) -> &M {
         &self.q
