@@ -1,4 +1,8 @@
-# Release 0.38.0
+# Release 0.38.1 (2024-11-06)
+
+- Fix error in `O3` feature
+
+# Release 0.38.0 (Yanked)
 
 ## New features - Complex & Parallel
 
