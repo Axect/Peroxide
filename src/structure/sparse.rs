@@ -4,10 +4,9 @@
 
 use crate::structure::matrix::Matrix;
 use crate::traits::math::LinearOp;
-use crate::traits::matrix::{Form, LinearAlgebra, SolveKind, PQLU, QR, SVD, WAZD};
+#[allow(unused_imports)]
+use crate::traits::matrix::{Form, LinearAlgebra, SolveKind, PQLU, QR, SVD, WAZD, UPLO};
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
-#[cfg(feature = "O3")]
-use crate::fuga::UPLO;
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
 

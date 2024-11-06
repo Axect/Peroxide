@@ -624,9 +624,10 @@ use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
+    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD, UPLO},
     mutable::MutMatrix,
 };
+#[allow(unused_imports)]
 use crate::util::{
     low_level::{copy_vec_ptr, swap_vec_ptr},
     non_macro::{cbind, eye, rbind, zeros},
@@ -3538,6 +3539,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                     Some(dgrf) => match dgrf.status {
                         LAPACK_STATUS::Singular => panic!("Try solve for Singluar matrix"),
                         LAPACK_STATUS::NonSingular => {
+                            let b = b.to_vec();
                             lapack_dgetrs(&dgrf, &(b.into())).unwrap().into()
                         }
                     },
@@ -4236,13 +4238,6 @@ pub enum SVD_STATUS {
 pub enum POSITIVE_STATUS {
     Success,
     Failed(i32),
-}
-
-#[allow(non_camel_case_types)]
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum UPLO {
-    Upper,
-    Lower,
 }
 
 /// Temporary data structure from `dgetrf`

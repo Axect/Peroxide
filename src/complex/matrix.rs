@@ -16,7 +16,7 @@ use crate::{
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
+    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD, UPLO},
     traits::mutable::MutMatrix,
     util::low_level::{copy_vec_ptr, swap_vec_ptr},
     util::non_macro::ConcatenateError,
@@ -879,7 +879,6 @@ pub fn complex_cbind(m1: ComplexMatrix, m2: ComplexMatrix) -> Result<ComplexMatr
 }
 
 /// R like rbind - concatenate two complex matrix by row direction
-/// ```
 pub fn complex_rbind(m1: ComplexMatrix, m2: ComplexMatrix) -> Result<ComplexMatrix> {
     let mut temp = m1;
     if temp.shape != Shape::Row {

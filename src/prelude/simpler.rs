@@ -11,7 +11,8 @@ use crate::structure::dataframe::{DataFrame, WithParquet};
 use crate::structure::matrix::Matrix;
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
-use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, WAZD};
+#[allow(unused_imports)]
+use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, WAZD, UPLO};
 #[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
 #[cfg(feature = "parquet")]
