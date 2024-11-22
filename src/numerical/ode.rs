@@ -48,10 +48,12 @@
 //!         max_step_iter: 100,
 //!     };
 //!     let basic_ode_solver = BasicODESolver::new(rkf);
+//!     let initial_conditions = vec![1f64];
 //!     let (t_vec, y_vec) = basic_ode_solver.solve(
 //!         &Test,
 //!         (0f64, 10f64),
 //!         0.01,
+//!         &initial_conditions,
 //!     )?;
 //!     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 //!     println!("{}", y_vec.len());
@@ -77,10 +79,6 @@
 //! struct Test;
 //!
 //! impl ODEProblem for Test {
-//!     fn initial_conditions(&self) -> Vec<f64> {
-//!         vec![1f64]
-//!     }
-//!
 //!     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 //!         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
 //!     }
@@ -101,10 +99,6 @@ use anyhow::{bail, Result};
 /// struct MyODEProblem;
 ///
 /// impl ODEProblem for MyODEProblem {
-///     fn initial_conditions(&self) -> Vec<f64> {
-///         vec![1.0, 2.0]
-///     }
-///
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         dy[0] = -0.5 * y[0];
 ///         dy[1] = y[0] - y[1];
@@ -113,7 +107,6 @@ use anyhow::{bail, Result};
 /// }
 /// ```
 pub trait ODEProblem {
-    fn initial_conditions(&self) -> Vec<f64>;
     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> Result<()>;
 }
 
@@ -143,7 +136,6 @@ pub trait ODEIntegrator {
 /// }
 ///
 /// impl ODEProblem for ConstrainedProblem {
-///     fn initial_conditions(&self) -> Vec<f64> { vec![0.0] } // y_0 = 0
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         if y[0] < self.y_constraint {
 ///             anyhow::bail!(ODEError::ConstraintViolation(t, y.to_vec(), dy.to_vec()));
@@ -182,6 +174,7 @@ pub trait ODESolver {
         problem: &P,
         t_span: (f64, f64),
         dt: f64,
+        initial_conditions: &[f64],
     ) -> Result<(Vec<f64>, Vec<Vec<f64>>)>;
 }
 
@@ -193,12 +186,14 @@ pub trait ODESolver {
 /// use peroxide::fuga::*;
 ///
 /// fn main() -> Result<(), Box<dyn Error>> {
+///     let initial_conditions = vec![1f64];
 ///     let rkf = RKF45::new(1e-4, 0.9, 1e-6, 1e-1, 100);
 ///     let basic_ode_solver = BasicODESolver::new(rkf);
 ///     let (t_vec, y_vec) = basic_ode_solver.solve(
 ///         &Test,
 ///         (0f64, 10f64),
 ///         0.01,
+///         &initial_conditions,
 ///     )?;
 ///     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 ///
@@ -208,10 +203,6 @@ pub trait ODESolver {
 /// struct Test;
 ///
 /// impl ODEProblem for Test {
-///     fn initial_conditions(&self) -> Vec<f64> {
-///         vec![1f64]
-///     }
-///
 ///     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
 ///         dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp();
 ///         Ok(())
@@ -234,10 +225,11 @@ impl<I: ODEIntegrator> ODESolver for BasicODESolver<I> {
         problem: &P,
         t_span: (f64, f64),
         dt: f64,
+        initial_conditions: &[f64],
     ) -> Result<(Vec<f64>, Vec<Vec<f64>>)> {
         let mut t = t_span.0;
         let mut dt = dt;
-        let mut y = problem.initial_conditions();
+        let mut y = initial_conditions.to_vec();
         let mut t_vec = vec![t];
         let mut y_vec = vec![y.clone()];
 

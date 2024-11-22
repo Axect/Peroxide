@@ -11,9 +11,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let c = cubic_hermite_spline(&t, &y, Quadratic)?;
 
+    let initial_conditions = vec![1f64];
     let test_problem = Test { cs: c };
     let basic_ode_solver = BasicODESolver::new(RK4);
-    let (t_vec, y_vec) = basic_ode_solver.solve(&test_problem, (0f64, 10f64), 0.01)?;
+    let (t_vec, y_vec) =
+        basic_ode_solver.solve(&test_problem, (0f64, 10f64), 0.01, &initial_conditions)?;
     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
     #[cfg(feature = "plot")]
@@ -38,10 +40,6 @@ struct Test {
 }
 
 impl ODEProblem for Test {
-    fn initial_conditions(&self) -> Vec<f64> {
-        vec![1f64]
-    }
-
     fn rhs(&self, t: f64, _y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
         Ok(dy[0] = self.cs.eval(t))
     }
