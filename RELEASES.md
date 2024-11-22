@@ -1,3 +1,8 @@
+# Release 0.39.0 (2024-11-22)
+
+- Decouple `initial_conditions` from `ODEProblem`
+  - Now, we can define `initial_conditions` in solving phase 
+
 # Release 0.38.1 (2024-11-06)
 
 - Fix error in `O3` feature
