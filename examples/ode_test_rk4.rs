@@ -2,8 +2,9 @@ use peroxide::fuga::*;
 
 #[allow(unused_variables)]
 fn main() -> Result<(), Box<dyn Error>> {
+    let initial_conditions = vec![1f64];
     let basic_ode_solver = BasicODESolver::new(RK4);
-    let (t_vec, y_vec) = basic_ode_solver.solve(&Test, (0f64, 10f64), 1e-3)?;
+    let (t_vec, y_vec) = basic_ode_solver.solve(&Test, (0f64, 10f64), 1e-3, &initial_conditions)?;
     let y_vec: Vec<f64> = y_vec.into_iter().flatten().collect();
 
     #[cfg(feature = "plot")]
@@ -26,10 +27,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 struct Test;
 
 impl ODEProblem for Test {
-    fn initial_conditions(&self) -> Vec<f64> {
-        vec![1f64]
-    }
-
     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
         Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
     }
