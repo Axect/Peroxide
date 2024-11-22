@@ -12,7 +12,7 @@ use crate::structure::matrix::Matrix;
 use crate::structure::polynomial;
 use crate::traits::math::{Norm, Normed};
 #[allow(unused_imports)]
-use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, WAZD, UPLO};
+use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, UPLO, WAZD};
 #[cfg(feature = "parquet")]
 use arrow2::io::parquet::write::CompressionOptions;
 #[cfg(feature = "parquet")]

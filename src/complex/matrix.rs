@@ -16,7 +16,7 @@ use crate::{
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD, UPLO},
+    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, UPLO, WAZD},
     traits::mutable::MutMatrix,
     util::low_level::{copy_vec_ptr, swap_vec_ptr},
     util::non_macro::ConcatenateError,
