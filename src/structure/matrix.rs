@@ -624,7 +624,7 @@ use crate::traits::{
     fp::{FPMatrix, FPVector},
     general::Algorithm,
     math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD, UPLO},
+    matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, UPLO, WAZD},
     mutable::MutMatrix,
 };
 #[allow(unused_imports)]

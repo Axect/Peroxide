@@ -5,7 +5,7 @@
 use crate::structure::matrix::Matrix;
 use crate::traits::math::LinearOp;
 #[allow(unused_imports)]
-use crate::traits::matrix::{Form, LinearAlgebra, SolveKind, PQLU, QR, SVD, WAZD, UPLO};
+use crate::traits::matrix::{Form, LinearAlgebra, SolveKind, PQLU, QR, SVD, UPLO, WAZD};
 //use crate::traits::math::{InnerProduct, LinearOp, Norm, Normed, Vector};
 use crate::util::non_macro::zeros;
 use std::ops::Mul;
