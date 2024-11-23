@@ -34,6 +34,7 @@
 //!   - Error
 //!   - Incomplete Gamma
 //!   - Incomplete Beta
+//!   - Lambert W
 //! - Automatic Differentiation
 //!   - [Taylor mode forward AD](structure/ad/index.html)
 //! - Numerical Utils
