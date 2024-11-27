@@ -1,3 +1,7 @@
+# Release 0.39.1 (In progress)
+
+- Add `lambert_w` doc for crate docs [#82](https://github.com/Axect/Peroxide/pull/82) (Thanks to [@JSorngard](https://github.com/JSorngard))
+
 # Release 0.39.0 (2024-11-22)
 
 - Decouple `initial_conditions` from `ODEProblem`
