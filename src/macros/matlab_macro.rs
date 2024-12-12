@@ -102,10 +102,25 @@ macro_rules! eye {
 ///     assert_eq!(a, seq!(1,10,1));
 /// }
 /// ```
+/// ```
+/// #[macro_use]
+/// extern crate peroxide;
+/// use peroxide::fuga::*;
+///
+/// fn main() {
+///     let a = linspace!(10, 1000);
+///     assert_eq!(a, seq!(10,1000,10));
+/// }
+/// ```
 #[macro_export]
 macro_rules! linspace {
     ( $start:expr, $end:expr, $length: expr) => {{
         let step = ($end - $start) as f64 / ($length as f64 - 1f64);
+        seq!($start, $end, step)
+    }};
+
+    ( $start:expr, $end:expr ) => {{
+        let step = ($end - $start) as f64 / (99f64);
         seq!($start, $end, step)
     }};
 }
