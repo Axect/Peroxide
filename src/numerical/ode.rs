@@ -893,7 +893,7 @@ impl ButcherTableau for TSIT45 {
 /// Enum for implicit solvers.
 ///
 /// This enum defines the available implicit solvers for the Gauss-Legendre 4th order integrator.
-/// Currently, only the fixed-point iteration method is implemented.
+/// Currently, there are two options: fixed-point iteration and Broyden's method.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ImplicitSolver {
