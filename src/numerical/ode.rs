@@ -86,6 +86,9 @@
 //! ```
 
 use anyhow::{bail, Result};
+use crate::fuga::ConvToMat;
+use crate::util::non_macro::eye;
+use crate::traits::math::{Norm, Normed, InnerProduct, Vector};
 
 /// Trait for defining an ODE problem.
 ///
@@ -895,7 +898,7 @@ impl ButcherTableau for TSIT45 {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ImplicitSolver {
     FixedPoint,
-    //Broyden,
+    Broyden,
     //TrustRegion(f64, f64),
 }
 
@@ -939,6 +942,7 @@ impl GL4 {
 }
 
 impl ODEIntegrator for GL4 {
+    #[allow(non_snake_case)]
     #[inline]
     fn step<P: ODEProblem>(&self, problem: &P, t: f64, y: &mut [f64], dt: f64) -> Result<f64> {
         let n = y.len();
@@ -983,7 +987,76 @@ impl ODEIntegrator for GL4 {
                         break;
                     }
                 }
-            }
+            },
+            ImplicitSolver::Broyden => {
+                let m = 2 * n;
+                let mut U = vec![0.0; m];
+
+                // Initial Guess via Fixed-Point Iteration
+                {
+                    let mut k1 = vec![0.0; n];
+                    let mut k2 = vec![0.0; n];
+                    let mut y1 = vec![0.0; n];
+                    let mut y2 = vec![0.0; n];
+
+                    y1.copy_from_slice(y);
+                    y2.copy_from_slice(y);
+                    problem.rhs(t + c * dt, &y1, &mut k1)?;
+                    problem.rhs(t + d * dt, &y2, &mut k2)?;
+                    for i in 0 .. n {
+                        U[i] = k1[i];
+                        U[n + i] = k2[i];
+                    }
+                }
+
+                // F_vec = F(U)
+                let mut F_vec = vec![0.0; m];
+                compute_F(problem, t, y, dt, c, d, sqrt3, &U, &mut F_vec)?;
+
+                // Initialize inverse Jacobian matrix
+                let mut J_inv = eye(m);
+
+                // Repeat Broyden's method
+                for _ in 0 .. self.max_step_iter {
+                    // delta = - J_inv * F_vec
+                    let mut delta = (&J_inv * &F_vec).mul_scalar(-1.0);
+
+                    // U <- U + delta
+                    U.iter_mut().zip(delta.iter_mut()).for_each(|(u, d)| *u += *d);
+
+                    let mut F_new = vec![0.0; m];
+                    compute_F(problem, t, y, dt, c, d, sqrt3, &U, &mut F_new)?;
+
+                    // If infinity norm of F_new is less than tol, break
+                    if F_new.norm(Norm::LInf) < self.tol {
+                        break;
+                    }
+
+                    // Residual: delta_F = F_new - F_vec
+                    let delta_F = F_new.sub_vec(&F_vec);
+
+                    // J_inv * delta_F
+                    let J_inv_delta_F = &J_inv * &delta_F;
+                    let denom = delta.dot(&J_inv_delta_F);
+                    if denom.abs() < 1e-12 {
+                        break;
+                    }
+
+                    // Broyden "good" update
+                    // J_inv <- J_inv + ((delta - J_inv * delta_F) * delta^T * J_inv) / denom
+                    let delta_minus_J_inv_delta_F = delta.sub_vec(&J_inv_delta_F).to_col();
+                    let delta_T_J_inv = &delta.to_row() * &J_inv;
+                    let update = (delta_minus_J_inv_delta_F * delta_T_J_inv) / denom;
+                    J_inv = J_inv + update;
+                    F_vec = F_new;
+                }
+
+                // Extract k1 and k2
+                for i in 0 .. n {
+                    k1[i] = U[i];
+                    k2[i] = U[n + i];
+                }
+            },
         }
 
         for i in 0..n {
@@ -992,4 +1065,43 @@ impl ODEIntegrator for GL4 {
 
         Ok(dt)
     }
+}
+
+// Helper function to compute the function F(U) for the implicit solver.
+// y1 = y + dt*(c*k1 + d*k2 - sqrt3/2*(k2-k1))
+// y2 = y + dt*(c*k1 + d*k2 + sqrt3/2*(k2-k1))
+#[allow(non_snake_case)]
+fn compute_F<P: ODEProblem>(
+    problem: &P,
+    t: f64,
+    y: &[f64],
+    dt: f64,
+    c: f64,
+    d: f64,
+    sqrt3: f64,
+    U: &[f64],
+    F: &mut [f64],
+) -> Result<()> {
+    let n = y.len();
+    let mut y1 = vec![0.0; n];
+    let mut y2 = vec![0.0; n];
+
+    for i in 0..n {
+        let k1 = U[i];
+        let k2 = U[n + i];
+        y1[i] = y[i] + dt * (c * k1 + d * k2 - sqrt3 * (k2 - k1) / 2.0);
+        y2[i] = y[i] + dt * (c * k1 + d * k2 + sqrt3 * (k2 - k1) / 2.0);
+    }
+
+    let mut f1 = vec![0.0; n];
+    let mut f2 = vec![0.0; n];
+    problem.rhs(t + c * dt, &y1, &mut f1)?;
+    problem.rhs(t + d * dt, &y2, &mut f2)?;
+
+    // F = [ k1 - f1, k2 - f2 ]
+    for i in 0..n {
+        F[i] = U[i] - f1[i];
+        F[n + i] = U[n + i] - f2[i];
+    }
+    Ok(())
 }
