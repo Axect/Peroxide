@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.39.0"
+version = "0.39.1"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -14,7 +14,7 @@ exclude = [
   "example_data/",
   "src/bin/",
   "benches/",
-  "example/",
+  "examples/",
   "test_data/",
   "peroxide-ad2",
 ]

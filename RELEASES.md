@@ -1,4 +1,14 @@
-# Release 0.39.0 (2024-11-22)
+# Release 0.39.1 (2025-02-06)
+
+- Add `lambert_w` doc for crate docs [#82](https://github.com/Axect/Peroxide/pull/82) (Thanks to [@JSorngard](https://github.com/JSorngard))
+
+- Add default signature for `linspace!` [#85](https://github.com/Axect/Peroxide/pull/85) (Thanks to [@tarolling](https://github.com/tarolling))
+
+- Fix a bug in `ButcherTableau::step`
+
+- Add another example for ODE (`examples/ode_test_orbit.rs`)
+
+# Release 0.39.0 (2024-11-22) (Yanked)
 
 - Decouple `initial_conditions` from `ODEProblem`
   - Now, we can define `initial_conditions` in solving phase 

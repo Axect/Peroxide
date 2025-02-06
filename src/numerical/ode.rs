@@ -299,15 +299,15 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
             let mut k_vec = vec![vec![0.0; n]; n_k];
             let mut y_temp = y.to_vec();
 
-            for i in 0..n_k {
+            for stage in 0..n_k {
                 for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0..i {
-                        s += Self::A[i][j] * k_vec[j][i];
+                    for j in 0..stage {
+                        s += Self::A[stage][j] * k_vec[j][i];
                     }
                     y_temp[i] = y[i] + dt * s;
                 }
-                problem.rhs(t + dt * Self::C[i], &y_temp, &mut k_vec[i])?;
+                problem.rhs(t + dt * Self::C[stage], &y_temp, &mut k_vec[stage])?;
             }
 
             if !Self::BE.is_empty() {
