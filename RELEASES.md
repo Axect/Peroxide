@@ -1,3 +1,7 @@
+# Release 0.39.2 (2025-02-06)
+
+- Implement `Broyden` method for `GL4`
+
 # Release 0.39.1 (2025-02-06)
 
 - Add `lambert_w` doc for crate docs [#82](https://github.com/Axect/Peroxide/pull/82) (Thanks to [@JSorngard](https://github.com/JSorngard))

@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let problem = KeplerProblem;
     let gl4 = GL4 {
-        solver: ImplicitSolver::FixedPoint,
+        solver: ImplicitSolver::Broyden,
         tol: 1e-10,
         max_step_iter: 100,
     };
