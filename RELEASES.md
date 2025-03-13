@@ -1,3 +1,7 @@
+# Release 0.39.3 (2025-03-13)
+
+- Update `puruspe` to `0.4.0`
+
 # Release 0.39.2 (2025-02-06)
 
 - Implement `Broyden` method for `GL4`
