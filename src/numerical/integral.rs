@@ -386,7 +386,7 @@ where
 
     // Handle zero-width interval initially
     if a_f64 == b_f64 {
-        return Y::ZERO; // Integral over zero width is zero
+        return Y::ZERO;
     }
 
     // Push the initial interval onto the stack
@@ -405,7 +405,6 @@ where
         // Determine the tolerance threshold for this interval
         let current_tolerance_threshold = if is_relative {
             // Scale relative tolerance by the norm of the higher-order estimate (K)
-            // Need Clone if Y is not Copy
             tol_curr * K.clone().gk_norm()
         } else {
             // Use absolute tolerance directly
@@ -422,15 +421,11 @@ where
             if !K.is_finite() {
                 // If K is not finite, check G
                 if G.is_finite() {
-                    // If K is not finite but G is, add G (matches original behavior)
-                    // Need Clone if Y is not Copy
+                    // If K is not finite but G is, add G
                     I = I + G.clone();
                 }
-                // If both K and G are not finite, add nothing (or handle error appropriately)
-                // Consider logging a warning here if possible.
             } else {
                 // K is finite, add it to the total integral
-                // Need Clone if Y is not Copy
                 I = I + K.clone();
             }
         } else {
@@ -448,7 +443,6 @@ where
                 } else {
                     I = I + K.clone();
                 }
-                // Log warning about precision limit if possible.
                 continue; // Skip pushing to stack
             }
 
@@ -461,9 +455,9 @@ where
             S.push((a_curr, c, next_tol, next_iter)); // Left subinterval [a, c]
             S.push((c, b_curr, next_tol, next_iter)); // Right subinterval [c, b]
         }
-    } // End while loop
+    }
 
-    I // Return the accumulated integral value
+    I
 }
 
 /// Helper function to compute G and K integrals reusing function evaluations.
@@ -478,7 +472,7 @@ fn compute_gauss_kronrod_sums_stored<F, Y>(
 ) -> (Y, Y, Y)
 where
     F: Fn(f64) -> Y,
-    Y: GKIntegrable, // Requires Clone, Add, Sub, Mul<f64>, ZERO, gk_norm, is_finite
+    Y: GKIntegrable,
 {
     // 1. Get Kronrod nodes and weights
     // Assumes nodes ordered [-xn,...,0,...,+xn] and weights correspond.
@@ -523,7 +517,10 @@ where
     // Contribution from paired Gauss nodes (+/- xg_j)
     for j in 1..=num_gauss_pairs {
         if 2 * j > kronrod_center_idx {
-            panic!("Kronrod node index underflow. k={}, center_idx={}, j={}", k, kronrod_center_idx, j);
+            panic!(
+                "Kronrod node index underflow. k={}, center_idx={}, j={}",
+                k, kronrod_center_idx, j
+            );
         }
 
         // Indices in f_evals corresponding to Kronrod nodes +/- xk_{2j}
