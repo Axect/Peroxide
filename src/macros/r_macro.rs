@@ -16,9 +16,6 @@
 //! * `pt`
 //! * `lm`
 
-extern crate rand;
-pub use self::rand::prelude::*;
-
 /// R like concatenate (Type: Vec\<f64\>)
 ///
 /// # Examples
@@ -278,10 +275,10 @@ macro_rules! runif {
         let n: usize = $x0;
         let mut v = vec![0f64; n];
 
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for i in 0..n {
-            v[i] = rng.gen_range($start as f64..=$end as f64);
+            v[i] = rng.random_range($start as f64..=$end as f64);
         }
         v
     }};

@@ -1,6 +1,3 @@
-extern crate rand;
-pub use self::rand::prelude::*;
-
 /// MATLAB like zeros - zero matrix
 ///
 /// # Examples
@@ -45,18 +42,18 @@ macro_rules! zeros {
 #[macro_export]
 macro_rules! rand {
     () => {{
-        let mut rng = thread_rng();
-        rng.gen_range(0f64..=1f64)
+        let mut rng = rand::rng();
+        rng.random_range(0f64..=1f64)
     }};
 
     ( $m:expr, $n:expr ) => {{
         let r = $m;
         let c = $n;
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let mut m = matrix(vec![0f64; r * c], r, c, Row);
         for i in 0..r {
             for j in 0..c {
-                m[(i, j)] = rng.gen_range(0f64..=1f64);
+                m[(i, j)] = rng.random_range(0f64..=1f64);
             }
         }
         m

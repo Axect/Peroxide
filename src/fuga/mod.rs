@@ -205,6 +205,7 @@ pub use crate::util::plot::*;
 
 pub use anyhow;
 pub use paste;
+pub use rand::prelude::*;
 
 // =============================================================================
 // Enums

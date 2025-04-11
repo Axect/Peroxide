@@ -27,7 +27,8 @@
 //!     * `sample_with_rng`: Extract samples with specific rng
 //!     * `pdf` : Calculate pdf value at specific point
 //!     ```no_run
-//!     use rand::{Rng, distributions::uniform::SampleUniform};
+//!     use rand::Rng;
+//!     use rand_distr::uniform::SampleUniform;
 //!     pub trait RNG {
 //!         /// Extract samples of distributions
 //!         fn sample(&self, n: usize) -> Vec<f64>;
@@ -228,9 +229,9 @@
 
 extern crate rand;
 extern crate rand_distr;
-use rand_distr::WeightedAliasIndex;
+use rand_distr::weighted::WeightedAliasIndex;
 
-use self::rand::distributions::uniform::SampleUniform;
+use self::rand_distr::uniform::SampleUniform;
 use self::rand::prelude::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
@@ -521,7 +522,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for Weight
 pub trait RNG {
     /// Extract samples of distributions
     fn sample(&self, n: usize) -> Vec<f64> {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         self.sample_with_rng(&mut rng, n)
     }
 
@@ -554,7 +555,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
-                    let uniform = rng.gen_range(0f64..=1f64);
+                    let uniform = rng.random_range(0f64..=1f64);
                     if uniform <= (*prob).into() {
                         v[i] = 1f64;
                     } else {
@@ -628,7 +629,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let mut v = vec![0f64; n];
 
                 for i in 0..n {
-                    v[i] = rng.gen_range(*start..=*end).into();
+                    v[i] = rng.random_range(*start..=*end).into();
                 }
                 v
             }
@@ -643,7 +644,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 normal.sample_iter(rng).take(n).collect()
             }
             //            Normal(m, s) => {
-            //                let mut rng = thread_rng();
+            //                let mut rng = rand::rng();
             //                let mut v = vec![0f64; n];
             //
             //                for i in 0..n {
@@ -656,8 +657,8 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 beta.sample_iter(rng).take(n).collect()
             }
             //            Beta(a, b) => {
-            //                let mut rng1 = thread_rng();
-            //                let mut rng2 = thread_rng();
+            //                let mut rng1 = rand::rng();
+            //                let mut rng2 = rand::rng();
             //                let mut v = vec![0f64; n];
             //
             //                let a_f64 = (*a).into();
@@ -670,8 +671,8 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             //                let mut iter_num = 0usize;
             //
             //                while iter_num < n {
-            //                    let u1 = rng1.gen_range(0f64, 1f64);
-            //                    let u2 = rng2.gen_range(0f64, 1f64);
+            //                    let u1 = rng1.random_range(0f64, 1f64);
+            //                    let u2 = rng2.random_range(0f64, 1f64);
             //
             //                    if u2 <= 1f64 / c * self.pdf(u1) {
             //                        v[iter_num] = u1;
@@ -692,14 +693,14 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
               //                let d = a_f64 - 1f64 / 3f64;
               //                let c = 1f64 / (9f64 * d).sqrt();
               //
-              //                let mut rng1 = thread_rng();
-              //                let mut rng2 = thread_rng();
+              //                let mut rng1 = rand::rng();
+              //                let mut rng2 = rand::rng();
               //
               //                let mut v = vec![0f64; n];
               //                let mut iter_num = 0usize;
               //
               //                while iter_num < n {
-              //                    let u = rng1.gen_range(0f64, 1f64);
+              //                    let u = rng1.random_range(0f64, 1f64);
               //                    let z = ziggurat(&mut rng2, 1f64);
               //                    let w = (1f64 + c * z).powi(3);
               //
@@ -804,7 +805,7 @@ impl RNG for WeightedUniform<f64> {
         ics.into_iter()
             .map(|idx| {
                 let (l, r) = self.intervals[idx];
-                rng.gen_range(l..=r)
+                rng.random_range(l..=r)
             })
             .collect::<Vec<f64>>()
     }
