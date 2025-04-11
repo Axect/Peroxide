@@ -1,3 +1,19 @@
+# Release 0.39.4 (2025-04-11)
+
+## Optimize `integrate`
+
+- Replace the output signature of `gauss_legendre_table` and `kronrod_table` to `&'static [f64]` to avoid unnecessary allocations.
+- Hard code symmetry of weights and nodes into source code to avoid unnecessary allocations.
+- New helper function - `compute_gauss_kronrod_sum_stored`
+  - Reduce the number of function calls (G+K -> K)
+- Change update method of subinterval tolerance (divide by 2 -> divide by sqrt(2))
+- These changes improve the performance of `integrate` by 1.2x - 50x (to integrate highly oscillatory functions)
+
+## Update dependencies
+
+- Update `rand` to `0.9`
+- Update `rand_distr` to `0.5`
+
 # Release 0.39.3 (2025-03-13)
 
 - Update `puruspe` to `0.4.0`
