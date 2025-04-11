@@ -323,7 +323,7 @@ where
 ///
 /// Range = from 0 to 1
 pub fn rand(r: usize, c: usize) -> Matrix {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     rand_with_rng(r, c, &mut rng)
 }
 
@@ -333,7 +333,7 @@ pub fn rand(r: usize, c: usize) -> Matrix {
 ///
 /// Range = from 0 to 1
 pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
-    let uniform = Uniform::new_inclusive(0f64, 1f64);
+    let uniform = Uniform::new_inclusive(0f64, 1f64).unwrap();
     rand_with_dist(r, c, rng, uniform)
 }
 

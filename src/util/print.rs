@@ -10,7 +10,7 @@ use crate::structure::{
     multinomial::Multinomial,
     polynomial::Polynomial,
 };
-use rand::distributions::uniform::SampleUniform;
+use rand_distr::uniform::SampleUniform;
 use std::fmt::{Debug, LowerExp, UpperExp};
 
 pub trait Printable {

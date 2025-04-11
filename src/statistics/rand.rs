@@ -8,9 +8,9 @@
 //!     use rand::prelude::*;
 //!
 //!     fn main() {
-//!         let mut rng = thread_rng();
+//!         let mut rng = rand::rng();
 //!
-//!         let a = rng.gen_range(0f64..=1f64); // Generate random f64 number ranges from 0 to 1
+//!         let a = rng.random_range(0f64..=1f64); // Generate random f64 number ranges from 0 to 1
 //!     }
 //!     ```
 //!
@@ -20,9 +20,8 @@
 //!
 //!
 
-extern crate rand;
-use self::rand::distributions::uniform::SampleUniform;
-use self::rand::prelude::*;
+use rand_distr::uniform::SampleUniform;
+use rand::prelude::*;
 
 use crate::statistics::dist::{WeightedUniform, RNG};
 #[allow(unused_imports)]
@@ -66,7 +65,7 @@ pub fn stdrng_from_seed(seed: u64) -> StdRng {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// let mut rng = thread_rng();
+/// let mut rng = rand::rng();
 /// println!("{}", rand_num(&mut rng, 1, 7));       // Roll a die
 /// println!("{}", rand_num(&mut rng, 0f64, 1f64)); // Uniform [0,1)
 /// ```
@@ -74,7 +73,7 @@ pub fn rand_num<T>(rng: &mut ThreadRng, start: T, end: T) -> T
 where
     T: PartialOrd + SampleUniform + Copy,
 {
-    rng.gen_range(start..=end)
+    rng.random_range(start..=end)
 }
 
 // =============================================================================
@@ -89,8 +88,8 @@ pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let mut w = 0f64;
 
     while w == 0. || w >= 1. {
-        x1 = 2.0 * rng.gen_range(0f64..=1f64) - 1.0;
-        x2 = 2.0 * rng.gen_range(0f64..=1f64) - 1.0;
+        x1 = 2.0 * rng.random_range(0f64..=1f64) - 1.0;
+        x2 = 2.0 * rng.random_range(0f64..=1f64) - 1.0;
         w = x1 * x1 + x2 * x2;
     }
 
@@ -469,7 +468,7 @@ pub fn prs<F>(f: F, n: usize, (a, b): (f64, f64), m: usize, eps: f64) -> anyhow:
 where
     F: Fn(f64) -> f64 + Copy,
 {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
 
     let mut result = vec![0f64; n];
 
@@ -484,7 +483,7 @@ where
             if weight <= 0f64 {
                 continue;
             } else {
-                let y = rng.gen_range(0f64..=weight);
+                let y = rng.random_range(0f64..=weight);
 
                 if y <= f(x) {
                     result[n - left_num] = x;
@@ -553,7 +552,7 @@ where
             if weight <= 0f64 {
                 continue;
             } else {
-                let y = rng.gen_range(0f64..=weight);
+                let y = rng.random_range(0f64..=weight);
 
                 if y <= f(x) {
                     result[n - left_num] = x;
