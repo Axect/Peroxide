@@ -555,7 +555,8 @@ pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
 ///
 /// fn main() {
 ///     let a: Matrix = c!(1,2,3,4,5).into();
-///     let b: Matrix = &a + &Normal(0,1).sample(5).into();
+///     let noise: Matrix = Normal(0,1).sample(5).into();
+///     let b: Matrix = &a + &noise;
 ///     lm(&a, &b).print();
 ///
 ///     //        c[0]
