@@ -1,3 +1,8 @@
+# Release 0.39.5 (2025-04-21)
+
+- New feature `rkyv`
+  - Implement `rkyv::{Archive, Serialize, Deserialize}` for `Matrix`, `Polynomial`, `Spline`, `ODE`
+
 # Release 0.39.4 (2025-04-11)
 
 ## Optimize `integrate`

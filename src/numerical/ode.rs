@@ -366,6 +366,7 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
 /// In MATLAB, it is called `ode3`.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct RALS3;
 
 impl ButcherTableau for RALS3 {
@@ -381,6 +382,7 @@ impl ButcherTableau for RALS3 {
 /// It calculates four intermediate values (k1, k2, k3, k4) to estimate the next step solution.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct RK4;
 
 impl ButcherTableau for RK4 {
@@ -395,6 +397,7 @@ impl ButcherTableau for RK4 {
 /// This fourth order method is known as minimum truncation error RK4.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct RALS4;
 
 impl ButcherTableau for RALS4 {
@@ -414,6 +417,7 @@ impl ButcherTableau for RALS4 {
 /// This integrator uses the 5th order Runge-Kutta method to numerically integrate the ODE system.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct RK5;
 
 impl ButcherTableau for RK5 {
@@ -473,6 +477,7 @@ impl ButcherTableau for RK5 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct BS23 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -554,6 +559,7 @@ impl ButcherTableau for BS23 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct RKF45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -656,6 +662,7 @@ impl ButcherTableau for RKF45 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct DP45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -777,6 +784,7 @@ impl ButcherTableau for DP45 {
 /// - Ch. Tsitouras, Comput. Math. Appl. 62 (2011) 770-780.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct TSIT45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -896,6 +904,7 @@ impl ButcherTableau for TSIT45 {
 /// Currently, there are two options: fixed-point iteration and Broyden's method.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub enum ImplicitSolver {
     FixedPoint,
     Broyden,
@@ -915,6 +924,7 @@ pub enum ImplicitSolver {
 /// - `max_step_iter`: The maximum number of iterations for the implicit solver per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct GL4 {
     pub solver: ImplicitSolver,
     pub tol: f64,
