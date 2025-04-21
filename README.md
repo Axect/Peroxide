@@ -46,6 +46,7 @@ Peroxide provides various features.
 - `csv` - To handle csv file format with Matrix or DataFrame
 - `parquet` - To handle parquet file format with DataFrame
 - `serde` - serialization with [Serde](https://serde.rs/).
+- `rkyv` - serialization with [rkyv](https://rkyv.org).
 
 If you want to do high performance computation and more linear algebra, then choose `O3` feature.
 If you don't want to depend C/C++ or Fortran libraries, then choose `default` feature.
