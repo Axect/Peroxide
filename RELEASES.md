@@ -1,3 +1,8 @@
+# Release 0.39.6 (2025-05-16)
+
+- New ODESolver: `RKF78`
+  - Implement `RKF78` method for `ODESolver`
+
 # Release 0.39.5 (2025-04-21)
 
 - New feature `rkyv`

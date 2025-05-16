@@ -63,6 +63,7 @@
 //!     - Runge-Kutta-Fehlberg 4(5)
 //!     - Dormand-Prince 5(4)
 //!     - Tsitouras 5(4)
+//!     - Runge-Kutta-Fehlberg 7(8)
 //!   - Implicit
 //!     - Gauss-Legendre 4th order
 //! - Communication with Python
