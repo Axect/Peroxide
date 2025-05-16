@@ -189,9 +189,10 @@ Peroxide can do many things.
       - Runge-Kutta 5th order
     - Embedded integrator
       - Bogacki-Shampine 3(2)
-      - Runge-Kutta-Fehlberg 4(5)
+      - Runge-Kutta-Fehlberg 5(4)
       - Dormand-Prince 5(4)
       - Tsitouras 5(4)
+      - Runge-Kutta-Fehlberg 8(7)
     - Implicit integrator
       - Gauss-Legendre 4th order
   - Numerical Integration

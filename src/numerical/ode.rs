@@ -24,6 +24,7 @@
 //!   - Runge-Kutta-Fehlberg 4/5th order (RKF45)
 //!   - Dormand-Prince 4/5th order (DP45)
 //!   - Tsitouras 4/5th order (TSIT45)
+//!   - Runge-Kutta-Fehlberg 7/8th order (RKF78)
 //! - **Implicit**
 //!   - Gauss-Legendre 4th order (GL4)
 //!
@@ -876,6 +877,211 @@ impl ButcherTableau for TSIT45 {
         -0.582357165452555,
         0.458082105929187,
         1.0 / 66.0,
+    ];
+
+    fn tol(&self) -> f64 {
+        self.tol
+    }
+    fn safety_factor(&self) -> f64 {
+        self.safety_factor
+    }
+    fn min_step_size(&self) -> f64 {
+        self.min_step_size
+    }
+    fn max_step_size(&self) -> f64 {
+        self.max_step_size
+    }
+    fn max_step_iter(&self) -> usize {
+        self.max_step_iter
+    }
+}
+
+/// Runge-Kutta-Fehlberg 7/8th order integrator.
+///
+/// This integrator uses the Runge-Kutta-Fehlberg 7(8) method, an adaptive step size integrator.
+/// It evaluates f(x,y) thirteen times per step, using embedded 7th and 8th order
+/// Runge-Kutta estimates to estimate the solution and the error.
+/// The 7th order solution is propagated, and the difference between the 8th and 7th
+/// order solutions is used for error estimation and step size control.
+///
+/// # Member variables
+///
+/// - `tol`: The tolerance for the estimated error.
+/// - `safety_factor`: The safety factor for the step size adjustment.
+/// - `min_step_size`: The minimum step size.
+/// - `max_step_size`: The maximum step size.
+/// - `max_step_iter`: The maximum number of iterations per step.
+///
+/// # References
+/// - Meysam Mahooti (2025). [Runge-Kutta-Fehlberg (RKF78)](https://www.mathworks.com/matlabcentral/fileexchange/61130-runge-kutta-fehlberg-rkf78), MATLAB Central File Exchange.
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+pub struct RKF78 {
+    pub tol: f64,
+    pub safety_factor: f64,
+    pub min_step_size: f64,
+    pub max_step_size: f64,
+    pub max_step_iter: usize,
+}
+
+impl Default for RKF78 {
+    fn default() -> Self {
+        Self {
+            tol: 1e-7, // Higher precision default for a higher-order method
+            safety_factor: 0.9,
+            min_step_size: 1e-10, // Smaller min step for higher order
+            max_step_size: 1e-1,
+            max_step_iter: 100,
+        }
+    }
+}
+
+impl RKF78 {
+    pub fn new(
+        tol: f64,
+        safety_factor: f64,
+        min_step_size: f64,
+        max_step_size: f64,
+        max_step_iter: usize,
+    ) -> Self {
+        Self {
+            tol,
+            safety_factor,
+            min_step_size,
+            max_step_size,
+            max_step_iter,
+        }
+    }
+}
+
+impl ButcherTableau for RKF78 {
+    const C: &'static [f64] = &[
+        0.0,
+        2.0 / 27.0,
+        1.0 / 9.0,
+        1.0 / 6.0,
+        5.0 / 12.0,
+        1.0 / 2.0,
+        5.0 / 6.0,
+        1.0 / 6.0,
+        2.0 / 3.0,
+        1.0 / 3.0,
+        1.0,
+        0.0, // k12 is evaluated at x[i]
+        1.0, // k13 is evaluated at x[i]+h
+    ];
+
+    const A: &'static [&'static [f64]] = &[
+        // k1
+        &[],
+        // k2
+        &[2.0 / 27.0],
+        // k3
+        &[1.0 / 36.0, 3.0 / 36.0],
+        // k4
+        &[1.0 / 24.0, 0.0, 3.0 / 24.0],
+        // k5
+        &[20.0 / 48.0, 0.0, -75.0 / 48.0, 75.0 / 48.0],
+        // k6
+        &[1.0 / 20.0, 0.0, 0.0, 5.0 / 20.0, 4.0 / 20.0],
+        // k7
+        &[-25.0 / 108.0, 0.0, 0.0, 125.0 / 108.0, -260.0 / 108.0, 250.0 / 108.0],
+        // k8
+        &[31.0 / 300.0, 0.0, 0.0, 0.0, 61.0 / 225.0, -2.0 / 9.0, 13.0 / 900.0],
+        // k9
+        &[2.0, 0.0, 0.0, -53.0 / 6.0, 704.0 / 45.0, -107.0 / 9.0, 67.0 / 90.0, 3.0],
+        // k10
+        &[
+            -91.0 / 108.0,
+            0.0,
+            0.0,
+            23.0 / 108.0,
+            -976.0 / 135.0,
+            311.0 / 54.0,
+            -19.0 / 60.0,
+            17.0 / 6.0,
+            -1.0 / 12.0,
+        ],
+        // k11
+        &[
+            2383.0 / 4100.0,
+            0.0,
+            0.0,
+            -341.0 / 164.0,
+            4496.0 / 1025.0,
+            -301.0 / 82.0,
+            2133.0 / 4100.0,
+            45.0 / 82.0,
+            45.0 / 164.0,
+            18.0 / 41.0,
+        ],
+        // k12
+        &[
+            3.0 / 205.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -6.0 / 41.0,
+            -3.0 / 205.0,
+            -3.0 / 41.0,
+            3.0 / 41.0,
+            6.0 / 41.0,
+            0.0,
+        ],
+        // k13
+        &[
+            -1777.0 / 4100.0,
+            0.0,
+            0.0,
+            -341.0 / 164.0,
+            4496.0 / 1025.0,
+            -289.0 / 82.0,
+            2193.0 / 4100.0,
+            51.0 / 82.0,
+            33.0 / 164.0,
+            12.0 / 41.0,
+            0.0,
+            1.0,
+        ],
+    ];
+
+    // Coefficients for the 7th order solution (propagated solution)
+    // BU_i = BE_i (8th order) - ErrorCoeff_i
+    // ErrorCoeff_i = [-41/840, 0, ..., 0, -41/840 (for k11), 41/840 (for k12), 41/840 (for k13)]
+    const BU: &'static [f64] = &[
+        41.0 / 420.0,  // 41/840 - (-41/840)
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        34.0 / 105.0,
+        9.0 / 35.0,
+        9.0 / 35.0,
+        9.0 / 280.0,
+        9.0 / 280.0,
+        41.0 / 420.0,  // 41/840 - (-41/840)
+        -41.0 / 840.0, // 0.0 - (41/840)
+        -41.0 / 840.0, // 0.0 - (41/840)
+    ];
+
+    // Coefficients for the 8th order solution (used for error estimation)
+    // These are from the y[i+1] formula in the MATLAB description
+    const BE: &'static [f64] = &[
+        41.0 / 840.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        34.0 / 105.0,
+        9.0 / 35.0,
+        9.0 / 35.0,
+        9.0 / 280.0,
+        9.0 / 280.0,
+        41.0 / 840.0,
+        0.0,
+        0.0,
     ];
 
     fn tol(&self) -> f64 {
