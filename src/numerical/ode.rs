@@ -24,6 +24,7 @@
 //!   - Runge-Kutta-Fehlberg 4/5th order (RKF45)
 //!   - Dormand-Prince 4/5th order (DP45)
 //!   - Tsitouras 4/5th order (TSIT45)
+//!   - Runge-Kutta-Fehlberg 7/8th order (RKF78)
 //! - **Implicit**
 //!   - Gauss-Legendre 4th order (GL4)
 //!
@@ -910,6 +911,9 @@ impl ButcherTableau for TSIT45 {
 /// - `min_step_size`: The minimum step size.
 /// - `max_step_size`: The maximum step size.
 /// - `max_step_iter`: The maximum number of iterations per step.
+///
+/// # References
+/// - Meysam Mahooti (2025). [Runge-Kutta-Fehlberg (RKF78)](https://www.mathworks.com/matlabcentral/fileexchange/61130-runge-kutta-fehlberg-rkf78), MATLAB Central File Exchange.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
