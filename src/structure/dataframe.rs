@@ -139,7 +139,7 @@
 //!     * `push(&mut self, name: &str, series: Series)`: push head & Series pair
 //!     * `drop(&mut self, col_header: &str)`: drop specific column by header
 //!     * `row(&self, i: usize) -> DataFrame` : Extract $i$-th row as new DataFrame
-//!     * `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>
+//!     * `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>`
 //!     : Filter DataFrame by specific column
 //!     * `mask(&self, mask: &Series) -> anyhow::Result<DataFrame>` : Mask DataFrame by Series
 //!     * `select_rows(&self, indices: &[usize]) -> DataFrame` : Select rows by indices
