@@ -1,8 +1,8 @@
 use peroxide::fuga::*;
 
-pub const MU: f64 = 398600.4418;    // Standard gravitational parameter of Earth
-pub const R_EARTH: f64 = 6378.137;  // Radius of Earth in km
-pub const J2: f64 = 1.08262668e-3;  // J2 coefficient of Earth
+pub const MU: f64 = 398600.4418; // Standard gravitational parameter of Earth
+pub const R_EARTH: f64 = 6378.137; // Radius of Earth in km
+pub const J2: f64 = 1.08262668e-3; // J2 coefficient of Earth
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let selected_orbit = OrbitType::Molniya.create_orbit();
@@ -25,18 +25,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let y0 = Vec::from(initial_state);
     y0.print();
-    let (t, y_gl4) = gl4_solver.solve(
-        &problem,
-        (t0, tf),
-        dt,
-        &y0,
-    )?;
-    let (_, y_rk4) = rk4_solver.solve(
-        &problem,
-        (t0, tf),
-        dt,
-        &y0,
-    )?;
+    let (t, y_gl4) = gl4_solver.solve(&problem, (t0, tf), dt, &y0)?;
+    let (_, y_rk4) = rk4_solver.solve(&problem, (t0, tf), dt, &y0)?;
 
     let y_gl4 = py_matrix(y_gl4);
     let y_rk4 = py_matrix(y_rk4);
@@ -127,7 +117,8 @@ impl ToString for OrbitType {
             OrbitType::LEO => "LEO",
             OrbitType::GEO => "GEO",
             OrbitType::Molniya => "Molniya",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -157,18 +148,18 @@ impl OrbitType {
                 raan: 0.0,
                 w: 270.0f64.to_radians(),
                 ta: 0.0,
-            }
+            },
         }
     }
 }
 
 pub struct Orbit {
-    pub a: f64,     // Semi-major axis
-    pub e: f64,     // Eccentricity
-    pub i: f64,     // Inclination
-    pub raan: f64,  // Right ascension of ascending node
-    pub w: f64,     // Argument of perigee
-    pub ta: f64,    // True anomaly
+    pub a: f64,    // Semi-major axis
+    pub e: f64,    // Eccentricity
+    pub i: f64,    // Inclination
+    pub raan: f64, // Right ascension of ascending node
+    pub w: f64,    // Argument of perigee
+    pub ta: f64,   // True anomaly
 }
 
 impl Orbit {
@@ -178,17 +169,13 @@ impl Orbit {
 
     #[allow(non_snake_case)]
     pub fn initial_state(&self) -> State {
-        let r_pf = vec![
-            self.r() * self.ta.cos(),
-            self.r() * self.ta.sin(),
-            0f64
-        ];
+        let r_pf = vec![self.r() * self.ta.cos(), self.r() * self.ta.sin(), 0f64];
 
         let p_orbit = self.a * (1.0 - self.e.powi(2));
         let v_pf = vec![
-            - (MU / p_orbit).sqrt() * self.ta.sin(),
+            -(MU / p_orbit).sqrt() * self.ta.sin(),
             (MU / p_orbit).sqrt() * (self.e + self.ta.cos()),
-            0f64
+            0f64,
         ];
 
         let Q = perifocal_to_eci_matrix(&self);
@@ -208,20 +195,12 @@ impl Orbit {
 
 pub fn rot_x(theta: f64) -> Matrix {
     let (s, c) = theta.sin_cos();
-    matrix(vec![
-        1f64, 0f64, 0f64,
-        0f64, c, -s,
-        0f64, s, c
-    ], 3, 3, Row)
+    matrix(vec![1f64, 0f64, 0f64, 0f64, c, -s, 0f64, s, c], 3, 3, Row)
 }
 
 pub fn rot_z(theta: f64) -> Matrix {
     let (s, c) = theta.sin_cos();
-    matrix(vec![
-        c, -s, 0f64,
-        s, c, 0f64,
-        0f64, 0f64, 1f64
-    ], 3, 3, Row)
+    matrix(vec![c, -s, 0f64, s, c, 0f64, 0f64, 0f64, 1f64], 3, 3, Row)
 }
 
 #[allow(non_snake_case)]

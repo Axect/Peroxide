@@ -231,8 +231,8 @@ extern crate rand;
 extern crate rand_distr;
 use rand_distr::weighted::WeightedAliasIndex;
 
-use self::rand_distr::uniform::SampleUniform;
 use self::rand::prelude::*;
+use self::rand_distr::uniform::SampleUniform;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;

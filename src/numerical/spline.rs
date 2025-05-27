@@ -441,7 +441,10 @@ pub fn cubic_hermite_spline(
 /// ```
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CubicSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
 }
@@ -692,7 +695,10 @@ impl Calculus for CubicSpline {
 // =============================================================================
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CubicHermiteSpline {
     polynomials: Vec<(Range<f64>, Polynomial)>,
 }
@@ -919,7 +925,10 @@ fn quadratic_slopes(x: &[f64], y: &[f64]) -> Result<Vec<f64>> {
 /// [Wikipedia](https://en.wikipedia.org/wiki/Irwin%E2%80%93Hall_distribution#Special_cases)
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct UnitCubicBasis {
     pub x_min: f64,
     pub x_max: f64,
@@ -995,7 +1004,10 @@ impl UnitCubicBasis {
 /// ```
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct CubicBSplineBases {
     pub ranges: Vec<Range<f64>>,
     pub bases: Vec<UnitCubicBasis>,
@@ -1093,7 +1105,10 @@ impl CubicBSplineBases {
 /// ```
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct BSpline {
     pub degree: usize,
     pub knots: Vec<f64>,

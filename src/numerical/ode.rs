@@ -86,10 +86,10 @@
 //! }
 //! ```
 
-use anyhow::{bail, Result};
 use crate::fuga::ConvToMat;
+use crate::traits::math::{InnerProduct, Norm, Normed, Vector};
 use crate::util::non_macro::eye;
-use crate::traits::math::{Norm, Normed, InnerProduct, Vector};
+use anyhow::{bail, Result};
 
 /// Trait for defining an ODE problem.
 ///
@@ -367,7 +367,10 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
 /// In MATLAB, it is called `ode3`.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RALS3;
 
 impl ButcherTableau for RALS3 {
@@ -383,7 +386,10 @@ impl ButcherTableau for RALS3 {
 /// It calculates four intermediate values (k1, k2, k3, k4) to estimate the next step solution.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RK4;
 
 impl ButcherTableau for RK4 {
@@ -398,7 +404,10 @@ impl ButcherTableau for RK4 {
 /// This fourth order method is known as minimum truncation error RK4.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RALS4;
 
 impl ButcherTableau for RALS4 {
@@ -418,7 +427,10 @@ impl ButcherTableau for RALS4 {
 /// This integrator uses the 5th order Runge-Kutta method to numerically integrate the ODE system.
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RK5;
 
 impl ButcherTableau for RK5 {
@@ -478,7 +490,10 @@ impl ButcherTableau for RK5 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct BS23 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -560,7 +575,10 @@ impl ButcherTableau for BS23 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RKF45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -663,7 +681,10 @@ impl ButcherTableau for RKF45 {
 /// - `max_step_iter`: The maximum number of iterations per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct DP45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -785,7 +806,10 @@ impl ButcherTableau for DP45 {
 /// - Ch. Tsitouras, Comput. Math. Appl. 62 (2011) 770-780.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct TSIT45 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -916,7 +940,10 @@ impl ButcherTableau for TSIT45 {
 /// - Meysam Mahooti (2025). [Runge-Kutta-Fehlberg (RKF78)](https://www.mathworks.com/matlabcentral/fileexchange/61130-runge-kutta-fehlberg-rkf78), MATLAB Central File Exchange.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct RKF78 {
     pub tol: f64,
     pub safety_factor: f64,
@@ -986,11 +1013,35 @@ impl ButcherTableau for RKF78 {
         // k6
         &[1.0 / 20.0, 0.0, 0.0, 5.0 / 20.0, 4.0 / 20.0],
         // k7
-        &[-25.0 / 108.0, 0.0, 0.0, 125.0 / 108.0, -260.0 / 108.0, 250.0 / 108.0],
+        &[
+            -25.0 / 108.0,
+            0.0,
+            0.0,
+            125.0 / 108.0,
+            -260.0 / 108.0,
+            250.0 / 108.0,
+        ],
         // k8
-        &[31.0 / 300.0, 0.0, 0.0, 0.0, 61.0 / 225.0, -2.0 / 9.0, 13.0 / 900.0],
+        &[
+            31.0 / 300.0,
+            0.0,
+            0.0,
+            0.0,
+            61.0 / 225.0,
+            -2.0 / 9.0,
+            13.0 / 900.0,
+        ],
         // k9
-        &[2.0, 0.0, 0.0, -53.0 / 6.0, 704.0 / 45.0, -107.0 / 9.0, 67.0 / 90.0, 3.0],
+        &[
+            2.0,
+            0.0,
+            0.0,
+            -53.0 / 6.0,
+            704.0 / 45.0,
+            -107.0 / 9.0,
+            67.0 / 90.0,
+            3.0,
+        ],
         // k10
         &[
             -91.0 / 108.0,
@@ -1051,7 +1102,7 @@ impl ButcherTableau for RKF78 {
     // BU_i = BE_i (8th order) - ErrorCoeff_i
     // ErrorCoeff_i = [-41/840, 0, ..., 0, -41/840 (for k11), 41/840 (for k12), 41/840 (for k13)]
     const BU: &'static [f64] = &[
-        41.0 / 420.0,  // 41/840 - (-41/840)
+        41.0 / 420.0, // 41/840 - (-41/840)
         0.0,
         0.0,
         0.0,
@@ -1110,7 +1161,10 @@ impl ButcherTableau for RKF78 {
 /// Currently, there are two options: fixed-point iteration and Broyden's method.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub enum ImplicitSolver {
     FixedPoint,
     Broyden,
@@ -1130,7 +1184,10 @@ pub enum ImplicitSolver {
 /// - `max_step_iter`: The maximum number of iterations for the implicit solver per step.
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct GL4 {
     pub solver: ImplicitSolver,
     pub tol: f64,
@@ -1203,7 +1260,7 @@ impl ODEIntegrator for GL4 {
                         break;
                     }
                 }
-            },
+            }
             ImplicitSolver::Broyden => {
                 let m = 2 * n;
                 let mut U = vec![0.0; m];
@@ -1219,7 +1276,7 @@ impl ODEIntegrator for GL4 {
                     y2.copy_from_slice(y);
                     problem.rhs(t + c * dt, &y1, &mut k1)?;
                     problem.rhs(t + d * dt, &y2, &mut k2)?;
-                    for i in 0 .. n {
+                    for i in 0..n {
                         U[i] = k1[i];
                         U[n + i] = k2[i];
                     }
@@ -1233,12 +1290,14 @@ impl ODEIntegrator for GL4 {
                 let mut J_inv = eye(m);
 
                 // Repeat Broyden's method
-                for _ in 0 .. self.max_step_iter {
+                for _ in 0..self.max_step_iter {
                     // delta = - J_inv * F_vec
                     let mut delta = (&J_inv * &F_vec).mul_scalar(-1.0);
 
                     // U <- U + delta
-                    U.iter_mut().zip(delta.iter_mut()).for_each(|(u, d)| *u += *d);
+                    U.iter_mut()
+                        .zip(delta.iter_mut())
+                        .for_each(|(u, d)| *u += *d);
 
                     let mut F_new = vec![0.0; m];
                     compute_F(problem, t, y, dt, c, d, sqrt3, &U, &mut F_new)?;
@@ -1268,11 +1327,11 @@ impl ODEIntegrator for GL4 {
                 }
 
                 // Extract k1 and k2
-                for i in 0 .. n {
+                for i in 0..n {
                     k1[i] = U[i];
                     k2[i] = U[n + i];
                 }
-            },
+            }
         }
 
         for i in 0..n {
