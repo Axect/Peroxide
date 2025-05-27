@@ -20,8 +20,8 @@
 //!
 //!
 
-use rand_distr::uniform::SampleUniform;
 use rand::prelude::*;
+use rand_distr::uniform::SampleUniform;
 
 use crate::statistics::dist::{WeightedUniform, RNG};
 #[allow(unused_imports)]

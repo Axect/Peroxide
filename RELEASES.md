@@ -1,3 +1,13 @@
+# Release 0.39.7 (2025-05-27)
+
+- Add some methods for `DataFrame`
+  - `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>`
+    : Filter rows by a condition on a specific column
+  - `mask(&self, mask: &Series) -> anyhow::Result<DataFrame>`
+    : Filter rows by a boolean mask
+  - `select_rows(&self, indices: &[usize]) -> DataFrame`
+    : Select specific rows by indices
+
 # Release 0.39.6 (2025-05-16)
 
 - New ODESolver: `RKF78`

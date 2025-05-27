@@ -657,7 +657,10 @@ pub type Perms = Vec<(usize, usize)>;
 /// ```
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub enum Shape {
     #[default]
     Col,
@@ -691,7 +694,10 @@ impl fmt::Display for Shape {
 /// ```
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
 pub struct Matrix {
     pub data: Vec<f64>,
     pub row: usize,
