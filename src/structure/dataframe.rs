@@ -130,12 +130,20 @@
 //!         pub fn row(&self, i: usize) -> DataFrame;
 //!         pub fn spread(&self) -> String;
 //!         pub fn as_types(&mut self, dtypes: Vec<DType>);
+//!         pub fn filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> Result<DataFrame,
+//!         String>;
+//!         pub fn mask(&self, mask: &Series) -> Result<DataFrame, String>;
+//!         pub fn select_rows(&self, indices: &[usize]) -> DataFrame;
 //!     }
 //!     ```
 //!
 //!     * `push(&mut self, name: &str, series: Series)`: push head & Series pair
 //!     * `drop(&mut self, col_header: &str)`: drop specific column by header
 //!     * `row(&self, i: usize) -> DataFrame` : Extract $i$-th row as new DataFrame
+//!     * `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> Result<DataFrame,
+//!     String>` : Filter DataFrame by specific column
+//!     * `mask(&self, mask: &Series) -> Result<DataFrame, String>` : Mask DataFrame by Series
+//!     * `select_rows(&self, indices: &[usize]) -> DataFrame` : Select rows by indices
 //!
 //! * `WithCSV` trait
 //!
@@ -1647,6 +1655,35 @@ impl DataFrame {
             DTypeArray::Str(v) => extract_by_indices!(v, String, Str),
             DTypeArray::Char(v) => extract_by_indices!(v, char, Char),
         }
+    }
+
+    /// Mask DataFrame with a boolean Series
+    pub fn mask(&self, mask: &Series) -> Result<DataFrame, String> {
+        if mask.len() != self.data[0].len() {
+            return Err("Mask length does not match DataFrame length".to_string());
+        }
+
+        if mask.dtype != DType::Bool {
+            return Err("Mask must be of type Bool".to_string());
+        }
+
+        let bool_mask: &[bool] = mask.as_slice();
+        let ics: Vec<usize> = bool_mask.iter()
+            .enumerate()
+            .filter_map(|(i, &b)| if b { Some(i) } else { None })
+            .collect();
+
+        Ok(self.select_rows(&ics))
+    }
+
+    /// Select rows based on indices
+    pub fn select_rows(&self, indices: &[usize]) -> DataFrame {
+        let mut new_df = DataFrame::new(vec![]);
+        for (col_idx, col_series) in self.data.iter().enumerate() {
+            let filtered_series = self.extract_series_by_indices(col_series, indices);
+            new_df.push(&self.ics[col_idx], filtered_series);
+        }
+        new_df
     }
 }
 
