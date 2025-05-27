@@ -1591,6 +1591,63 @@ impl DataFrame {
             None => panic!("Can't drop header '{}'", col_header),
         }
     }
+
+    /// Filter DataFrame by specific column
+    pub fn filter_by<F>(&self, column: &str, predicate: F) -> Result<DataFrame, String>
+    where
+        F: Fn(Scalar) -> bool,
+    {
+        let series = match self.ics.iter().position(|x| x.as_str() == column) {
+            Some(i) => &self.data[i],
+            None => return Err(format!("Column '{}' not found", column)),
+        };
+
+        let mut indices = Vec::new();
+        for i in 0 .. series.len() {
+            let value = series.at(i);
+            if predicate(value) {
+                indices.push(i);
+            }
+        }
+
+        let mut new_df = DataFrame::new(vec![]);
+        for (col_idx, col_series) in self.data.iter().enumerate() {
+            let filtered_series = self.extract_series_by_indices(col_series, &indices);
+            new_df.push(&self.ics[col_idx], filtered_series);
+        }
+
+        Ok(new_df)
+    }
+
+    fn extract_series_by_indices(&self, series: &Series, indices: &[usize]) -> Series {
+        macro_rules! extract_by_indices {
+            ($array:expr, $type:ty, $dtype:ident) => {{
+                let values: Vec<$type> = indices
+                    .iter()
+                    .map(|&i| $array[i].clone())
+                    .collect();
+                Series::new(values)
+            }};
+        }
+
+        match &series.values {
+            DTypeArray::USIZE(v) => extract_by_indices!(v, usize, USIZE),
+            DTypeArray::U8(v) => extract_by_indices!(v, u8, U8),
+            DTypeArray::U16(v) => extract_by_indices!(v, u16, U16),
+            DTypeArray::U32(v) => extract_by_indices!(v, u32, U32),
+            DTypeArray::U64(v) => extract_by_indices!(v, u64, U64),
+            DTypeArray::ISIZE(v) => extract_by_indices!(v, isize, ISIZE),
+            DTypeArray::I8(v) => extract_by_indices!(v, i8, I8),
+            DTypeArray::I16(v) => extract_by_indices!(v, i16, I16),
+            DTypeArray::I32(v) => extract_by_indices!(v, i32, I32),
+            DTypeArray::I64(v) => extract_by_indices!(v, i64, I64),
+            DTypeArray::F32(v) => extract_by_indices!(v, f32, F32),
+            DTypeArray::F64(v) => extract_by_indices!(v, f64, F64),
+            DTypeArray::Bool(v) => extract_by_indices!(v, bool, Bool),
+            DTypeArray::Str(v) => extract_by_indices!(v, String, Str),
+            DTypeArray::Char(v) => extract_by_indices!(v, char, Char),
+        }
+    }
 }
 
 impl Index<&str> for DataFrame {
