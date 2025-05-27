@@ -18,7 +18,10 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 /// Polynomial Structure
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)
+)]
 pub struct Polynomial {
     pub coef: Vec<f64>,
 }

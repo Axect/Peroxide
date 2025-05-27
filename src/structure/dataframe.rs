@@ -130,12 +130,19 @@
 //!         pub fn row(&self, i: usize) -> DataFrame;
 //!         pub fn spread(&self) -> String;
 //!         pub fn as_types(&mut self, dtypes: Vec<DType>);
+//!         pub fn filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>;
+//!         pub fn mask(&self, mask: &Series) -> anyhow::Result<DataFrame>;
+//!         pub fn select_rows(&self, indices: &[usize]) -> DataFrame;
 //!     }
 //!     ```
 //!
 //!     * `push(&mut self, name: &str, series: Series)`: push head & Series pair
 //!     * `drop(&mut self, col_header: &str)`: drop specific column by header
 //!     * `row(&self, i: usize) -> DataFrame` : Extract $i$-th row as new DataFrame
+//!     * `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>
+//!     : Filter DataFrame by specific column
+//!     * `mask(&self, mask: &Series) -> anyhow::Result<DataFrame>` : Mask DataFrame by Series
+//!     * `select_rows(&self, indices: &[usize]) -> DataFrame` : Select rows by indices
 //!
 //! * `WithCSV` trait
 //!
@@ -1590,6 +1597,94 @@ impl DataFrame {
             }
             None => panic!("Can't drop header '{}'", col_header),
         }
+    }
+
+    /// Filter DataFrame by specific column
+    pub fn filter_by<F>(&self, column: &str, predicate: F) -> anyhow::Result<DataFrame>
+    where
+        F: Fn(Scalar) -> bool,
+    {
+        let series = match self.ics.iter().position(|x| x.as_str() == column) {
+            Some(i) => &self.data[i],
+            None => anyhow::bail!("Column '{}' not found in DataFrame", column),
+        };
+
+        let mut indices = Vec::new();
+        for i in 0..series.len() {
+            let value = series.at(i);
+            if predicate(value) {
+                indices.push(i);
+            }
+        }
+
+        let mut new_df = DataFrame::new(vec![]);
+        for (col_idx, col_series) in self.data.iter().enumerate() {
+            let filtered_series = self.extract_series_by_indices(col_series, &indices);
+            new_df.push(&self.ics[col_idx], filtered_series);
+        }
+
+        Ok(new_df)
+    }
+
+    fn extract_series_by_indices(&self, series: &Series, indices: &[usize]) -> Series {
+        macro_rules! extract_by_indices {
+            ($array:expr, $type:ty, $dtype:ident) => {{
+                let values: Vec<$type> = indices.iter().map(|&i| $array[i].clone()).collect();
+                Series::new(values)
+            }};
+        }
+
+        match &series.values {
+            DTypeArray::USIZE(v) => extract_by_indices!(v, usize, USIZE),
+            DTypeArray::U8(v) => extract_by_indices!(v, u8, U8),
+            DTypeArray::U16(v) => extract_by_indices!(v, u16, U16),
+            DTypeArray::U32(v) => extract_by_indices!(v, u32, U32),
+            DTypeArray::U64(v) => extract_by_indices!(v, u64, U64),
+            DTypeArray::ISIZE(v) => extract_by_indices!(v, isize, ISIZE),
+            DTypeArray::I8(v) => extract_by_indices!(v, i8, I8),
+            DTypeArray::I16(v) => extract_by_indices!(v, i16, I16),
+            DTypeArray::I32(v) => extract_by_indices!(v, i32, I32),
+            DTypeArray::I64(v) => extract_by_indices!(v, i64, I64),
+            DTypeArray::F32(v) => extract_by_indices!(v, f32, F32),
+            DTypeArray::F64(v) => extract_by_indices!(v, f64, F64),
+            DTypeArray::Bool(v) => extract_by_indices!(v, bool, Bool),
+            DTypeArray::Str(v) => extract_by_indices!(v, String, Str),
+            DTypeArray::Char(v) => extract_by_indices!(v, char, Char),
+        }
+    }
+
+    /// Mask DataFrame with a boolean Series
+    pub fn mask(&self, mask: &Series) -> anyhow::Result<DataFrame> {
+        if mask.len() != self.data[0].len() {
+            anyhow::bail!(
+                "Mask length ({}) does not match DataFrame row count ({})",
+                mask.len(),
+                self.data[0].len()
+            );
+        }
+
+        if mask.dtype != DType::Bool {
+            anyhow::bail!("Mask Series must be of type Bool, but got {}", mask.dtype);
+        }
+
+        let bool_mask: &[bool] = mask.as_slice();
+        let ics: Vec<usize> = bool_mask
+            .iter()
+            .enumerate()
+            .filter_map(|(i, &b)| if b { Some(i) } else { None })
+            .collect();
+
+        Ok(self.select_rows(&ics))
+    }
+
+    /// Select rows based on indices
+    pub fn select_rows(&self, indices: &[usize]) -> DataFrame {
+        let mut new_df = DataFrame::new(vec![]);
+        for (col_idx, col_series) in self.data.iter().enumerate() {
+            let filtered_series = self.extract_series_by_indices(col_series, indices);
+            new_df.push(&self.ics[col_idx], filtered_series);
+        }
+        new_df
     }
 }
 
