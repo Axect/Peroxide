@@ -12,6 +12,7 @@
 //!     * Student's t
 //!     * Uniform
 //!     * Weighted Uniform
+//!     * Log Normal
 //! * There are two enums to represent probability distribution
 //!     * `OPDist<T>` : One parameter distribution (Bernoulli)
 //!     * `TPDist<T>` : Two parameter distribution (Uniform, Normal, Beta, Gamma)
@@ -226,6 +227,18 @@
 //!
 //! * Reference
 //!     * [Piecewise Rejection Sampling](https://axect.github.io/posts/006_prs/#22-weighted-uniform-distribution)
+//!
+//! ### Log Normal Distribution
+//!
+//! * Definition
+//!     $$\text{LogNormal}(x | \mu, \sigma) = \frac{1}{x\sigma\sqrt{2\pi}} e^{-\frac{(\ln x -
+//!     \mu)^2}{2\sigma^2}}$$
+//!     where $\mu$ is the mean of the natural logarithm of the variable and $\sigma$ is the
+//!     standard deviation of the natural logarithm of the variable.
+//! * Representative value
+//!     * Mean: $e^{\mu + \frac{\sigma^2}{2}}$
+//!     * Var: $(e^{\sigma^2} - 1)e^{2\mu + \sigma^2}$
+//! * To generate log-normal random samples, Peroxide uses the `rand_distr::LogNormal` distribution from the `rand_distr` crate.
 
 extern crate rand;
 extern crate rand_distr;
@@ -267,6 +280,7 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Normal(T, T),
     Beta(T, T),
     Gamma(T, T),
+    LogNormal(T, T),
 }
 
 pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
@@ -312,7 +326,7 @@ impl WeightedUniform<f64> {
     ///
     ///     Ok(())
     /// }
-    /// ```    
+    /// ```
     pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Result<Self> {
         let mut weights = weights;
         if weights.len() == 0 {
@@ -497,6 +511,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> ParametricDist for TPDist
             Normal(mu, sigma) => ((*mu).into(), (*sigma).into()),
             Beta(a, b) => ((*a).into(), (*b).into()),
             Gamma(a, b) => ((*a).into(), (*b).into()),
+            LogNormal(mu, sigma) => ((*mu).into(), (*sigma).into()),
         }
     }
 }
@@ -711,6 +726,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
               //                }
               //                v
               //            }
+            LogNormal(mu, sigma) => {
+                let log_normal =
+                    rand_distr::LogNormal::<f64>::new((*mu).into(), (*sigma).into()).unwrap();
+                log_normal.sample_iter(rng).take(n).collect()
+            }
         }
     }
 
@@ -753,6 +773,16 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     * x.into().powf(a_f64 - 1f64)
                     * E.powf(-b_f64 * x.into())
             }
+            LogNormal(mu, sigma) => {
+                let mu_f64 = (*mu).into();
+                let sigma_f64 = (*sigma).into();
+                if x.into() <= 0f64 {
+                    0f64
+                } else {
+                    1f64 / (x.into() * sigma_f64 * (2f64 * std::f64::consts::PI).sqrt())
+                        * E.powf(-((x.into().ln() - mu_f64).powi(2)) / (2f64 * sigma_f64.powi(2)))
+                }
+            }
         }
     }
 
@@ -790,6 +820,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let b: f64 = (*b).into();
 
                 inc_gamma(a, b * x)
+            }
+            LogNormal(mu, sigma) => {
+                phi(
+                    (x.ln() - (*mu).into()) / (*sigma).into(),
+                )
             }
         }
     }
@@ -886,6 +921,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
             Normal(m, _s) => (*m).into(),
             Beta(a, b) => (*a).into() / ((*a).into() + (*b).into()),
             Gamma(a, b) => (*a).into() / (*b).into(),
+            LogNormal(mu, sigma) => {
+                let mu_f64 = (*mu).into();
+                let sigma_f64 = (*sigma).into();
+                E.powf(mu_f64 + 0.5 * sigma_f64.powi(2))
+            }
         }
     }
 
@@ -900,6 +940,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
                 a_f64 * b_f64 / ((a_f64 + b_f64).powi(2) * (a_f64 + b_f64 + 1f64))
             }
             Gamma(a, b) => (*a).into() / (*b).into().powi(2),
+            LogNormal(mu, sigma) => {
+                let mu_f64 = (*mu).into();
+                let sigma_f64 = (*sigma).into();
+                (E.powf(sigma_f64.powi(2)) - 1f64) * E.powf(2f64 * mu_f64 + sigma_f64.powi(2))
+            }
         }
     }
 
@@ -910,6 +955,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for TPDist<T> 
             Normal(_m, s) => (*s).into(),
             Beta(_a, _b) => self.var().sqrt(),
             Gamma(_a, _b) => self.var().sqrt(),
+            LogNormal(_mu, _sigma) => self.var().sqrt(),
         }
     }
 
