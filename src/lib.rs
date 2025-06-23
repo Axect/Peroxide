@@ -27,6 +27,7 @@
 //!     - Gamma
 //!     - Beta
 //!     - Student's t
+//!     - LogNormal
 //! - [Special functions](special/function/index.html) (Using `puruspe` crate)
 //!   - Gaussian
 //!   - Gamma

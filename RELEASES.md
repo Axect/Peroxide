@@ -1,3 +1,9 @@
+# Release 0.39.8 (2025-06-23)
+
+- Implement `LogNormal` distribution
+  - `LogNormal(mu: f64, sigma: f64)`
+- Fix sampling method for `Gamma`
+
 # Release 0.39.7 (2025-05-27)
 
 - Add some methods for `DataFrame`
