@@ -11,25 +11,32 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
 
 ## Table of Contents
 
-- [Why Peroxide?](#why-peroxide)
-  - [1. Customize features](#1-customize-features)
-  - [2. Easy to optimize](#2-easy-to-optimize)
-  - [3. Friendly syntax](#3-friendly-syntax)
-  - [4. Can choose two different coding styles](#4-can-choose-two-different-coding-styles)
-  - [5. Batteries included](#5-batteries-included)
-  - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
-  - [7. Written in Rust](#7-written-in-rust)
-- [Latest README version](#latest-readme-version)
-- [Pre-requisite](#pre-requisite)
-- [Install](#install)
-- [Useful tips for features](#useful-tips-for-features)
-- [Module Structure](#module-structure)
-- [Documentation](#documentation)
-- [Examples](#examples)
-- [Release Info](#release-info)
-- [Contributes Guide](#contributes-guide)
-- [LICENSE](#license)
-- [TODO](#todo)
+- [Peroxide](#peroxide)
+  - [Table of Contents](#table-of-contents)
+  - [Why Peroxide?](#why-peroxide)
+    - [1. Customize features](#1-customize-features)
+    - [2. Easy to optimize](#2-easy-to-optimize)
+    - [3. Friendly syntax](#3-friendly-syntax)
+    - [4. Can choose two different coding styles.](#4-can-choose-two-different-coding-styles)
+    - [5. Batteries included](#5-batteries-included)
+    - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
+    - [7. Written in Rust](#7-written-in-rust)
+  - [Latest README version](#latest-readme-version)
+  - [Pre-requisite](#pre-requisite)
+  - [Install](#install)
+    - [Basic Installation](#basic-installation)
+    - [Featured Installation](#featured-installation)
+    - [Available Features](#available-features)
+    - [Install Examples](#install-examples)
+  - [Useful tips for features](#useful-tips-for-features)
+  - [Module Structure](#module-structure)
+  - [Documentation](#documentation)
+  - [Examples](#examples)
+  - [Release Info](#release-info)
+  - [Contributes Guide](#contributes-guide)
+  - [LICENSE](#license)
+  - [TODO](#todo)
+  - [Cite Peroxide](#cite-peroxide)
 
 ## Why Peroxide?
 
@@ -223,6 +230,7 @@ Peroxide can do many things.
     - Beta
     - Student's-t
     - Weighted Uniform
+    - LogNormal
   - RNG algorithms
     - Acceptance Rejection
     - Marsaglia Polar
