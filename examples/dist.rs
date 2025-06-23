@@ -63,4 +63,18 @@ fn example() {
     println!("PDF at x = mean: {}", g.pdf(0.666666));
     println!("PDF at x = mode: {}", g.pdf(0.5));
     println!("");
+
+    let m = 1.0;
+    let s = 1.0;
+    let lognorm = LogNormal(m, s);
+    let lognorm_sample = lognorm.sample(SAMPLE_SIZE);
+    println!("LogNormal at (m,s) = ({},{})", m, s);
+    println!("Number of samples: {}", SAMPLE_SIZE);
+    println!("Theoretical mean: {}", lognorm.mean());
+    println!("Sample mean: {}", lognorm_sample.mean());
+    println!("Theoretical var: {}", lognorm.var());
+    println!("Sample var: {}", lognorm_sample.var());
+    println!("PDF at x = mean: {}", lognorm.pdf(2.718281828459045));
+    println!("PDF at x = mode: {}", lognorm.pdf(1.0));
+    println!("");
 }

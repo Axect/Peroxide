@@ -698,7 +698,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             //            }
             Gamma(shape, scale) => {
                 let gamma =
-                    rand_distr::Gamma::<f64>::new((*shape).into(), (*scale).into()).unwrap();
+                    rand_distr::Gamma::<f64>::new((*shape).into(), 1f64 / (*scale).into()).unwrap();
                 gamma.sample_iter(rng).take(n).collect()
             } //            Gamma(a, b) => {
               //                let a_f64 = (*a).into();
