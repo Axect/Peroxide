@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.39.7"
+version = "0.39.8"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with farmiliar syntax"
@@ -38,7 +38,6 @@ peroxide-ad = "0.3"
 peroxide-num = "0.1"
 anyhow = "1.0"
 paste = "1.0"
-#num-complex = "0.3"
 netcdf = { version = "0.7", optional = true, default-features = false }
 pyo3 = { version = "0.22", optional = true, features = [
   "auto-initialize",
