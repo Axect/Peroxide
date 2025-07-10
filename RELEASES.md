@@ -1,3 +1,7 @@
+# Release 0.39.9 (2025-07-10)
+
+- Change implementation of Gauss-Legendre 4th order method
+
 # Release 0.39.8 (2025-06-23)
 
 - Implement `LogNormal` distribution
