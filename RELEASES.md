@@ -1,3 +1,8 @@
+# Release 0.39.10 (2025-07-11)
+
+- Fixed a bug in the adaptive step size control for all embedded Runge-Kutta methods.
+- Corrected the `BU` coefficient vector for the 7th order solution in the `RKF78` implementation.
+
 # Release 0.39.9 (2025-07-10)
 
 - Change implementation of Gauss-Legendre 4th order method
