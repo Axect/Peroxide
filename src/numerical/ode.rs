@@ -324,7 +324,7 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                     error = error.max(dt * s.abs())
                 }
 
-                let factor = (self.tol() * dt / error).powf(0.2);
+                let factor = (self.tol() / error).powf(0.2);
                 let new_dt = self.safety_factor() * dt * factor;
                 let new_dt = new_dt.clamp(self.min_step_size(), self.max_step_size());
 
@@ -1102,7 +1102,7 @@ impl ButcherTableau for RKF78 {
     // BU_i = BE_i (8th order) - ErrorCoeff_i
     // ErrorCoeff_i = [-41/840, 0, ..., 0, -41/840 (for k11), 41/840 (for k12), 41/840 (for k13)]
     const BU: &'static [f64] = &[
-        41.0 / 420.0, // 41/840 - (-41/840)
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -1112,9 +1112,9 @@ impl ButcherTableau for RKF78 {
         9.0 / 35.0,
         9.0 / 280.0,
         9.0 / 280.0,
-        41.0 / 420.0,  // 41/840 - (-41/840)
-        -41.0 / 840.0, // 0.0 - (41/840)
-        -41.0 / 840.0, // 0.0 - (41/840)
+        0.0,
+        41.0 / 840.0,
+        41.0 / 840.0,
     ];
 
     // Coefficients for the 8th order solution (used for error estimation)
