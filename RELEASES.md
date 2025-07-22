@@ -1,3 +1,8 @@
+# Release 0.39.11 (2025-07-22)
+
+- Implement `derivative` and `integral` of B-Spline
+
+
 # Release 0.39.10 (2025-07-11)
 
 - Fixed a bug in the adaptive step size control for all embedded Runge-Kutta methods.
