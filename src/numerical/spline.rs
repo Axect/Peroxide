@@ -1206,6 +1206,76 @@ impl BSpline {
 
         B[0][p]
     }
+
+    /// Returns the derivative of the B-spline.
+    /// The derivative of a B-spline of degree p is a B-spline of degree p-1.
+    pub fn derivative(&self) -> Result<Self> {
+        if self.degree == 0 {
+            bail!("Cannot take the derivative of a B-spline with degree 0.");
+        }
+
+        let p = self.degree;
+        let c = self.control_points.len();
+
+        // The new control points (Q_i) are calculated from the old ones (P_i)
+        // Q_i = p * (P_{i+1} - P_i) / (t_{i+p+1} - t_{i+1})
+        let mut new_control_points = Vec::with_capacity(c - 1);
+        for i in 0..c - 1 {
+            let p_i = &self.control_points[i];
+            let p_i1 = &self.control_points[i + 1];
+            let denominator = self.knots[i + p + 1] - self.knots[i + 1];
+            if denominator == 0.0 {
+                new_control_points.push(vec![0.0; p_i.len()]);
+            } else {
+                let factor = p as f64 / denominator;
+                let q_i = p_i1
+                    .iter()
+                    .zip(p_i)
+                    .map(|(a, b)| factor * (a - b))
+                    .collect();
+                new_control_points.push(q_i);
+            }
+        }
+
+        // The new knot vector is the old one with the first and last knots removed.
+        let new_knots = self.knots[1..self.knots.len() - 1].to_vec();
+        let new_degree = self.degree - 1;
+
+        BSpline::open(new_degree, new_knots, new_control_points)
+    }
+
+    /// Returns the integral of the B-spline.
+    /// The integral of a B-spline of degree p is a B-spline of degree p+1.
+    /// The first control point of the integral is set to zero (integration constant).
+    pub fn integral(&self) -> Result<Self> {
+        let p = self.degree;
+        let c = self.control_points.len();
+        let dim = self.control_points[0].len();
+
+        // The new knot vector is the old one with the first and last knots duplicated.
+        let mut new_knots = self.knots.clone();
+        new_knots.insert(0, self.knots[0]);
+        new_knots.push(self.knots[self.knots.len() - 1]);
+
+        // The new control points (R_i) are calculated recursively.
+        // R_j = R_{j-1} + P_{j-1} * (t_{j+p} - t_{j-1}) / (p+1)
+        let mut new_control_points = vec![vec![0.0; dim]; c + 1]; // R_0 is the zero vector
+
+        for i in 1..=c {
+            let factor = (self.knots[i + p] - self.knots[i - 1]) / ((p + 1) as f64);
+            let prev_r = new_control_points[i - 1].clone();
+            let p_im1 = &self.control_points[i - 1];
+            let mut r_i = Vec::with_capacity(dim);
+            for j in 0..dim {
+                r_i.push(prev_r[j] + factor * p_im1[j]);
+            }
+            new_control_points[i] = r_i;
+        }
+
+        let new_degree = self.degree + 1;
+
+        BSpline::open(new_degree, new_knots, new_control_points)
+    }
 }
 
 impl Spline<(f64, f64)> for BSpline {
