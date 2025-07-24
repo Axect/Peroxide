@@ -121,7 +121,7 @@
 //!     df.print();
 //!
 //!     # #[cfg(feature="parquet")] {
-//!     df.write_parquet("example_data/test.parquet", CompressionOptions::Uncompressed).unwrap();
+//!     df.write_parquet("example_data/test.parquet", SNAPPY).unwrap();
 //!     # }
 //! }
 //! ```

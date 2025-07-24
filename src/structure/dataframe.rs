@@ -247,7 +247,7 @@
 //!         df.push("a", Series::new(vec!['x', 'y', 'z']));
 //!         df.push("b", Series::new(vec![0, 1, 2]));
 //!         df.push("c", Series::new(c!(0.1, 0.2, 0.3)));
-//!         df.write_parquet("example_data/doc_pq.parquet", Compression::UNCOMPRESSED)?;
+//!         df.write_parquet("example_data/doc_pq.parquet", SNAPPY)?;
 //!
 //!         // Read parquet
 //!         let mut dg = DataFrame::read_parquet("example_data/doc_pq.parquet")?;
@@ -276,6 +276,7 @@ use indexmap::IndexMap;
 use std::error::Error;
 use std::fmt;
 use std::ops::{Index, IndexMut};
+#[cfg(feature = "parquet")]
 use std::sync::Arc;
 use DType::{Bool, Char, Str, F32, F64, I16, I32, I64, I8, ISIZE, U16, U32, U64, U8, USIZE};
 
@@ -1952,6 +1953,7 @@ pub trait WithParquet {
 /// - `$rust_type`: The target Rust type for the `Vec` (e.g., `bool`).
 /// - `|$concrete_array:ident| $extract_body:expr`: A closure-like expression that defines
 ///   how to extract the data from the downcasted array into a `Vec<$rust_type>`.
+#[cfg(feature = "parquet")]
 macro_rules! process_column {
     ($hash_map:expr, $h:expr, $arr:expr, $arrow_type:ty, $rust_type:ty, |$concrete_array:ident| $extract_body:expr) => {{
         // Downcast the generic array to the specific Arrow array type.

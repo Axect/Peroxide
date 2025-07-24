@@ -198,7 +198,7 @@ pub trait SimpleParquet: Sized {
 #[cfg(feature = "parquet")]
 impl SimpleParquet for DataFrame {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>> {
-        WithParquet::write_parquet(self, path, Compression::UNCOMPRESSED)
+        WithParquet::write_parquet(self, path, Compression::SNAPPY)
     }
 
     fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>> {
