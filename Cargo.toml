@@ -48,10 +48,8 @@ lapack = { version = "0.19", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 rkyv = { version = "0.8", optional = true }
 json = { version = "0.12", optional = true }
-arrow2 = { version = "0.18", features = [
-  "io_parquet",
-  "io_parquet_compression",
-], optional = true }
+parquet = { version = "55", features = ["arrow", "snap"], optional = true }
+arrow = { version = "55", optional = true }
 num-complex = { version = "0.4", optional = true }
 rayon = { version = "1.10", optional = true }
 
@@ -63,6 +61,6 @@ default = []
 O3 = ["blas", "lapack"]
 plot = ["pyo3"]
 nc = ["netcdf"]
-parquet = ["arrow2"]
+parquet = ["dep:parquet", "arrow"]
 complex = ["num-complex", "matrixmultiply/cgemm"]
 parallel = ["rayon"]
