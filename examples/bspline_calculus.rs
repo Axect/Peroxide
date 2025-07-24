@@ -1,5 +1,5 @@
-use peroxide::fuga::*;
 use anyhow::Result;
+use peroxide::fuga::*;
 
 fn main() -> Result<()> {
     // 1. Define the B-spline
@@ -53,7 +53,8 @@ fn main() -> Result<()> {
         let deriv_control_y: Vec<f64> = deriv_spline.control_points.iter().map(|p| p[1]).collect();
 
         let mut plt_deriv = Plot2D::new();
-        plt_deriv.set_title("B-Spline Derivative (Hodograph)")
+        plt_deriv
+            .set_title("B-Spline Derivative (Hodograph)")
             .set_xlabel("dx/dt")
             .set_ylabel("dy/dt")
             .insert_pair((dx, dy))
@@ -71,7 +72,8 @@ fn main() -> Result<()> {
         let integ_control_y: Vec<f64> = integ_spline.control_points.iter().map(|p| p[1]).collect();
 
         let mut plt_integ = Plot2D::new();
-        plt_integ.set_title("B-Spline Integral")
+        plt_integ
+            .set_title("B-Spline Integral")
             .set_xlabel("Integral of x")
             .set_ylabel("Integral of y")
             .insert_pair((ix, iy))

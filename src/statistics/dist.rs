@@ -701,31 +701,31 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                     rand_distr::Gamma::<f64>::new((*shape).into(), 1f64 / (*scale).into()).unwrap();
                 gamma.sample_iter(rng).take(n).collect()
             } //            Gamma(a, b) => {
-              //                let a_f64 = (*a).into();
-              //                let b_f64 = (*b).into();
-              //
-              //                // for Marsaglia & Tsang's Method
-              //                let d = a_f64 - 1f64 / 3f64;
-              //                let c = 1f64 / (9f64 * d).sqrt();
-              //
-              //                let mut rng1 = rand::rng();
-              //                let mut rng2 = rand::rng();
-              //
-              //                let mut v = vec![0f64; n];
-              //                let mut iter_num = 0usize;
-              //
-              //                while iter_num < n {
-              //                    let u = rng1.random_range(0f64, 1f64);
-              //                    let z = ziggurat(&mut rng2, 1f64);
-              //                    let w = (1f64 + c * z).powi(3);
-              //
-              //                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
-              //                        v[iter_num] = d * w / b_f64;
-              //                        iter_num += 1;
-              //                    }
-              //                }
-              //                v
-              //            }
+            //                let a_f64 = (*a).into();
+            //                let b_f64 = (*b).into();
+            //
+            //                // for Marsaglia & Tsang's Method
+            //                let d = a_f64 - 1f64 / 3f64;
+            //                let c = 1f64 / (9f64 * d).sqrt();
+            //
+            //                let mut rng1 = rand::rng();
+            //                let mut rng2 = rand::rng();
+            //
+            //                let mut v = vec![0f64; n];
+            //                let mut iter_num = 0usize;
+            //
+            //                while iter_num < n {
+            //                    let u = rng1.random_range(0f64, 1f64);
+            //                    let z = ziggurat(&mut rng2, 1f64);
+            //                    let w = (1f64 + c * z).powi(3);
+            //
+            //                    if z >= -1f64 / c && u.ln() < 0.5 * z.powi(2) + d - d * w + d * w.ln() {
+            //                        v[iter_num] = d * w / b_f64;
+            //                        iter_num += 1;
+            //                    }
+            //                }
+            //                v
+            //            }
             LogNormal(mu, sigma) => {
                 let log_normal =
                     rand_distr::LogNormal::<f64>::new((*mu).into(), (*sigma).into()).unwrap();
@@ -821,11 +821,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
 
                 inc_gamma(a, b * x)
             }
-            LogNormal(mu, sigma) => {
-                phi(
-                    (x.ln() - (*mu).into()) / (*sigma).into(),
-                )
-            }
+            LogNormal(mu, sigma) => phi((x.ln() - (*mu).into()) / (*sigma).into()),
         }
     }
 }

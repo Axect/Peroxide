@@ -14,7 +14,7 @@ use crate::traits::math::{Norm, Normed};
 #[allow(unused_imports)]
 use crate::traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, UPLO, WAZD};
 #[cfg(feature = "parquet")]
-use arrow2::io::parquet::write::CompressionOptions;
+use parquet::basic::Compression;
 #[cfg(feature = "parquet")]
 use std::error::Error;
 
@@ -198,7 +198,7 @@ pub trait SimpleParquet: Sized {
 #[cfg(feature = "parquet")]
 impl SimpleParquet for DataFrame {
     fn write_parquet(&self, path: &str) -> Result<(), Box<dyn Error>> {
-        WithParquet::write_parquet(self, path, CompressionOptions::Uncompressed)
+        WithParquet::write_parquet(self, path, Compression::SNAPPY)
     }
 
     fn read_parquet(path: &str) -> Result<Self, Box<dyn Error>> {

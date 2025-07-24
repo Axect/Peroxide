@@ -110,6 +110,7 @@
 
 pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
+use crate::fuga::ConvToMat;
 use crate::numerical::utils::jacobian;
 use crate::structure::ad::{ADVec, AD};
 use crate::structure::matrix::Matrix;
@@ -247,7 +248,7 @@ where
 
         // Take various form of initial data
         let p_init_vec = p_init.to_f64_vec();
-        let y = y_vec.into();
+        let y = y_vec.to_col();
 
         // Declare mutable values
         let mut p: Matrix = p_init_vec.clone().into();

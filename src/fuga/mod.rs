@@ -121,7 +121,7 @@
 //!     df.print();
 //!
 //!     # #[cfg(feature="parquet")] {
-//!     df.write_parquet("example_data/test.parquet", CompressionOptions::Uncompressed).unwrap();
+//!     df.write_parquet("example_data/test.parquet", SNAPPY).unwrap();
 //!     # }
 //! }
 //! ```
@@ -228,4 +228,4 @@ pub use crate::traits::matrix::{
 };
 
 #[cfg(feature = "parquet")]
-pub use arrow2::io::parquet::write::CompressionOptions;
+pub use parquet::basic::Compression::*;
