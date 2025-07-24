@@ -1,3 +1,14 @@
+# Release 0.40.0 (2025-07-24)
+
+## Move from `arrow2` to `arrow` & `parquet`
+
+- Remove `arrow2` dependency
+- Add `arrow` and `parquet` dependencies
+- Update `WithParquet` implementation
+- On user side, there are almost no changes in `DataFrame` API, but there is one change for `fuga` user:
+  - `CompressionOptions` -> `UNCOMPRESSED`, `SNAPPY`, `GZIP(level)`, `LZ4`, `ZSTD(level)`, `BROTLI(level)`, `LZO`, `LZ4_RAW`
+  - For `prelude user`, there are completely no changes. Default compression is `SNAPPY`.
+
 # Release 0.39.11 (2025-07-22)
 
 - Implement `derivative` and `integral` of B-Spline
