@@ -1,5 +1,5 @@
-use peroxide::fuga::*;
 use anyhow::Result;
+use peroxide::fuga::*;
 
 fn main() -> Result<()> {
     // 1. Define the B-spline
@@ -30,14 +30,18 @@ fn main() -> Result<()> {
     // 3. Perform numerical integration using self-contained Gauss-Legendre quadrature
     let t_start = 0f64;
     let t_end = 4f64;
-    
+
     //let area = gauss_legendre_integrate(
     //    |t| integrand(t, &spline, &deriv_spline),
     //    t_start,
     //    t_end,
     //    64,
     //);
-    let area = integrate(|t| integrand(t, &spline, &deriv_spline), (t_start, t_end), G7K15R(1e-4, 20));
+    let area = integrate(
+        |t| integrand(t, &spline, &deriv_spline),
+        (t_start, t_end),
+        G7K15R(1e-4, 20),
+    );
 
     // 4. Print the result
     println!("The area under the B-spline curve (∫y dx) is: {}", area);
@@ -47,13 +51,16 @@ fn main() -> Result<()> {
     {
         let t = linspace(t_start, t_end, 200);
         let (x, y): (Vec<f64>, Vec<f64>) = spline.eval_vec(&t).into_iter().unzip();
-        
+
         let mut plt = Plot2D::new();
         plt.set_title(&format!("Original B-Spline (Area approx. {:.4})", area))
             .set_xlabel("x")
             .set_ylabel("y")
             .insert_pair((x.clone(), y.clone()))
-            .insert_pair((control_points.iter().map(|p| p[0]).collect(), control_points.iter().map(|p| p[1]).collect()))
+            .insert_pair((
+                control_points.iter().map(|p| p[0]).collect(),
+                control_points.iter().map(|p| p[1]).collect(),
+            ))
             .set_plot_type(vec![(0, PlotType::Line), (1, PlotType::Scatter)])
             .set_color(vec![(0, "blue"), (1, "red")])
             .set_legend(vec!["Spline", "Control Points"])
@@ -61,7 +68,7 @@ fn main() -> Result<()> {
             .set_path("example_data/bspline_with_area.png")
             .set_dpi(600)
             .savefig()?;
-        
+
         println!("Generated plot: example_data/bspline_with_area.png");
     }
 

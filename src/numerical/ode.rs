@@ -1291,9 +1291,7 @@ impl ODEIntegrator for GL4 {
                     let delta = (&J_inv * &F_vec).mul_scalar(-1.0);
 
                     // U <- U + delta
-                    U.iter_mut()
-                        .zip(delta.iter())
-                        .for_each(|(u, d)| *u += *d);
+                    U.iter_mut().zip(delta.iter()).for_each(|(u, d)| *u += *d);
 
                     let mut F_new = vec![0.0; m];
                     compute_F(problem, t, y, dt, &U, &mut F_new)?;
@@ -1394,7 +1392,7 @@ fn compute_F<P: ODEProblem>(
         y1[i] = y[i] + dt * (A11 * k1_slice[i] + A12 * k2_slice[i]);
         y2[i] = y[i] + dt * (A21 * k1_slice[i] + A22 * k2_slice[i]);
     }
-    
+
     // F is an output parameter, its parts f1 and f2 are stored temporarily
     let (f1, f2) = F.split_at_mut(n);
     problem.rhs(t + C1 * dt, &y1, f1)?;
