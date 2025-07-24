@@ -50,6 +50,7 @@ rkyv = { version = "0.8", optional = true }
 json = { version = "0.12", optional = true }
 parquet = { version = "55", features = ["arrow", "snap"], optional = true }
 arrow = { version = "55", optional = true }
+indexmap = { version = "1", optional = true }
 num-complex = { version = "0.4", optional = true }
 rayon = { version = "1.10", optional = true }
 
@@ -61,6 +62,6 @@ default = []
 O3 = ["blas", "lapack"]
 plot = ["pyo3"]
 nc = ["netcdf"]
-parquet = ["dep:parquet", "arrow"]
+parquet = ["dep:parquet", "arrow", "indexmap"]
 complex = ["num-complex", "matrixmultiply/cgemm"]
 parallel = ["rayon"]

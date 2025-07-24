@@ -268,8 +268,10 @@ use arrow::datatypes::{
     UInt64Type, UInt8Type,
 };
 use std::cmp::{max, min};
-#[cfg(any(feature = "csv", feature = "parquet"))]
+#[cfg(feature = "csv")]
 use std::collections::HashMap;
+#[cfg(feature = "parquet")]
+use indexmap::IndexMap;
 #[cfg(any(feature = "csv", feature = "nc", feature = "parquet"))]
 use std::error::Error;
 use std::fmt;
@@ -800,7 +802,7 @@ macro_rules! dtype_cast_vec_part {
             F32 => type_cast_vec!($ty1, f32, $to_vec, $wrapper),
             F64 => type_cast_vec!($ty1, f64, $to_vec, $wrapper),
             Str => string_cast_vec!($ty1, $to_vec, $wrapper),
-            _ => panic!("Can't convert type to {}", $dt2),
+            _ => panic!("Can't convert to {}", $dt2),
         }
     }};
 }
@@ -1976,7 +1978,7 @@ impl WithParquet for DataFrame {
     fn write_parquet(
         &self,
         file_path: &str,
-        _compression: Compression,
+        compression: Compression,
     ) -> Result<(), Box<dyn Error>> {
         let mut schema_vec = vec![];
         let mut arr_vec = vec![];
@@ -1995,7 +1997,10 @@ impl WithParquet for DataFrame {
         let parquet_schema = ArrowSchemaConverter::new()
             .convert(&schema)
             .map_err(|e| format!("Failed to convert schema: {}", e))?;
-        let props = Arc::new(WriterProperties::default());
+        let writer_properties = WriterProperties::builder()
+            .set_compression(compression)
+            .build();
+        let props = Arc::new(writer_properties);
 
         let col_writers = get_column_writers(&parquet_schema, &props, &schema)?;
         let mut workers: Vec<_> = col_writers
@@ -2072,7 +2077,7 @@ impl WithParquet for DataFrame {
         };
         let all_batches: Vec<_> = reader.collect::<Result<Vec<_>, _>>()?;
 
-        let mut hash_map = HashMap::<String, Series>::new();
+        let mut hash_map = IndexMap::<String, Series>::new();
         for batch in all_batches {
             let arrs = batch.columns();
 
