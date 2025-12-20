@@ -137,7 +137,7 @@ fn test_rref() {
 fn test_rref_unstable() {
     let epsilon = 1e-10;
 
-    // this matrix has a tendency to become unstable during rref,
+    // this matrix used to become unstable during rref
     let a = ml_matrix(
         r#"
     1 1 0 0 0 1 0 1 31;
