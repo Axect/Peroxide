@@ -3293,7 +3293,9 @@ impl LinearAlgebra<Matrix> for Matrix {
     ///
     /// Implementation of [RosettaCode](https://rosettacode.org/wiki/Reduced_row_echelon_form)
     fn rref(&self) -> Matrix {
-        let epsilon = 1e-10;
+        let max_abs = self.data.iter().fold(0f64, |acc, &x| acc.max(x.abs()));
+        let epsilon = (max_abs * 1e-12).max(1e-15);
+
         let mut lead = 0usize;
         let mut result = self.clone();
         'outer: for r in 0..self.row {
