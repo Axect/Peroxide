@@ -3293,6 +3293,7 @@ impl LinearAlgebra<Matrix> for Matrix {
     ///
     /// Implementation of [RosettaCode](https://rosettacode.org/wiki/Reduced_row_echelon_form)
     fn rref(&self) -> Matrix {
+        let epsilon = 1e-10;
         let mut lead = 0usize;
         let mut result = self.clone();
         'outer: for r in 0..self.row {
@@ -3300,7 +3301,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                 break;
             }
             let mut i = r;
-            while result[(i, lead)] == 0f64 {
+            while result[(i, lead)].abs() < epsilon {
                 i += 1;
                 if self.row == i {
                     i = r;
@@ -3314,7 +3315,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                 result.swap(i, r, Row);
             }
             let tmp = result[(r, lead)];
-            if tmp != 0f64 {
+            if tmp.abs() > epsilon {
                 unsafe {
                     result.row_mut(r).iter_mut().for_each(|t| *(*t) /= tmp);
                 }

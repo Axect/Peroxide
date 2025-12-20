@@ -111,3 +111,54 @@ fn test_kronecker() {
     let c1 = a1.kronecker(&b1);
     assert_eq!(c1, ml_matrix("0 5 0 10;6 7 12 14;0 15 0 20;18 21 24 28"));
 }
+
+#[test]
+fn test_rref() {
+    let a = ml_matrix(
+        r#"
+        -3 2 -1 -1;
+        6 -6 7 -7;
+        3 -4 4 -6"#,
+    );
+    let b = a.rref();
+
+    assert_eq!(
+        b,
+        ml_matrix(
+            r#"
+    1 0 0 2;
+    0 1 0 2;
+    0 0 1 -1"#
+        )
+    );
+}
+
+#[test]
+fn test_rref_unstable() {
+    let epsilon = 1e-10;
+
+    // this matrix has a tendency to become unstable during rref,
+    let a = ml_matrix(
+        r#"
+    1 1 0 0 0 1 0 1 31;
+    1 1 1 1 0 0 1 1 185;
+    0 0 1 0 0 1 1 1 165;
+    1 0 1 0 1 1 0 1 32;
+    1 0 1 0 0 0 1 1 174;
+    0 0 1 0 1 1 1 1 171;
+    0 1 1 0 1 1 0 1 27;
+    1 0 0 1 0 1 0 0 20;
+    1 0 1 1 0 1 0 0 23"#,
+    );
+
+    let b = a.rref();
+
+    // creating a row like "0 0 0 0 0 0 0 0 1" will "prove" 0 == 1
+    // which is a tell of numeric instability
+    for row in 0..b.row {
+        let ends_in_1 = (b[(row, b.col - 1)] - 1.0).abs() < epsilon;
+        let rest_zeroes = (0..b.col - 1).all(|col| b[(row, col)].abs() < epsilon);
+
+        assert!(!(ends_in_1 && rest_zeroes));
+    }
+}
