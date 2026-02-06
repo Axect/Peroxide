@@ -252,6 +252,11 @@ Peroxide can do many things.
   - Read & Write `csv` files (`csv` feature)
   - Read & Write `netcdf` files (`nc` feature)
   - Read & Write `parquet` files (`parquet` feature)
+  - Shape & info: `nrow`, `ncol`, `shape`, `dtypes`, `is_empty`, `contains`
+  - Row operations: `head`, `tail`, `slice`
+  - Column operations: `select`, `rename`, `column_names`, `select_dtypes`
+  - Series statistics: `sum`, `mean`, `var`, `sd`, `min`, `max`
+  - DataFrame statistics: `describe`, `sum`, `mean`
 
 ### 6. Compatible with Mathematics
 

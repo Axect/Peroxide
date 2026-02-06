@@ -71,6 +71,11 @@
 //!   - [Plot with `matplotlib`](util/plot/index.html)
 //! - [DataFrame](structure/dataframe/index.html)
 //!   - Read & Write with `parquet` or `netcdf` or `csv` format
+//!   - Shape & info: `nrow`, `ncol`, `shape`, `dtypes`, `is_empty`, `contains`
+//!   - Row operations: `head`, `tail`, `slice`
+//!   - Column operations: `select`, `rename`, `column_names`, `select_dtypes`
+//!   - Statistics: `describe`, `sum`, `mean`
+//!   - Series statistics: `sum`, `mean`, `var`, `sd`, `min`, `max`
 //! - Macros
 //!   - [R macros](macros/r_macro/index.html)
 //!   - [Matlab macros](macros/matlab_macro/index.html)
