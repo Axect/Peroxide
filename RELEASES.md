@@ -1,3 +1,24 @@
+# Release 0.40.2 (2026-02-06)
+
+## New DataFrame & Series Methods
+
+- Add `Series` helper methods
+  - `select_indices(&self, indices: &[usize]) -> Series` : Select elements by indices
+  - `to_f64_vec(&self) -> anyhow::Result<Vec<f64>>` : Convert numeric Series to `Vec<f64>`
+- Add `DataFrame` shape & info methods
+  - `nrow`, `ncol`, `shape`, `dtypes`, `is_empty`, `contains`
+- Add `DataFrame` row operations
+  - `head(n)`, `tail(n)`, `slice(offset, length)`
+- Add `DataFrame` column operations
+  - `select(columns)`, `rename(old, new)`, `column_names()`, `select_dtypes(dtypes)`
+- Add `Series` statistics
+  - `sum`, `mean`, `var`, `sd` : Numeric types only, returns `f64`
+  - `min`, `max` : All ordered types, returns `Scalar` preserving original type
+- Add `DataFrame` statistics
+  - `describe()` : count / mean / sd / min / max for numeric columns
+  - `sum()`, `mean()` : Column-wise aggregation as single-row DataFrame
+- Refactor `extract_series_by_indices` into `Series::select_indices`
+
 # Release 0.40.1 (2026-02-06)
 
 ## Bug Fixes & Improvements
