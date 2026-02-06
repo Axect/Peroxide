@@ -1,3 +1,14 @@
+# Release 0.40.1 (2026-02-06)
+
+## Bug Fixes & Improvements
+
+- Fix numerical instability in RREF (Reduced Row Echelon Form) by comparing to epsilon instead of zero ([#90](https://github.com/Axect/Peroxide/pull/90)) (Thanks to [@developing-human](https://github.com/developing-human))
+- Update `pyo3` dependency to 0.27.1 for `plot` feature compatibility ([#89](https://github.com/Axect/Peroxide/pull/89)) (Thanks to [@JSorngard](https://github.com/JSorngard))
+- Fix adaptive step size control exponent for embedded Runge-Kutta methods
+  - Add `order()` method to `ButcherTableau` trait for correct exponent `1/(p+1)`
+  - BS23: `1/3`, RKF45/DP45/TSIT45: `1/5`, RKF78: `1/8`
+- Fix misleading comments on RKF78 BU/BE coefficients
+
 # Release 0.40.0 (2025-07-24)
 
 ## Move from `arrow2` to `arrow` & `parquet`
