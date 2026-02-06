@@ -45,10 +45,21 @@
 //!
 //!     ```ignore
 //!     impl Series {
+//!         // Core
 //!         pub fn at(&self, i: usize) -> Scalar;
 //!         pub fn len(&self) -> usize;
 //!         pub fn to_type(&self, dtype: DType) -> Series;
 //!         pub fn as_type(&mut self, dtype: DType);
+//!         pub fn select_indices(&self, indices: &[usize]) -> Series;
+//!         pub fn to_f64_vec(&self) -> anyhow::Result<Vec<f64>>;
+//!
+//!         // Statistics (numeric types only, except min/max)
+//!         pub fn sum(&self) -> anyhow::Result<f64>;
+//!         pub fn mean(&self) -> anyhow::Result<f64>;
+//!         pub fn var(&self) -> anyhow::Result<f64>;
+//!         pub fn sd(&self) -> anyhow::Result<f64>;
+//!         pub fn min(&self) -> anyhow::Result<Scalar>;
+//!         pub fn max(&self) -> anyhow::Result<Scalar>;
 //!     }
 //!     ```
 //!
@@ -58,6 +69,10 @@
 //!         * All integer & float types can be exchanged.
 //!         * `Bool, Char` can be changed to `Str` or `U8` only.
 //!         * `U8` can be changed to all types.
+//!     * `select_indices` selects elements by indices, returning a new Series.
+//!     * `to_f64_vec` converts numeric Series to `Vec<f64>` (bridge for statistics).
+//!     * `sum`, `mean`, `var`, `sd` convert to `f64` internally via `to_f64_vec`.
+//!     * `min`, `max` preserve the original type and return `Scalar`. Works on all ordered types including `Char` and `String`.
 //!
 //! ### 3. Example
 //!
@@ -73,8 +88,19 @@
 //!     a.print();       // print for Series
 //!     b.dtype.print(); // print for dtype of Series (=Char)
 //!     c.as_type(U8);   // Bool => U8
-//!     
+//!
 //!     assert_eq!(c.dtype, U8);
+//!
+//!     // Select by indices
+//!     let d = a.select_indices(&[0, 2]);
+//!     assert_eq!(d, Series::new(vec![1, 3]));
+//!
+//!     // Statistics
+//!     let e = Series::new(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+//!     assert_eq!(e.sum().unwrap(), 15.0);
+//!     assert_eq!(e.mean().unwrap(), 3.0);
+//!     assert_eq!(e.min().unwrap(), Scalar::new(1.0f64));
+//!     assert_eq!(e.max().unwrap(), Scalar::new(5.0f64));
 //! }
 //! ```
 //!
@@ -121,6 +147,7 @@
 //!
 //!     ```ignore
 //!     impl DataFrame {
+//!         // Constructor & Basic
 //!         pub fn new(v: Vec<Series>) -> Self;
 //!         pub fn header(&self) -> &Vec<String>;
 //!         pub fn header_mut(&mut self) -> &mut Vec<String>;
@@ -130,19 +157,54 @@
 //!         pub fn row(&self, i: usize) -> DataFrame;
 //!         pub fn spread(&self) -> String;
 //!         pub fn as_types(&mut self, dtypes: Vec<DType>);
-//!         pub fn filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>;
+//!         pub fn filter_by<F>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>;
 //!         pub fn mask(&self, mask: &Series) -> anyhow::Result<DataFrame>;
 //!         pub fn select_rows(&self, indices: &[usize]) -> DataFrame;
+//!
+//!         // Shape & Info
+//!         pub fn nrow(&self) -> usize;
+//!         pub fn ncol(&self) -> usize;
+//!         pub fn shape(&self) -> (usize, usize);
+//!         pub fn dtypes(&self) -> Vec<DType>;
+//!         pub fn is_empty(&self) -> bool;
+//!         pub fn contains(&self, col_header: &str) -> bool;
+//!
+//!         // Row Operations
+//!         pub fn head(&self, n: usize) -> DataFrame;
+//!         pub fn tail(&self, n: usize) -> DataFrame;
+//!         pub fn slice(&self, offset: usize, length: usize) -> DataFrame;
+//!
+//!         // Column Operations
+//!         pub fn select(&self, columns: &[&str]) -> DataFrame;
+//!         pub fn rename(&mut self, old: &str, new: &str);
+//!         pub fn column_names(&self) -> Vec<&str>;
+//!         pub fn select_dtypes(&self, dtypes: &[DType]) -> DataFrame;
+//!
+//!         // Statistics (numeric columns only)
+//!         pub fn describe(&self) -> DataFrame;
+//!         pub fn sum(&self) -> DataFrame;
+//!         pub fn mean(&self) -> DataFrame;
 //!     }
 //!     ```
 //!
 //!     * `push(&mut self, name: &str, series: Series)`: push head & Series pair
 //!     * `drop(&mut self, col_header: &str)`: drop specific column by header
 //!     * `row(&self, i: usize) -> DataFrame` : Extract $i$-th row as new DataFrame
-//!     * `filter_by<F: Fn(Scalar) -> bool>(&self, column: &str, f: F) -> anyhow::Result<DataFrame>`
-//!     : Filter DataFrame by specific column
-//!     * `mask(&self, mask: &Series) -> anyhow::Result<DataFrame>` : Mask DataFrame by Series
-//!     * `select_rows(&self, indices: &[usize]) -> DataFrame` : Select rows by indices
+//!     * `filter_by(&self, column, f)` : Filter DataFrame by specific column
+//!     * `mask(&self, mask: &Series)` : Mask DataFrame by boolean Series
+//!     * `select_rows(&self, indices)` : Select rows by indices
+//!     * `nrow`, `ncol`, `shape` : Row count (max column length), column count, `(nrow, ncol)` tuple
+//!     * `dtypes` : `Vec<DType>` of each column's type
+//!     * `is_empty` : `true` if no columns or no rows
+//!     * `contains(col_header)` : `true` if the column exists
+//!     * `head(n)`, `tail(n)` : First / last `n` rows
+//!     * `slice(offset, length)` : Row slice starting at `offset`
+//!     * `select(columns)` : Select columns by name (panics on missing)
+//!     * `rename(old, new)` : Rename a column in-place
+//!     * `column_names` : `Vec<&str>` of all headers
+//!     * `select_dtypes(dtypes)` : Select columns matching given DTypes
+//!     * `describe` : Computes count / mean / sd / min / max for each numeric column
+//!     * `sum`, `mean` : Single-row DataFrame with column-wise sum / mean
 //!
 //! * `WithCSV` trait
 //!
@@ -1172,6 +1234,154 @@ impl Series {
         self.dtype = x.dtype;
         self.values = x.values;
     }
+
+    /// Select elements by indices, returning a new Series
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate peroxide;
+    /// use peroxide::fuga::*;
+    ///
+    /// fn main() {
+    ///     let a = Series::new(vec![10, 20, 30, 40, 50]);
+    ///     let b = a.select_indices(&[0, 2, 4]);
+    ///     assert_eq!(b, Series::new(vec![10, 30, 50]));
+    /// }
+    /// ```
+    pub fn select_indices(&self, indices: &[usize]) -> Series {
+        macro_rules! extract_by_indices {
+            ($array:expr, $type:ty) => {{
+                let values: Vec<$type> = indices.iter().map(|&i| $array[i].clone()).collect();
+                Series::new(values)
+            }};
+        }
+
+        match &self.values {
+            DTypeArray::USIZE(v) => extract_by_indices!(v, usize),
+            DTypeArray::U8(v) => extract_by_indices!(v, u8),
+            DTypeArray::U16(v) => extract_by_indices!(v, u16),
+            DTypeArray::U32(v) => extract_by_indices!(v, u32),
+            DTypeArray::U64(v) => extract_by_indices!(v, u64),
+            DTypeArray::ISIZE(v) => extract_by_indices!(v, isize),
+            DTypeArray::I8(v) => extract_by_indices!(v, i8),
+            DTypeArray::I16(v) => extract_by_indices!(v, i16),
+            DTypeArray::I32(v) => extract_by_indices!(v, i32),
+            DTypeArray::I64(v) => extract_by_indices!(v, i64),
+            DTypeArray::F32(v) => extract_by_indices!(v, f32),
+            DTypeArray::F64(v) => extract_by_indices!(v, f64),
+            DTypeArray::Bool(v) => extract_by_indices!(v, bool),
+            DTypeArray::Str(v) => extract_by_indices!(v, String),
+            DTypeArray::Char(v) => extract_by_indices!(v, char),
+        }
+    }
+
+    /// Convert numeric Series to `Vec<f64>`
+    ///
+    /// Supports all integer and float types. Non-numeric types (Bool, Char, Str) return an error.
+    pub fn to_f64_vec(&self) -> anyhow::Result<Vec<f64>> {
+        match self.dtype {
+            Bool | Char | Str => anyhow::bail!("Cannot convert {} Series to f64", self.dtype),
+            _ => {
+                let converted = self.to_type(F64);
+                Ok(TypedVector::<f64>::to_vec(&converted))
+            }
+        }
+    }
+
+    // =========================================================================
+    // Statistics
+    // =========================================================================
+
+    /// Sum of all elements (numeric types only)
+    pub fn sum(&self) -> anyhow::Result<f64> {
+        let v = self.to_f64_vec()?;
+        Ok(v.iter().sum())
+    }
+
+    /// Mean of all elements (numeric types only, Welford's algorithm)
+    pub fn mean(&self) -> anyhow::Result<f64> {
+        use crate::statistics::stat::Statistics;
+        let v = self.to_f64_vec()?;
+        anyhow::ensure!(!v.is_empty(), "Cannot compute mean of empty Series");
+        Ok(v.mean())
+    }
+
+    /// Variance of all elements (numeric types only, sample variance)
+    pub fn var(&self) -> anyhow::Result<f64> {
+        use crate::statistics::stat::Statistics;
+        let v = self.to_f64_vec()?;
+        anyhow::ensure!(v.len() > 1, "Cannot compute variance of Series with fewer than 2 elements");
+        Ok(v.var())
+    }
+
+    /// Standard deviation of all elements (numeric types only)
+    pub fn sd(&self) -> anyhow::Result<f64> {
+        use crate::statistics::stat::Statistics;
+        let v = self.to_f64_vec()?;
+        anyhow::ensure!(v.len() > 1, "Cannot compute sd of Series with fewer than 2 elements");
+        Ok(v.sd())
+    }
+
+    /// Minimum value, preserving original type
+    pub fn min(&self) -> anyhow::Result<Scalar> {
+        anyhow::ensure!(self.len() > 0, "Cannot compute min of empty Series");
+
+        macro_rules! typed_min {
+            ($v:expr, $dtype:ident) => {{
+                let min_val = $v.iter().cloned().reduce(|a, b| if a <= b { a } else { b }).unwrap();
+                Ok(Scalar { value: DTypeValue::$dtype(min_val), dtype: DType::$dtype })
+            }};
+        }
+
+        match &self.values {
+            DTypeArray::USIZE(v) => typed_min!(v, USIZE),
+            DTypeArray::U8(v) => typed_min!(v, U8),
+            DTypeArray::U16(v) => typed_min!(v, U16),
+            DTypeArray::U32(v) => typed_min!(v, U32),
+            DTypeArray::U64(v) => typed_min!(v, U64),
+            DTypeArray::ISIZE(v) => typed_min!(v, ISIZE),
+            DTypeArray::I8(v) => typed_min!(v, I8),
+            DTypeArray::I16(v) => typed_min!(v, I16),
+            DTypeArray::I32(v) => typed_min!(v, I32),
+            DTypeArray::I64(v) => typed_min!(v, I64),
+            DTypeArray::F32(v) => typed_min!(v, F32),
+            DTypeArray::F64(v) => typed_min!(v, F64),
+            DTypeArray::Bool(v) => typed_min!(v, Bool),
+            DTypeArray::Char(v) => typed_min!(v, Char),
+            DTypeArray::Str(v) => typed_min!(v, Str),
+        }
+    }
+
+    /// Maximum value, preserving original type
+    pub fn max(&self) -> anyhow::Result<Scalar> {
+        anyhow::ensure!(self.len() > 0, "Cannot compute max of empty Series");
+
+        macro_rules! typed_max {
+            ($v:expr, $dtype:ident) => {{
+                let max_val = $v.iter().cloned().reduce(|a, b| if a >= b { a } else { b }).unwrap();
+                Ok(Scalar { value: DTypeValue::$dtype(max_val), dtype: DType::$dtype })
+            }};
+        }
+
+        match &self.values {
+            DTypeArray::USIZE(v) => typed_max!(v, USIZE),
+            DTypeArray::U8(v) => typed_max!(v, U8),
+            DTypeArray::U16(v) => typed_max!(v, U16),
+            DTypeArray::U32(v) => typed_max!(v, U32),
+            DTypeArray::U64(v) => typed_max!(v, U64),
+            DTypeArray::ISIZE(v) => typed_max!(v, ISIZE),
+            DTypeArray::I8(v) => typed_max!(v, I8),
+            DTypeArray::I16(v) => typed_max!(v, I16),
+            DTypeArray::I32(v) => typed_max!(v, I32),
+            DTypeArray::I64(v) => typed_max!(v, I64),
+            DTypeArray::F32(v) => typed_max!(v, F32),
+            DTypeArray::F64(v) => typed_max!(v, F64),
+            DTypeArray::Bool(v) => typed_max!(v, Bool),
+            DTypeArray::Char(v) => typed_max!(v, Char),
+            DTypeArray::Str(v) => typed_max!(v, Str),
+        }
+    }
 }
 
 impl Vector for Series {
@@ -1622,38 +1832,11 @@ impl DataFrame {
 
         let mut new_df = DataFrame::new(vec![]);
         for (col_idx, col_series) in self.data.iter().enumerate() {
-            let filtered_series = self.extract_series_by_indices(col_series, &indices);
+            let filtered_series = col_series.select_indices(&indices);
             new_df.push(&self.ics[col_idx], filtered_series);
         }
 
         Ok(new_df)
-    }
-
-    fn extract_series_by_indices(&self, series: &Series, indices: &[usize]) -> Series {
-        macro_rules! extract_by_indices {
-            ($array:expr, $type:ty, $dtype:ident) => {{
-                let values: Vec<$type> = indices.iter().map(|&i| $array[i].clone()).collect();
-                Series::new(values)
-            }};
-        }
-
-        match &series.values {
-            DTypeArray::USIZE(v) => extract_by_indices!(v, usize, USIZE),
-            DTypeArray::U8(v) => extract_by_indices!(v, u8, U8),
-            DTypeArray::U16(v) => extract_by_indices!(v, u16, U16),
-            DTypeArray::U32(v) => extract_by_indices!(v, u32, U32),
-            DTypeArray::U64(v) => extract_by_indices!(v, u64, U64),
-            DTypeArray::ISIZE(v) => extract_by_indices!(v, isize, ISIZE),
-            DTypeArray::I8(v) => extract_by_indices!(v, i8, I8),
-            DTypeArray::I16(v) => extract_by_indices!(v, i16, I16),
-            DTypeArray::I32(v) => extract_by_indices!(v, i32, I32),
-            DTypeArray::I64(v) => extract_by_indices!(v, i64, I64),
-            DTypeArray::F32(v) => extract_by_indices!(v, f32, F32),
-            DTypeArray::F64(v) => extract_by_indices!(v, f64, F64),
-            DTypeArray::Bool(v) => extract_by_indices!(v, bool, Bool),
-            DTypeArray::Str(v) => extract_by_indices!(v, String, Str),
-            DTypeArray::Char(v) => extract_by_indices!(v, char, Char),
-        }
     }
 
     /// Mask DataFrame with a boolean Series
@@ -1684,10 +1867,184 @@ impl DataFrame {
     pub fn select_rows(&self, indices: &[usize]) -> DataFrame {
         let mut new_df = DataFrame::new(vec![]);
         for (col_idx, col_series) in self.data.iter().enumerate() {
-            let filtered_series = self.extract_series_by_indices(col_series, indices);
+            let filtered_series = col_series.select_indices(indices);
             new_df.push(&self.ics[col_idx], filtered_series);
         }
         new_df
+    }
+
+    // =========================================================================
+    // Shape / Info
+    // =========================================================================
+
+    /// Number of rows (max column length)
+    pub fn nrow(&self) -> usize {
+        self.data.iter().fold(0, |acc, s| max(acc, s.len()))
+    }
+
+    /// Number of columns
+    pub fn ncol(&self) -> usize {
+        self.data.len()
+    }
+
+    /// Shape as (nrow, ncol)
+    pub fn shape(&self) -> (usize, usize) {
+        (self.nrow(), self.ncol())
+    }
+
+    /// DType of each column
+    pub fn dtypes(&self) -> Vec<DType> {
+        self.data.iter().map(|s| s.dtype).collect()
+    }
+
+    /// Check if the DataFrame has no columns or no rows
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty() || self.nrow() == 0
+    }
+
+    /// Check if the DataFrame contains a column with the given header
+    pub fn contains(&self, col_header: &str) -> bool {
+        self.ics.iter().any(|x| x.as_str() == col_header)
+    }
+
+    // =========================================================================
+    // Row Operations
+    // =========================================================================
+
+    /// Return the first `n` rows
+    pub fn head(&self, n: usize) -> DataFrame {
+        let nrow = self.nrow();
+        let end = n.min(nrow);
+        let indices: Vec<usize> = (0..end).collect();
+        self.select_rows(&indices)
+    }
+
+    /// Return the last `n` rows
+    pub fn tail(&self, n: usize) -> DataFrame {
+        let nrow = self.nrow();
+        let start = nrow.saturating_sub(n);
+        let indices: Vec<usize> = (start..nrow).collect();
+        self.select_rows(&indices)
+    }
+
+    /// Return a slice of rows starting at `offset` with the given `length`
+    pub fn slice(&self, offset: usize, length: usize) -> DataFrame {
+        let nrow = self.nrow();
+        let end = (offset + length).min(nrow);
+        let indices: Vec<usize> = (offset..end).collect();
+        self.select_rows(&indices)
+    }
+
+    // =========================================================================
+    // Column Operations
+    // =========================================================================
+
+    /// Select specific columns by name, returning a new DataFrame
+    ///
+    /// Panics if any column name does not exist.
+    pub fn select(&self, columns: &[&str]) -> DataFrame {
+        let mut new_df = DataFrame::new(vec![]);
+        for &col in columns {
+            let i = self
+                .ics
+                .iter()
+                .position(|x| x.as_str() == col)
+                .unwrap_or_else(|| panic!("Column '{}' not found in DataFrame", col));
+            new_df.push(col, self.data[i].clone());
+        }
+        new_df
+    }
+
+    /// Rename a column in-place
+    ///
+    /// Panics if the old column name does not exist.
+    pub fn rename(&mut self, old: &str, new: &str) {
+        let i = self
+            .ics
+            .iter()
+            .position(|x| x.as_str() == old)
+            .unwrap_or_else(|| panic!("Column '{}' not found in DataFrame", old));
+        self.ics[i] = new.to_string();
+    }
+
+    /// Return column names as `Vec<&str>`
+    pub fn column_names(&self) -> Vec<&str> {
+        self.ics.iter().map(|s| s.as_str()).collect()
+    }
+
+    /// Select columns whose dtype is in the given list
+    pub fn select_dtypes(&self, dtypes: &[DType]) -> DataFrame {
+        let mut new_df = DataFrame::new(vec![]);
+        for (i, series) in self.data.iter().enumerate() {
+            if dtypes.contains(&series.dtype) {
+                new_df.push(&self.ics[i], series.clone());
+            }
+        }
+        new_df
+    }
+
+    // =========================================================================
+    // DataFrame-level Statistics
+    // =========================================================================
+
+    /// Compute descriptive statistics for numeric columns
+    ///
+    /// Returns a DataFrame with rows: count, mean, sd, min, max
+    /// and one column per numeric column from the original DataFrame.
+    pub fn describe(&self) -> DataFrame {
+        use crate::statistics::stat::Statistics;
+
+        let stat_labels = vec!["count", "mean", "sd", "min", "max"];
+        let mut result = DataFrame::new(vec![]);
+        result.push("stat", Series::new(stat_labels.iter().map(|s| s.to_string()).collect::<Vec<String>>()));
+
+        for (i, series) in self.data.iter().enumerate() {
+            if let Ok(v) = series.to_f64_vec() {
+                if v.is_empty() {
+                    continue;
+                }
+                let count = v.len() as f64;
+                let mean = v.mean();
+                let sd = if v.len() > 1 { v.sd() } else { 0.0 };
+                let min_val = v.iter().cloned().fold(f64::INFINITY, f64::min);
+                let max_val = v.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+                result.push(
+                    &self.ics[i],
+                    Series::new(vec![count, mean, sd, min_val, max_val]),
+                );
+            }
+        }
+
+        result
+    }
+
+    /// Sum of each numeric column as a single-row DataFrame
+    pub fn sum(&self) -> DataFrame {
+        let mut result = DataFrame::new(vec![]);
+        for (i, series) in self.data.iter().enumerate() {
+            if let Ok(v) = series.to_f64_vec() {
+                let s: f64 = v.iter().sum();
+                result.push(&self.ics[i], Series::new(vec![s]));
+            }
+        }
+        result
+    }
+
+    /// Mean of each numeric column as a single-row DataFrame
+    pub fn mean(&self) -> DataFrame {
+        use crate::statistics::stat::Statistics;
+
+        let mut result = DataFrame::new(vec![]);
+        for (i, series) in self.data.iter().enumerate() {
+            if let Ok(v) = series.to_f64_vec() {
+                if v.is_empty() {
+                    continue;
+                }
+                let m = v.mean();
+                result.push(&self.ics[i], Series::new(vec![m]));
+            }
+        }
+        result
     }
 }
 
