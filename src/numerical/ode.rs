@@ -290,6 +290,12 @@ pub trait ButcherTableau {
     fn max_step_iter(&self) -> usize {
         unimplemented!()
     }
+
+    /// Order of the lower-order solution for adaptive step size control.
+    /// The exponent `1/(order+1)` is used in the step size formula.
+    fn order(&self) -> usize {
+        4
+    }
 }
 
 impl<BU: ButcherTableau> ODEIntegrator for BU {
@@ -324,7 +330,7 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                     error = error.max(dt * s.abs())
                 }
 
-                let factor = (self.tol() / error).powf(0.2);
+                let factor = (self.tol() / error).powf(1.0 / (self.order() as f64 + 1.0));
                 let new_dt = self.safety_factor() * dt * factor;
                 let new_dt = new_dt.clamp(self.min_step_size(), self.max_step_size());
 
@@ -557,6 +563,9 @@ impl ButcherTableau for BS23 {
     }
     fn max_step_iter(&self) -> usize {
         self.max_step_iter
+    }
+    fn order(&self) -> usize {
+        2
     }
 }
 
@@ -1098,9 +1107,7 @@ impl ButcherTableau for RKF78 {
         ],
     ];
 
-    // Coefficients for the 7th order solution (propagated solution)
-    // BU_i = BE_i (8th order) - ErrorCoeff_i
-    // ErrorCoeff_i = [-41/840, 0, ..., 0, -41/840 (for k11), 41/840 (for k12), 41/840 (for k13)]
+    // Coefficients for the 8th order solution (propagated via local extrapolation)
     const BU: &'static [f64] = &[
         0.0,
         0.0,
@@ -1117,8 +1124,8 @@ impl ButcherTableau for RKF78 {
         41.0 / 840.0,
     ];
 
-    // Coefficients for the 8th order solution (used for error estimation)
-    // These are from the y[i+1] formula in the MATLAB description
+    // Synthetic coefficients for error estimation
+    // BU - BE yields the Fehlberg error formula: 41/840 * (k1 + k11 - k12 - k13)
     const BE: &'static [f64] = &[
         41.0 / 840.0,
         0.0,
@@ -1149,6 +1156,9 @@ impl ButcherTableau for RKF78 {
     }
     fn max_step_iter(&self) -> usize {
         self.max_step_iter
+    }
+    fn order(&self) -> usize {
+        7
     }
 }
 
