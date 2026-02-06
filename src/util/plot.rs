@@ -77,12 +77,14 @@
 //! - `savefig` : Save plot with given path
 
 extern crate pyo3;
-use self::pyo3::types::IntoPyDict;
+use self::pyo3::types::{IntoPyDict, PyDictMethods};
 use self::pyo3::{PyResult, Python};
 pub use self::Grid::{Off, On};
 use self::PlotOptions::{Domain, Images, Pairs, Path};
 use std::collections::HashMap;
 use std::fmt::Display;
+use std::borrow::BorrowMut;
+use std::ffi::CString;
 
 type Vector = Vec<f64>;
 
@@ -463,7 +465,7 @@ impl Plot for Plot2D {
         }
 
         // Plot
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             // Input data
             let x = self.domain.clone();
             let ys = self.images.clone();
@@ -502,24 +504,24 @@ impl Plot for Plot2D {
             let plot_type = self.plot_type.clone();
 
             // Global variables to plot
-            let globals =
-                vec![("plt", py.import_bound("matplotlib.pyplot")?)].into_py_dict_bound(py);
-            globals.as_gil_ref().set_item("x", x)?;
-            globals.as_gil_ref().set_item("y", ys)?;
-            globals.as_gil_ref().set_item("pair", pairs)?;
-            globals.as_gil_ref().set_item("n", y_length)?;
-            globals.as_gil_ref().set_item("p", pair_length)?;
+            let mut globals =
+                vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py)?;
+            globals.borrow_mut().set_item("x", x)?;
+            globals.borrow_mut().set_item("y", ys)?;
+            globals.borrow_mut().set_item("pair", pairs)?;
+            globals.borrow_mut().set_item("n", y_length)?;
+            globals.borrow_mut().set_item("p", pair_length)?;
             if let Some(fs) = fig_size {
-                globals.as_gil_ref().set_item("fs", fs)?;
+                globals.borrow_mut().set_item("fs", fs)?;
             }
-            globals.as_gil_ref().set_item("dp", dpi)?;
-            globals.as_gil_ref().set_item("gr", grid)?;
-            globals.as_gil_ref().set_item("pa", path)?;
+            globals.borrow_mut().set_item("dp", dpi)?;
+            globals.borrow_mut().set_item("gr", grid)?;
+            globals.borrow_mut().set_item("pa", path)?;
             if let Some(xl) = self.xlim {
-                globals.as_gil_ref().set_item("xl", xl)?;
+                globals.borrow_mut().set_item("xl", xl)?;
             }
             if let Some(yl) = self.ylim {
-                globals.as_gil_ref().set_item("yl", yl)?;
+                globals.borrow_mut().set_item("yl", yl)?;
             }
 
             // Plot Code
@@ -702,7 +704,7 @@ impl Plot for Plot2D {
                 plot_string.push_str(&format!("plt.savefig(pa, dpi={})", dpi)[..]);
             }
 
-            py.run_bound(&plot_string[..], Some(&globals), None)?;
+            py.run(&CString::new(plot_string)?, Some(&globals), None)?;
             Ok(())
         })
     }
