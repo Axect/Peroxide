@@ -321,7 +321,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.38.0`
+Corresponding to `0.40.1`
 
 ## Pre-requisite
 
@@ -351,6 +351,7 @@ cargo add peroxide --features "<FEATURES>"
 * `csv`: Adds CSV support for DataFrame
 * `parquet`: Adds Parquet support for DataFrame
 * `serde`: Enables serialization/deserialization for Matrix and polynomial
+* `rkyv`: Enables zero-copy serialization/deserialization with [rkyv](https://rkyv.org)
 
 ### Install Examples
 
