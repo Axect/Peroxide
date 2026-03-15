@@ -168,7 +168,6 @@ pub use simpler::SimpleNorm;
 pub use crate::structure::dataframe::WithCSV;
 #[allow(unused_imports)]
 pub use crate::structure::{
-    ad::AD::*,
     ad::*,
     dataframe::{
         DType, DTypeArray, DTypeValue, DataFrame, Scalar, Series, TypedScalar, TypedVector,
