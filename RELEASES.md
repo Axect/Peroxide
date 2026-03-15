@@ -1,3 +1,45 @@
+# Release 0.41.0 (2026-03-15)
+
+## Replace `enum AD` with const-generic `Jet<N>` (**Breaking Change**)
+
+### Core
+- Replace `enum AD { AD0(f64), AD1(f64,f64), AD2(f64,f64,f64) }` with `struct Jet<const N: usize>`
+- Normalized Taylor coefficients — all arithmetic uses simple convolution (no binomial coefficients)
+- Arbitrary-order forward AD: `Jet<1>`, `Jet<2>`, ..., `Jet<10>`, etc.
+- Type aliases: `Dual = Jet<1>`, `HyperDual = Jet<2>`
+- Direct `sqrt` recurrence (instead of `powf(0.5)`)
+
+### Proc Macro (`peroxide-ad`)
+- `#[ad_function]` now generates `f_ad<const JET_ORDER: usize>(x: Jet<JET_ORDER>) -> Jet<JET_ORDER>` — arbitrary-order differentiation
+- `ad_closure!` generates `Jet<1>` closure
+
+### Backward Compatibility
+- `AD` type alias (`= Jet<2>`), `AD0`, `AD1`, `AD2` constructor functions preserved
+- `ADFn`, `ADVec`, `StableFn` impls preserved
+- `Real` trait implemented for `Jet<2>` (via `AD` alias)
+
+### Integration Updates
+- `jacobian()`, `newton()`, `Optimizer` updated to use `Jet<1>` internally
+- `newton!` macro works with new proc macro output
+
+### Documentation
+- KaTeX-rendered math in all doc comments (recurrences for exp, ln, sin/cos, sqrt, inverse trig)
+- Accuracy plot: `Jet<N>` vs finite differences
+- Taylor convergence plot: `sin(x)` polynomial approximation
+- New examples: `jet_ad.rs`, `higher_order_ad.rs`
+- Updated examples: `hessian.rs`, `real_trait_test.rs`
+- 115 new Jet-specific unit tests
+
+### Migration Guide
+
+| Old (0.40.x) | New (0.41.0) |
+|---|---|
+| `AD1(x, dx)` | `AD1(x, dx)` (still works) or `Jet::<1>::var(x)` |
+| `AD2(x, dx, ddx)` | `AD2(x, dx, ddx)` (still works) or `Jet::<2>::var(x)` |
+| `fn f(x: AD) -> AD` | `fn f(x: AD) -> AD` (still works) or `fn f(x: Jet<2>) -> Jet<2>` |
+| `f_ad(x: AD)` (macro) | `f_ad::<N>(x: Jet<N>)` (now generic) |
+| `Fn(&Vec<AD>) -> Vec<AD>` | `Fn(&Vec<AD>) -> Vec<AD>` (still works) |
+
 # Release 0.40.2 (2026-02-06)
 
 ## New DataFrame & Series Methods
