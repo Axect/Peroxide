@@ -17,6 +17,7 @@ exclude = [
   "examples/",
   "test_data/",
   "peroxide-ad2",
+  "outputs/",
 ]
 
 [badges]
