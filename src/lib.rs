@@ -37,7 +37,9 @@
 //!   - Incomplete Beta
 //!   - Lambert W
 //! - Automatic Differentiation
-//!   - [Taylor mode forward AD](structure/ad/index.html)
+//!   - [Const-generic `Jet<N>` forward AD](structure/ad/index.html) — arbitrary-order Taylor mode
+//!   - Type aliases: `Dual = Jet<1>`, `HyperDual = Jet<2>`
+//!   - `#[ad_function]` proc macro for automatic gradient/hessian
 //! - Numerical Utils
 //!   - [Interpolation](numerical/interp/index.html)
 //!   - [Spline](numerical/spline/index.html)

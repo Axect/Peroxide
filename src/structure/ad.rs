@@ -1,818 +1,860 @@
-//! Taylor mode forward automatic differentiation
+//! Taylor mode forward automatic differentiation with const-generic `Jet<N>` type
 //!
-//! ## Important Features
+//! ## Overview
 //!
-//! * Can automatic differentiate up to 2nd order (`AD0` ~ `AD2`)
-//! * All `AD` are in stack (Guarantee high performance)
-//! * You can see `AD` via `.print()`
+//! This module provides a const-generic `Jet<N>` struct for Taylor-mode forward AD
+//! of arbitrary order N. The struct stores **normalized** Taylor coefficients:
 //!
-//! ## Implemented Traits for `AD`
+//! ```text
+//! Jet { value: c_0, deriv: [c_1, c_2, ..., c_N] }
+//! ```
 //!
-//! * `#[derive(Debug, Copy, Clone, PartialEq)]`
-//! * `std::fmt::Display`
-//! * `IntoIterator<Item = f64>`
-//! * `IntoIterator<Item = &f64>`
-//! * `IntoIterator<Item = &mut f64>`
-//! * `FromIterator<f64>`
-//! * `FromIterator<&f64>`
-//! * `Index`, `IndexMut`
-//! * `std::ops::{Neg, Add, Sub, Mul, Div}`
-//! * `peroxide_num::{PowOps, ExpLogOps, TrigOps}`
-//! * `peroxide::util::print::Printable`
+//! where $c_k = f^{(k)}(a) / k!$ is the $k$-th normalized Taylor coefficient evaluated
+//! at the expansion point $a$. This normalization eliminates binomial coefficients
+//! from all arithmetic recurrences.
 //!
-//! ## Iterator of `AD`
+//! ## Type Aliases
 //!
-//! There are three iterators.
+//! * `Dual = Jet<1>` — first-order forward AD (value + first derivative)
+//! * `HyperDual = Jet<2>` — second-order forward AD (value + first + second derivative)
 //!
-//! * `ADIntoIter`
-//! * `ADIter<'a>`
-//! * `ADIterMut<'a>`
+//! ## Constructors
 //!
-//! Each implements `DoubleEndedIterator`, `ExactSizeIterator` also.
+//! * `Jet::var(x)` — independent variable at point x (deriv\[0\] = 1)
+//! * `Jet::constant(x)` — constant (all derivatives zero)
+//! * `Jet::new(value, deriv)` — raw constructor
+//! * `ad0(x)` — `Jet<0>` constant (backward compat)
+//! * `ad1(x, dx)` — `Jet<1>` with first derivative (backward compat)
+//! * `ad2(x, dx, ddx)` — `Jet<2>` with first and second derivatives (backward compat)
 //!
-//! ## Default Constructor
+//! ## Accessors
 //!
-//! * `AD0(f64)` : just constant
-//! * `AD1(f64, f64)` : 1st order AD
-//! * `AD2(f64, f64, f64)` : 2nd order AD
-//!
-//! ## Methods
-//!
-//! * `empty(&self) -> AD`
-//! * `to_order(&self, n: usize) -> AD`
-//! * `iter(&self) -> ADIter{i}`
-//! * `iter_mut(&self) -> ADIterMut{i}`
-//! * `len(&self) -> usize`
-//! * `order(&self) -> usize`
-//! * `from_order(n: usize) -> AD`
-//! * `x(&self) -> f64`
-//! * `dx(&self) -> f64`
-//! * `ddx(&self) -> f64`
+//! * `.value()` / `.x()` — $f(a)$
+//! * `.dx()` — $f'(a)$
+//! * `.ddx()` — $f''(a)$
+//! * `.derivative(k)` — $f^{(k)}(a)$ (raw factorial-scaled derivative)
+//! * `.taylor_coeff(k)` — normalized Taylor coefficient $c_k$
 //!
 //! ## Implemented Operations
 //!
-//! * `Add, Sub, Mul, Div`
-//! * `sin, cos, tan`
-//! * `sinh, cosh, tanh`
-//! * `sin_cos`, `sinh_cosh`
-//! * `exp, ln, log, log2, log10`
-//! * `powi, powf, sqrt, pow`
-//! * `asin`, `acos`, `atan`
-//! * `asinh`, `acosh`, `atanh`
+//! * `Add, Sub, Mul, Div` (Jet op Jet, Jet op f64, f64 op Jet)
+//! * `Neg`
+//! * `ExpLogOps`: `exp`, `ln`, `log`, `log2`, `log10`
+//! * `PowOps`: `powi`, `powf`, `pow`, `sqrt`
+//! * `TrigOps`: `sin_cos`, `sin`, `cos`, `tan`, `sinh`, `cosh`, `tanh`,
+//!              `asin`, `acos`, `atan`, `asinh`, `acosh`, `atanh`
 //!
 //! ## Usage
 //!
-//! ### Construction
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     // First derivative of f(x) = x^2 at x = 2
+//!     let x = Jet::<1>::var(2.0);
+//!     let y = x.powi(2);
+//!     assert_eq!(y.value(), 4.0);
+//!     assert_eq!(y.dx(), 4.0);  // f'(2) = 2*2 = 4
+//!
+//!     // Second derivative using HyperDual
+//!     let x2 = HyperDual::new(2.0, [1.0, 0.0]);
+//!     let y2 = x2.powi(2);
+//!     assert_eq!(y2.value(), 4.0);
+//!     assert_eq!(y2.dx(), 4.0);   // f'(2) = 4
+//!     assert_eq!(y2.ddx(), 2.0);  // f''(2) = 2
+//! }
+//! ```
+//!
+//! ### Higher-order derivatives
 //!
 //! ```
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
-//!     // Declare x where x = 2
-//!     let a = AD1(2f64, 1f64);
-//!     // Declare x^2 where x = 2
-//!     let b = AD2(4f64, 4f64, 2f64);
-//!     // Convert AD1 -> AD2
-//!     let c = a.to_order(2);
-//!     // Zeros
-//!     let d = AD::from_order(2);
-//!
-//!     assert_eq!(c, AD2(2f64, 1f64, 0f64));
-//!     assert_eq!(d, AD2(0f64, 0f64, 0f64));
+//!     // 5th derivative of x^5 at x = 1
+//!     let x = Jet::<5>::var(1.0);
+//!     let y = x.powi(5);
+//!     assert_eq!(y.derivative(5), 120.0);  // 5! = 120
 //! }
 //! ```
 //!
-//! ### Operation
+//! ### Using the `#[ad_function]` macro
 //!
-//! For every binary operation, it returns higher order AD
-//! (ex: AD1 + AD2 = AD2)
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! #[ad_function]
+//! fn f(x: f64) -> f64 {
+//!     x.sin() + x.powi(2)
+//! }
+//!
+//! fn main() {
+//!     // f_grad and f_hess are generated automatically
+//!     let grad = f_grad(1.0);   // f'(1) = cos(1) + 2
+//!     let hess = f_hess(1.0);   // f''(1) = -sin(1) + 2
+//!
+//!     assert!((grad - (1.0_f64.cos() + 2.0)).abs() < 1e-10);
+//!     assert!((hess - (-1.0_f64.sin() + 2.0)).abs() < 1e-10);
+//! }
+//! ```
+//!
+//! ### Generic functions with `Real` trait
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn quadratic<T: Real>(x: T) -> T {
+//!     x.powi(2) + x * 3.0 + T::from_f64(1.0)
+//! }
+//!
+//! fn main() {
+//!     // Works with both f64 and AD (= Jet<2>)
+//!     let val = quadratic(2.0_f64);                // 11.0
+//!     let jet = quadratic(AD1(2.0, 1.0));
+//!     assert_eq!(val, 11.0);                       // f(2) = 4 + 6 + 1
+//!     assert_eq!(jet.value(), 11.0);               // f(2) = 11
+//!     assert_eq!(jet.dx(), 7.0);                   // f'(2) = 2*2 + 3
+//! }
+//! ```
+//!
+//! ### Jacobian computation
 //!
 //! ```
 //! extern crate peroxide;
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
-//!     let a = AD1(2f64, 1f64);       // x        at x = 2
-//!     let b = AD2(4f64, 4f64, 2f64); // x^2      at x = 2
-//!     let c = a + b;                 // x^2 + x  at x = 2
-//!     let d = a * b;                 // x^3      at x = 2
-//!     let e = a / b;                 // 1/x      at x = 2
-//!     assert_eq!(c, AD2(6f64, 5f64, 2f64));
-//!     assert_eq!(d, AD2(8f64, 12f64, 12f64));
-//!     assert_eq!(e, AD2(0.5, -0.25, 0.25));
+//!     // Jacobian of f(x,y) = [x - y, x + 2*y] at (1, 1)
+//!     let x = vec![1.0, 1.0];
+//!     let j = jacobian(f, &x);
+//!     j.print();
+//!     //       c[0] c[1]
+//!     // r[0]     1   -1
+//!     // r[1]     1    2
+//! }
+//!
+//! fn f(xs: &Vec<AD>) -> Vec<AD> {
+//!     let x = xs[0];
+//!     let y = xs[1];
+//!     vec![x - y, x + 2.0 * y]
 //! }
 //! ```
 //!
+//! ### Backward-compatible constructors
+//!
+//! ```
+//! extern crate peroxide;
+//! use peroxide::fuga::*;
+//!
+//! fn main() {
+//!     // These work just like the old AD1/AD2 constructors
+//!     let a = AD1(2.0, 1.0);   // value=2, f'=1
+//!     let b = AD2(4.0, 4.0, 2.0);  // x^2 at x=2
+//!
+//!     assert_eq!(a.x(), 2.0);
+//!     assert_eq!(b.dx(), 4.0);
+//!     assert_eq!(b.ddx(), 2.0);
+//!
+//!     // New constructors (equivalent)
+//!     let c = Jet::<1>::var(2.0);  // Same as Dual var at x=2
+//!     assert_eq!(c.dx(), 1.0);     // dx/dx = 1 for independent variable
+//! }
+//! ```
+//!
+//! ## Accuracy: Jet\<N\> vs Finite Differences
+//!
+//! `Jet<N>` computes derivatives to **machine precision** because it propagates
+//! exact Taylor coefficients through the computation graph. In contrast, finite
+//! difference methods suffer from both truncation and cancellation errors that
+//! worsen rapidly at higher derivative orders.
+//!
+//! The plot below compares the relative error of `Jet<N>` against central finite
+//! differences ($h = 10^{-4}$) for $f(x) = \sin(x)$ at $x = 1.0$, across derivative orders 1–8:
+//!
+//! ![Derivative Accuracy](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/derivative_accuracy.png)
+//!
+//! `Jet<N>` (blue) stays at $\sim 10^{-15}$ (machine epsilon) for all orders,
+//! while finite differences (green) degrade from $\sim 10^{-9}$ at order 1 to $> 10^{0}$ at order 4.
+//!
+//! ## Taylor Series Convergence
+//!
+//! Since `Jet<N>` stores normalized Taylor coefficients $c_k = f^{(k)}(a)/k!$,
+//! you can directly reconstruct the Taylor polynomial of any function:
+//!
+//! $$T_N(x) = c_0 + c_1 (x-a) + c_2 (x-a)^2 + \cdots + c_N (x-a)^N$$
+//!
+//! The plot below shows the Taylor polynomial of $\sin(x)$ around $x = 0$ for
+//! increasing truncation orders $N = 1, 3, 5, 7, 9$:
+//!
+//! ![Taylor Convergence](https://raw.githubusercontent.com/Axect/Peroxide/master/example_data/taylor_convergence.png)
+//!
+//! As $N$ increases, the Taylor polynomial converges to the exact $\sin(x)$ curve
+//! over a wider interval.
 
-use self::AD::{AD0, AD1, AD2};
-use crate::statistics::ops::C;
 use crate::traits::{fp::FPVector, math::Vector, stable::StableFn, sugar::VecOps};
 use peroxide_num::{ExpLogOps, PowOps, TrigOps};
-use std::iter::{DoubleEndedIterator, ExactSizeIterator, FromIterator};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum AD {
-    AD0(f64),
-    AD1(f64, f64),
-    AD2(f64, f64, f64),
+// =============================================================================
+// Jet struct
+// =============================================================================
+
+/// Const-generic Taylor-mode forward AD type.
+///
+/// Stores the value and $N$ normalized Taylor coefficients:
+/// - `value` = $f(a) = c_0$
+/// - `deriv[k]` = $f^{(k+1)}(a) / (k+1)! = c_{k+1}$
+///
+/// So `Jet<1>` stores $(c_0, c_1) = (f(a),\, f'(a))$,
+/// and `Jet<2>` stores $(c_0, c_1, c_2) = (f(a),\, f'(a),\, f''(a)/2)$.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Jet<const N: usize> {
+    value: f64,
+    deriv: [f64; N],
 }
 
-impl PartialOrd for AD {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.x().partial_cmp(&other.x())
+impl<const N: usize> Jet<N> {
+    /// Create a `Jet` from raw value and normalized Taylor coefficient array.
+    pub fn new(value: f64, deriv: [f64; N]) -> Self {
+        Self { value, deriv }
     }
-}
 
-impl std::fmt::Display for AD {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = format!("{:?}", self);
-        write!(f, "{}", s)
-    }
-}
-
-impl AD {
-    pub fn to_order(&self, n: usize) -> Self {
-        if n == self.order() {
-            return *self;
+    /// Create an independent variable jet at point `x`.
+    /// Sets `deriv[0] = 1.0` (the 1st normalized coefficient), rest zero.
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let x = Jet::<2>::var(3.0);
+    /// assert_eq!(x.value(), 3.0);
+    /// assert_eq!(x.dx(), 1.0);    // dx/dx = 1
+    /// assert_eq!(x.ddx(), 0.0);   // d²x/dx² = 0
+    /// ```
+    pub fn var(x: f64) -> Self {
+        let mut deriv = [0.0f64; N];
+        if N >= 1 {
+            deriv[0] = 1.0;
         }
-
-        let mut z = match n {
-            0 => AD0(0f64),
-            1 => AD1(0f64, 0f64),
-            2 => AD2(0f64, 0f64, 0f64),
-            _ => panic!("No more index exists"),
-        };
-
-        for i in 0..z.len().min(self.len()) {
-            z[i] = self[i];
-        }
-
-        z
+        Self { value: x, deriv }
     }
 
-    pub fn order(&self) -> usize {
-        match self {
-            AD0(_) => 0,
-            AD1(_, _) => 1,
-            AD2(_, _, _) => 2,
+    /// Create a constant jet (all derivatives zero).
+    pub fn constant(x: f64) -> Self {
+        Self {
+            value: x,
+            deriv: [0.0f64; N],
         }
     }
 
-    pub fn len(&self) -> usize {
-        match self {
-            AD0(_) => 1,
-            AD1(_, _) => 2,
-            AD2(_, _, _) => 3,
-        }
+    /// The function value $f(a)$.
+    #[inline]
+    pub fn value(&self) -> f64 {
+        self.value
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn iter(&self) -> ADIter {
-        self.into_iter()
-    }
-
-    pub fn iter_mut(&mut self) -> ADIterMut {
-        self.into_iter()
-    }
-
-    pub fn from_order(n: usize) -> Self {
-        match n {
-            0 => AD0(0f64),
-            1 => AD1(0f64, 0f64),
-            2 => AD2(0f64, 0f64, 0f64),
-            _ => panic!("Not yet implemented higher order AD"),
-        }
-    }
-
-    pub fn empty(&self) -> Self {
-        match self {
-            AD0(_) => AD0(0f64),
-            AD1(_, _) => AD1(0f64, 0f64),
-            AD2(_, _, _) => AD2(0f64, 0f64, 0f64),
-        }
-    }
-
-    pub fn set_x(&mut self, x: f64) {
-        match self {
-            AD0(t) => {
-                *t = x;
-            }
-            AD1(t, _) => {
-                *t = x;
-            }
-            AD2(t, _, _) => {
-                *t = x;
-            }
-        }
-    }
-
-    pub fn set_dx(&mut self, dx: f64) {
-        match self {
-            AD0(_) => panic!("Can't set dx for AD0"),
-            AD1(_, dt) => {
-                *dt = dx;
-            }
-            AD2(_, dt, _) => {
-                *dt = dx;
-            }
-        }
-    }
-
-    pub fn set_ddx(&mut self, ddx: f64) {
-        match self {
-            AD0(_) => panic!("Can't set ddx for AD0"),
-            AD1(_, _) => panic!("Can't set ddx for AD1"),
-            AD2(_, _, ddt) => {
-                *ddt = ddx;
-            }
-        }
-    }
-
+    /// Alias for `value()` — backward compatibility.
+    #[inline]
     pub fn x(&self) -> f64 {
-        match self {
-            AD0(x) => *x,
-            AD1(x, _) => *x,
-            AD2(x, _, _) => *x,
-        }
+        self.value
     }
 
+    /// First derivative $f'(a)$.
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let x = Jet::<1>::var(2.0);
+    /// let y = x.powi(3);    // x^3
+    /// assert_eq!(y.dx(), 12.0);  // 3*x^2 = 3*4 = 12
+    /// ```
+    #[inline]
     pub fn dx(&self) -> f64 {
-        match self {
-            AD0(_) => 0f64,
-            AD1(_, dx) => *dx,
-            AD2(_, dx, _) => *dx,
+        if N >= 1 {
+            self.deriv[0]
+        } else {
+            0.0
         }
     }
 
+    /// Second derivative $f''(a)$.
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let x = Jet::<2>::var(2.0);
+    /// let y = x.powi(3);     // x^3
+    /// assert_eq!(y.ddx(), 12.0);  // 6*x = 6*2 = 12
+    /// ```
+    #[inline]
     pub fn ddx(&self) -> f64 {
-        match self {
-            AD0(_) => 0f64,
-            AD1(_, _) => 0f64,
-            AD2(_, _, ddx) => *ddx,
+        if N >= 2 {
+            self.deriv[1] * 2.0
+        } else {
+            0.0
         }
     }
 
-    pub fn x_ref(&self) -> Option<&f64> {
-        match self {
-            AD0(x) => Some(x),
-            AD1(x, _) => Some(x),
-            AD2(x, _, _) => Some(x),
+    /// Returns $f^{(\mathrm{order})}(a)$, the raw (factorial-scaled) derivative of given order.
+    /// - order = 0: $f(a)$
+    /// - order = 1: $f'(a)$ = `deriv[0]`
+    /// - order = k: $f^{(k)}(a)$ = `deriv[k-1]` $\times\, k!$
+    ///
+    /// Internally computes `taylor_coeff(k)` $\times\, k!$.
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let x = Jet::<3>::var(0.0);
+    /// let y = x.exp();
+    /// // All derivatives of exp at 0 are 1
+    /// assert!((y.derivative(0) - 1.0).abs() < 1e-15);
+    /// assert!((y.derivative(1) - 1.0).abs() < 1e-15);
+    /// assert!((y.derivative(2) - 1.0).abs() < 1e-15);
+    /// assert!((y.derivative(3) - 1.0).abs() < 1e-15);
+    /// ```
+    pub fn derivative(&self, order: usize) -> f64 {
+        if order == 0 {
+            self.value
+        } else if order <= N {
+            self.deriv[order - 1] * factorial(order) as f64
+        } else {
+            0.0
         }
     }
 
-    pub fn dx_ref(&self) -> Option<&f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, dx) => Some(dx),
-            AD2(_, dx, _) => Some(dx),
+    /// Returns the $k$-th normalized Taylor coefficient $c_k = f^{(k)}(a) / k!$.
+    /// - $k = 0$: $c_0 = f(a)$
+    /// - $k \ge 1$: $c_k$ = `deriv[k-1]`
+    pub fn taylor_coeff(&self, k: usize) -> f64 {
+        self.coeff(k)
+    }
+
+    /// Internal: get the $k$-th Taylor coefficient $c_k$.
+    #[inline]
+    fn coeff(&self, k: usize) -> f64 {
+        if k == 0 {
+            self.value
+        } else if k <= N {
+            self.deriv[k - 1]
+        } else {
+            0.0
         }
     }
 
-    pub fn ddx_ref(&self) -> Option<&f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, _) => None,
-            AD2(_, _, ddx) => Some(ddx),
+    /// Internal: set the $k$-th Taylor coefficient $c_k$.
+    #[inline]
+    fn set_coeff(&mut self, k: usize, v: f64) {
+        if k == 0 {
+            self.value = v;
+        } else if k <= N {
+            self.deriv[k - 1] = v;
         }
     }
 
-    pub fn x_mut(&mut self) -> Option<&mut f64> {
-        match self {
-            AD0(x) => Some(x),
-            AD1(x, _) => Some(x),
-            AD2(x, _, _) => Some(x),
-        }
-    }
-
-    pub fn dx_mut(&mut self) -> Option<&mut f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, dx) => Some(dx),
-            AD2(_, dx, _) => Some(dx),
-        }
-    }
-
-    pub fn ddx_mut(&mut self) -> Option<&mut f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, _) => None,
-            AD2(_, _, ddx) => Some(ddx),
-        }
-    }
-
-    #[allow(dead_code)]
-    unsafe fn x_ptr(&self) -> Option<*const f64> {
-        match self {
-            AD0(x) => Some(x),
-            AD1(x, _) => Some(x),
-            AD2(x, _, _) => Some(x),
-        }
-    }
-
-    #[allow(dead_code)]
-    unsafe fn dx_ptr(&self) -> Option<*const f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, dx) => Some(dx),
-            AD2(_, dx, _) => Some(dx),
-        }
-    }
-
-    #[allow(dead_code)]
-    unsafe fn ddx_ptr(&self) -> Option<*const f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, _) => None,
-            AD2(_, _, ddx) => Some(ddx),
-        }
-    }
-
-    unsafe fn x_mut_ptr(&mut self) -> Option<*mut f64> {
-        match self {
-            AD0(x) => Some(&mut *x),
-            AD1(x, _) => Some(&mut *x),
-            AD2(x, _, _) => Some(&mut *x),
-        }
-    }
-
-    unsafe fn dx_mut_ptr(&mut self) -> Option<*mut f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, dx) => Some(&mut *dx),
-            AD2(_, dx, _) => Some(&mut *dx),
-        }
-    }
-
-    unsafe fn ddx_mut_ptr(&mut self) -> Option<*mut f64> {
-        match self {
-            AD0(_) => None,
-            AD1(_, _) => None,
-            AD2(_, _, ddx) => Some(&mut *ddx),
+    /// Internal: create a zero jet.
+    #[inline]
+    fn zero() -> Self {
+        Self {
+            value: 0.0,
+            deriv: [0.0f64; N],
         }
     }
 }
 
-impl Index<usize> for AD {
+// =============================================================================
+// Type aliases
+// =============================================================================
+
+/// First-order forward AD: stores value and first derivative.
+pub type Dual = Jet<1>;
+
+/// Second-order forward AD: stores value, first derivative, and second derivative $/\, 2!$.
+pub type HyperDual = Jet<2>;
+
+// =============================================================================
+// Compatibility constructors
+// =============================================================================
+
+/// Create a `Jet<0>` constant (zero-order, value only).
+#[inline]
+pub fn ad0(x: f64) -> Jet<0> {
+    Jet { value: x, deriv: [] }
+}
+
+/// Create a `Jet<1>` with value and first derivative.
+/// `dx` is the raw first derivative $f'(a)$; stored as `deriv[0]` $= dx / 1! = dx$.
+///
+/// # Arguments
+/// * `x` - function value $f(a)$
+/// * `dx` - first derivative $f'(a)$
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// let j = ad1(2.0, 1.0);  // variable x at x=2
+/// assert_eq!(j.value(), 2.0);
+/// assert_eq!(j.dx(), 1.0);
+/// ```
+#[inline]
+pub fn ad1(x: f64, dx: f64) -> Jet<1> {
+    Jet {
+        value: x,
+        deriv: [dx],
+    }
+}
+
+/// Create a `Jet<2>` with value, first derivative, and second derivative.
+/// `ddx` is the raw second derivative $f''(a)$; stored internally as `deriv[1]` $= f''(a) / 2!$.
+///
+/// # Arguments
+/// * `x` - function value $f(a)$
+/// * `dx` - first derivative $f'(a)$
+/// * `ddx` - second derivative $f''(a)$
+///
+/// # Examples
+/// ```
+/// use peroxide::fuga::*;
+///
+/// // Represent x^2 at x=2: f=4, f'=4, f''=2
+/// let j = ad2(4.0, 4.0, 2.0);
+/// assert_eq!(j.value(), 4.0);
+/// assert_eq!(j.dx(), 4.0);
+/// assert_eq!(j.ddx(), 2.0);
+/// ```
+#[inline]
+pub fn ad2(x: f64, dx: f64, ddx: f64) -> Jet<2> {
+    Jet {
+        value: x,
+        deriv: [dx, ddx / 2.0],
+    }
+}
+
+// =============================================================================
+// Helper: factorial
+// =============================================================================
+
+#[inline]
+fn factorial(n: usize) -> u64 {
+    let mut result = 1u64;
+    for i in 2..=(n as u64) {
+        result *= i;
+    }
+    result
+}
+
+// =============================================================================
+// Display
+// =============================================================================
+
+impl<const N: usize> std::fmt::Display for Jet<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Jet({}", self.value)?;
+        if N > 0 {
+            write!(f, "; ")?;
+            for (i, d) in self.deriv.iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{}", d)?;
+            }
+        }
+        write!(f, ")")
+    }
+}
+
+// =============================================================================
+// PartialOrd (compare by value only)
+// =============================================================================
+
+impl<const N: usize> PartialOrd for Jet<N> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.value.partial_cmp(&other.value)
+    }
+}
+
+// =============================================================================
+// From conversions
+// =============================================================================
+
+impl<const N: usize> From<f64> for Jet<N> {
+    fn from(v: f64) -> Self {
+        Self::constant(v)
+    }
+}
+
+impl<const N: usize> From<Jet<N>> for f64 {
+    fn from(j: Jet<N>) -> f64 {
+        j.value
+    }
+}
+
+// =============================================================================
+// Index / IndexMut (backward compat: index 0 = value, index k >= 1 = deriv[k-1])
+// =============================================================================
+
+impl<const N: usize> Index<usize> for Jet<N> {
     type Output = f64;
 
     fn index(&self, index: usize) -> &Self::Output {
-        match index {
-            0 => self.x_ref().unwrap(),
-            1 => self.dx_ref().expect("AD0 has no dx"),
-            2 => self.ddx_ref().expect("AD0, AD1 have no ddx"),
-            _ => panic!("No more index exists"),
+        if index == 0 {
+            &self.value
+        } else if index <= N {
+            &self.deriv[index - 1]
+        } else {
+            panic!("Jet<{}> index {} out of bounds (max index = {})", N, index, N)
         }
     }
 }
 
-impl IndexMut<usize> for AD {
+impl<const N: usize> IndexMut<usize> for Jet<N> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match index {
-            0 => self.x_mut().unwrap(),
-            1 => self.dx_mut().expect("AD0 has no dx"),
-            2 => self.ddx_mut().expect("AD0, AD1 have no ddx"),
-            _ => panic!("No more index exists"),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct ADIntoIter {
-    ad: AD,
-    index: usize,
-    r_index: usize,
-}
-
-#[derive(Debug)]
-pub struct ADIter<'a> {
-    ad: &'a AD,
-    index: usize,
-    r_index: usize,
-}
-
-#[derive(Debug)]
-pub struct ADIterMut<'a> {
-    ad: &'a mut AD,
-    index: usize,
-    r_index: usize,
-}
-
-impl IntoIterator for AD {
-    type Item = f64;
-    type IntoIter = ADIntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ADIntoIter {
-            ad: self,
-            index: 0,
-            r_index: 0,
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a AD {
-    type Item = &'a f64;
-    type IntoIter = ADIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ADIter {
-            ad: self,
-            index: 0,
-            r_index: 0,
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a mut AD {
-    type Item = &'a mut f64;
-    type IntoIter = ADIterMut<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ADIterMut {
-            ad: self,
-            index: 0,
-            r_index: 0,
-        }
-    }
-}
-
-impl Iterator for ADIntoIter {
-    type Item = f64;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let l = self.ad.len();
-        if self.index + self.r_index < l {
-            let result = match self.index {
-                0 => Some(self.ad.x()),
-                1 => match self.ad {
-                    AD0(_) => None,
-                    AD1(_, dx) => Some(dx),
-                    AD2(_, dx, _) => Some(dx),
-                },
-                2 => match self.ad {
-                    AD0(_) => None,
-                    AD1(_, _) => None,
-                    AD2(_, _, ddx) => Some(ddx),
-                },
-                _ => None,
-            };
-            self.index += 1;
-            result
+        if index == 0 {
+            &mut self.value
+        } else if index <= N {
+            &mut self.deriv[index - 1]
         } else {
-            None
+            panic!("Jet<{}> index {} out of bounds (max index = {})", N, index, N)
         }
     }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let lower = self.ad.len() - (self.index + self.r_index);
-        let upper = self.ad.len() - (self.index + self.r_index);
-        (lower, Some(upper))
-    }
 }
 
-impl<'a> Iterator for ADIter<'a> {
-    type Item = &'a f64;
+// =============================================================================
+// Neg
+// =============================================================================
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let l = self.ad.len();
-        if self.index + self.r_index < l {
-            let result = match self.index {
-                0 => self.ad.x_ref(),
-                1 => self.ad.dx_ref(),
-                2 => self.ad.ddx_ref(),
-                _ => None,
-            };
-            self.index += 1;
-            result
-        } else {
-            None
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let lower = self.ad.len() - (self.index + self.r_index);
-        let upper = self.ad.len() - (self.index + self.r_index);
-        (lower, Some(upper))
-    }
-}
-
-impl<'a> Iterator for ADIterMut<'a> {
-    type Item = &'a mut f64;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let l = self.ad.len();
-        if self.index + self.r_index < l {
-            unsafe {
-                let result = match self.index {
-                    0 => self.ad.x_mut_ptr(),
-                    1 => self.ad.dx_mut_ptr(),
-                    2 => self.ad.ddx_mut_ptr(),
-                    _ => None,
-                };
-                self.index += 1;
-                match result {
-                    None => None,
-                    Some(ad) => Some(&mut *ad),
-                }
-            }
-        } else {
-            None
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let lower = self.ad.len() - (self.index + self.r_index);
-        let upper = self.ad.len() - (self.index + self.r_index);
-        (lower, Some(upper))
-    }
-}
-
-impl FromIterator<f64> for AD {
-    fn from_iter<T: IntoIterator<Item = f64>>(iter: T) -> Self {
-        let into_iter = iter.into_iter();
-        let s = into_iter.size_hint().0 - 1;
-        let mut z = match s {
-            0 => AD0(0f64),
-            1 => AD1(0f64, 0f64),
-            2 => AD2(0f64, 0f64, 0f64),
-            _ => panic!("Higher than order 3 is not allowed"),
-        };
-        for (i, elem) in into_iter.enumerate() {
-            z[i] = elem;
-        }
-        z
-    }
-}
-
-impl<'a> FromIterator<&'a f64> for AD {
-    fn from_iter<T: IntoIterator<Item = &'a f64>>(iter: T) -> Self {
-        let into_iter = iter.into_iter();
-        let s = into_iter.size_hint().0 - 1;
-        let mut z = match s {
-            0 => AD0(0f64),
-            1 => AD1(0f64, 0f64),
-            2 => AD2(0f64, 0f64, 0f64),
-            _ => panic!("Higher than order 3 is not allowed"),
-        };
-        for (i, &elem) in into_iter.enumerate() {
-            z[i] = elem;
-        }
-        z
-    }
-}
-
-impl DoubleEndedIterator for ADIntoIter {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        if self.index + self.r_index == self.ad.len() {
-            return None;
-        }
-        let order = self.ad.order();
-        let result = self.ad[order - self.r_index];
-        self.r_index += 1;
-        Some(result)
-    }
-}
-
-impl<'a> DoubleEndedIterator for ADIter<'a> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        if self.index + self.r_index == self.ad.len() {
-            return None;
-        }
-        let order = self.ad.order();
-        let result = &self.ad[order - self.r_index];
-        self.r_index += 1;
-        Some(result)
-    }
-}
-
-impl ExactSizeIterator for ADIntoIter {
-    fn len(&self) -> usize {
-        self.ad.len() - (self.index + self.r_index)
-    }
-}
-
-impl<'a> ExactSizeIterator for ADIter<'a> {
-    fn len(&self) -> usize {
-        self.ad.len() - (self.index + self.r_index)
-    }
-}
-
-impl Neg for AD {
+impl<const N: usize> Neg for Jet<N> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        self.into_iter().map(|x| -x).collect()
-    }
-}
-
-impl Add<AD> for AD {
-    type Output = Self;
-
-    fn add(self, rhs: AD) -> Self::Output {
-        let ord = self.order().max(rhs.order());
-        let (a, b) = (self.to_order(ord), rhs.to_order(ord));
-
-        a.into_iter().zip(b).map(|(x, y)| x + y).collect()
-    }
-}
-
-impl Sub<AD> for AD {
-    type Output = Self;
-
-    fn sub(self, rhs: AD) -> Self::Output {
-        let ord = self.order().max(rhs.order());
-        let (a, b) = (self.to_order(ord), rhs.to_order(ord));
-
-        a.into_iter().zip(b).map(|(x, y)| x - y).collect()
-    }
-}
-
-impl Mul<AD> for AD {
-    type Output = Self;
-
-    fn mul(self, rhs: AD) -> Self::Output {
-        let ord = self.order().max(rhs.order());
-        let (a, b) = (self.to_order(ord), rhs.to_order(ord));
-
-        let mut z = a;
-        for t in 0..z.len() {
-            z[t] = a
-                .into_iter()
-                .take(t + 1)
-                .zip(b.into_iter().take(t + 1).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (x1, y1))| s + (C(t, k) as f64) * x1 * y1)
+        let mut z = self;
+        z.value = -z.value;
+        for d in z.deriv.iter_mut() {
+            *d = -*d;
         }
         z
     }
 }
 
-impl Div<AD> for AD {
+// =============================================================================
+// Add, Sub, Mul, Div for Jet<N> op Jet<N>
+// =============================================================================
+
+impl<const N: usize> Add<Jet<N>> for Jet<N> {
     type Output = Self;
 
-    fn div(self, rhs: AD) -> Self::Output {
-        let ord = self.order().max(rhs.order());
-        let (a, b) = (self.to_order(ord), rhs.to_order(ord));
+    fn add(self, rhs: Jet<N>) -> Self::Output {
+        let mut z = self;
+        z.value += rhs.value;
+        for i in 0..N {
+            z.deriv[i] += rhs.deriv[i];
+        }
+        z
+    }
+}
 
-        let mut z = a;
-        z[0] = a[0] / b[0];
-        let y0 = 1f64 / b[0];
-        for i in 1..z.len() {
-            let mut s = 0f64;
-            for (j, (&y1, &z1)) in b
-                .iter()
-                .skip(1)
-                .take(i)
-                .zip(z.iter().take(i).rev())
-                .enumerate()
-            {
-                s += (C(i, j + 1) as f64) * y1 * z1;
+impl<const N: usize> Sub<Jet<N>> for Jet<N> {
+    type Output = Self;
+
+    fn sub(self, rhs: Jet<N>) -> Self::Output {
+        let mut z = self;
+        z.value -= rhs.value;
+        for i in 0..N {
+            z.deriv[i] -= rhs.deriv[i];
+        }
+        z
+    }
+}
+
+impl<const N: usize> Mul<Jet<N>> for Jet<N> {
+    type Output = Self;
+
+    /// Multiplication using normalized Taylor coefficient convolution:
+    /// $z_n = \sum_{k=0}^{n} c_k \cdot d_{n-k}$.
+    /// No binomial coefficients needed due to normalization convention.
+    fn mul(self, rhs: Jet<N>) -> Self::Output {
+        let mut z = Self::zero();
+        for n in 0..=N {
+            let mut s = 0.0f64;
+            for k in 0..=n {
+                s += self.coeff(k) * rhs.coeff(n - k);
             }
-            z[i] = y0 * (a[i] - s);
+            z.set_coeff(n, s);
         }
         z
     }
 }
 
-impl ExpLogOps for AD {
+impl<const N: usize> Div<Jet<N>> for Jet<N> {
+    type Output = Self;
+
+    /// Division using normalized Taylor coefficient recurrence:
+    /// $z_0 = a_0 / b_0$,
+    /// $z_n = \frac{1}{b_0}\left(a_n - \sum_{k=1}^{n} b_k \, z_{n-k}\right)$
+    fn div(self, rhs: Jet<N>) -> Self::Output {
+        let b0 = rhs.coeff(0);
+        let inv_b0 = 1.0 / b0;
+        let mut z = Self::zero();
+        z.set_coeff(0, self.coeff(0) * inv_b0);
+        for n in 1..=N {
+            let mut s = 0.0f64;
+            for k in 1..=n {
+                s += rhs.coeff(k) * z.coeff(n - k);
+            }
+            z.set_coeff(n, inv_b0 * (self.coeff(n) - s));
+        }
+        z
+    }
+}
+
+// =============================================================================
+// Scalar arithmetic: Jet<N> op f64
+// =============================================================================
+
+impl<const N: usize> Add<f64> for Jet<N> {
+    type Output = Self;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        let mut z = self;
+        z.value += rhs;
+        z
+    }
+}
+
+impl<const N: usize> Sub<f64> for Jet<N> {
+    type Output = Self;
+
+    fn sub(self, rhs: f64) -> Self::Output {
+        let mut z = self;
+        z.value -= rhs;
+        z
+    }
+}
+
+impl<const N: usize> Mul<f64> for Jet<N> {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        let mut z = self;
+        z.value *= rhs;
+        for d in z.deriv.iter_mut() {
+            *d *= rhs;
+        }
+        z
+    }
+}
+
+impl<const N: usize> Div<f64> for Jet<N> {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        let inv = 1.0 / rhs;
+        let mut z = self;
+        z.value *= inv;
+        for d in z.deriv.iter_mut() {
+            *d *= inv;
+        }
+        z
+    }
+}
+
+// =============================================================================
+// Scalar arithmetic: f64 op Jet<N>
+// =============================================================================
+
+impl<const N: usize> Add<Jet<N>> for f64 {
+    type Output = Jet<N>;
+
+    fn add(self, rhs: Jet<N>) -> Self::Output {
+        let mut z = rhs;
+        z.value += self;
+        z
+    }
+}
+
+impl<const N: usize> Sub<Jet<N>> for f64 {
+    type Output = Jet<N>;
+
+    fn sub(self, rhs: Jet<N>) -> Self::Output {
+        let mut z = -rhs;
+        z.value += self;
+        z
+    }
+}
+
+impl<const N: usize> Mul<Jet<N>> for f64 {
+    type Output = Jet<N>;
+
+    fn mul(self, rhs: Jet<N>) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl<const N: usize> Div<Jet<N>> for f64 {
+    type Output = Jet<N>;
+
+    fn div(self, rhs: Jet<N>) -> Self::Output {
+        Jet::<N>::constant(self) / rhs
+    }
+}
+
+// =============================================================================
+// ExpLogOps
+// =============================================================================
+
+impl<const N: usize> ExpLogOps for Jet<N> {
     type Float = f64;
 
+    /// $\exp(a)$ using the normalized recurrence:
+    /// $z_0 = e^{a_0}$,
+    /// $z_n = \frac{1}{n}\sum_{k=1}^{n} k\, a_k\, z_{n-k}$
     fn exp(&self) -> Self {
-        let mut z = self.empty();
-        z[0] = self[0].exp();
-        for i in 1..z.len() {
-            z[i] = z
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&z1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * z1
-                });
+        let mut z = Self::zero();
+        z.set_coeff(0, self.coeff(0).exp());
+        for n in 1..=N {
+            let mut s = 0.0f64;
+            for k in 1..=n {
+                s += (k as f64) * self.coeff(k) * z.coeff(n - k);
+            }
+            z.set_coeff(n, s / (n as f64));
         }
         z
     }
 
+    /// $\ln(a)$ using the normalized recurrence:
+    /// $z_0 = \ln(a_0)$,
+    /// $z_n = \frac{1}{a_0}\left(a_n - \frac{1}{n}\sum_{k=1}^{n-1} k\, z_k\, a_{n-k}\right)$
     fn ln(&self) -> Self {
-        let mut z = self.empty();
-        z[0] = self[0].ln();
-        let x0 = 1f64 / self[0];
-        for i in 1..z.len() {
-            let mut s = 0f64;
-            for (k, (&z1, &x1)) in z
-                .iter()
-                .skip(1)
-                .take(i - 1)
-                .zip(self.iter().skip(1).take(i - 1).rev())
-                .enumerate()
-            {
-                s += (C(i - 1, k + 1) as f64) * z1 * x1;
+        let a0 = self.coeff(0);
+        let inv_a0 = 1.0 / a0;
+        let mut z = Self::zero();
+        z.set_coeff(0, a0.ln());
+        for n in 1..=N {
+            let mut s = 0.0f64;
+            for k in 1..n {
+                s += (k as f64) * z.coeff(k) * self.coeff(n - k);
             }
-            z[i] = x0 * (self[i] - s);
+            z.set_coeff(n, inv_a0 * (self.coeff(n) - s / (n as f64)));
         }
         z
     }
 
     fn log(&self, base: f64) -> Self {
-        self.ln().iter().map(|x| x / base.ln()).collect()
+        let ln_base = base.ln();
+        let z = self.ln();
+        let mut result = Self::zero();
+        result.set_coeff(0, z.coeff(0) / ln_base);
+        for k in 1..=N {
+            result.set_coeff(k, z.coeff(k) / ln_base);
+        }
+        result
     }
 
     fn log2(&self) -> Self {
-        self.log(2f64)
+        self.log(2.0)
     }
 
     fn log10(&self) -> Self {
-        self.log(10f64)
+        self.log(10.0)
     }
 }
 
-impl PowOps for AD {
+// =============================================================================
+// PowOps
+// =============================================================================
+
+impl<const N: usize> PowOps for Jet<N> {
     type Float = f64;
 
+    /// Integer power via repeated multiplication.
     fn powi(&self, n: i32) -> Self {
-        let mut z = *self;
-        for _i in 1..n {
-            z = z * *self;
+        if n == 0 {
+            return Self::constant(1.0);
         }
-        z
+        let abs_n = n.unsigned_abs() as usize;
+        let mut result = *self;
+        for _ in 1..abs_n {
+            result = result * *self;
+        }
+        if n < 0 {
+            Self::constant(1.0) / result
+        } else {
+            result
+        }
     }
 
+    /// Float power: exp(f * ln(self))
     fn powf(&self, f: f64) -> Self {
-        let ln_x = self.ln();
-        let mut z = self.empty();
-        z[0] = self.x().powf(f);
-        for i in 1..z.len() {
-            let mut s = 0f64;
-            for (j, (&z1, &ln_x1)) in z
-                .iter()
-                .skip(1)
-                .take(i - 1)
-                .zip(ln_x.iter().skip(1).take(i - 1).rev())
-                .enumerate()
-            {
-                s += (C(i - 1, j + 1) as f64) * z1 * ln_x1;
-            }
-            z[i] = f * (z[0] * ln_x[i] + s);
-        }
-        z
+        (self.ln() * f).exp()
     }
 
-    fn pow(&self, y: Self) -> Self {
-        let ln_x = self.ln();
-        let p = y * ln_x;
-        let mut z = self.empty();
-        z[0] = self.x().powf(y.x());
-        for n in 1..z.len() {
-            let mut s = 0f64;
-            for (k, (&z1, &p1)) in z
-                .iter()
-                .skip(1)
-                .take(n - 1)
-                .zip(p.iter().skip(1).take(n - 1).rev())
-                .enumerate()
-            {
-                s += (C(n - 1, k + 1) as f64) * z1 * p1;
-            }
-            z[n] = z[0] * p[n] + s;
-        }
-        z
+    /// Jet power: exp(rhs * ln(self))
+    fn pow(&self, rhs: Self) -> Self {
+        (self.ln() * rhs).exp()
     }
 
+    /// Square root using direct recurrence from $z^2 = a$:
+    /// $z_0 = \sqrt{a_0}$,
+    /// $z_n = \frac{1}{2\,z_0}\left(a_n - \sum_{k=1}^{n-1} z_k\, z_{n-k}\right)$
     fn sqrt(&self) -> Self {
-        self.powf(0.5f64)
+        let a0 = self.coeff(0);
+        let z0 = a0.sqrt();
+        let inv_2z0 = 1.0 / (2.0 * z0);
+        let mut z = Self::zero();
+        z.set_coeff(0, z0);
+        for n in 1..=N {
+            let mut s = 0.0f64;
+            for k in 1..n {
+                s += z.coeff(k) * z.coeff(n - k);
+            }
+            z.set_coeff(n, inv_2z0 * (self.coeff(n) - s));
+        }
+        z
     }
 }
 
-impl TrigOps for AD {
+// =============================================================================
+// TrigOps
+// =============================================================================
+
+impl<const N: usize> TrigOps for Jet<N> {
+    /// $\sin$ and $\cos$ computed together via coupled normalized recurrence:
+    /// $s_0 = \sin(a_0)$, $c_0 = \cos(a_0)$,
+    /// $s_n = \frac{1}{n}\sum_{k=1}^{n} k\, a_k\, c_{n-k}$,
+    /// $c_n = -\frac{1}{n}\sum_{k=1}^{n} k\, a_k\, s_{n-k}$
     fn sin_cos(&self) -> (Self, Self) {
-        let mut u = self.empty();
-        let mut v = self.empty();
-        u[0] = self[0].sin();
-        v[0] = self[0].cos();
-        for i in 1..u.len() {
-            u[i] = v
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * v1
-                });
-            v[i] = u
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * u1
-                });
+        let mut s = Self::zero();
+        let mut c = Self::zero();
+        s.set_coeff(0, self.coeff(0).sin());
+        c.set_coeff(0, self.coeff(0).cos());
+        for n in 1..=N {
+            let mut ss = 0.0f64;
+            let mut cs = 0.0f64;
+            for k in 1..=n {
+                let ka = (k as f64) * self.coeff(k);
+                ss += ka * c.coeff(n - k);
+                cs += ka * s.coeff(n - k);
+            }
+            s.set_coeff(n, ss / (n as f64));
+            c.set_coeff(n, -cs / (n as f64));
         }
-        (u, v)
+        (s, c)
+    }
+
+    fn sin(&self) -> Self {
+        self.sin_cos().0
+    }
+
+    fn cos(&self) -> Self {
+        self.sin_cos().1
     }
 
     fn tan(&self) -> Self {
@@ -820,435 +862,136 @@ impl TrigOps for AD {
         s / c
     }
 
+    /// $\sinh$ and $\cosh$ via coupled normalized recurrence (same as $\sin/\cos$ but no negative on $\cosh$):
+    /// $s_n = \frac{1}{n}\sum_{k=1}^{n} k\, a_k\, c_{n-k}$,
+    /// $c_n = \frac{1}{n}\sum_{k=1}^{n} k\, a_k\, s_{n-k}$
     fn sinh(&self) -> Self {
-        let mut u = self.empty();
-        let mut v = self.empty();
-        u[0] = self[0].sinh();
-        v[0] = self[0].cosh();
-        for i in 1..u.len() {
-            u[i] = v
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * v1
-                });
-            v[i] = u
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * u1
-                });
-        }
-        u
+        self.sinh_cosh().0
     }
 
     fn cosh(&self) -> Self {
-        let mut u = self.empty();
-        let mut v = self.empty();
-        u[0] = self[0].sinh();
-        v[0] = self[0].cosh();
-        for i in 1..u.len() {
-            u[i] = v
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * v1
-                });
-            v[i] = u
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * u1
-                });
-        }
-        v
+        self.sinh_cosh().1
     }
 
     fn tanh(&self) -> Self {
-        let mut u = self.empty();
-        let mut v = self.empty();
-        u[0] = self[0].sinh();
-        v[0] = self[0].cosh();
-        for i in 1..u.len() {
-            u[i] = v
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&v1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * v1
-                });
-            v[i] = u
-                .iter()
-                .take(i)
-                .zip(self.iter().skip(1).take(i).rev())
-                .enumerate()
-                .fold(0f64, |x, (k, (&u1, &x1))| {
-                    x + (C(i - 1, k) as f64) * x1 * u1
-                });
-        }
-        u / v
+        let (s, c) = self.sinh_cosh();
+        s / c
     }
 
     fn asin(&self) -> Self {
-        let dx = 1f64 / (1f64 - self.powi(2)).sqrt();
-        let mut z = self.empty();
-        z[0] = self[0].asin();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
-        }
-        z
+        // q = 1/sqrt(1 - a^2)
+        let one = Self::constant(1.0);
+        let q = (one - self.powi(2)).sqrt();
+        let q_inv = one / q;
+        self.integrate_derivative(self.coeff(0).asin(), &q_inv)
     }
 
     fn acos(&self) -> Self {
-        let dx = (-1f64) / (1f64 - self.powi(2)).sqrt();
-        let mut z = self.empty();
-        z[0] = self[0].acos();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
-        }
-        z
+        // q = -1/sqrt(1 - a^2)
+        let one = Self::constant(1.0);
+        let q = (one - self.powi(2)).sqrt();
+        let q_inv = -(one / q);
+        self.integrate_derivative(self.coeff(0).acos(), &q_inv)
     }
 
     fn atan(&self) -> Self {
-        let dx = 1f64 / (1f64 + self.powi(2));
-        let mut z = self.empty();
-        z[0] = self[0].atan();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
-        }
-        z
+        // q = 1/(1 + a^2)
+        let one = Self::constant(1.0);
+        let q = one / (one + self.powi(2));
+        self.integrate_derivative(self.coeff(0).atan(), &q)
     }
 
     fn asinh(&self) -> Self {
-        let dx = 1f64 / (1f64 + self.powi(2)).sqrt();
-        let mut z = self.empty();
-        z[0] = self[0].asinh();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
-        }
-        z
+        // q = 1/sqrt(1 + a^2)
+        let one = Self::constant(1.0);
+        let q_inv = (one + self.powi(2)).sqrt();
+        let q = one / q_inv;
+        self.integrate_derivative(self.coeff(0).asinh(), &q)
     }
 
     fn acosh(&self) -> Self {
-        let dx = 1f64 / (self.powi(2) - 1f64).sqrt();
-        let mut z = self.empty();
-        z[0] = self[0].acosh();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
-        }
-        z
+        // q = 1/sqrt(a^2 - 1)
+        let one = Self::constant(1.0);
+        let q_inv = (self.powi(2) - one).sqrt();
+        let q = one / q_inv;
+        self.integrate_derivative(self.coeff(0).acosh(), &q)
     }
 
     fn atanh(&self) -> Self {
-        let dx = 1f64 / (1f64 - self.powi(2));
-        let mut z = self.empty();
-        z[0] = self[0].atanh();
-        for n in 1..z.len() {
-            z[n] = dx
-                .iter()
-                .take(n)
-                .zip(self.iter().skip(1).take(n).rev())
-                .enumerate()
-                .fold(0f64, |s, (k, (&q1, &x1))| {
-                    s + (C(n - 1, k) as f64) * x1 * q1
-                });
+        // q = 1/(1 - a^2)
+        let one = Self::constant(1.0);
+        let q = one / (one - self.powi(2));
+        self.integrate_derivative(self.coeff(0).atanh(), &q)
+    }
+}
+
+impl<const N: usize> Jet<N> {
+    /// Compute $\sinh$ and $\cosh$ together via the coupled normalized recurrence.
+    pub fn sinh_cosh(&self) -> (Self, Self) {
+        let mut s = Self::zero();
+        let mut c = Self::zero();
+        s.set_coeff(0, self.coeff(0).sinh());
+        c.set_coeff(0, self.coeff(0).cosh());
+        for n in 1..=N {
+            let mut ss = 0.0f64;
+            let mut cs = 0.0f64;
+            for k in 1..=n {
+                let ka = (k as f64) * self.coeff(k);
+                ss += ka * c.coeff(n - k);
+                cs += ka * s.coeff(n - k);
+            }
+            s.set_coeff(n, ss / (n as f64));
+            c.set_coeff(n, cs / (n as f64));  // NO negative for cosh
+        }
+        (s, c)
+    }
+
+    /// Integrate using derivative jet: used by inverse trig functions.
+    /// Given $z'(a)$ encoded as a Jet `q`, compute $z$ coefficients by:
+    /// $z_0 = z_0$,
+    /// $z_n = \frac{1}{n}\sum_{k=1}^{n} k\, a_k\, q_{n-k}$
+    fn integrate_derivative(&self, z0: f64, q: &Self) -> Self {
+        let mut z = Self::zero();
+        z.set_coeff(0, z0);
+        for n in 1..=N {
+            let mut s = 0.0f64;
+            for k in 1..=n {
+                s += (k as f64) * self.coeff(k) * q.coeff(n - k);
+            }
+            z.set_coeff(n, s / (n as f64));
         }
         z
     }
 }
 
-impl From<f64> for AD {
-    fn from(other: f64) -> Self {
-        AD0(other)
-    }
-}
+// =============================================================================
+// ADFn — lift functions over Jet<2> to work at f64 or Jet level
+// =============================================================================
 
-impl From<AD> for f64 {
-    fn from(other: AD) -> Self {
-        other.x()
-    }
-}
-
-impl Add<f64> for AD {
-    type Output = Self;
-
-    fn add(self, rhs: f64) -> Self::Output {
-        let mut z = self;
-        z[0] += rhs;
-        z
-    }
-}
-
-impl Sub<f64> for AD {
-    type Output = Self;
-
-    fn sub(self, rhs: f64) -> Self::Output {
-        let mut z = self;
-        z[0] -= rhs;
-        z
-    }
-}
-
-impl Mul<f64> for AD {
-    type Output = Self;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        self.iter().map(|&x| x * rhs).collect()
-    }
-}
-
-impl Div<f64> for AD {
-    type Output = Self;
-
-    fn div(self, rhs: f64) -> Self::Output {
-        self.iter().map(|&x| x / rhs).collect()
-    }
-}
-
-impl Add<AD> for f64 {
-    type Output = AD;
-
-    fn add(self, rhs: AD) -> Self::Output {
-        let mut z = rhs;
-        z[0] += self;
-        z
-    }
-}
-
-impl Sub<AD> for f64 {
-    type Output = AD;
-
-    fn sub(self, rhs: AD) -> Self::Output {
-        let mut z = rhs.empty();
-        z[0] = self;
-        z - rhs
-    }
-}
-
-impl Mul<AD> for f64 {
-    type Output = AD;
-
-    fn mul(self, rhs: AD) -> Self::Output {
-        rhs.iter().map(|&x| x * self).collect()
-    }
-}
-
-impl Div<AD> for f64 {
-    type Output = AD;
-
-    fn div(self, rhs: AD) -> Self::Output {
-        let ad0 = AD::from(self);
-        ad0 / rhs
-    }
-}
-
-// ad_struct_def!();
-// ad_display!();
-// ad_impl!();
-// ad_impl_from!();
-// ad_iter_def!();
-// ad_impl_into_iter!();
-// ad_impl_iter!();
-// ad_impl_from_iter!();
-// ad_impl_double_ended_iter!();
-// ad_impl_exact_size_iter!();
-// ad_impl_index!();
-// ad_impl_neg!();
-// ad_impl_add!();
-// ad_impl_sub!();
-// ad_impl_mul!();
-// ad_impl_div!();
-// ad_impl_explogops!();
-// ad_impl_powops!();
-// ad_impl_trigops!();
-// ad_impl_ad!();
-// def_ad!();
-// ad_impl_from_type!(f64);
-// ad_impl_from_type!(f32);
-// ad_impl_from_type!(i64);
-// ad_impl_from_type!(i32);
-// ad_impl_add_f64!();
-// ad_impl_sub_f64!();
-// ad_impl_mul_f64!();
-// ad_impl_div_f64!();
-// f64_impl_add_ad!();
-// f64_impl_sub_ad!();
-// f64_impl_mul_ad!();
-// f64_impl_div_ad!();
-// f64_impl_from_ad!();
-// ad_impl_stable_fn!();
-
-// pub trait AD:
-//     std::fmt::Display
-//     + Clone
-//     + Copy
-//     + PartialEq
-//     + From<AD1>
-//     + From<AD2>
-//     + From<AD3>
-//     + From<AD4>
-//     + From<AD5>
-//     + From<AD6>
-//     + From<AD7>
-//     + From<AD8>
-//     + From<AD9>
-//     + From<AD10>
-//     + Into<AD1>
-//     + Into<AD2>
-//     + Into<AD3>
-//     + Into<AD4>
-//     + Into<AD5>
-//     + Into<AD6>
-//     + Into<AD7>
-//     + Into<AD8>
-//     + Into<AD9>
-//     + Into<AD10>
-//     + From<f64>
-//     + Into<f64>
-//     + Add<Output = Self>
-//     + Sub<Output = Self>
-//     + Mul<Output = Self>
-//     + Div<Output = Self>
-//     + Add<f64, Output = Self>
-//     + Sub<f64, Output = Self>
-//     + Mul<f64, Output = Self>
-//     + Div<f64, Output = Self>
-//     + PowOps
-//     + ExpLogOps
-//     + TrigOps
-// {
-//     fn to_ad1(self) -> AD1 {
-//         self.into()
-//     }
-//
-//     fn to_ad2(self) -> AD2 {
-//         self.into()
-//     }
-//
-//     fn to_ad3(self) -> AD3 {
-//         self.into()
-//     }
-//
-//     fn to_ad4(self) -> AD4 {
-//         self.into()
-//     }
-//
-//     fn to_ad5(self) -> AD5 {
-//         self.into()
-//     }
-//
-//     fn to_ad6(self) -> AD6 {
-//         self.into()
-//     }
-//
-//     fn to_ad7(self) -> AD7 {
-//         self.into()
-//     }
-//
-//     fn to_ad8(self) -> AD8 {
-//         self.into()
-//     }
-//
-//     fn to_ad9(self) -> AD9 {
-//         self.into()
-//     }
-//
-//     fn to_ad10(self) -> AD10 {
-//         self.into()
-//     }
-// }
-
-//impl AD for f64 {}
-
-/// Generic AD functions
+/// Generic AD function wrapper.
 ///
-/// # Description
-/// To lift `AD` functions
+/// Lifts a function `F: Fn(Jet<2>) -> Jet<2>` to operate at multiple levels:
+/// - `call_stable(f64)` → `f64`: evaluate function value, first derivative, or second derivative
+/// - `call_stable(Jet<2>)` → `Jet<2>`: pass through
 ///
-/// # Implementation
+/// For vector functions, also lifts `F: Fn(Vec<Jet<1>>) -> Vec<Jet<1>>`.
 ///
-/// * All `Fn(AD) -> AD` functions can be lift to `Fn(f64) -> f64` via `StableFn<f64>`
-/// * `grad(&self) -> Self` gives gradient of original function
-/// * But still can use `Fn(AD) -> AD` via `StableFn<AD>`
-///
-/// # Usage
+/// # Examples
 /// ```
-/// extern crate peroxide;
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let ad0 = 2f64;
-///     let ad1 = AD1(2f64, 1f64);
-///     let ad2 = AD2(2f64, 1f64, 0f64);
+/// let f_ad = ADFn::new(|x: Jet<2>| x.powi(2));
 ///
-///     let f_ad = ADFn::new(f);
+/// // Value: f(3) = 9
+/// assert_eq!(f_ad.call_stable(3.0), 9.0);
 ///
-///     let ans0 = ad0.powi(2);
-///     let ans1 = ad1.powi(2).dx();
-///     let ans2 = ad2.powi(2).ddx();
+/// // Gradient: f'(3) = 6  (2*3)
+/// let df = f_ad.grad();
+/// assert_eq!(df.call_stable(3.0), 6.0);
 ///
-///     assert_eq!(ans0, f_ad.call_stable(ad0));
-///
-///     let df = f_ad.grad();
-///     assert_eq!(ans1, df.call_stable(ad0));
-///
-///     let ddf = df.grad();
-///     assert_eq!(ans2, ddf.call_stable(ad0));
-///
-///     let ad1_output = f_ad.call_stable(ad1);
-///     assert_eq!(ad1_output, AD1(4f64, 4f64));
-///
-///     let ad2_output = f_ad.call_stable(ad2);
-///     assert_eq!(ad2_output, AD2(4f64, 4f64, 2f64));
-/// }
-///
-/// fn f(x: AD) -> AD {
-///     x.powi(2)
-/// }
+/// // Hessian: f''(3) = 2
+/// let ddf = df.grad();
+/// assert_eq!(ddf.call_stable(3.0), 2.0);
 /// ```
 pub struct ADFn<F> {
     f: Box<F>,
@@ -1256,14 +999,16 @@ pub struct ADFn<F> {
 }
 
 impl<F: Clone> ADFn<F> {
+    /// Create a new `ADFn` wrapping function `f` at gradient level 0 (function evaluation).
     pub fn new(f: F) -> Self {
         Self {
             f: Box::new(f),
-            grad_level: 0usize,
+            grad_level: 0,
         }
     }
 
-    /// Gradient
+    /// Produce the gradient version of this function (increments grad_level by 1).
+    /// Panics if grad_level >= 2.
     pub fn grad(&self) -> Self {
         assert!(self.grad_level < 2, "Higher order AD is not allowed");
         ADFn {
@@ -1273,75 +1018,85 @@ impl<F: Clone> ADFn<F> {
     }
 }
 
-impl<F: Fn(AD) -> AD> StableFn<f64> for ADFn<F> {
+/// Scalar version: F works with `Jet<2>`, target is `f64`.
+impl<F: Fn(Jet<2>) -> Jet<2>> StableFn<f64> for ADFn<F> {
     type Output = f64;
-    fn call_stable(&self, target: f64) -> Self::Output {
+
+    fn call_stable(&self, target: f64) -> f64 {
         match self.grad_level {
-            0 => (self.f)(AD::from(target)).into(),
-            1 => (self.f)(AD1(target, 1f64)).dx(),
-            2 => (self.f)(AD2(target, 1f64, 0f64)).ddx(),
-            _ => panic!("Higher order AD is not allowed"),
+            0 => (self.f)(Jet::<2>::constant(target)).value(),
+            1 => (self.f)(Jet::<2>::new(target, [1.0, 0.0])).dx(),
+            2 => (self.f)(Jet::<2>::new(target, [1.0, 0.0])).ddx(),
+            _ => unreachable!("grad_level > 2 is not allowed"),
         }
     }
 }
 
-impl<F: Fn(AD) -> AD> StableFn<AD> for ADFn<F> {
-    type Output = AD;
-    fn call_stable(&self, target: AD) -> Self::Output {
+/// Scalar version: F works with `Jet<2>`, target is `Jet<2>`.
+impl<F: Fn(Jet<2>) -> Jet<2>> StableFn<Jet<2>> for ADFn<F> {
+    type Output = Jet<2>;
+
+    fn call_stable(&self, target: Jet<2>) -> Jet<2> {
         (self.f)(target)
     }
 }
 
-impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<f64>> for ADFn<F> {
+/// Vector version: F works with `Vec<Jet<1>>`, target is `Vec<f64>`.
+impl<F: Fn(Vec<Jet<1>>) -> Vec<Jet<1>>> StableFn<Vec<f64>> for ADFn<F> {
     type Output = Vec<f64>;
-    fn call_stable(&self, target: Vec<f64>) -> Self::Output {
-        ((self.f)(target.iter().map(|&t| AD::from(t)).collect()))
-            .iter()
-            .map(|&t| t.x())
+
+    fn call_stable(&self, target: Vec<f64>) -> Vec<f64> {
+        (self.f)(target.into_iter().map(Jet::<1>::constant).collect())
+            .into_iter()
+            .map(|j| j.value())
             .collect()
     }
 }
 
-impl<F: Fn(Vec<AD>) -> Vec<AD>> StableFn<Vec<AD>> for ADFn<F> {
-    type Output = Vec<AD>;
-    fn call_stable(&self, target: Vec<AD>) -> Self::Output {
+/// Vector version: F works with `Vec<Jet<1>>`, target is `Vec<Jet<1>>`.
+impl<F: Fn(Vec<Jet<1>>) -> Vec<Jet<1>>> StableFn<Vec<Jet<1>>> for ADFn<F> {
+    type Output = Vec<Jet<1>>;
+
+    fn call_stable(&self, target: Vec<Jet<1>>) -> Vec<Jet<1>> {
         (self.f)(target)
     }
 }
 
-impl<'a, F: Fn(&Vec<AD>) -> Vec<AD>> StableFn<&'a Vec<f64>> for ADFn<F> {
+/// Vector version: F works with `&Vec<Jet<1>>`, target is `&Vec<f64>`.
+impl<'a, F: Fn(&Vec<Jet<1>>) -> Vec<Jet<1>>> StableFn<&'a Vec<f64>> for ADFn<F> {
     type Output = Vec<f64>;
-    fn call_stable(&self, target: &'a Vec<f64>) -> Self::Output {
-        ((self.f)(&target.iter().map(|&t| AD::from(t)).collect()))
-            .iter()
-            .map(|&t| t.x())
+
+    fn call_stable(&self, target: &'a Vec<f64>) -> Vec<f64> {
+        let jet_target: Vec<Jet<1>> = target.iter().map(|&x| Jet::<1>::constant(x)).collect();
+        (self.f)(&jet_target)
+            .into_iter()
+            .map(|j| j.value())
             .collect()
     }
 }
 
-impl<'a, F: Fn(&Vec<AD>) -> Vec<AD>> StableFn<&'a Vec<AD>> for ADFn<F> {
-    type Output = Vec<AD>;
-    fn call_stable(&self, target: &'a Vec<AD>) -> Self::Output {
+/// Vector version: F works with `&Vec<Jet<1>>`, target is `&Vec<Jet<1>>`.
+impl<'a, F: Fn(&Vec<Jet<1>>) -> Vec<Jet<1>>> StableFn<&'a Vec<Jet<1>>> for ADFn<F> {
+    type Output = Vec<Jet<1>>;
+
+    fn call_stable(&self, target: &'a Vec<Jet<1>>) -> Vec<Jet<1>> {
         (self.f)(target)
     }
 }
 
-// Nightly only
-//pub struct ADLift<F>(F);
-//
-//impl<F: FnOnce<(T)>, T> FnOnce<f64> for ADLift<F> {
-//    type Output = f64;
-//
-//}
+// =============================================================================
+// JetVec trait (replaces ADVec)
+// =============================================================================
 
-pub trait ADVec {
-    fn to_ad_vec(&self) -> Vec<AD>;
+/// Trait for converting between `Vec<f64>` and `Vec<Jet<1>>`.
+pub trait JetVec {
+    fn to_jet_vec(&self) -> Vec<Jet<1>>;
     fn to_f64_vec(&self) -> Vec<f64>;
 }
 
-impl ADVec for Vec<f64> {
-    fn to_ad_vec(&self) -> Vec<AD> {
-        self.iter().map(|&t| AD::from(t)).collect()
+impl JetVec for Vec<f64> {
+    fn to_jet_vec(&self) -> Vec<Jet<1>> {
+        self.iter().map(|&x| Jet::<1>::constant(x)).collect()
     }
 
     fn to_f64_vec(&self) -> Vec<f64> {
@@ -1349,18 +1104,22 @@ impl ADVec for Vec<f64> {
     }
 }
 
-impl ADVec for Vec<AD> {
-    fn to_ad_vec(&self) -> Vec<AD> {
+impl JetVec for Vec<Jet<1>> {
+    fn to_jet_vec(&self) -> Vec<Jet<1>> {
         self.clone()
     }
 
     fn to_f64_vec(&self) -> Vec<f64> {
-        self.iter().map(|t| t.x()).collect()
+        self.iter().map(|j| j.value()).collect()
     }
 }
 
-impl FPVector for Vec<AD> {
-    type Scalar = AD;
+// =============================================================================
+// FPVector, Vector, VecOps for Vec<Jet<1>>
+// =============================================================================
+
+impl FPVector for Vec<Jet<1>> {
+    type Scalar = Jet<1>;
 
     fn fmap<F>(&self, f: F) -> Self
     where
@@ -1374,7 +1133,7 @@ impl FPVector for Vec<AD> {
         F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
         T: Into<Self::Scalar>,
     {
-        self.iter().fold(init.into(), |x, &y| f(x, y))
+        self.iter().fold(init.into(), |acc, &x| f(acc, x))
     }
 
     fn zip_with<F>(&self, f: F, other: &Self) -> Self
@@ -1391,7 +1150,7 @@ impl FPVector for Vec<AD> {
     where
         F: Fn(Self::Scalar) -> bool,
     {
-        self.iter().filter(|&x| f(*x)).cloned().collect()
+        self.iter().filter(|&&x| f(x)).cloned().collect()
     }
 
     fn take(&self, n: usize) -> Self {
@@ -1403,11 +1162,166 @@ impl FPVector for Vec<AD> {
     }
 
     fn sum(&self) -> Self::Scalar {
+        if self.is_empty() {
+            return Jet::<1>::constant(0.0);
+        }
         let s = self[0];
         self.reduce(s, |x, y| x + y)
     }
 
     fn prod(&self) -> Self::Scalar {
+        if self.is_empty() {
+            return Jet::<1>::constant(1.0);
+        }
+        let s = self[0];
+        self.reduce(s, |x, y| x * y)
+    }
+}
+
+impl Vector for Vec<Jet<1>> {
+    type Scalar = Jet<1>;
+
+    fn add_vec(&self, rhs: &Self) -> Self {
+        self.add_v(rhs)
+    }
+
+    fn sub_vec(&self, rhs: &Self) -> Self {
+        self.sub_v(rhs)
+    }
+
+    fn mul_scalar(&self, rhs: Self::Scalar) -> Self {
+        self.mul_s(rhs)
+    }
+}
+
+impl VecOps for Vec<Jet<1>> {}
+
+// =============================================================================
+// Backward compatibility: AD type aliases and constructors
+// =============================================================================
+// Keep the old public API so existing code that uses AD, AD0, AD1, AD2, ADVec, ADFn
+// continues to compile. AD is now an alias for Jet<2> (the highest order used in ADFn).
+// AD0/AD1/AD2 are re-exported constructor functions.
+
+/// Backward compatibility alias: `AD` is now `Jet<2>`.
+///
+/// For new code, prefer `Dual = Jet<1>` or `HyperDual = Jet<2>` directly.
+pub type AD = Jet<2>;
+
+/// Backward compatibility constructor: `AD0(x)` creates a zero-derivative `Jet<2>` constant.
+#[inline]
+#[allow(non_snake_case)]
+pub fn AD0(x: f64) -> Jet<2> {
+    Jet::<2>::constant(x)
+}
+
+/// Backward compatibility constructor: `AD1(x, dx)` creates a `Jet<2>` with given first derivative.
+#[inline]
+#[allow(non_snake_case)]
+pub fn AD1(x: f64, dx: f64) -> Jet<2> {
+    Jet::<2>::new(x, [dx, 0.0])
+}
+
+/// Backward compatibility constructor: `AD2(x, dx, ddx)` creates a `Jet<2>` with given derivatives.
+#[inline]
+#[allow(non_snake_case)]
+pub fn AD2(x: f64, dx: f64, ddx: f64) -> Jet<2> {
+    Jet::<2>::new(x, [dx, ddx / 2.0])
+}
+
+/// Backward compatibility trait: provides `to_ad_vec` and `to_f64_vec` on vector types.
+///
+/// Extends `JetVec` with the `to_ad_vec` method for converting to `Vec<AD>` (= `Vec<Jet<2>>`).
+pub trait ADVec: JetVec {
+    fn to_ad_vec(&self) -> Vec<AD>;
+
+    /// Convert to a `Vec<f64>` by extracting the value of each jet.
+    /// (Delegates to `JetVec::to_f64_vec` — provided here so the trait is self-contained.)
+    fn to_f64_vec_compat(&self) -> Vec<f64> {
+        self.to_f64_vec()
+    }
+}
+
+impl ADVec for Vec<f64> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.iter().map(|&x| Jet::<2>::constant(x)).collect()
+    }
+}
+
+impl ADVec for Vec<AD> {
+    fn to_ad_vec(&self) -> Vec<AD> {
+        self.clone()
+    }
+}
+
+impl JetVec for Vec<AD> {
+    fn to_jet_vec(&self) -> Vec<Jet<1>> {
+        self.iter()
+            .map(|j| Jet::<1>::new(j.value(), [j.dx()]))
+            .collect()
+    }
+
+    fn to_f64_vec(&self) -> Vec<f64> {
+        self.iter().map(|j| j.value()).collect()
+    }
+}
+
+// FPVector, Vector, VecOps for Vec<AD> (= Vec<Jet<2>>)
+impl FPVector for Vec<AD> {
+    type Scalar = AD;
+
+    fn fmap<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> Self::Scalar,
+    {
+        self.iter().map(|&x| f(x)).collect()
+    }
+
+    fn reduce<F, T>(&self, init: T, f: F) -> Self::Scalar
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+        T: Into<Self::Scalar>,
+    {
+        self.iter().fold(init.into(), |acc, &x| f(acc, x))
+    }
+
+    fn zip_with<F>(&self, f: F, other: &Self) -> Self
+    where
+        F: Fn(Self::Scalar, Self::Scalar) -> Self::Scalar,
+    {
+        self.iter()
+            .zip(other.iter())
+            .map(|(&x, &y)| f(x, y))
+            .collect()
+    }
+
+    fn filter<F>(&self, f: F) -> Self
+    where
+        F: Fn(Self::Scalar) -> bool,
+    {
+        self.iter().filter(|&&x| f(x)).cloned().collect()
+    }
+
+    fn take(&self, n: usize) -> Self {
+        self.iter().take(n).cloned().collect()
+    }
+
+    fn skip(&self, n: usize) -> Self {
+        self.iter().skip(n).cloned().collect()
+    }
+
+    fn sum(&self) -> Self::Scalar {
+        if self.is_empty() {
+            return Jet::<2>::constant(0.0);
+        }
+        let s = self[0];
+        self.reduce(s, |x, y| x + y)
+    }
+
+    fn prod(&self) -> Self::Scalar {
+        if self.is_empty() {
+            return Jet::<2>::constant(1.0);
+        }
         let s = self[0];
         self.reduce(s, |x, y| x * y)
     }

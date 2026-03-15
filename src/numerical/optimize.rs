@@ -112,7 +112,7 @@ pub use self::OptMethod::{GaussNewton, GradientDescent, LevenbergMarquardt};
 use self::OptOption::{InitParam, MaxIter};
 use crate::fuga::ConvToMat;
 use crate::numerical::utils::jacobian;
-use crate::structure::ad::{ADVec, AD};
+use crate::structure::ad::{ADVec, JetVec, AD};
 use crate::structure::matrix::Matrix;
 use crate::traits::matrix::{LinearAlgebra, MatrixTrait};
 use crate::util::useful::max;
