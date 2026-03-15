@@ -19,3 +19,4 @@ example_data/*.parquet
 *.mm_profdata
 
 src/bin/*
+outputs/
