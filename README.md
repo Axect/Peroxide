@@ -173,9 +173,12 @@ Peroxide can do many things.
     - `col_map` : map for column vectors
     - `row_map` : map for row vectors
 - Automatic Differentiation
-  - Taylor mode Forward AD - for nth order AD
-  - Exact jacobian
-  - `Real` trait to constrain for `f64` and `AD` (for ODE)
+  - Const-generic `Jet<N>` type for arbitrary-order forward AD
+  - Type aliases: `Dual` (1st order), `HyperDual` (2nd order)
+  - Normalized Taylor coefficients — no binomial overhead
+  - `#[ad_function]` proc macro for automatic gradient/hessian generation
+  - Exact Jacobian via `jacobian()` function
+  - `Real` trait to constrain for `f64` and `Jet<N>`
 - Numerical Analysis
   - Lagrange interpolation
   - Splines
@@ -326,7 +329,7 @@ How's that? Let me know if there's anything else you'd like me to improve!
 
 ## Latest README version
 
-Corresponding to `0.40.1`
+Corresponding to `0.41.0`
 
 ## Pre-requisite
 
@@ -427,7 +430,7 @@ cargo add peroxide --features "O3 plot nc csv parquet serde"
     - [stat.rs](src/statistics/stat.rs) : Statistical tools
   - __structure__ : Fundamental data structures
     - [mod.rs](src/structure/mod.rs)
-    - [ad.rs](src/structure/ad.rs) : Automatic Differentation
+    - [ad.rs](src/structure/ad.rs) : Automatic Differentiation (`Jet<N>` const-generic forward AD)
     - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
     - [matrix.rs](src/structure/matrix.rs) : Matrix
     - [polynomial.rs](src/structure/polynomial.rs) : Polynomial

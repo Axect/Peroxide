@@ -128,17 +128,17 @@ pub fn ad_function(_attr: TokenStream, input: TokenStream) -> TokenStream {
             #block
         }
 
-        fn #ad_fn(#var: AD) -> AD {
+        fn #ad_fn<const JET_ORDER: usize>(#var: Jet<JET_ORDER>) -> Jet<JET_ORDER> {
             #block
         }
 
         fn #grad_fn(#var: f64) -> f64 {
-            let ad = #ad_fn(AD1(#var, 1f64));
+            let ad = #ad_fn(Jet::<1>::var(#var));
             ad.dx()
         }
 
         fn #hess_fn(#var: f64) -> f64 {
-            let ad = #ad_fn(AD2(#var, 1f64, 0f64));
+            let ad = #ad_fn(Jet::<2>::var(#var));
             ad.ddx()
         }
     };
@@ -152,7 +152,7 @@ pub fn ad_closure(input: TokenStream) -> TokenStream {
     let block = closure.block;
 
     let tokens = quote!{
-        |#var: AD| #block
+        |#var: Jet<1>| #block
     };
     tokens.into()
 }
