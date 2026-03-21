@@ -33,7 +33,7 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
   - [Documentation](#documentation)
   - [Examples](#examples)
   - [Release Info](#release-info)
-  - [Contributes Guide](#contributes-guide)
+  - [Contributing Guide](#contributing-guide)
   - [LICENSE](#license)
   - [TODO](#todo)
   - [Cite Peroxide](#cite-peroxide)
@@ -474,9 +474,9 @@ cargo add peroxide --features "O3 plot nc csv parquet serde"
 
 To see [RELEASES.md](./RELEASES.md)
 
-## Contributes Guide
+## Contributing Guide
 
-See [CONTRIBUTES.md](./CONTRIBUTES.md)
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## LICENSE
 
