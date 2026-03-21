@@ -21,5 +21,10 @@ example_data/*.parquet
 src/bin/*
 outputs/
 
-# JOSS paper
-paper/
+# JOSS paper build artifacts
+paper/*.pdf
+paper/*.latex
+paper/*.csl
+paper/*.png
+paper/*.yaml
+paper/jats/
