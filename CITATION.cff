@@ -11,7 +11,7 @@ authors:
   - given-names: Tae-Geun
     family-names: Kim
     email: axect.tg@proton.me
-    affiliation: Yonsei University
+    affiliation: Fudan University / RIKEN iTHEMS
     orcid: 'https://orcid.org/0009-0000-4229-2935'
   - name: Peroxide contributors
 identifiers:
@@ -41,4 +41,4 @@ keywords:
   - Integration
   - Linear algebra
   - Differential equation
-license: MIT
+license: MIT OR Apache-2.0
