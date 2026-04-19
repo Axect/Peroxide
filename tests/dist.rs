@@ -12,6 +12,7 @@ fn test_binomial() {
 #[test]
 fn test_dirichlet() {
     let dir = MVDist::Dirichlet(vec![1.0, 2.0, 3.0]);
+    dir.sample(10).print();
 
     let m = dir.mean();
     assert!(nearly_eq(m[0], 1.0 / 6.0));
