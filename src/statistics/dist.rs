@@ -252,10 +252,10 @@
 //!     use rand::Rng;
 //!     pub trait MVRNG {
 //!         /// Extract samples of multivariate distributions
-//!         fn sample(&self, n: usize) -> Vec<Vec<f64>>;
+//!         fn sample(&self, n: usize) -> Matrix;
 //!
 //!         /// Extract samples of distributions with specific rng
-//!         fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<Vec<f64>>;
+//!         fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Matrix;
 //!
 //!         /// Probability Density Function
 //!         fn pdf(&self, x: &[f64]) -> f64;
