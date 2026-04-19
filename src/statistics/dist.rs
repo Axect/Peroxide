@@ -306,6 +306,7 @@ use self::WeightedUniformError::*;
 use crate::statistics::{ops::C, stat::Statistics};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
+use crate::structure::matrix::{matrix, Matrix, Row};
 use anyhow::{bail, Result};
 use std::f64::consts::E;
 
@@ -1063,14 +1064,14 @@ impl Statistics for WeightedUniform<f64> {
 
 /// Multivariate Random Number Generator Trait
 pub trait MVRNG {
-    /// Extract samples of multivariate distributions
-    fn sample(&self, n: usize) -> Vec<Vec<f64>> {
+    /// Extract samples of multivariate distributions (Returns an n x k Matrix)
+    fn sample(&self, n: usize) -> Matrix {
         let mut rng = rand::rng();
         self.sample_with_rng(&mut rng, n)
     }
 
     /// Extract samples of distributions with specific rng
-    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<Vec<f64>>;
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Matrix;
 
     /// Probability Density Function
     fn pdf(&self, x: &[f64]) -> f64 {
@@ -1082,7 +1083,7 @@ pub trait MVRNG {
 }
 
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for MVDist<T> {
-    type Array = Vec<Vec<f64>>;
+    type Array = Matrix;
     type Value = Vec<f64>;
 
     fn mean(&self) -> Self::Value {
@@ -1107,7 +1108,6 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for MVDist<T> 
     }
 
     fn sd(&self) -> Self::Value {
-        // Element-wise standard deviation
         self.var().into_iter().map(|v| v.sqrt()).collect()
     }
 
@@ -1118,59 +1118,65 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for MVDist<T> 
                 let alpha0: f64 = alpha.iter().sum();
                 let k = alpha.len();
                 let norm = alpha0.powi(2) * (alpha0 + 1.0);
-                let mut cov_matrix = vec![vec![0f64; k]; k];
+                let mut cov_data = vec![0f64; k * k];
 
                 for i in 0..k {
                     for j in 0..k {
+                        let idx = i * k + j;
                         if i == j {
-                            cov_matrix[i][j] = alpha[i] * (alpha0 - alpha[i]) / norm;
+                            cov_data[idx] = alpha[i] * (alpha0 - alpha[i]) / norm;
                         } else {
-                            cov_matrix[i][j] = -alpha[i] * alpha[j] / norm;
+                            cov_data[idx] = -alpha[i] * alpha[j] / norm;
                         }
                     }
                 }
-                cov_matrix
+
+                matrix(cov_data, k, k, Row)
             }
         }
     }
 
     fn cor(&self) -> Self::Array {
-        // Correlation matrix: Cor(X_i, X_j) = Cov(X_i, X_j) / (SD(X_i) * SD(X_j))
         let cov_matrix = self.cov();
         let sd_vec = self.sd();
         let k = sd_vec.len();
-        let mut cor_matrix = vec![vec![0f64; k]; k];
+        
+        let mut cor_data = vec![0f64; k * k];
 
         for i in 0..k {
             for j in 0..k {
-                cor_matrix[i][j] = cov_matrix[i][j] / (sd_vec[i] * sd_vec[j]);
+                let idx = i * k + j;
+                cor_data[idx] = cov_matrix[(i, j)] / (sd_vec[i] * sd_vec[j]);
             }
         }
-        cor_matrix
+        matrix(cor_data, k, k, Row)
     }
 }
 
 impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> MVRNG for MVDist<T> {
-    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<Vec<f64>> {
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Matrix {
         match self {
             MVDist::Dirichlet(alpha_t) => {
                 let alpha: Vec<f64> = alpha_t.iter().map(|&a| a.into()).collect();
-                let mut samples = Vec::with_capacity(n);
+                let k = alpha.len();
+                let mut sample_data = vec![0f64; n * k];
 
-                for _ in 0..n {
+                for i in 0..n {
                     let mut sum = 0f64;
-                    let mut y = Vec::with_capacity(alpha.len());
+                    let mut y = vec![0f64; k];
                     
-                    for &a in &alpha {
-                        let gamma_dist = rand_distr::Gamma::new(a, 1.0).unwrap();
-                        let val = gamma_dist.sample(rng);
-                        sum += val;
-                        y.push(val);
+                    for j in 0..k {
+                        let gamma_dist = rand_distr::Gamma::new(alpha[j], 1.0).unwrap();
+                        y[j] = gamma_dist.sample(rng);
+                        sum += y[j];
                     }
-                    
-                    samples.push(y.into_iter().map(|v| v / sum).collect());
+
+                    for j in 0..k {
+                        sample_data[i * k + j] = y[j] / sum;
+                    }
                 }
-                samples
+
+                matrix(sample_data, n, k, Row)
             }
         }
     }
