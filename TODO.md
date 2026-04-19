@@ -21,7 +21,7 @@
     - [x] Bernoulli
     - [x] Beta
     - [x] Binomial
-    - [ ] Dirichlet
+    - [x] Dirichlet
     - [x] Gamma
     - [x] Student's t
     - [x] Uniform
