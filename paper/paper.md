@@ -11,11 +11,34 @@ authors:
   - name: Tae-Geun Kim
     orcid: 0009-0000-4229-2935
     affiliation: "1, 2"
+    corresponding: true
+  - name: Giorgio Comitini
+    orcid: 0000-0002-1758-7878
+    affiliation: 3
+  - name: Jonas Grage
+    orcid: 0009-0000-9279-7683
+    affiliation: 4
+  - name: Benjamin Joens
+    orcid: 0009-0002-7922-0884
+    affiliation: 4
+  - name: Marc Schreiber
+    orcid: 0000-0003-2564-6126
+    affiliation: 4
+  - name: Soumya Sen
+    orcid: 0009-0008-0337-9964
+    affiliation: 4
+  - name: Johanna Sörngård
+    orcid: 0000-0002-8660-9989
+    affiliation: 4
 affiliations:
   - name: Key Laboratory of Nuclear Physics and Ion-beam Application (MOE), Institute of Modern Physics, Fudan University, Shanghai 200433, China
     index: 1
   - name: RIKEN Center for Interdisciplinary Theoretical and Mathematical Sciences (iTHEMS), Wako, Saitama 351-0198, Japan
     index: 2
+  - name: Università degli Studi di Catania, Catania, Italy
+    index: 3
+  - name: Independent Researcher
+    index: 4
 date: 21 March 2026
 bibliography: paper.bib
 ---
@@ -145,12 +168,12 @@ Sparse matrices, PDE solvers, and FFT lie outside the current scope.
 
 # AI usage disclosure
 
-A generative AI tool (Claude Opus 4, Anthropic, March 2026) was used for grammar checking and copy-editing of the manuscript text.
-All scientific content, software design decisions, technical claims, and code were produced entirely by the human author.
-The final manuscript was reviewed, edited, and approved by the author.
+A generative AI tool (Claude Opus 4, Anthropic, March 2026) was used by the lead author (T.-G. Kim) for grammar checking and copy-editing of the manuscript text.
+All scientific content, software design decisions, technical claims, and code were produced entirely by the authors.
+The final manuscript was reviewed and approved by all authors.
 
 # Acknowledgements
 
-We thank all contributors to the Peroxide repository and the Rust scientific computing community for their feedback.
+We thank Victor Olowofeso for early-user feedback, all past and present Peroxide contributors, and the broader Rust scientific computing community for their code, issue reports, and discussions.
 
 # References
