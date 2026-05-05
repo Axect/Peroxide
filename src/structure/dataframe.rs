@@ -329,11 +329,11 @@ use arrow::datatypes::{
     Float32Type, Float64Type, Int16Type, Int32Type, Int64Type, Int8Type, UInt16Type, UInt32Type,
     UInt64Type, UInt8Type,
 };
+#[cfg(feature = "parquet")]
+use indexmap::IndexMap;
 use std::cmp::{max, min};
 #[cfg(feature = "csv")]
 use std::collections::HashMap;
-#[cfg(feature = "parquet")]
-use indexmap::IndexMap;
 #[cfg(any(feature = "csv", feature = "nc", feature = "parquet"))]
 use std::error::Error;
 use std::fmt;
@@ -1311,7 +1311,10 @@ impl Series {
     pub fn var(&self) -> anyhow::Result<f64> {
         use crate::statistics::stat::Statistics;
         let v = self.to_f64_vec()?;
-        anyhow::ensure!(v.len() > 1, "Cannot compute variance of Series with fewer than 2 elements");
+        anyhow::ensure!(
+            v.len() > 1,
+            "Cannot compute variance of Series with fewer than 2 elements"
+        );
         Ok(v.var())
     }
 
@@ -1319,7 +1322,10 @@ impl Series {
     pub fn sd(&self) -> anyhow::Result<f64> {
         use crate::statistics::stat::Statistics;
         let v = self.to_f64_vec()?;
-        anyhow::ensure!(v.len() > 1, "Cannot compute sd of Series with fewer than 2 elements");
+        anyhow::ensure!(
+            v.len() > 1,
+            "Cannot compute sd of Series with fewer than 2 elements"
+        );
         Ok(v.sd())
     }
 
@@ -1329,8 +1335,15 @@ impl Series {
 
         macro_rules! typed_min {
             ($v:expr, $dtype:ident) => {{
-                let min_val = $v.iter().cloned().reduce(|a, b| if a <= b { a } else { b }).unwrap();
-                Ok(Scalar { value: DTypeValue::$dtype(min_val), dtype: DType::$dtype })
+                let min_val = $v
+                    .iter()
+                    .cloned()
+                    .reduce(|a, b| if a <= b { a } else { b })
+                    .unwrap();
+                Ok(Scalar {
+                    value: DTypeValue::$dtype(min_val),
+                    dtype: DType::$dtype,
+                })
             }};
         }
 
@@ -1359,8 +1372,15 @@ impl Series {
 
         macro_rules! typed_max {
             ($v:expr, $dtype:ident) => {{
-                let max_val = $v.iter().cloned().reduce(|a, b| if a >= b { a } else { b }).unwrap();
-                Ok(Scalar { value: DTypeValue::$dtype(max_val), dtype: DType::$dtype })
+                let max_val = $v
+                    .iter()
+                    .cloned()
+                    .reduce(|a, b| if a >= b { a } else { b })
+                    .unwrap();
+                Ok(Scalar {
+                    value: DTypeValue::$dtype(max_val),
+                    dtype: DType::$dtype,
+                })
             }};
         }
 
@@ -1996,7 +2016,15 @@ impl DataFrame {
 
         let stat_labels = vec!["count", "mean", "sd", "min", "max"];
         let mut result = DataFrame::new(vec![]);
-        result.push("stat", Series::new(stat_labels.iter().map(|s| s.to_string()).collect::<Vec<String>>()));
+        result.push(
+            "stat",
+            Series::new(
+                stat_labels
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>(),
+            ),
+        );
 
         for (i, series) in self.data.iter().enumerate() {
             if let Ok(v) = series.to_f64_vec() {

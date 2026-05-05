@@ -81,10 +81,10 @@ use self::pyo3::types::{IntoPyDict, PyDictMethods};
 use self::pyo3::{PyResult, Python};
 pub use self::Grid::{Off, On};
 use self::PlotOptions::{Domain, Images, Pairs, Path};
-use std::collections::HashMap;
-use std::fmt::Display;
 use std::borrow::BorrowMut;
+use std::collections::HashMap;
 use std::ffi::CString;
+use std::fmt::Display;
 
 type Vector = Vec<f64>;
 
@@ -504,8 +504,7 @@ impl Plot for Plot2D {
             let plot_type = self.plot_type.clone();
 
             // Global variables to plot
-            let mut globals =
-                vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py)?;
+            let mut globals = vec![("plt", py.import("matplotlib.pyplot")?)].into_py_dict(py)?;
             globals.borrow_mut().set_item("x", x)?;
             globals.borrow_mut().set_item("y", ys)?;
             globals.borrow_mut().set_item("pair", pairs)?;

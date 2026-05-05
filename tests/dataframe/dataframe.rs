@@ -283,7 +283,11 @@ fn test_series_max() {
 
 #[test]
 fn test_series_max_string() {
-    let a = Series::new(vec!["apple".to_string(), "banana".to_string(), "cherry".to_string()]);
+    let a = Series::new(vec![
+        "apple".to_string(),
+        "banana".to_string(),
+        "cherry".to_string(),
+    ]);
     let m = a.max().unwrap();
     assert_eq!(m, Scalar::new("cherry".to_string()));
 }
