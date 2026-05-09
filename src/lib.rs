@@ -181,6 +181,14 @@ extern crate blas;
 #[cfg(feature = "O3")]
 extern crate lapack;
 
+// Force link-directive propagation when a backend convenience feature
+// (`O3-openblas` / `O3-accelerate` / `O3-mkl` / `O3-netlib`) activates
+// `blas-src` / `lapack-src` via Cargo's optional-dep feature shim.
+#[cfg(feature = "blas-src")]
+extern crate blas_src as _;
+#[cfg(feature = "lapack-src")]
+extern crate lapack_src as _;
+
 #[cfg(feature = "plot")]
 extern crate pyo3;
 
