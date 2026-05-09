@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate peroxide;
 #[allow(unused_imports)]
 use peroxide::fuga::*;
@@ -18,7 +19,7 @@ fn daxpy_test() {
 fn dgemv_test() {
     let a = ml_matrix("1 2;3 4");
     let b = c![1, 2];
-    let c = ml_matrix("5; 11");
+    let c = c![5, 11];
     assert_eq!(&a * &b, c.clone());
     assert_eq!(&(a.change_shape()) * &b, c);
 }
