@@ -54,7 +54,23 @@ num-complex = { version = "0.4", optional = true }
 rayon = { version = "1.10", optional = true }
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--html-in-header", "katex-header.html", "--cfg", "docsrs"]
+rustdoc-args = ["--html-in-header", "katex-header.html"]
+features = [
+  "arrow",
+  "blas",
+  "complex",
+  "csv",
+  "indexmap",
+  "json",
+  "lapack",
+  "num-complex",
+  "parallel",
+  "parquet",
+  "pyo3",
+  "rayon",
+  "rkyv",
+  "serde",
+]
 
 [features]
 default = []

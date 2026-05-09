@@ -174,7 +174,6 @@
 //!     * A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
 
 //!
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "O3")]
 extern crate blas;
