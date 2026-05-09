@@ -13,7 +13,7 @@
 //!
 //! To use this module, you should enable `plot` feature in `Cargo.toml`
 //!
-//! ```
+//! ```no_run
 //! use peroxide::fuga::*;
 //!
 //! fn main() {

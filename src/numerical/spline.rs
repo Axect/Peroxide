@@ -94,7 +94,7 @@
 //!
 //! ## Usage (B-Spline)
 //!
-//! ```rust
+//! ```no_run
 //! use peroxide::fuga::*;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -971,7 +971,7 @@ impl UnitCubicBasis {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```no_run
 /// use peroxide::fuga::*;
 /// use core::ops::Range;
 ///

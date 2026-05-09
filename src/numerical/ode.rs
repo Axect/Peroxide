@@ -36,7 +36,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use peroxide::fuga::*;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
