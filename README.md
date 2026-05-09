@@ -337,15 +337,34 @@ Most features are pure Rust and require no system setup. The three
 groups below depend on external libraries or runtimes; install the
 relevant prerequisites before enabling the corresponding feature flag.
 
-### `O3` / `blas` / `lapack` &mdash; BLAS + LAPACK
+### `O3` &mdash; BLAS + LAPACK
 
 `O3` enables hardware-accelerated linear algebra (LU, QR, SVD,
-Cholesky, GEMV/GEMM dispatch) by linking against a system BLAS and
-LAPACK implementation through the
+Cholesky, GEMV/GEMM dispatch) through the
 [`blas`](https://crates.io/crates/blas) and
-[`lapack`](https://crates.io/crates/lapack) FFI crates. OpenBLAS is the
-most commonly used provider; reference BLAS/LAPACK and MKL also work
-as long as they expose the standard Fortran symbols.
+[`lapack`](https://crates.io/crates/lapack) FFI crates. Those crates
+only provide function signatures, so the link backend that supplies
+the actual `dgemv_` / `dpotrf_` / ... symbols must be selected
+separately. The simplest path is to enable one of the convenience
+flags below; each pulls in
+[`blas-src`](https://crates.io/crates/blas-src) and
+[`lapack-src`](https://crates.io/crates/lapack-src) with the matching
+backend.
+
+| Convenience flag  | Backend            | Typical platform / use case             |
+| ----------------- | ------------------ | --------------------------------------- |
+| `O3-openblas`     | OpenBLAS           | Linux, Windows, macOS via Homebrew      |
+| `O3-accelerate`   | Apple Accelerate   | macOS (no extra system install)         |
+| `O3-mkl`          | Intel MKL          | Intel CPUs, vendor-tuned performance    |
+| `O3-netlib`       | Netlib reference   | Portability, lowest performance         |
+
+If you need a backend not in the list above (for example BLIS or R's
+BLAS), enable the bare `O3` flag and add `blas-src` / `lapack-src` to
+your downstream binary's `Cargo.toml` with the appropriate features
+yourself.
+
+System libraries still need to be present on the host for `O3-openblas`
+and `O3-netlib`; install them with:
 
 | Platform              | Install                                              |
 | --------------------- | ---------------------------------------------------- |
@@ -354,8 +373,9 @@ as long as they expose the standard Fortran symbols.
 | Arch Linux            | `sudo pacman -S openblas lapack`                     |
 | macOS (Homebrew)      | `brew install openblas lapack`                       |
 
-The bare `blas` and `lapack` flags expose only the corresponding raw
-bindings; enable `O3` to use them through the `Matrix` API.
+`O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework
+and Intel's redistributable, respectively), so they need no further
+system packages.
 
 ### `plot` / `pyo3` &mdash; Python 3 + matplotlib
 
@@ -390,6 +410,14 @@ the system HDF5 and netCDF-C libraries.
 | Arch Linux            | `sudo pacman -S netcdf hdf5`                         |
 | macOS (Homebrew)      | `brew install netcdf hdf5`                           |
 
+> **Note:** Peroxide currently pins `netcdf = "0.7"`, which transitively
+> uses `hdf5-sys 0.8.x`. That `hdf5-sys` only recognizes the **HDF5 1.x**
+> version string and rejects HDF5 2.x with `Invalid H5_VERSION`. If
+> your distribution ships HDF5 2.x (e.g. recent rolling-release Linux),
+> install an HDF5 1.14.x package alongside (Debian/Ubuntu LTS releases
+> still default to 1.10/1.14) or wait for the planned bump to `netcdf
+> 0.12`. The `nc` build will succeed against any HDF5 1.x.
+
 ## Install
 
 ### Basic Installation
@@ -410,15 +438,19 @@ is pure Rust and works out of the box.
 
 **Requires system libraries**
 
-| Flag          | Backing crate(s)         | Purpose                                                  |
-| ------------- | ------------------------ | -------------------------------------------------------- |
-| `O3`          | `blas`, `lapack`         | BLAS / LAPACK accelerated linear algebra                 |
-| `blas`        | `blas`                   | Raw BLAS bindings only                                   |
-| `lapack`      | `lapack`                 | Raw LAPACK bindings only                                 |
-| `plot`        | `pyo3` + matplotlib      | High-level plotting via Python                           |
-| `pyo3`        | `pyo3`                   | Python 3 interop building block                          |
-| `nc`          | `netcdf`                 | NetCDF DataFrame I/O (alias for `netcdf`)                |
-| `netcdf`      | `netcdf`                 | NetCDF DataFrame I/O                                     |
+| Flag             | Backing crate(s)                       | Purpose                                                       |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------- |
+| `O3`             | `blas`, `lapack`                       | BLAS / LAPACK FFI; bring your own `blas-src` / `lapack-src`   |
+| `O3-openblas`    | `O3` + `blas-src/openblas`, `lapack-src/openblas`     | `O3` linked through OpenBLAS                   |
+| `O3-accelerate`  | `O3` + `blas-src/accelerate`, `lapack-src/accelerate` | `O3` linked through Apple Accelerate (macOS)   |
+| `O3-mkl`         | `O3` + `blas-src/intel-mkl-dynamic-parallel`, `lapack-src/intel-mkl-dynamic-parallel` | `O3` linked through Intel MKL          |
+| `O3-netlib`      | `O3` + `blas-src/netlib`, `lapack-src/netlib`         | `O3` linked through Netlib reference BLAS      |
+| `blas`           | `blas`                                 | Raw BLAS bindings only                                        |
+| `lapack`         | `lapack`                               | Raw LAPACK bindings only                                      |
+| `plot`           | `pyo3` + matplotlib                    | High-level plotting via Python                                |
+| `pyo3`           | `pyo3`                                 | Python 3 interop building block                               |
+| `nc`             | `netcdf`                               | NetCDF DataFrame I/O (alias for `netcdf`)                     |
+| `netcdf`         | `netcdf`                               | NetCDF DataFrame I/O                                          |
 
 **Pure Rust**
 
@@ -443,9 +475,14 @@ Single feature installation:
 cargo add peroxide --features "plot"
 ```
 
-Multiple features installation:
+Multiple features installation, picking the BLAS backend that matches
+your platform:
 ```bash
-cargo add peroxide --features "O3 plot nc csv parquet serde"
+# Linux / Windows
+cargo add peroxide --features "O3-openblas plot nc csv parquet serde"
+
+# macOS
+cargo add peroxide --features "O3-accelerate plot nc csv parquet serde"
 ```
 
 ## Useful tips for features
