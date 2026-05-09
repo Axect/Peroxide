@@ -333,9 +333,62 @@ Corresponding to `0.41.0`
 
 ## Pre-requisite
 
-- For `O3` feature - Need `OpenBLAS`
-- For `plot` feature - Need `matplotlib` and optional `scienceplots` (for publication quality)
-- For `nc` feature - Need `netcdf`
+Most features are pure Rust and require no system setup. The three
+groups below depend on external libraries or runtimes; install the
+relevant prerequisites before enabling the corresponding feature flag.
+
+### `O3` / `blas` / `lapack` &mdash; BLAS + LAPACK
+
+`O3` enables hardware-accelerated linear algebra (LU, QR, SVD,
+Cholesky, GEMV/GEMM dispatch) by linking against a system BLAS and
+LAPACK implementation through the
+[`blas`](https://crates.io/crates/blas) and
+[`lapack`](https://crates.io/crates/lapack) FFI crates. OpenBLAS is the
+most commonly used provider; reference BLAS/LAPACK and MKL also work
+as long as they expose the standard Fortran symbols.
+
+| Platform              | Install                                              |
+| --------------------- | ---------------------------------------------------- |
+| Debian / Ubuntu       | `sudo apt install libopenblas-dev liblapack-dev`     |
+| Fedora / RHEL         | `sudo dnf install openblas-devel lapack-devel`       |
+| Arch Linux            | `sudo pacman -S openblas lapack`                     |
+| macOS (Homebrew)      | `brew install openblas lapack`                       |
+
+The bare `blas` and `lapack` flags expose only the corresponding raw
+bindings; enable `O3` to use them through the `Matrix` API.
+
+### `plot` / `pyo3` &mdash; Python 3 + matplotlib
+
+`plot` enables the high-level `Plot2D` API, which renders figures by
+delegating to matplotlib through
+[`pyo3`](https://crates.io/crates/pyo3). Python 3 with development
+headers is required at build time, and matplotlib is required at
+runtime.
+
+| Step                                       | Command                                            |
+| ------------------------------------------ | -------------------------------------------------- |
+| Install Python 3 + dev headers (Debian)    | `sudo apt install python3 python3-dev`             |
+| Install Python 3 + dev headers (Fedora)    | `sudo dnf install python3 python3-devel`           |
+| Install matplotlib                         | `pip install matplotlib`                           |
+| (Optional) Publication-quality styles      | `pip install scienceplots`                         |
+
+If you use a virtual environment, activate it before building so that
+`pyo3` resolves to the intended interpreter
+(e.g. `source .venv/bin/activate`). The plain `pyo3` flag enables the
+Python interop layer without pulling in the `Plot2D` API.
+
+### `nc` / `netcdf` &mdash; HDF5 + netCDF-C
+
+`nc` (alias `netcdf`) enables NetCDF I/O for `DataFrame` via the
+[`netcdf`](https://crates.io/crates/netcdf) crate, which links against
+the system HDF5 and netCDF-C libraries.
+
+| Platform              | Install                                              |
+| --------------------- | ---------------------------------------------------- |
+| Debian / Ubuntu       | `sudo apt install libnetcdf-dev libhdf5-dev`         |
+| Fedora / RHEL         | `sudo dnf install netcdf-devel hdf5-devel`           |
+| Arch Linux            | `sudo pacman -S netcdf hdf5`                         |
+| macOS (Homebrew)      | `brew install netcdf hdf5`                           |
 
 ## Install
 
@@ -351,15 +404,37 @@ cargo add peroxide --features "<FEATURES>"
 
 ### Available Features
 
-* `O3`: Adds OpenBLAS support
-* `plot`: Enables plotting functionality
-* `complex`: Supports complex number operations
-* `parallel`: Enables parallel processing capabilities
-* `nc`: Adds NetCDF support for DataFrame
-* `csv`: Adds CSV support for DataFrame
-* `parquet`: Adds Parquet support for DataFrame
-* `serde`: Enables serialization/deserialization for Matrix and polynomial
-* `rkyv`: Enables zero-copy serialization/deserialization with [rkyv](https://rkyv.org)
+All features are off by default. The first group requires the
+[system libraries documented above](#pre-requisite); the second group
+is pure Rust and works out of the box.
+
+**Requires system libraries**
+
+| Flag          | Backing crate(s)         | Purpose                                                  |
+| ------------- | ------------------------ | -------------------------------------------------------- |
+| `O3`          | `blas`, `lapack`         | BLAS / LAPACK accelerated linear algebra                 |
+| `blas`        | `blas`                   | Raw BLAS bindings only                                   |
+| `lapack`      | `lapack`                 | Raw LAPACK bindings only                                 |
+| `plot`        | `pyo3` + matplotlib      | High-level plotting via Python                           |
+| `pyo3`        | `pyo3`                   | Python 3 interop building block                          |
+| `nc`          | `netcdf`                 | NetCDF DataFrame I/O (alias for `netcdf`)                |
+| `netcdf`      | `netcdf`                 | NetCDF DataFrame I/O                                     |
+
+**Pure Rust**
+
+| Flag          | Backing crate(s)              | Purpose                                                |
+| ------------- | ----------------------------- | ------------------------------------------------------ |
+| `complex`     | `num-complex`                 | Complex numbers + `cgemm` matmul                       |
+| `num-complex` | `num-complex`                 | Raw complex number dependency                          |
+| `parallel`    | `rayon`                       | Parallel iterators on vectors / matrices               |
+| `rayon`       | `rayon`                       | Raw rayon dependency                                   |
+| `parquet`     | `parquet`, `arrow`, `indexmap`| Parquet DataFrame I/O                                  |
+| `arrow`       | `arrow`                       | Raw arrow dependency                                   |
+| `indexmap`    | `indexmap`                    | Raw indexmap dependency                                |
+| `csv`         | `csv`                         | CSV DataFrame I/O                                      |
+| `json`        | `json`                        | JSON DataFrame I/O                                     |
+| `serde`       | `serde`                       | (De)serialization for matrices and polynomials         |
+| `rkyv`        | `rkyv`                        | Zero-copy (de)serialization                            |
 
 ### Install Examples
 
