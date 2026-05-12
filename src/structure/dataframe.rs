@@ -1179,6 +1179,11 @@ impl Scalar {
         dtype_match!(self.dtype, vec![self.unwrap()], Series::new; Vec)
     }
 
+    // The inherent `to_string` returns the raw value (no dtype annotation),
+    // while `Display::to_string` adds `, dtype:...`. Clippy flags the name
+    // collision; renaming would be a public API break, so silence the lint
+    // for now and revisit when bumping the major version.
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(self) -> String {
         dtype_match!(self.dtype, self.unwrap(), to_string)
     }

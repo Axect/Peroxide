@@ -448,7 +448,7 @@ where
 
             // Tolerance propagation for subintervals: divide by sqrt(2)
             // This is often preferred over dividing by 2 for better error distribution.
-            let next_tol = tol_curr / 1.4142135623730951; // tol / sqrt(2)
+            let next_tol = tol_curr / std::f64::consts::SQRT_2;
             let next_iter = iter_left - 1; // Decrement remaining iterations
 
             // Push the two subintervals onto the stack for further processing
