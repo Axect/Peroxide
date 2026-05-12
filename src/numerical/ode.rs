@@ -1344,9 +1344,9 @@ impl ODEIntegrator for GL4 {
     }
 }
 
-//// Helper function to compute the function F(U) for the implicit solver.
-//// y1 = y + dt*(c*k1 + d*k2 - sqrt3/2*(k2-k1))
-//// y2 = y + dt*(c*k1 + d*k2 + sqrt3/2*(k2-k1))
+/// Helper function to compute the function F(U) for the implicit solver.
+/// y1 = y + dt*(c*k1 + d*k2 - sqrt3/2*(k2-k1))
+/// y2 = y + dt*(c*k1 + d*k2 + sqrt3/2*(k2-k1))
 //#[allow(non_snake_case)]
 //fn compute_F<P: ODEProblem>(
 //    problem: &P,

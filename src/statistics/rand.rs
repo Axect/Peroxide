@@ -97,7 +97,7 @@ pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let y1 = x1 * w;
     _y2 = x2 * w;
 
-    return m + y1 * s;
+    m + y1 * s
 }
 
 // =============================================================================

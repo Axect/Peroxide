@@ -329,7 +329,7 @@ impl WeightedUniform<f64> {
     /// ```
     pub fn new(weights: Vec<f64>, intervals: Vec<f64>) -> Result<Self> {
         let mut weights = weights;
-        if weights.len() == 0 {
+        if weights.is_empty() {
             bail!(EmptyWeightError);
         }
         if weights.iter().all(|&x| x == 0f64) {
@@ -805,7 +805,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let n = *n;
                 let p = (*mu).into();
                 let q = 1f64 - p;
-                let k: f64 = x.into();
+                let k: f64 = x;
                 inc_beta(n as f64 - k, k + 1f64, q)
             }
             Normal(m, s) => phi((x - (*m).into()) / (*s).into()),

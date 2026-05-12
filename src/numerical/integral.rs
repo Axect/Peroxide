@@ -169,7 +169,7 @@ impl NCIntegrable for f64 {
     where
         F: Fn(f64) -> Self,
     {
-        node_x.to_vec().fmap(|x| f(x))
+        node_x.to_vec().fmap(f)
     }
 
     fn compute_polynomial(node_x: &[f64], node_y: &Vec<f64>) -> Polynomial {

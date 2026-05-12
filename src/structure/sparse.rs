@@ -210,21 +210,21 @@ impl Mul<Vec<f64>> for SPMatrix {
 }
 
 /// Reference version of matrix multiplication with vector
-impl<'a, 'b> Mul<&'b Vec<f64>> for &'a SPMatrix {
+impl<'b> Mul<&'b Vec<f64>> for &SPMatrix {
     type Output = Vec<f64>;
     fn mul(self, rhs: &'b Vec<f64>) -> Self::Output {
         self.apply(rhs)
     }
 }
 
-impl Into<Matrix> for SPMatrix {
-    fn into(self) -> Matrix {
-        self.to_dense()
+impl From<SPMatrix> for Matrix {
+    fn from(val: SPMatrix) -> Self {
+        val.to_dense()
     }
 }
 
-impl Into<SPMatrix> for Matrix {
-    fn into(self) -> SPMatrix {
-        SPMatrix::from_dense(&self)
+impl From<Matrix> for SPMatrix {
+    fn from(val: Matrix) -> Self {
+        SPMatrix::from_dense(&val)
     }
 }

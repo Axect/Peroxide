@@ -263,6 +263,12 @@ pub struct Plot2D {
     options: HashMap<PlotOptions, bool>,
 }
 
+impl Default for Plot2D {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Plot2D {
     pub fn new() -> Self {
         let mut default_options: HashMap<PlotOptions, bool> = HashMap::new();

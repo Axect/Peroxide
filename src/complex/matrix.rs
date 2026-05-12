@@ -16,7 +16,7 @@ use crate::{
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
-    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, UPLO, WAZD},
+    traits::matrix::{Form, LinearAlgebra, MatrixTrait, SolveKind, PQLU, QR, SVD, WAZD},
     traits::mutable::MutMatrix,
     util::low_level::{copy_vec_ptr, swap_vec_ptr},
     util::non_macro::ConcatenateError,
@@ -397,10 +397,10 @@ impl MatrixTrait for ComplexMatrix {
             };
             return format!(
                 "Result is too large to print - {}x{}\n only print {}x{} parts:\n{}",
-                self.row.to_string(),
-                self.col.to_string(),
-                key_row.to_string(),
-                key_col.to_string(),
+                self.row,
+                self.col,
+                key_row,
+                key_col,
                 part.spread()
             );
         }
@@ -412,7 +412,7 @@ impl MatrixTrait for ComplexMatrix {
             .map(
                 |x| min(format!("{:.4}", x).len(), x.to_string().len()), // Choose minimum of approx vs normal
             )
-            .fold(0, |x, y| max(x, y))
+            .fold(0, max)
             + 1;
 
         if space < 5 {
@@ -447,7 +447,7 @@ impl MatrixTrait for ComplexMatrix {
             result.push('\n');
         }
 
-        return result;
+        result
     }
 
     /// Extract Column
@@ -946,32 +946,32 @@ impl MatrixProduct for ComplexMatrix {
 // Common Properties of Matrix & Vec<f64>
 // =============================================================================
 /// `Complex Matrix` to `Vec<C64>`
-impl Into<Vec<C64>> for ComplexMatrix {
-    fn into(self) -> Vec<C64> {
-        self.data
+impl From<ComplexMatrix> for Vec<C64> {
+    fn from(val: ComplexMatrix) -> Self {
+        val.data
     }
 }
 
 /// `&ComplexMatrix` to `&Vec<C64>`
-impl<'a> Into<&'a Vec<C64>> for &'a ComplexMatrix {
-    fn into(self) -> &'a Vec<C64> {
-        &self.data
+impl<'a> From<&'a ComplexMatrix> for &'a Vec<C64> {
+    fn from(val: &'a ComplexMatrix) -> Self {
+        &val.data
     }
 }
 
 /// `Vec<C64>` to `ComplexMatrix`
-impl Into<ComplexMatrix> for Vec<C64> {
-    fn into(self) -> ComplexMatrix {
-        let l = self.len();
-        cmatrix(self, l, 1, Shape::Col)
+impl From<Vec<C64>> for ComplexMatrix {
+    fn from(val: Vec<C64>) -> Self {
+        let l = val.len();
+        cmatrix(val, l, 1, Shape::Col)
     }
 }
 
 /// `&Vec<C64>` to `ComplexMatrix`
-impl Into<ComplexMatrix> for &Vec<C64> {
-    fn into(self) -> ComplexMatrix {
-        let l = self.len();
-        cmatrix(self.clone(), l, 1, Shape::Col)
+impl From<&Vec<C64>> for ComplexMatrix {
+    fn from(val: &Vec<C64>) -> Self {
+        let l = val.len();
+        cmatrix(val.clone(), l, 1, Shape::Col)
     }
 }
 
@@ -1001,7 +1001,7 @@ impl Add<ComplexMatrix> for ComplexMatrix {
     }
 }
 
-impl<'a, 'b> Add<&'b ComplexMatrix> for &'a ComplexMatrix {
+impl<'b> Add<&'b ComplexMatrix> for &ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn add(self, rhs: &'b ComplexMatrix) -> Self::Output {
@@ -1037,7 +1037,7 @@ where
 }
 
 /// Element-wise addition between &ComplexMatrix & C64
-impl<'a, T> Add<T> for &'a ComplexMatrix
+impl<T> Add<T> for &ComplexMatrix
 where
     T: Into<C64> + Copy,
 {
@@ -1120,7 +1120,7 @@ impl Neg for ComplexMatrix {
 }
 
 /// Negation of &'a Complex Matrix
-impl<'a> Neg for &'a ComplexMatrix {
+impl Neg for &ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn neg(self) -> Self::Output {
@@ -1175,7 +1175,7 @@ impl Sub<ComplexMatrix> for ComplexMatrix {
     }
 }
 
-impl<'a, 'b> Sub<&'b ComplexMatrix> for &'a ComplexMatrix {
+impl<'b> Sub<&'b ComplexMatrix> for &ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn sub(self, rhs: &'b ComplexMatrix) -> Self::Output {
@@ -1196,7 +1196,7 @@ where
 }
 
 /// Subtraction between &Complex Matrix & C64
-impl<'a, T> Sub<T> for &'a ComplexMatrix
+impl<T> Sub<T> for &ComplexMatrix
 where
     T: Into<C64> + Copy,
 {
@@ -1295,7 +1295,7 @@ impl Mul<ComplexMatrix> for ComplexMatrix {
     }
 }
 
-impl<'a, 'b> Mul<&'b ComplexMatrix> for &'a ComplexMatrix {
+impl<'b> Mul<&'b ComplexMatrix> for &ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn mul(self, other: &'b ComplexMatrix) -> Self::Output {
@@ -1313,7 +1313,7 @@ impl Mul<Vec<C64>> for ComplexMatrix {
 }
 
 #[allow(non_snake_case)]
-impl<'a, 'b> Mul<&'b Vec<C64>> for &'a ComplexMatrix {
+impl<'b> Mul<&'b Vec<C64>> for &ComplexMatrix {
     type Output = Vec<C64>;
 
     fn mul(self, other: &'b Vec<C64>) -> Self::Output {
@@ -1333,7 +1333,7 @@ impl Mul<ComplexMatrix> for Vec<C64> {
     }
 }
 
-impl<'a, 'b> Mul<&'b ComplexMatrix> for &'a Vec<C64> {
+impl<'b> Mul<&'b ComplexMatrix> for &Vec<C64> {
     type Output = Vec<C64>;
 
     fn mul(self, other: &'b ComplexMatrix) -> Self::Output {
@@ -1356,7 +1356,7 @@ impl Div<C64> for ComplexMatrix {
     }
 }
 
-impl<'a> Div<C64> for &'a ComplexMatrix {
+impl Div<C64> for &ComplexMatrix {
     type Output = ComplexMatrix;
 
     fn div(self, other: C64) -> Self::Output {

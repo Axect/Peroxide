@@ -108,7 +108,7 @@ where
 
 /// Signum function
 pub fn sgn(x: usize) -> f64 {
-    if x % 2 == 0 {
+    if x.is_multiple_of(2) {
         1f64
     } else {
         -1f64

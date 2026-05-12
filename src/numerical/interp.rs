@@ -14,5 +14,5 @@ where
     for i in 0..num {
         v[i] = (a + b) / 2. + 0.5 * (b - a) * ((2 * i + 1) as f64 * PI / (2 * num) as f64).cos();
     }
-    return v;
+    v
 }

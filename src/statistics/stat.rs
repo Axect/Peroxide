@@ -517,7 +517,7 @@ pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
     let mut sy = 0f64;
     let mut l = 0f64;
 
-    for (x, y) in v1.into_iter().zip(v2) {
+    for (x, y) in v1.iter().zip(v2) {
         ss += x * y;
         sx += *x;
         sy += *y;

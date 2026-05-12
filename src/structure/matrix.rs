@@ -1673,7 +1673,6 @@ impl ParallelNormed for Matrix {
                     .into_par_iter()
                     .map(|j| {
                         let s_row = (0..self.row)
-                            .into_iter()
                             .map(|i| self[(i, j)].powi(p as i32))
                             .sum::<f64>();
                         s_row.powf(q / p)
@@ -1820,31 +1819,31 @@ impl MatrixProduct for Matrix {
 // Common Properties of Matrix & Vec<f64>
 // =============================================================================
 /// `Matrix` to `Vec<f64>`
-impl Into<Vec<f64>> for Matrix {
-    fn into(self) -> Vec<f64> {
-        self.data
+impl From<Matrix> for Vec<f64> {
+    fn from(val: Matrix) -> Self {
+        val.data
     }
 }
 
 /// `&Matrix` to `&Vec<f64>`
-impl<'a> Into<&'a Vec<f64>> for &'a Matrix {
-    fn into(self) -> &'a Vec<f64> {
-        &self.data
+impl<'a> From<&'a Matrix> for &'a Vec<f64> {
+    fn from(val: &'a Matrix) -> Self {
+        &val.data
     }
 }
 
 /// `Vec<f64>` to `Matrix`
-impl Into<Matrix> for Vec<f64> {
-    fn into(self) -> Matrix {
-        let l = self.len();
-        matrix(self, l, 1, Col)
+impl From<Vec<f64>> for Matrix {
+    fn from(val: Vec<f64>) -> Self {
+        let l = val.len();
+        matrix(val, l, 1, Col)
     }
 }
 
-impl Into<Matrix> for &Vec<f64> {
-    fn into(self) -> Matrix {
-        let l = self.len();
-        matrix(self.clone(), l, 1, Col)
+impl From<&Vec<f64>> for Matrix {
+    fn from(val: &Vec<f64>) -> Self {
+        let l = val.len();
+        matrix(val.clone(), l, 1, Col)
     }
 }
 
@@ -1892,7 +1891,7 @@ impl Add<Matrix> for Matrix {
     }
 }
 
-impl<'a, 'b> Add<&'b Matrix> for &'a Matrix {
+impl<'b> Add<&'b Matrix> for &Matrix {
     type Output = Matrix;
 
     fn add(self, rhs: &'b Matrix) -> Self::Output {
@@ -1936,7 +1935,7 @@ where
 }
 
 /// Element-wise addition between &Matrix & f64
-impl<'a, T> Add<T> for &'a Matrix
+impl<T> Add<T> for &Matrix
 where
     T: Into<f64> + Copy,
 {
@@ -2087,7 +2086,7 @@ impl Neg for Matrix {
 }
 
 /// Negation of &'a Matrix
-impl<'a> Neg for &'a Matrix {
+impl Neg for &Matrix {
     type Output = Matrix;
 
     fn neg(self) -> Self::Output {
@@ -2164,7 +2163,7 @@ impl Sub<Matrix> for Matrix {
     }
 }
 
-impl<'a, 'b> Sub<&'b Matrix> for &'a Matrix {
+impl<'b> Sub<&'b Matrix> for &Matrix {
     type Output = Matrix;
 
     fn sub(self, rhs: &'b Matrix) -> Matrix {
@@ -2197,7 +2196,7 @@ where
 }
 
 /// Subtraction between &Matrix & f64
-impl<'a, T> Sub<T> for &'a Matrix
+impl<T> Sub<T> for &Matrix
 where
     T: Into<f64> + Copy,
 {
@@ -2445,7 +2444,7 @@ impl Mul<Matrix> for Matrix {
     }
 }
 
-impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
+impl<'b> Mul<&'b Matrix> for &Matrix {
     type Output = Matrix;
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
@@ -2467,7 +2466,7 @@ impl Mul<Vec<f64>> for Matrix {
 }
 
 #[allow(non_snake_case)]
-impl<'a, 'b> Mul<&'b Vec<f64>> for &'a Matrix {
+impl<'b> Mul<&'b Vec<f64>> for &Matrix {
     type Output = Vec<f64>;
 
     fn mul(self, other: &'b Vec<f64>) -> Self::Output {
@@ -2500,7 +2499,7 @@ impl Mul<Matrix> for Vec<f64> {
     }
 }
 
-impl<'a, 'b> Mul<&'b Matrix> for &'a Vec<f64> {
+impl<'b> Mul<&'b Matrix> for &Vec<f64> {
     type Output = Vec<f64>;
 
     fn mul(self, other: &'b Matrix) -> Self::Output {
@@ -2561,7 +2560,7 @@ impl Div<usize> for Matrix {
     }
 }
 
-impl<'a> Div<f64> for &'a Matrix {
+impl Div<f64> for &Matrix {
     type Output = Matrix;
 
     fn div(self, other: f64) -> Self::Output {
@@ -2583,7 +2582,7 @@ impl<'a> Div<f64> for &'a Matrix {
     }
 }
 
-impl<'a> Div<i64> for &'a Matrix {
+impl Div<i64> for &Matrix {
     type Output = Matrix;
 
     fn div(self, other: i64) -> Self::Output {
@@ -2591,7 +2590,7 @@ impl<'a> Div<i64> for &'a Matrix {
     }
 }
 
-impl<'a> Div<i32> for &'a Matrix {
+impl Div<i32> for &Matrix {
     type Output = Matrix;
 
     fn div(self, other: i32) -> Self::Output {
@@ -2599,7 +2598,7 @@ impl<'a> Div<i32> for &'a Matrix {
     }
 }
 
-impl<'a> Div<usize> for &'a Matrix {
+impl Div<usize> for &Matrix {
     type Output = Matrix;
 
     fn div(self, other: usize) -> Self::Output {
@@ -3573,8 +3572,8 @@ impl LinearAlgebra<Matrix> for Matrix {
                     Some(obj) => obj,
                 };
                 let x = &wazd.w.t() * &b.to_vec();
-                let x = &wazd.z * &x;
-                x
+                
+                &wazd.z * &x
             }
         }
     }
@@ -3620,8 +3619,8 @@ impl LinearAlgebra<Matrix> for Matrix {
                     Some(obj) => obj,
                 };
                 let x = &wazd.w.t() * m;
-                let x = &wazd.z * &x;
-                x
+                
+                &wazd.z * &x
             }
         }
     }

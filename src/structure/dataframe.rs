@@ -1999,7 +1999,7 @@ impl DataFrame {
     pub fn describe(&self) -> DataFrame {
         use crate::statistics::stat::Statistics;
 
-        let stat_labels = vec!["count", "mean", "sd", "min", "max"];
+        let stat_labels = ["count", "mean", "sd", "min", "max"];
         let mut result = DataFrame::new(vec![]);
         result.push("stat", Series::new(stat_labels.iter().map(|s| s.to_string()).collect::<Vec<String>>()));
 
@@ -2133,17 +2133,17 @@ impl WithCSV for DataFrame {
             .from_path(file_path)?;
 
         let headers_vec = rdr.headers()?;
-        let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
+        let headers = headers_vec.iter().collect::<Vec<&str>>();
         let mut result = DataFrame::new(vec![]);
         for h in headers.iter() {
-            result.push(*h, Series::new(Vec::<String>::new()));
+            result.push(h, Series::new(Vec::<String>::new()));
         }
 
         for rec in rdr.deserialize() {
             let record: HashMap<String, String> = rec?;
             for head in record.keys() {
                 let value = &record[head];
-                if value.len() > 0 {
+                if !value.is_empty() {
                     result[head.as_str()].push(value.to_string());
                 }
             }

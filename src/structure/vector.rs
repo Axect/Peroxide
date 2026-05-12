@@ -468,7 +468,7 @@ impl ParallelFPVector for Vec<f64> {
     {
         self.par_iter()
             .cloned()
-            .reduce_with(|x, y| f(x, y))
+            .reduce_with(f)
             .expect("Unable to perform parallel reduce operation")
     }
 
@@ -711,7 +711,7 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            self.into_iter()
+            self.iter()
                 .enumerate()
                 .fold((0usize, f64::MIN), |acc, (ics, &val)| {
                     if acc.1 < val {
@@ -764,7 +764,7 @@ impl Algorithm for Vec<f64> {
         }
         #[cfg(not(feature = "O3"))]
         {
-            self.into_iter()
+            self.iter()
                 .fold(f64::MIN, |acc, &val| if acc < val { val } else { acc })
         }
     }
@@ -982,14 +982,14 @@ impl ParallelVectorProduct for Vec<f64> {
                 v
             }
             3 => {
-                let v = (0..3)
+                
+                (0..3)
                     .into_par_iter()
                     .map(|index| {
                         self[(index + 1) % 3] * other[(index + 2) % 3]
                             - self[(index + 2) % 3] * other[(index + 1) % 3]
                     })
-                    .collect::<Vec<f64>>();
-                v
+                    .collect::<Vec<f64>>()
             }
             _ => {
                 panic!("Cross product can be defined only in 2 or 3 dimension")

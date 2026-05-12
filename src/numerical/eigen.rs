@@ -101,7 +101,7 @@ impl JacobiTemp {
             }
             if sm == 0f64 {
                 eigsrt(d, v);
-                return ();
+                return ;
             }
             let tresh = if i < 4 {
                 0.2 * sm / (n.pow(2) as f64)

@@ -616,9 +616,9 @@ impl CubicSpline {
     }
 }
 
-impl Into<Vec<Polynomial>> for CubicSpline {
-    fn into(self) -> Vec<Polynomial> {
-        self.polynomials
+impl From<CubicSpline> for Vec<Polynomial> {
+    fn from(val: CubicSpline) -> Self {
+        val.polynomials
             .into_iter()
             .map(|(_, polynomial)| polynomial)
             .collect()
@@ -631,9 +631,9 @@ impl From<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
     }
 }
 
-impl Into<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
-    fn into(self) -> Vec<(Range<f64>, Polynomial)> {
-        self.polynomials
+impl From<CubicSpline> for Vec<(Range<f64>, Polynomial)> {
+    fn from(val: CubicSpline) -> Self {
+        val.polynomials
     }
 }
 
@@ -764,9 +764,9 @@ impl CubicHermiteSpline {
     }
 }
 
-impl Into<Vec<Polynomial>> for CubicHermiteSpline {
-    fn into(self) -> Vec<Polynomial> {
-        self.polynomials
+impl From<CubicHermiteSpline> for Vec<Polynomial> {
+    fn from(val: CubicHermiteSpline) -> Self {
+        val.polynomials
             .into_iter()
             .map(|(_, polynomial)| polynomial)
             .collect()
@@ -779,9 +779,9 @@ impl From<Vec<(Range<f64>, Polynomial)>> for CubicHermiteSpline {
     }
 }
 
-impl Into<Vec<(Range<f64>, Polynomial)>> for CubicHermiteSpline {
-    fn into(self) -> Vec<(Range<f64>, Polynomial)> {
-        self.polynomials
+impl From<CubicHermiteSpline> for Vec<(Range<f64>, Polynomial)> {
+    fn from(val: CubicHermiteSpline) -> Self {
+        val.polynomials
     }
 }
 

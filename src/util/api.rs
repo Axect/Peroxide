@@ -23,7 +23,7 @@ impl MATLAB for Matrix {
         let str_rows_temp: Vec<&str> = s.split(';').collect();
         let str_rows = str_rows_temp
             .into_iter()
-            .filter(|&t| t != "")
+            .filter(|&t| !t.is_empty())
             .collect::<Vec<&str>>();
         let r = str_rows.len();
         let str_data = str_rows

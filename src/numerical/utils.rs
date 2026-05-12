@@ -125,8 +125,8 @@ pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Ve
     let mut w = vec![0f64; n];
     for i in 1..n {
         w[i] = a[i] / b[i - 1];
-        b[i] = b[i] - w[i] * c[i - 1];
-        y[i] = y[i] - w[i] * y[i - 1];
+        b[i] -= w[i] * c[i - 1];
+        y[i] -= w[i] * y[i - 1];
     }
 
     // Backward substitution
