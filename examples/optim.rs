@@ -30,8 +30,10 @@ fn main() {
     opt.get_error().print(); // Optimized RMSE
 }
 
+// Signature must stay `&Vec<f64>` to satisfy `Optimizer`'s trait bound.
+#[allow(clippy::ptr_arg)]
 fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {
-    Some(x.clone().into_iter().map(|t| pow_temp(t, n[0])).collect())
+    Some(x.iter().map(|&t| pow_temp(t, n[0])).collect())
 }
 
 #[inline]

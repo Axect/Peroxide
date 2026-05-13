@@ -16,6 +16,9 @@ fn test_jacobian() {
 ///
 /// # Jacobian
 /// $$\begin{pmatrix} 2xy & x^2 \\\ 5 & \cos y \end{pmatrix}$$
+// Signature must stay `&Vec<AD>` to satisfy `jacobian`'s
+// `Fn(&Vec<AD>) -> Vec<AD>` trait bound.
+#[allow(clippy::ptr_arg)]
 fn f(xs: &Vec<AD>) -> Vec<AD> {
     let x = xs[0];
     let y = xs[1];

@@ -1,6 +1,10 @@
 use anyhow::Result;
 use peroxide::fuga::*;
 
+// `x`, `y`, `dx`, `dy`, `ix`, `iy` and the `control_x/y` helpers below
+// are only consumed inside the `#[cfg(feature = "plot")]` block; without
+// that feature rustc flags them as unused.
+#[allow(unused_variables)]
 fn main() -> Result<()> {
     // 1. Define the B-spline
     let degree = 3;

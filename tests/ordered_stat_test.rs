@@ -64,7 +64,7 @@ fn quantile_test() {
         if approx_eq!(f64, quant1[i], r_quant1[i], ulps = 7)
             || approx_eq!(f64, quant2[i], r_quant2[i], ulps = 7)
         {
-            assert!(false, "Quantile is not matched with R");
+            panic!("Quantile is not matched with R");
         }
     }
 }

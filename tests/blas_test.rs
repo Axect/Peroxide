@@ -1,7 +1,8 @@
-#[macro_use]
 extern crate peroxide;
 #[allow(unused_imports)]
 use peroxide::fuga::*;
+#[cfg(feature = "O3")]
+use peroxide::c;
 
 #[test]
 #[cfg(feature = "O3")]

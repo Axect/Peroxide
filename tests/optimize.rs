@@ -5,7 +5,7 @@ use peroxide::{fuga::*, hstack};
 #[allow(non_snake_case)]
 fn test_LM() {
     let x = seq(0, 10, 0.1);
-    let p_true = vec![1.0, 2.0, 3.0];
+    let p_true = [1.0, 2.0, 3.0];
     let y = x.fmap(|t| p_true[0] * t.powi(2) + p_true[1] * t + p_true[2]);
 
     let p_init = vec![1f64, 1f64, 1f64];
@@ -26,7 +26,7 @@ fn test_LM() {
 #[allow(non_snake_case)]
 fn test_GD() {
     let x = seq(0, 10, 0.1);
-    let p_true = vec![1.0, 2.0, 3.0];
+    let p_true = [1.0, 2.0, 3.0];
     let y = x.fmap(|t| p_true[0] * t.powi(2) + p_true[1] * t + p_true[2]);
 
     let p_init = vec![1f64, 1f64, 1f64];
@@ -42,6 +42,8 @@ fn test_GD() {
     p_est.print();
 }
 
+// Signature must stay `&Vec<f64>` to satisfy `Optimizer`'s trait bound.
+#[allow(clippy::ptr_arg)]
 fn f(x: &Vec<f64>, p: Vec<AD>) -> Option<Vec<AD>> {
     Some(
         x.iter()
