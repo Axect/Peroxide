@@ -51,12 +51,11 @@ jobs:
         run: cargo test --verbose --features plot
 
   clippy:
-    name: Clippy (informational)
+    name: Clippy (all targets)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Install OpenBLAS / LAPACK
         run: sudo apt-get update && sudo apt-get install -y libopenblas-dev liblapack-dev gfortran
       - name: Run clippy
-        run: cargo clippy --lib --no-deps --features O3-openblas
+        run: cargo clippy --all-targets --no-deps --features O3-openblas
