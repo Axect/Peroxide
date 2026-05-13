@@ -1101,25 +1101,11 @@ where
 impl DType {
     /// Check for static numeric type
     pub fn is_numeric(&self) -> bool {
-        match self {
-            Bool => false,
-            Str => false,
-            Char => false,
-            USIZE => false,
-            ISIZE => false,
-            _ => true,
-        }
+        !matches!(self, Bool | Str | Char | USIZE | ISIZE)
     }
 
     pub fn is_integer(&self) -> bool {
-        match self {
-            Bool => false,
-            Str => false,
-            Char => false,
-            F32 => false,
-            F64 => false,
-            _ => true,
-        }
+        !matches!(self, Bool | Str | Char | F32 | F64)
     }
 }
 
@@ -1212,6 +1198,11 @@ impl Series {
     /// Length for Series
     pub fn len(&self) -> usize {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
+    }
+
+    /// True if the Series has no elements.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Explicit type casting for Series

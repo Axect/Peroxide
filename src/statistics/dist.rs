@@ -48,7 +48,7 @@
 //! ### Bernoulli Distribution
 //!
 //! * Definition
-//!     $$ \text{Bern}(x | \mu) = \mu^x (1-\mu)^{1-x} $$
+//!   $$ \text{Bern}(x | \mu) = \mu^x (1-\mu)^{1-x} $$
 //! * Representative value
 //!     * Mean: $\mu$
 //!     * Var : $\mu(1 - \mu)$
@@ -75,7 +75,7 @@
 //! ### Uniform Distribution
 //!
 //! * Definition
-//!     $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in \[a,b\]\\\ 0 & \text{otherwise} \end{cases}$$
+//!   $$\text{Unif}(x | a, b) = \begin{cases} \frac{1}{b - a} & x \in \[a,b\]\\\ 0 & \text{otherwise} \end{cases}$$
 //! * Representative value
 //!     * Mean: $\frac{a + b}{2}$
 //!     * Var : $\frac{1}{12}(b-a)^2$
@@ -99,7 +99,7 @@
 //! ### Normal Distribution
 //!
 //! * Definition
-//!     $$\mathcal{N}(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{\left( - \frac{(x - \mu)^2}{2\sigma^2}\right)}$$
+//!   $$\mathcal{N}(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{\left( - \frac{(x - \mu)^2}{2\sigma^2}\right)}$$
 //! * Representative value
 //!     * Mean: $\mu$
 //!     * Var: $\sigma^2$
@@ -126,8 +126,8 @@
 //! ### Beta Distribution
 //!
 //! * Definition
-//!     $$\text{Beta}(x | \alpha, \beta) = \frac{1}{\text{B}(\alpha, \beta)} x^{\alpha-1} (1-x)^{\beta-1}$$
-//!     where $\text{B}(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$ is the Beta function.
+//!   $$\text{Beta}(x | \alpha, \beta) = \frac{1}{\text{B}(\alpha, \beta)} x^{\alpha-1} (1-x)^{\beta-1}$$
+//!   where $\text{B}(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$ is the Beta function.
 //! * Representative value
 //!     * Mean: $\frac{\alpha}{\alpha+\beta}$
 //!     * Var: $\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$
@@ -149,8 +149,8 @@
 //! ### Gamma Distribution
 //!
 //! * Definition
-//!     $$\text{Gamma}(x | \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}$$
-//!     where $\Gamma(\alpha) = \int_0^\infty x^{\alpha-1} e^{-x} dx$ is the Gamma function.
+//!   $$\text{Gamma}(x | \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}$$
+//!   where $\Gamma(\alpha) = \int_0^\infty x^{\alpha-1} e^{-x} dx$ is the Gamma function.
 //! * Representative value
 //!     * Mean: $\frac{\alpha}{\beta}$
 //!     * Var: $\frac{\alpha}{\beta^2}$
@@ -172,8 +172,8 @@
 //! ### Binomial Distribution
 //!
 //! * Definition
-//!     $$\text{Binom}(k | n, p) = \binom{n}{k} p^k (1-p)^{n-k}$$
-//!     where $\binom{n}{k} = \frac{n!}{k!(n-k)!}$ is the binomial coefficient.
+//!   $$\text{Binom}(k | n, p) = \binom{n}{k} p^k (1-p)^{n-k}$$
+//!   where $\binom{n}{k} = \frac{n!}{k!(n-k)!}$ is the binomial coefficient.
 //! * Representative value
 //!     * Mean: $np$
 //!     * Var: $np(1-p)$
@@ -195,8 +195,8 @@
 //! ### Student's t Distribution
 //!
 //! * Definition
-//!     $$\text{StudentT}(x | \nu) = \frac{\Gamma(\frac{\nu+1}{2})}{\sqrt{\nu\pi}\,\Gamma(\frac{\nu}{2})} \left(1+\frac{x^2}{\nu} \right)^{-\frac{\nu+1}{2}}$$
-//!     where $\nu$ is the degrees of freedom and $\Gamma$ is the Gamma function.
+//!   $$\text{StudentT}(x | \nu) = \frac{\Gamma(\frac{\nu+1}{2})}{\sqrt{\nu\pi}\,\Gamma(\frac{\nu}{2})} \left(1+\frac{x^2}{\nu} \right)^{-\frac{\nu+1}{2}}$$
+//!   where $\nu$ is the degrees of freedom and $\Gamma$ is the Gamma function.
 //! * Representative value
 //!     * Mean: 0 (for $\nu > 1$)
 //!     * Var: $\frac{\nu}{\nu-2}$ (for $\nu > 2$)
@@ -218,8 +218,8 @@
 //! ### Weighted Uniform Distribution
 //!
 //! * Definition
-//!    $$\text{WUnif}(x | \mathbf{W}, \mathcal{I}) = \frac{1}{\sum_{j=1}^n w_j \mu(I_j)} \sum_{i=1}^n w_i
-//!    \mathbb{1}_{I_i}(x)$$
+//!   $$\text{WUnif}(x | \mathbf{W}, \mathcal{I}) = \frac{1}{\sum_{j=1}^n w_j \mu(I_j)} \sum_{i=1}^n w_i
+//!   \mathbb{1}_{I_i}(x)$$
 //!    * $\mathbf{W} = (w_i)$: Weights
 //!    * $\mathcal{I} = \\{I_i\\}$: Intervals
 //!    * $\mu(I_i)$: Measure of $I_i$
@@ -231,10 +231,10 @@
 //! ### Log Normal Distribution
 //!
 //! * Definition
-//!     $$\text{LogNormal}(x | \mu, \sigma) = \frac{1}{x\sigma\sqrt{2\pi}} e^{-\frac{(\ln x -
-//!     \mu)^2}{2\sigma^2}}$$
-//!     where $\mu$ is the mean of the natural logarithm of the variable and $\sigma$ is the
-//!     standard deviation of the natural logarithm of the variable.
+//!   $$\text{LogNormal}(x | \mu, \sigma) = \frac{1}{x\sigma\sqrt{2\pi}} e^{-\frac{(\ln x -
+//!   \mu)^2}{2\sigma^2}}$$
+//!   where $\mu$ is the mean of the natural logarithm of the variable and $\sigma$ is the
+//!   standard deviation of the natural logarithm of the variable.
 //! * Representative value
 //!     * Mean: $e^{\mu + \frac{\sigma^2}{2}}$
 //!     * Var: $(e^{\sigma^2} - 1)e^{2\mu + \sigma^2}$

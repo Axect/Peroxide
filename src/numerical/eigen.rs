@@ -156,7 +156,7 @@ impl JacobiTemp {
                 z[ip] = 0f64;
             }
         }
-        assert!(false, "Too many iterations in routine jacobi");
+        panic!("Too many iterations in routine jacobi");
     }
 }
 

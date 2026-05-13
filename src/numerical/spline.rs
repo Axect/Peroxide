@@ -43,7 +43,7 @@
 //!   * `fn clamped(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self>`
 //!     : Create a clamped B-Spline
 //!   * `fn cox_de_boor(t: f64, i: f64)` : Cox-de Boor recursion formula (Here, use iteration
-//!   instead of recursion)
+//!     instead of recursion)
 //!
 //! ## Usage (Cubic Spline Family)
 //!

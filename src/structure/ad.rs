@@ -42,7 +42,7 @@
 //! * `ExpLogOps`: `exp`, `ln`, `log`, `log2`, `log10`
 //! * `PowOps`: `powi`, `powf`, `pow`, `sqrt`
 //! * `TrigOps`: `sin_cos`, `sin`, `cos`, `tan`, `sinh`, `cosh`, `tanh`,
-//!              `asin`, `acos`, `atan`, `asinh`, `acosh`, `atanh`
+//!   `asin`, `acos`, `atan`, `asinh`, `acosh`, `atanh`
 //!
 //! ## Usage
 //!
