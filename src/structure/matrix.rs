@@ -761,10 +761,9 @@ where
     let r = v.len();
     let c = v[0].len();
     let mut data = vec![0f64; r * c];
-    for i in 0..r {
-        for j in 0..c {
-            let idx = i * c + j;
-            data[idx] = v[i][j].into();
+    for (i, row) in v.iter().enumerate() {
+        for (j, val) in row.iter().enumerate() {
+            data[i * c + j] = (*val).into();
         }
     }
     matrix(data, r, c, Row)
@@ -894,17 +893,17 @@ impl MatrixTrait for Matrix {
 
         match self.shape {
             Row => {
-                for i in 0..l {
+                for (i, slot) in data.iter_mut().enumerate().take(l) {
                     let s = (i * c) % l;
-                    data[i] = ref_data[s];
+                    *slot = ref_data[s];
                 }
                 data[l] = ref_data[l];
                 matrix(data, r, c, Col)
             }
             Col => {
-                for i in 0..l {
+                for (i, slot) in data.iter_mut().enumerate().take(l) {
                     let s = (i * r) % l;
-                    data[i] = ref_data[s];
+                    *slot = ref_data[s];
                 }
                 data[l] = ref_data[l];
                 matrix(data, r, c, Row)
@@ -1102,8 +1101,8 @@ impl MatrixTrait for Matrix {
         let c = self.col;
         assert_eq!(r, c);
         let c2 = c + 1;
-        for i in 0..r {
-            container[i] = self.data[i * c2];
+        for (i, slot) in container.iter_mut().enumerate().take(r) {
+            *slot = self.data[i * c2];
         }
         container
     }
@@ -1181,8 +1180,8 @@ impl MatrixTrait for Matrix {
     /// To send `Matrix` to `inline-python`
     fn to_vec(&self) -> Vec<Vec<f64>> {
         let mut result = vec![vec![0f64; self.col]; self.row];
-        for i in 0..self.row {
-            result[i] = self.row(i);
+        for (i, slot) in result.iter_mut().enumerate().take(self.row) {
+            *slot = self.row(i);
         }
         result
     }
@@ -2860,8 +2859,8 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> f64,
     {
         let mut v = vec![0f64; self.col];
-        for i in 0..self.col {
-            v[i] = f(self.col(i));
+        for (i, slot) in v.iter_mut().enumerate().take(self.col) {
+            *slot = f(self.col(i));
         }
         v
     }
@@ -2871,8 +2870,8 @@ impl FPMatrix for Matrix {
         F: Fn(Vec<f64>) -> f64,
     {
         let mut v = vec![0f64; self.row];
-        for i in 0..self.row {
-            v[i] = f(self.row(i));
+        for (i, slot) in v.iter_mut().enumerate().take(self.row) {
+            *slot = f(self.row(i));
         }
         v
     }
@@ -3363,8 +3362,8 @@ impl LinearAlgebra<Matrix> for Matrix {
                             for i in 0..n {
                                 d *= mat[(i, i)];
                             }
-                            for i in 0..ipiv.len() {
-                                if ipiv[i] - 1 != i as i32 {
+                            for (i, &p) in ipiv.iter().enumerate() {
+                                if p - 1 != i as i32 {
                                     sgn *= -1;
                                 }
                             }
@@ -3657,8 +3656,8 @@ impl MutMatrix for Matrix {
             Row => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.row];
                 let p = self.mut_ptr();
-                for i in 0..v.len() {
-                    v[i] = p.add(idx + i * self.col);
+                for (i, slot) in v.iter_mut().enumerate() {
+                    *slot = p.add(idx + i * self.col);
                 }
                 v
             }
@@ -3680,8 +3679,8 @@ impl MutMatrix for Matrix {
             Col => {
                 let mut v: Vec<*mut f64> = vec![&mut 0f64; self.col];
                 let p = self.mut_ptr();
-                for i in 0..v.len() {
-                    v[i] = p.add(idx + i * self.row);
+                for (i, slot) in v.iter_mut().enumerate() {
+                    *slot = p.add(idx + i * self.row);
                 }
                 v
             }

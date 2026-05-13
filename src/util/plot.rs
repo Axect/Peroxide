@@ -16,34 +16,32 @@
 //! ```no_run
 //! use peroxide::fuga::*;
 //!
-//! fn main() {
-//!     let x = linspace(0, 1, 100);
-//!     let y1 = x.fmap(|t| t.powi(2));
-//!     let y2 = x.fmap(|t| t.powi(3));
+//! let x = linspace(0, 1, 100);
+//! let y1 = x.fmap(|t| t.powi(2));
+//! let y2 = x.fmap(|t| t.powi(3));
 //!
-//!     let mut rng = SmallRng::seed_from_u64(42);
-//!     let normal = Normal(0f64, 0.1);
-//!     let eps = normal.sample_with_rng(&mut rng, x.len());
-//!     let y3 = y2.add_v(&eps);
+//! let mut rng = SmallRng::seed_from_u64(42);
+//! let normal = Normal(0f64, 0.1);
+//! let eps = normal.sample_with_rng(&mut rng, x.len());
+//! let y3 = y2.add_v(&eps);
 //!
-//!     let mut plt = Plot2D::new();
-//!     plt.set_domain(x)
-//!         .insert_image(y1)
-//!         .insert_image(y2)
-//!         .insert_image(y3)
-//!         .set_legend(vec![r"$y=x^2$", r"$y=x^3$", r"$y=x^2 + \epsilon$"])
-//!         .set_line_style(vec![(0, LineStyle::Dashed), (1, LineStyle::Dotted)])
-//!         .set_plot_type(vec![(2, PlotType::Scatter)])
-//!         .set_marker(vec![(2, Markers::Point)])
-//!         .set_color(vec![(0, "red"), (1, "darkblue"), (2, "olive")])
-//!         .set_xlabel(r"$x$")
-//!         .set_ylabel(r"$y$")
-//!         .set_style(PlotStyle::Nature) // if you want to use scienceplots
-//!         .set_dpi(600)
-//!         .tight_layout()
-//!         .set_path("example_data/test_plot.png")
-//!         .savefig().unwrap();
-//! }
+//! let mut plt = Plot2D::new();
+//! plt.set_domain(x)
+//!     .insert_image(y1)
+//!     .insert_image(y2)
+//!     .insert_image(y3)
+//!     .set_legend(vec![r"$y=x^2$", r"$y=x^3$", r"$y=x^2 + \epsilon$"])
+//!     .set_line_style(vec![(0, LineStyle::Dashed), (1, LineStyle::Dotted)])
+//!     .set_plot_type(vec![(2, PlotType::Scatter)])
+//!     .set_marker(vec![(2, Markers::Point)])
+//!     .set_color(vec![(0, "red"), (1, "darkblue"), (2, "olive")])
+//!     .set_xlabel(r"$x$")
+//!     .set_ylabel(r"$y$")
+//!     .set_style(PlotStyle::Nature) // if you want to use scienceplots
+//!     .set_dpi(600)
+//!     .tight_layout()
+//!     .set_path("example_data/test_plot.png")
+//!     .savefig().unwrap();
 //! ```
 //!
 //! This code will generate below plot

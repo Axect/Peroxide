@@ -51,10 +51,9 @@ impl PYTHON for Matrix {
         let r = v.len();
         let c = v[0].len();
         let mut data = vec![0f64; r * c];
-        for i in 0..r {
-            for j in 0..c {
-                let idx = i * c + j;
-                data[idx] = v[i][j].into();
+        for (i, row) in v.iter().enumerate() {
+            for (j, val) in row.iter().enumerate() {
+                data[i * c + j] = (*val).into();
             }
         }
         matrix(data, r, c, Row)

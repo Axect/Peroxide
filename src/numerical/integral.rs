@@ -488,8 +488,7 @@ where
 
     // 4. Evaluate f at all Kronrod nodes and store results (matching node order)
     let mut f_evals = Vec::with_capacity(k);
-    for i in 0..k {
-        let node = kronrod_nodes[i];
+    for &node in kronrod_nodes.iter().take(k) {
         f_evals.push(f(xm + xh * node));
     }
 

@@ -11,8 +11,8 @@ where
     let mut v = vec![0f64; num];
     let a = start.into();
     let b = end.into();
-    for i in 0..num {
-        v[i] = (a + b) / 2. + 0.5 * (b - a) * ((2 * i + 1) as f64 * PI / (2 * num) as f64).cos();
+    for (i, slot) in v.iter_mut().enumerate() {
+        *slot = (a + b) / 2. + 0.5 * (b - a) * ((2 * i + 1) as f64 * PI / (2 * num) as f64).cos();
     }
     v
 }

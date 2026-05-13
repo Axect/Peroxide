@@ -312,8 +312,8 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
             for stage in 0..n_k {
                 for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0..stage {
-                        s += Self::A[stage][j] * k_vec[j][i];
+                    for (j, kj) in k_vec.iter().enumerate().take(stage) {
+                        s += Self::A[stage][j] * kj[i];
                     }
                     y_temp[i] = y[i] + dt * s;
                 }
@@ -322,10 +322,14 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
 
             if !Self::BE.is_empty() {
                 let mut error = 0f64;
+                // Iterating over `i` directly mirrors the Butcher-tableau
+                // structure; rewriting it as an iterator over `k_vec`
+                // would obscure the per-component error accumulation.
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0..n_k {
-                        s += (Self::BU[j] - Self::BE[j]) * k_vec[j][i];
+                    for (j, kj) in k_vec.iter().enumerate().take(n_k) {
+                        s += (Self::BU[j] - Self::BE[j]) * kj[i];
                     }
                     error = error.max(dt * s.abs())
                 }
@@ -337,8 +341,8 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
                 if error < self.tol() {
                     for i in 0..n {
                         let mut s = 0.0;
-                        for j in 0..n_k {
-                            s += Self::BU[j] * k_vec[j][i];
+                        for (j, kj) in k_vec.iter().enumerate().take(n_k) {
+                            s += Self::BU[j] * kj[i];
                         }
                         y[i] += dt * s;
                     }
@@ -353,8 +357,8 @@ impl<BU: ButcherTableau> ODEIntegrator for BU {
             } else {
                 for i in 0..n {
                     let mut s = 0.0;
-                    for j in 0..n_k {
-                        s += Self::BU[j] * k_vec[j][i];
+                    for (j, kj) in k_vec.iter().enumerate().take(n_k) {
+                        s += Self::BU[j] * kj[i];
                     }
                     y[i] += dt * s;
                 }

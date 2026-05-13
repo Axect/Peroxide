@@ -79,9 +79,9 @@ where
         v[0]
     } else {
         let mut t = if v[0] >= v[1] { v[0] } else { v[1] };
-        for i in 2..v.len() {
-            if v[i] > t {
-                t = v[i];
+        for &x in v.iter().skip(2) {
+            if x > t {
+                t = x;
             }
         }
         t
@@ -97,9 +97,9 @@ where
         v[0]
     } else {
         let mut t = if v[0] <= v[1] { v[0] } else { v[1] };
-        for i in 2..v.len() {
-            if v[i] < t {
-                t = v[i];
+        for &x in v.iter().skip(2) {
+            if x < t {
+                t = x;
             }
         }
         t

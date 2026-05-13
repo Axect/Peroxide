@@ -94,14 +94,13 @@ impl SPMatrix {
         let mut result = Self::new(col, row, nnz);
 
         for i in 0..col {
-            for j in col_ptr[i]..col_ptr[i + 1] {
-                let k = row_ics[j];
+            for &k in &row_ics[col_ptr[i]..col_ptr[i + 1]] {
                 count[k] += 1;
             }
         }
-        for j in 0..row {
-            result.col_ptr[j + 1] = result.col_ptr[j] + count[j];
-            count[j] = 0;
+        for (j, c) in count.iter_mut().enumerate().take(row) {
+            result.col_ptr[j + 1] = result.col_ptr[j] + *c;
+            *c = 0;
         }
         for i in 0..col {
             for j in col_ptr[i]..col_ptr[i + 1] {
