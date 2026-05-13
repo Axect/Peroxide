@@ -166,7 +166,7 @@ impl Algorithm for Vec<Complex<f64>> {
         unimplemented!()
     }
 
-    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+    fn swap_with_perm(&mut self, p: &[(usize, usize)]) {
         for (i, j) in p.iter() {
             self.swap(*i, *j);
         }

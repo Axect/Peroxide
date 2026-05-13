@@ -3558,10 +3558,10 @@ impl LinearAlgebra<Matrix> for Matrix {
                 let lu = self.lu();
                 let (p, q, l, u) = lu.extract();
                 let mut v = b.to_vec();
-                v.swap_with_perm(&p.into_iter().enumerate().collect());
+                v.swap_with_perm(&p.into_iter().enumerate().collect::<Vec<_>>());
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
-                y.swap_with_perm(&q.into_iter().enumerate().rev().collect());
+                y.swap_with_perm(&q.into_iter().enumerate().rev().collect::<Vec<_>>());
                 y
             }
             SolveKind::WAZ => {
@@ -3695,7 +3695,7 @@ impl MutMatrix for Matrix {
         }
     }
 
-    unsafe fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>, shape: Shape) {
+    unsafe fn swap_with_perm(&mut self, p: &[(usize, usize)], shape: Shape) {
         for (i, j) in p.iter() {
             self.swap(*i, *j, shape)
         }
@@ -4047,7 +4047,7 @@ pub fn gemm(alpha: f64, a: &Matrix, b: &Matrix, beta: f64, c: &mut Matrix) {
 ///     assert_eq!(c, c!(14, 32));
 /// }
 /// ```
-pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
+pub fn gemv(alpha: f64, a: &Matrix, b: &[f64], beta: f64, c: &mut [f64]) {
     let m = a.row;
     let k = a.col;
     let n = 1usize;
@@ -4094,7 +4094,7 @@ pub fn gemv(alpha: f64, a: &Matrix, b: &Vec<f64>, beta: f64, c: &mut Vec<f64>) {
 ///     assert_eq!(c, c!(9, 12, 15));
 /// }
 /// ```
-pub fn gevm(alpha: f64, a: &Vec<f64>, b: &Matrix, beta: f64, c: &mut Vec<f64>) {
+pub fn gevm(alpha: f64, a: &[f64], b: &Matrix, beta: f64, c: &mut [f64]) {
     let m = 1usize;
     let k = a.len();
     let n = b.col;

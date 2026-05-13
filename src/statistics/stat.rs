@@ -509,7 +509,7 @@ impl Statistics for Matrix {
 ///     assert!(nearly_eq(cov(&v1, &v2), -1f64));
 /// }
 /// ```
-pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
+pub fn cov(v1: &[f64], v2: &[f64]) -> f64 {
     let mut ss = 0f64;
     let mut sx = 0f64;
     let mut sy = 0f64;
@@ -729,7 +729,7 @@ impl ConfusionMatrix {
     /// // r[1]  1.0000  2.0000
     /// ```
     #[allow(non_snake_case)]
-    pub fn new<T: PartialEq + Clone + Copy>(y: &Vec<T>, y_hat: &Vec<T>, true_val: T) -> Self {
+    pub fn new<T: PartialEq + Clone + Copy>(y: &[T], y_hat: &[T], true_val: T) -> Self {
         let mut TP = 0;
         let mut TN = 0;
         let mut FP = 0;

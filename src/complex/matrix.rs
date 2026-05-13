@@ -2055,10 +2055,10 @@ impl LinearAlgebra<ComplexMatrix> for ComplexMatrix {
                 let lu = self.lu();
                 let (p, q, l, u) = lu.extract();
                 let mut v = b.to_vec();
-                v.swap_with_perm(&p.into_iter().enumerate().collect());
+                v.swap_with_perm(&p.into_iter().enumerate().collect::<Vec<_>>());
                 let z = l.forward_subs(&v);
                 let mut y = u.back_subs(&z);
-                y.swap_with_perm(&q.into_iter().enumerate().rev().collect());
+                y.swap_with_perm(&q.into_iter().enumerate().rev().collect::<Vec<_>>());
                 y
             }
             SolveKind::WAZ => {
@@ -2180,7 +2180,7 @@ impl MutMatrix for ComplexMatrix {
         }
     }
 
-    unsafe fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>, shape: Shape) {
+    unsafe fn swap_with_perm(&mut self, p: &[(usize, usize)], shape: Shape) {
         for (i, j) in p.iter() {
             self.swap(*i, *j, shape)
         }

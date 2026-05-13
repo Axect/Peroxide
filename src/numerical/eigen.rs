@@ -170,7 +170,7 @@ fn rot(a: &mut Matrix, s: f64, tau: f64, i: usize, j: usize, k: usize, l: usize)
 /// Given eigenvalue & eigenvector, sorts thod eigenvalues into descending order
 ///
 /// * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
-fn eigsrt(d: &mut Vec<f64>, v: &mut Matrix) {
+fn eigsrt(d: &mut [f64], v: &mut Matrix) {
     let mut k: usize;
     let n = d.len();
     for i in 0..n - 1 {

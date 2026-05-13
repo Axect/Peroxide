@@ -774,7 +774,7 @@ impl Algorithm for Vec<f64> {
             .fold(f64::MAX, |acc, &val| if acc > val { val } else { acc })
     }
 
-    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>) {
+    fn swap_with_perm(&mut self, p: &[(usize, usize)]) {
         for (i, j) in p.iter() {
             self.swap(*i, *j);
         }

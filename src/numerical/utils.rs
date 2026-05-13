@@ -38,7 +38,7 @@ use crate::util::non_macro::{cat, zeros};
 /// }
 /// ```
 #[allow(non_snake_case)]
-pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
+pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &[f64]) -> Matrix {
     let l = x.len();
     let mut x_ad: Vec<AD> = x.iter().map(|&x| AD1(x, 0f64)).collect();
     let l2 = f(&x_ad).len();

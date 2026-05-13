@@ -8,5 +8,5 @@ pub trait Algorithm {
     fn arg_min(&self) -> usize;
     fn max(&self) -> Self::Scalar;
     fn min(&self) -> Self::Scalar;
-    fn swap_with_perm(&mut self, p: &Vec<(usize, usize)>);
+    fn swap_with_perm(&mut self, p: &[(usize, usize)]);
 }

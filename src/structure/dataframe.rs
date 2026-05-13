@@ -1321,7 +1321,7 @@ impl Series {
 
     /// Minimum value, preserving original type
     pub fn min(&self) -> anyhow::Result<Scalar> {
-        anyhow::ensure!(self.len() > 0, "Cannot compute min of empty Series");
+        anyhow::ensure!(!self.is_empty(), "Cannot compute min of empty Series");
 
         macro_rules! typed_min {
             ($v:expr, $dtype:ident) => {{
@@ -1351,7 +1351,7 @@ impl Series {
 
     /// Maximum value, preserving original type
     pub fn max(&self) -> anyhow::Result<Scalar> {
-        anyhow::ensure!(self.len() > 0, "Cannot compute max of empty Series");
+        anyhow::ensure!(!self.is_empty(), "Cannot compute max of empty Series");
 
         macro_rules! typed_max {
             ($v:expr, $dtype:ident) => {{
