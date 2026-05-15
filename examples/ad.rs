@@ -31,7 +31,10 @@ fn main() {
     (b * 2f64).print();
     (b / 2f64).print();
     assert_eq!(-(1f64 - b), b - 1f64);
-    assert_eq!(2f64 * b, b * 2f64);
+    #[allow(clippy::eq_op)] // commutativity check: 2*b vs b*2
+    {
+        assert_eq!(2f64 * b, b * 2f64);
+    }
     assert_eq!(1f64 / (2f64 / b), b / 2f64);
 }
 
