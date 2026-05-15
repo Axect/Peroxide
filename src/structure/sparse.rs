@@ -27,7 +27,7 @@ impl SPMatrix {
             col,
             nnz,
             col_ptr: vec![0usize; col + 1],
-            row_ics: vec![0usize, nnz],
+            row_ics: vec![0usize; nnz],
             data: vec![0f64; nnz],
         }
     }

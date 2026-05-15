@@ -220,14 +220,18 @@ fn check_polynomial() {
 }
 
 fn check_sparse() {
-    // SPMatrix transpose (sparse.rs:97, 102) - skipped until the
-    // `SPMatrix::new` `row_ics` vector-length bug is fixed (line 30
-    // uses `vec![0usize, nnz]` where it should be `vec![0usize; nnz]`).
-    // Without that fix `transpose()` panics with index-out-of-bounds on
-    // any non-trivial matrix. The loops will still be re-checked via
-    // the regular `cargo test` suite once the underlying bug is
-    // addressed.
-    let _ = SPMatrix::from_dense; // keep the import alive
+    // SPMatrix transpose (sparse.rs:97, 102)
+    let m = ml_matrix("1 0 2 0; 0 3 0 4; 5 0 0 6; 0 7 8 0");
+    let sp: SPMatrix = SPMatrix::from_dense(&m);
+    let spt: SPMatrix = sp.transpose();
+    let recovered = spt.to_dense();
+    print_kv("sparse transpose hash", hash_matrix(&recovered));
+    // Also exercise a non-square shape and verify double-transpose
+    // returns the original.
+    let m2 = ml_matrix("1 0 0; 0 2 3; 4 0 5; 0 6 0");
+    let sp2: SPMatrix = SPMatrix::from_dense(&m2);
+    let sp2tt = sp2.transpose().transpose().to_dense();
+    print_kv("sparse round-trip hash", hash_matrix(&sp2tt));
 }
 
 fn check_useful() {
