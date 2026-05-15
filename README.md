@@ -21,21 +21,15 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
     - [5. Batteries included](#5-batteries-included)
     - [6. Compatible with Mathematics](#6-compatible-with-mathematics)
     - [7. Written in Rust](#7-written-in-rust)
-  - [Latest README version](#latest-readme-version)
   - [Pre-requisite](#pre-requisite)
   - [Install](#install)
-    - [Basic Installation](#basic-installation)
-    - [Featured Installation](#featured-installation)
-    - [Available Features](#available-features)
-    - [Install Examples](#install-examples)
-  - [Useful tips for features](#useful-tips-for-features)
-  - [Module Structure](#module-structure)
-  - [Documentation](#documentation)
+    - [Most common combinations](#most-common-combinations)
+    - [Hello, Peroxide](#hello-peroxide)
+    - [Available features](#available-features)
   - [Examples](#examples)
-  - [Release Info](#release-info)
-  - [Contributing Guide](#contributing-guide)
-  - [LICENSE](#license)
-  - [TODO](#todo)
+  - [Release notes](#release-notes)
+  - [Contributing](#contributing)
+  - [License](#license)
   - [Cite Peroxide](#cite-peroxide)
 
 ## Why Peroxide?
@@ -175,7 +169,7 @@ Peroxide can do many things.
 - Automatic Differentiation
   - Const-generic `Jet<N>` type for arbitrary-order forward AD
   - Type aliases: `Dual` (1st order), `HyperDual` (2nd order)
-  - Normalized Taylor coefficients — no binomial overhead
+  - Normalized Taylor coefficients (no binomial overhead)
   - `#[ad_function]` proc macro for automatic gradient/hessian generation
   - Exact Jacobian via `jacobian()` function
   - `Real` trait to constrain for `f64` and `Jet<N>`
@@ -190,35 +184,16 @@ Peroxide can do many things.
   - Non-linear regression
     - Gradient Descent
     - Levenberg Marquardt
-  - Ordinary Differential Equation
-    - Trait based ODE solver (after `v0.36.0`)
-    - Explicit integrator
-      - Ralston's 3rd order
-      - Runge-Kutta 4th order
-      - Ralston's 4th order
-      - Runge-Kutta 5th order
-    - Embedded integrator
-      - Bogacki-Shampine 3(2)
-      - Runge-Kutta-Fehlberg 5(4)
-      - Dormand-Prince 5(4)
-      - Tsitouras 5(4)
-      - Runge-Kutta-Fehlberg 8(7)
-    - Implicit integrator
-      - Gauss-Legendre 4th order
+  - Ordinary Differential Equation (trait-based since `v0.36.0`)
+    - Explicit: Ralston 3rd / Runge-Kutta 4th / Ralston 4th / Runge-Kutta 5th
+    - Embedded: Bogacki-Shampine 3(2) / Runge-Kutta-Fehlberg 5(4) / Dormand-Prince 5(4) / Tsitouras 5(4) / Runge-Kutta-Fehlberg 8(7)
+    - Implicit: Gauss-Legendre 4th order
   - Numerical Integration
     - Newton-Cotes Quadrature
     - Gauss-Legendre Quadrature (up to 30 order)
-    - Gauss-Kronrod Quadrature (Adaptive)
-      - G7K15, G10K21, G15K31, G20K41, G25K51, G30K61
-    - Gauss-Kronrod Quadrature (Relative tolerance)
-      - G7K15R, G10K21R, G15K31R, G20K41R, G25K51R, G30K61R
-  - Root Finding
-    - Trait based root finding (after `v0.37.0`)
-    - Bisection
-    - False Position
-    - Secant
-    - Newton
-    - Broyden
+    - Gauss-Kronrod Quadrature, adaptive: G7K15 / G10K21 / G15K31 / G20K41 / G25K51 / G30K61
+    - Gauss-Kronrod Quadrature, relative tolerance: G7K15R / G10K21R / G15K31R / G20K41R / G25K51R / G30K61R
+  - Root Finding (trait-based since `v0.37.0`): Bisection / False Position / Secant / Newton / Broyden
 - Statistics
   - More easy random with `rand` crate
   - Ordered Statistics
@@ -325,31 +300,16 @@ Running the code produces the following visualization of the Lorenz attractor:
 
 Peroxide strives to leverage the benefits of the Rust language while providing a user-friendly interface for numerical computing and scientific simulations.
 
-How's that? Let me know if there's anything else you'd like me to improve!
-
-## Latest README version
-
-Corresponding to `0.41.0`
-
 ## Pre-requisite
 
-Most features are pure Rust and require no system setup. The three
-groups below depend on external libraries or runtimes; install the
-relevant prerequisites before enabling the corresponding feature flag.
+Most features are pure Rust and require no system setup.
+The three groups below depend on external libraries or runtimes; install the relevant prerequisites before enabling the corresponding feature flag.
 
-### `O3` &mdash; BLAS + LAPACK
+### `O3`: BLAS + LAPACK
 
-`O3` enables hardware-accelerated linear algebra (LU, QR, SVD,
-Cholesky, GEMV/GEMM dispatch) through the
-[`blas`](https://crates.io/crates/blas) and
-[`lapack`](https://crates.io/crates/lapack) FFI crates. Those crates
-only provide function signatures, so the link backend that supplies
-the actual `dgemv_` / `dpotrf_` / ... symbols must be selected
-separately. The simplest path is to enable one of the convenience
-flags below; each pulls in
-[`blas-src`](https://crates.io/crates/blas-src) and
-[`lapack-src`](https://crates.io/crates/lapack-src) with the matching
-backend.
+`O3` enables hardware-accelerated linear algebra (LU, QR, SVD, Cholesky, GEMV/GEMM dispatch) through the [`blas`](https://crates.io/crates/blas) and [`lapack`](https://crates.io/crates/lapack) FFI crates.
+Those crates only provide function signatures, so the link backend that supplies the actual `dgemv_` / `dpotrf_` / ... symbols must be selected separately.
+The simplest path is to enable one of the convenience flags below; each pulls in [`blas-src`](https://crates.io/crates/blas-src) and [`lapack-src`](https://crates.io/crates/lapack-src) with the matching backend.
 
 | Convenience flag  | Backend            | Typical platform / use case             |
 | ----------------- | ------------------ | --------------------------------------- |
@@ -358,13 +318,9 @@ backend.
 | `O3-mkl`          | Intel MKL          | Intel CPUs, vendor-tuned performance    |
 | `O3-netlib`       | Netlib reference   | Portability, lowest performance         |
 
-If you need a backend not in the list above (for example BLIS or R's
-BLAS), enable the bare `O3` flag and add `blas-src` / `lapack-src` to
-your downstream binary's `Cargo.toml` with the appropriate features
-yourself.
+If you need a backend not in the list above (for example BLIS or R's BLAS), enable the bare `O3` flag and add `blas-src` / `lapack-src` to your downstream binary's `Cargo.toml` with the appropriate features yourself.
 
-System libraries still need to be present on the host for `O3-openblas`
-and `O3-netlib`; install them with:
+System libraries still need to be present on the host for `O3-openblas` and `O3-netlib`; install them with:
 
 | Platform              | Install                                              |
 | --------------------- | ---------------------------------------------------- |
@@ -373,17 +329,12 @@ and `O3-netlib`; install them with:
 | Arch Linux            | `sudo pacman -S openblas lapack`                     |
 | macOS (Homebrew)      | `brew install openblas lapack`                       |
 
-`O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework
-and Intel's redistributable, respectively), so they need no further
-system packages.
+`O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework and Intel's redistributable, respectively), so they need no further system packages.
 
-### `plot` / `pyo3` &mdash; Python 3 + matplotlib
+### `plot` / `pyo3`: Python 3 + matplotlib
 
-`plot` enables the high-level `Plot2D` API, which renders figures by
-delegating to matplotlib through
-[`pyo3`](https://crates.io/crates/pyo3). Python 3 with development
-headers is required at build time, and matplotlib is required at
-runtime.
+`plot` enables the high-level `Plot2D` API, which renders figures by delegating to matplotlib through [`pyo3`](https://crates.io/crates/pyo3).
+Python 3 with development headers is required at build time, and matplotlib is required at runtime.
 
 | Step                                       | Command                                            |
 | ------------------------------------------ | -------------------------------------------------- |
@@ -392,16 +343,12 @@ runtime.
 | Install matplotlib                         | `pip install matplotlib`                           |
 | (Optional) Publication-quality styles      | `pip install scienceplots`                         |
 
-If you use a virtual environment, activate it before building so that
-`pyo3` resolves to the intended interpreter
-(e.g. `source .venv/bin/activate`). The plain `pyo3` flag enables the
-Python interop layer without pulling in the `Plot2D` API.
+If you use a virtual environment, activate it before building so that `pyo3` resolves to the intended interpreter (e.g. `source .venv/bin/activate`).
+The plain `pyo3` flag enables the Python interop layer without pulling in the `Plot2D` API.
 
-### `nc` / `netcdf` &mdash; HDF5 + netCDF-C
+### `nc` / `netcdf`: HDF5 + netCDF-C
 
-`nc` (alias `netcdf`) enables NetCDF I/O for `DataFrame` via the
-[`netcdf`](https://crates.io/crates/netcdf) crate, which links against
-the system HDF5 and netCDF-C libraries.
+`nc` (alias `netcdf`) enables NetCDF I/O for `DataFrame` via the [`netcdf`](https://crates.io/crates/netcdf) crate, which links against the system HDF5 and netCDF-C libraries.
 
 | Platform              | Install                                              |
 | --------------------- | ---------------------------------------------------- |
@@ -410,193 +357,113 @@ the system HDF5 and netCDF-C libraries.
 | Arch Linux            | `sudo pacman -S netcdf hdf5`                         |
 | macOS (Homebrew)      | `brew install netcdf hdf5`                           |
 
-> **Note:** Peroxide currently pins `netcdf = "0.7"`, which transitively
-> uses `hdf5-sys 0.8.x`. That `hdf5-sys` only recognizes the **HDF5 1.x**
-> version string and rejects HDF5 2.x with `Invalid H5_VERSION`. If
-> your distribution ships HDF5 2.x (e.g. recent rolling-release Linux),
-> install an HDF5 1.14.x package alongside (Debian/Ubuntu LTS releases
-> still default to 1.10/1.14) or wait for the planned bump to `netcdf
-> 0.12`. The `nc` build will succeed against any HDF5 1.x.
+> **Note:** Peroxide currently pins `netcdf = "0.7"`, which transitively uses `hdf5-sys 0.8.x`.
+> That `hdf5-sys` only recognizes the **HDF5 1.x** version string and rejects HDF5 2.x with `Invalid H5_VERSION`.
+> If your distribution ships HDF5 2.x (e.g. recent rolling-release Linux), install an HDF5 1.14.x package alongside (Debian/Ubuntu LTS releases still default to 1.10/1.14) or wait for the planned bump to `netcdf 0.12`.
+> The `nc` build will succeed against any HDF5 1.x.
 
 ## Install
 
-### Basic Installation
+Peroxide builds on **stable Rust 1.91 or later**.
+The default profile is pure Rust; system libraries are only needed for the features listed in the [Pre-requisite](#pre-requisite) section.
+
 ```bash
-cargo add peroxide
+cargo add peroxide                              # default (pure Rust)
+cargo add peroxide --features "<FEATURES>"      # opt-in features
 ```
 
-### Featured Installation
-```bash
-cargo add peroxide --features "<FEATURES>"
+### Most common combinations
+
+| Goal                                              | Command                                                                   |
+| ------------------------------------------------- | ------------------------------------------------------------------------- |
+| Linear algebra on Linux / Windows                 | `cargo add peroxide --features O3-openblas`                               |
+| Linear algebra on macOS                           | `cargo add peroxide --features O3-accelerate`                             |
+| Plotting via Python / matplotlib                  | `cargo add peroxide --features plot`                                      |
+| DataFrame + Parquet I/O                           | `cargo add peroxide --features parquet`                                   |
+| Full Linux scientific stack                       | `cargo add peroxide --features "O3-openblas plot nc csv parquet serde"`   |
+| Full macOS scientific stack                       | `cargo add peroxide --features "O3-accelerate plot nc csv parquet serde"` |
+
+### Hello, Peroxide
+
+```rust
+#[macro_use]
+extern crate peroxide;
+use peroxide::fuga::*;
+
+fn main() {
+    // R / MATLAB-style matrix literals
+    let a = ml_matrix("1 2; 3 4");
+    let b = c!(5, 6);
+
+    // matrix-vector product (BLAS-dispatched when an `O3-*` feature is on)
+    let c = &a * &b;
+
+    a.print();    // pretty-formatted matrix
+    c.print();    // [17, 39]
+    a.det().print();
+    a.inv().print();
+}
 ```
 
-### Available Features
+### Available features
 
-All features are off by default. The first group requires the
-[system libraries documented above](#pre-requisite); the second group
-is pure Rust and works out of the box.
+Most users only need the **composite flags** in the first table.
+The remaining single-crate flags exist so advanced users can pull in just one optional dependency without enabling the rest.
 
-**Requires system libraries**
+**Composite flags (recommended)**
 
-| Flag             | Backing crate(s)                       | Purpose                                                       |
-| ---------------- | -------------------------------------- | ------------------------------------------------------------- |
-| `O3`             | `blas`, `lapack`                       | BLAS / LAPACK FFI; bring your own `blas-src` / `lapack-src`   |
-| `O3-openblas`    | `O3` + `blas-src/openblas`, `lapack-src/openblas`     | `O3` linked through OpenBLAS                   |
-| `O3-accelerate`  | `O3` + `blas-src/accelerate`, `lapack-src/accelerate` | `O3` linked through Apple Accelerate (macOS)   |
-| `O3-mkl`         | `O3` + `blas-src/intel-mkl-dynamic-parallel`, `lapack-src/intel-mkl-dynamic-parallel` | `O3` linked through Intel MKL          |
-| `O3-netlib`      | `O3` + `blas-src/netlib`, `lapack-src/netlib`         | `O3` linked through Netlib reference BLAS      |
-| `blas`           | `blas`                                 | Raw BLAS bindings only                                        |
-| `lapack`         | `lapack`                               | Raw LAPACK bindings only                                      |
-| `plot`           | `pyo3` + matplotlib                    | High-level plotting via Python                                |
-| `pyo3`           | `pyo3`                                 | Python 3 interop building block                               |
-| `nc`             | `netcdf`                               | NetCDF DataFrame I/O (alias for `netcdf`)                     |
-| `netcdf`         | `netcdf`                               | NetCDF DataFrame I/O                                          |
+| Flag             | Requires                | Purpose                                                       |
+| ---------------- | ----------------------- | ------------------------------------------------------------- |
+| `O3-openblas`    | OpenBLAS                | BLAS / LAPACK accelerated linear algebra (Linux / Windows)    |
+| `O3-accelerate`  | Apple Accelerate        | Same, using the Accelerate framework on macOS                 |
+| `O3-mkl`         | Intel MKL               | Same, using Intel MKL                                         |
+| `O3-netlib`      | Netlib                  | Same, using the reference Netlib BLAS                         |
+| `plot`           | Python 3 + matplotlib   | High-level `Plot2D` API                                       |
+| `nc`             | HDF5 + netCDF-C         | NetCDF I/O for `DataFrame`                                    |
+| `parquet`        | (pure Rust)             | Parquet I/O for `DataFrame` (pulls in `arrow`, `indexmap`)    |
+| `complex`        | (pure Rust)             | Complex vectors / matrices + `cgemm` matmul                   |
+| `parallel`       | (pure Rust)             | Parallel iterators on vectors / matrices                      |
+| `csv`            | (pure Rust)             | CSV I/O for `DataFrame`                                       |
+| `json`           | (pure Rust)             | JSON I/O for `DataFrame`                                      |
+| `serde`          | (pure Rust)             | `serde` (de)serialization                                     |
+| `rkyv`           | (pure Rust)             | `rkyv` zero-copy (de)serialization                            |
 
-**Pure Rust**
+<details>
+<summary><b>Advanced: single-crate flags</b></summary>
 
-| Flag          | Backing crate(s)              | Purpose                                                |
-| ------------- | ----------------------------- | ------------------------------------------------------ |
-| `complex`     | `num-complex`                 | Complex numbers + `cgemm` matmul                       |
-| `num-complex` | `num-complex`                 | Raw complex number dependency                          |
-| `parallel`    | `rayon`                       | Parallel iterators on vectors / matrices               |
-| `rayon`       | `rayon`                       | Raw rayon dependency                                   |
-| `parquet`     | `parquet`, `arrow`, `indexmap`| Parquet DataFrame I/O                                  |
-| `arrow`       | `arrow`                       | Raw arrow dependency                                   |
-| `indexmap`    | `indexmap`                    | Raw indexmap dependency                                |
-| `csv`         | `csv`                         | CSV DataFrame I/O                                      |
-| `json`        | `json`                        | JSON DataFrame I/O                                     |
-| `serde`       | `serde`                       | (De)serialization for matrices and polynomials         |
-| `rkyv`        | `rkyv`                        | Zero-copy (de)serialization                            |
+These flags enable one optional dependency in isolation.
+Use them only if you want to depend on the underlying crate without the surrounding Peroxide API.
 
-### Install Examples
+| Flag          | Underlying crate | Notes                                                       |
+| ------------- | ---------------- | ----------------------------------------------------------- |
+| `O3`          | `blas`, `lapack` | Bare BLAS / LAPACK FFI; bring your own `blas-src` / `lapack-src` |
+| `blas`        | `blas`           | Raw BLAS bindings only                                      |
+| `lapack`      | `lapack`         | Raw LAPACK bindings only                                    |
+| `pyo3`        | `pyo3`           | Python 3 interop without the `Plot2D` API                   |
+| `netcdf`      | `netcdf`         | Alias for `nc`                                              |
+| `num-complex` | `num-complex`    | Raw complex-number dependency only                          |
+| `rayon`       | `rayon`          | Raw rayon dependency only                                   |
+| `arrow`       | `arrow`          | Raw arrow dependency only                                   |
+| `indexmap`    | `indexmap`       | Raw indexmap dependency only                                |
 
-Single feature installation:
-```bash
-cargo add peroxide --features "plot"
-```
-
-Multiple features installation, picking the BLAS backend that matches
-your platform:
-```bash
-# Linux / Windows
-cargo add peroxide --features "O3-openblas plot nc csv parquet serde"
-
-# macOS
-cargo add peroxide --features "O3-accelerate plot nc csv parquet serde"
-```
-
-## Useful tips for features
-
-- If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
-
-- If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
-
-- For plotting, it is recommended to use the `plot` feature. However, if you require more customization, you can use the `parquet` or `nc` feature to export your data in the parquet or netcdf format and then use Python to create the plots.
-
-  - To read parquet files in Python, you can use the `pandas` and `pyarrow` libraries.
-
-  - A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
-
-
-## Module Structure
-
-- __src__
-  - [lib.rs](src/lib.rs) : `mod` and `re-export`
-  - __complex__: For complex vector, matrix & integrals.
-    - [mod.rs](src/complex/mod.rs)
-    - [integrate.rs](src/complex/integrate.rs) : Complex integral
-    - [matrix.rs](src/complex/matrix.rs) : Complex matrix
-    - [vector.rs](src/complex/vector.rs) : Complex vector
-  - __fuga__ : Fuga for controlling numerical algorithms.
-    - [mod.rs](src/fuga/mod.rs)
-  - __macros__ : Macro files
-    - [julia_macro.rs](src/macros/julia_macro.rs) : Julia like macro
-    - [matlab_macro.rs](src/macros/matlab_macro.rs) : MATLAB like macro
-    - [mod.rs](src/macros/mod.rs)
-    - [r_macro.rs](src/macros/r_macro.rs) : R like macro
-  - __ml__ : For machine learning (_Beta_)
-    - [mod.rs](src/ml/mod.rs)
-    - [reg.rs](src/ml/reg.rs) : Regression tools
-  - __numerical__ : To do numerical things
-    - [mod.rs](src/numerical/mod.rs)
-    - [eigen.rs](src/numerical/eigen.rs) : Eigenvalue, Eigenvector algorithm
-    - [integral.rs](src/numerical/integral.rs) : Numerical integration
-    - [interp.rs](src/numerical/interp.rs) : Interpolation
-    - [newton.rs](src/numerical/newton.rs) : Newton's Method
-    - [ode.rs](src/numerical/ode.rs) : Main ODE solver with various algorithms
-    - [optimize.rs](src/numerical/optimize.rs) : Non-linear regression
-    - [root.rs](src/numerical/root.rs) : Root finding
-    - [spline.rs](src/numerical/spline.rs) : Cubic spline, Cubic Hermite spline & B-Spline
-    - [utils.rs](src/numerical/utils.rs) : Utils to do numerical things (e.g. jacobian)
-  - __prelude__ : Prelude for using simple
-    - [mod.rs](src/prelude/mod.rs)
-    - [simpler.rs](src/prelude/simpler.rs) : Provides more simple api
-  - __special__ : Special functions written in pure Rust (Wrapper of `puruspe`)
-    - [mod.rs](src/special/mod.rs)
-    - [function.rs](src/special/function.rs) : Special functions
-  - __statistics__ : Statistical Tools
-    - [mod.rs](src/statistics/mod.rs)
-    - [dist.rs](src/statistics/dist.rs) : Probability distributions
-    - [ops.rs](src/statistics/ops.rs) : Some probabilistic operations
-    - [rand.rs](src/statistics/rand.rs) : Wrapper for `rand` crate & Piecewise Rejection Sampling
-    - [stat.rs](src/statistics/stat.rs) : Statistical tools
-  - __structure__ : Fundamental data structures
-    - [mod.rs](src/structure/mod.rs)
-    - [ad.rs](src/structure/ad.rs) : Automatic Differentiation (`Jet<N>` const-generic forward AD)
-    - [dataframe.rs](src/structure/dataframe.rs) : Dataframe
-    - [matrix.rs](src/structure/matrix.rs) : Matrix
-    - [polynomial.rs](src/structure/polynomial.rs) : Polynomial
-    - [sparse.rs](src/structure/sparse.rs) : For sparse structure (_Beta_)
-    - [vector.rs](src/structure/vector.rs) : Extra tools for `Vec<f64>`
-  - __traits__
-    - [mod.rs](src/traits/mod.rs)
-    - [fp.rs](src/traits/fp.rs) : Functional programming toolbox
-    - [general.rs](src/traits/general.rs) : General algorithms
-    - [math.rs](src/traits/math.rs) : Mathematics
-    - [matrix.rs](src/traits/matrix.rs) : Matrix traits
-    - [mutable.rs](src/traits/mutable.rs) : Mutable toolbox
-    - [num.rs](src/traits/num.rs) : Number, Real and more operations
-    - [pointer.rs](src/traits/pointer.rs) : Matrix pointer and Vector pointer for convenience
-    - [stable.rs](src/traits/stable.rs) : Implement nightly-only features in stable
-    - [sugar.rs](src/traits/sugar.rs) : Syntactic sugar for Vector
-  - __util__
-    - [mod.rs](src/util/mod.rs)
-    - [api.rs](src/util/api.rs) : Matrix constructor for various language style
-    - [low_level.rs](src/util/low_level.rs) : Low-level tools
-    - [non_macro.rs](src/util/non_macro.rs) : Primordial version of macros
-    - [plot.rs](src/util/plot.rs) : To draw plot (using `pyo3`)
-    - [print.rs](src/util/print.rs) : To print conveniently
-    - [useful.rs](src/util/useful.rs) : Useful utils to implement library
-    - [wrapper.rs](src/util/wrapper.rs) : Wrapper for other crates (e.g. rand)
-    - [writer.rs](src/util/writer.rs) : More convenient write system
-
-## Documentation
-
-- [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide)
+</details>
 
 ## Examples
 
-- In [examples](./examples) directory, there are some examples.
+Runnable programs covering every component live in [`examples/`](./examples), with longer worked notebooks in the companion [Peroxide_Gallery](https://github.com/Axect/Peroxide_Gallery) repository.
+API reference and feature-specific guidance are published on [docs.rs/peroxide](https://docs.rs/peroxide).
 
-- In [tests](./tests) directory, there are some useful tests.
+## Release notes
 
-- More examples are in [Peroxide Gallery](https://github.com/Axect/Peroxide_Gallery).
+See [RELEASES.md](./RELEASES.md).
 
-## Release Info
+## Contributing
 
-To see [RELEASES.md](./RELEASES.md)
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## Contributing Guide
+## License
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
-
-## LICENSE
-
-Peroxide is licensed under dual licenses - Apache License 2.0 and MIT License.
-
-## TODO
-
-To see [TODO.md](./TODO.md)
+Peroxide is licensed under dual licenses: Apache License 2.0 and MIT License.
 
 ## Cite Peroxide
 
