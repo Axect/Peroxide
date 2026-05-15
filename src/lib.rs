@@ -1,4 +1,26 @@
-//! `peroxide` is comprehensive numerical library for Rust.
+//! `peroxide` is a comprehensive numerical computing library for Rust.
+//!
+//! Scientific computing workflows rarely stay inside a single numerical domain: a typical pipeline
+//! may solve an ODE, interpolate the result onto an irregular grid, evaluate a quadrature, find a
+//! root of a derived quantity, and serialize the output for downstream analysis. In Python, the
+//! SciPy + NumPy stack consolidates these capabilities under one namespace. In Rust the equivalent
+//! functionality is spread across specialist crates whose type systems and trait hierarchies do not
+//! always align.
+//!
+//! Peroxide fills that integration gap. It bundles linear algebra (with optional BLAS / LAPACK
+//! acceleration), ODE integrators, quadrature, splines, root finding, optimization, statistics and
+//! distributions, const-generic forward-mode automatic differentiation (`Jet<N>`), a `DataFrame`
+//! with parquet / NetCDF / CSV I/O, and an R / MATLAB / Python style macro surface — all designed
+//! to interoperate through a shared `Real` trait and a compile-time-constant Butcher-tableau
+//! interface.
+//!
+//! The crate is aimed at researchers and engineers who want a batteries-included numerical toolbox
+//! in Rust without composing several specialist crates and reconciling their conventions.
+//!
+//! See the [`examples/`](https://github.com/Axect/Peroxide/tree/master/examples) directory for 40+
+//! self-contained programs spanning every component, and the companion
+//! [Peroxide_Gallery](https://github.com/Axect/Peroxide_Gallery) repository for longer worked
+//! examples (plotting, splines, ODE applications, ...).
 //!
 //! ## Components
 //!
