@@ -45,9 +45,9 @@ bibliography: paper.bib
 
 # Summary
 
-Peroxide is a numerical computing library for the Rust programming language that integrates eight domains within a single crate: linear algebra, ordinary differential equation (ODE) solving, adaptive quadrature, spline interpolation with exact polynomial calculus, root-finding, forward-mode automatic differentiation (AD), statistics, and multi-format DataFrame I/O.
+Peroxide is a Rust numerical computing library that integrates eight domains in one crate: linear algebra, ordinary differential equation (ODE) solving, adaptive quadrature, spline interpolation with exact polynomial calculus, root-finding, forward-mode automatic differentiation (AD), statistics, and multi-format DataFrame I/O.
 We designed Peroxide for applied scientists, engineers, and students who need a cohesive numerical environment in Rust without assembling a multi-crate dependency graph.
-A dual-module API provides progressive disclosure: the `prelude` module offers sensible defaults, while the `fuga` module exposes explicit algorithm selection, addressing Rust's lack of default function arguments.
+A dual-module API offers `prelude` defaults and a `fuga` module for explicit algorithm selection, addressing Rust's lack of default function arguments.
 Peroxide is released under the MIT/Apache-2.0 dual license and archived on Zenodo [@peroxide].
 
 # Statement of need
@@ -58,12 +58,12 @@ In Python, SciPy [@scipy] and NumPy [@numpy] consolidate these capabilities unde
 In Rust, they are scattered across specialized crates, each with its own type conventions and trait hierarchies.
 
 \autoref{tab:comparison} surveys the Rust numerical ecosystem.
-Specialist crates excel individually: diffsol [@diffsol] provides ODE/DAE solvers with sensitivity analysis; faer [@faer] offers pure-Rust linear algebra competitive with LAPACK; nalgebra [@nalgebra] provides matrix abstractions widely adopted across the ecosystem; argmin [@argmin] supplies over 20 optimization algorithms; Polars [@polars] dominates tabular data processing.
+Specialist crates excel individually: diffsol [@diffsol] provides ODE/DAE solvers with sensitivity analysis; faer [@faer] offers pure-Rust linear algebra competitive with LAPACK [@lapack]; nalgebra [@nalgebra] provides matrix abstractions widely adopted across the ecosystem; argmin [@argmin] supplies over 20 optimization algorithms; Polars [@polars] dominates tabular data processing.
 russell [@russell] covers the broadest range among alternatives (ODE solvers, quadrature, root-finding, and statistics) but lacks AD, spline calculus, and DataFrame support.
 No single crate spans all eight domains shown in \autoref{tab:comparison}.
 Peroxide fills this integration gap.
 
-: Feature coverage of Rust numerical libraries. Each entry reflects the crate's own API, including optional feature flags; a dash indicates the feature is absent. Crates providing only N-dimensional array abstractions without numerical algorithms (e.g., ndarray) are omitted. \label{tab:comparison}
+: Feature coverage of Rust numerical libraries. Each entry reflects the crate's own API, including optional feature flags; a dash indicates the feature is absent. Crates providing only N-dimensional array abstractions without numerical algorithms (e.g., ndarray [@ndarray]) are omitted. \label{tab:comparison}
 
 |                     | Peroxide | diffsol | russell | faer | nalgebra | argmin | num-dual | Polars |
 |---------------------|:--------:|:-------:|:-------:|:----:|:--------:|:------:|:--------:|:------:|
@@ -77,13 +77,15 @@ Peroxide fills this integration gap.
 | DataFrame I/O       | $\checkmark$        | —       | —       | —    | —        | —      | —        | $\checkmark$      |
 
 We do not claim superiority over any specialist crate within its domain.
-Peroxide's contribution is the integration itself, enabled by design abstractions that connect domains: a `ButcherTableau` trait with blanket implementation that unifies all Runge-Kutta methods through compile-time constants, a `Calculus` trait that supports exact differentiation and integration of piecewise polynomial splines, const-generic dimensional typing in the root-finding interface, and a `Real` trait that allows AD-derived derivatives to flow into optimization and root-finding routines without glue code.
+Peroxide's contribution is the integration itself, enabled by design abstractions: a `ButcherTableau` trait unifies Runge-Kutta methods via compile-time constants, a `Calculus` trait supports exact differentiation and integration of piecewise polynomial splines, const-generic typing constrains root-finding dimensions, and a `Real` trait carries AD-derived derivatives into optimization and root-finding without glue code.
 
 # State of the field
 
 In automatic differentiation specifically, a review of available Rust AD crates on crates.io indicates that, to our knowledge, Peroxide is the only library combining const-generic derivative order, normalized Taylor coefficient storage, and true Taylor-mode propagation with $O(N^2)$ cost per elementary operation.
 Most alternatives provide dual numbers up to second or third order with fixed type hierarchies [@numdual] or nested generics with exponential cost at higher orders [@autodiff_elrnv].
 The ad-trait crate [@adtrait] offers both forward and reverse modes but is limited to first-order derivatives.
+Enzyme [@enzyme] performs AD as an LLVM compiler pass and supports both forward and reverse modes.
+The two libraries are complementary: Peroxide provides high-order forward derivatives, while Enzyme adds reverse-mode AD.
 
 For ODE solving, diffsol [@diffsol] is the most feature-rich Rust crate, providing BDF and SDIRK methods with sensitivity analysis.
 Peroxide's `ButcherTableau` trait-based architecture is a complementary approach: it encodes Runge-Kutta methods as compile-time constants, making it straightforward for users to add new methods by defining only coefficient arrays.
@@ -92,7 +94,8 @@ Peroxide's `ButcherTableau` trait-based architecture is a complementary approach
 
 **Architecture.**
 We store matrices as a flat `Vec<f64>` with a `Shape` enum (`Row`/`Col`) that controls logical layout without copying data.
-This design trades the rich type-level dimensionality of nalgebra for a memory model that maps directly to both the pure-Rust `matrixmultiply` crate [@matrixmultiply] and, when the `O3` feature flag is enabled, to OpenBLAS, passing raw pointers with stride and transpose flags in both cases without intermediate type conversions.
+This design trades the rich type-level dimensionality of nalgebra for a memory model that maps directly to both the pure-Rust `matrixmultiply` crate [@matrixmultiply] and, when the `O3` feature flag is enabled, to OpenBLAS [@openblas], passing raw pointers with stride and transpose flags without intermediate type conversions.
+The trade-offs are that matrix dimensions are not enforced at compile time (unlike nalgebra's typed `Matrix<f64, R, C>`) and the layout does not extend to N-dimensional tensors as `ndarray` [@ndarray] does.
 A `Real` trait abstracts over `f64` and `AD` (= `Jet<2>`), so the same function can compute both values and derivatives.
 
 **Automatic differentiation.**
@@ -144,20 +147,18 @@ let area = integrate(|x| x.sin(), (0.0, PI), GaussLegendre(15));
 
 # Research impact statement
 
-Peroxide has been publicly available on crates.io since 2018 and has accumulated over 1,050,000 total downloads (as reported by crates.io) and 677 GitHub stars.
-Independent researchers have adopted Peroxide in peer-reviewed work: @comitini2025 used Peroxide's Gauss-Kronrod quadrature as the numerical integration backend for their QCD screened massive expansion calculations, and @steuteville2024 identified Peroxide as one of the three most widely used Rust ODE solver packages in a survey conducted at the U.S. National Renewable Energy Laboratory.
-The author's own research has also relied on Peroxide: @neural_hamilton employed its implicit Gauss-Legendre ODE solver for symplectic reference solutions, @hyperboliclr used it for dataset generation, and @jho2026 used its Gauss-Kronrod quadrature (G7K15R) and cubic Hermite spline interpolation for primordial black hole axion spectral computations.
+Peroxide has been on crates.io since 2018, with over 1,100,000 downloads and 700 GitHub stars.
+Independent researchers have adopted Peroxide in peer-reviewed work: @comitini2025 used its Gauss-Kronrod quadrature for QCD screened massive expansion calculations, and @steuteville2024 identified Peroxide as one of the three most widely used Rust ODE solver packages in a survey conducted at the U.S. National Renewable Energy Laboratory.
+The author's own work has used Peroxide's implicit Gauss-Legendre ODE solver for symplectic reference solutions [@neural_hamilton], for dataset generation [@hyperboliclr], and for primordial black hole axion spectra via Gauss-Kronrod quadrature and cubic Hermite splines [@jho2026].
 The Zenodo archive [@peroxide] ensures long-term citability and reproducibility.
 
 # Validation
 
-We maintain a test suite of 26 test modules.
-The AD module alone contains 115 unit tests verifying `Jet<N>` at orders $N = 1$ through $10$ against symbolic reference values.
-Across all tested functions and derivative orders, `Jet<N>` achieves relative errors at the level of machine epsilon ($\sim 10^{-15}$); in contrast, central finite-difference approximations degrade to relative errors exceeding $10^{0}$ by order four due to the fundamental tension between truncation error $O(h^p)$ and cancellation error $O(\varepsilon_{\mathrm{mach}} / h^k)$ [@press2007].
-ODE integrators are tested against problems with known analytic solutions.
-Continuous integration runs via GitHub Actions on every push.
-The repository provides 41 standalone examples, and API documentation with KaTeX-rendered mathematics is published on [docs.rs/peroxide](https://docs.rs/peroxide).
-Community guidelines and contribution instructions are available in the repository's `CONTRIBUTING.md`.
+We maintain a test suite of 26 modules; the AD module alone has 115 unit tests verifying `Jet<N>` at orders $N = 1$ through $10$ against symbolic reference values.
+`Jet<N>` achieves machine-epsilon relative errors ($\sim 10^{-15}$) across all tested orders, while central finite differences degrade to $O(1)$ by order four due to the truncation/cancellation trade-off [@press2007].
+ODE integrators are tested against analytic solutions, with continuous integration on every push via GitHub Actions.
+The repository provides 41 standalone examples; API documentation (with KaTeX-rendered mathematics) is published on [docs.rs/peroxide](https://docs.rs/peroxide).
+Community guidelines are available in `CONTRIBUTING.md`.
 
 # Limitations
 
