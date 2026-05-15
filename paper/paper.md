@@ -156,7 +156,7 @@ The AD module alone contains 115 unit tests verifying `Jet<N>` at orders $N = 1$
 Across all tested functions and derivative orders, `Jet<N>` achieves relative errors at the level of machine epsilon ($\sim 10^{-15}$); in contrast, central finite-difference approximations degrade to relative errors exceeding $10^{0}$ by order four due to the fundamental tension between truncation error $O(h^p)$ and cancellation error $O(\varepsilon_{\mathrm{mach}} / h^k)$ [@press2007].
 ODE integrators are tested against problems with known analytic solutions.
 Continuous integration runs via GitHub Actions on every push.
-The repository provides 41 standalone examples, and API documentation with KaTeX-rendered mathematics is hosted at [https://axect.github.io/Peroxide_Doc](https://axect.github.io/Peroxide_Doc).
+The repository provides 41 standalone examples, and API documentation with KaTeX-rendered mathematics is published on [docs.rs/peroxide](https://docs.rs/peroxide).
 Community guidelines and contribution instructions are available in the repository's `CONTRIBUTING.md`.
 
 # Limitations

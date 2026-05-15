@@ -1,7 +1,7 @@
 # Peroxide
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
-[![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
+[![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide)
 [![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
 ![github](https://github.com/Axect/Peroxide/workflows/Github/badge.svg)
 
@@ -572,7 +572,7 @@ cargo add peroxide --features "O3-accelerate plot nc csv parquet serde"
 
 ## Documentation
 
-- [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://axect.github.io/Peroxide_Doc)
+- [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide)
 
 ## Examples
 
