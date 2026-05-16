@@ -1,3 +1,11 @@
+# Release 0.41.2 (2026-05-16)
+
+## Packaging
+
+- Exclude `paper/` from the published crate
+  - JOSS paper sources (`paper.md`, `paper.bib`) live in the git repository for transparency but are not consumed by downstream users of the library and only inflate the `.crate` file uploaded to crates.io
+  - No API or source change
+
 # Release 0.41.1 (2026-05-16)
 
 ## JOSS review (#10366) cycle
