@@ -84,15 +84,15 @@ impl Integral {
     }
 
     pub fn is_relative(&self) -> bool {
-        match self {
-            Integral::G7K15R(_, _) => true,
-            Integral::G10K21R(_, _) => true,
-            Integral::G15K31R(_, _) => true,
-            Integral::G20K41R(_, _) => true,
-            Integral::G25K51R(_, _) => true,
-            Integral::G30K61R(_, _) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Integral::G7K15R(_, _)
+                | Integral::G10K21R(_, _)
+                | Integral::G15K31R(_, _)
+                | Integral::G20K41R(_, _)
+                | Integral::G25K51R(_, _)
+                | Integral::G30K61R(_, _)
+        )
     }
 
     pub fn change_tol(&self, tol: f64) -> Self {
@@ -169,7 +169,7 @@ impl NCIntegrable for f64 {
     where
         F: Fn(f64) -> Self,
     {
-        node_x.to_vec().fmap(|x| f(x))
+        node_x.to_vec().fmap(f)
     }
 
     fn compute_polynomial(node_x: &[f64], node_y: &Vec<f64>) -> Polynomial {
@@ -329,28 +329,23 @@ where
     let mut S: Vec<(f64, f64, f64, u32)> = vec![];
     S.push((a.into(), b.into(), tol, max_iter));
 
-    loop {
-        match S.pop() {
-            Some((a, b, tol, max_iter)) => {
-                let G = gauss_legendre_quadrature(f, g as usize, (a, b));
-                let K = kronrod_quadrature(f, k as usize, (a, b));
-                let c = (a + b) / 2f64;
-                let tol_curr = if method.is_relative() {
-                    tol * G.gk_norm()
-                } else {
-                    tol
-                };
-                if (G.clone() - K).is_within_tol(tol_curr) || a == b || max_iter == 0 {
-                    if !G.is_finite() {
-                        return G;
-                    }
-                    I = I + G;
-                } else {
-                    S.push((a, c, tol / 2f64, max_iter - 1));
-                    S.push((c, b, tol / 2f64, max_iter - 1));
-                }
+    while let Some((a, b, tol, max_iter)) = S.pop() {
+        let G = gauss_legendre_quadrature(f, g as usize, (a, b));
+        let K = kronrod_quadrature(f, k as usize, (a, b));
+        let c = (a + b) / 2f64;
+        let tol_curr = if method.is_relative() {
+            tol * G.gk_norm()
+        } else {
+            tol
+        };
+        if (G.clone() - K).is_within_tol(tol_curr) || a == b || max_iter == 0 {
+            if !G.is_finite() {
+                return G;
             }
-            None => break,
+            I = I + G;
+        } else {
+            S.push((a, c, tol / 2f64, max_iter - 1));
+            S.push((c, b, tol / 2f64, max_iter - 1));
         }
     }
     I
@@ -448,7 +443,7 @@ where
 
             // Tolerance propagation for subintervals: divide by sqrt(2)
             // This is often preferred over dividing by 2 for better error distribution.
-            let next_tol = tol_curr / 1.4142135623730951; // tol / sqrt(2)
+            let next_tol = tol_curr / std::f64::consts::SQRT_2;
             let next_iter = iter_left - 1; // Decrement remaining iterations
 
             // Push the two subintervals onto the stack for further processing
@@ -493,8 +488,7 @@ where
 
     // 4. Evaluate f at all Kronrod nodes and store results (matching node order)
     let mut f_evals = Vec::with_capacity(k);
-    for i in 0..k {
-        let node = kronrod_nodes[i];
+    for &node in kronrod_nodes.iter().take(k) {
         f_evals.push(f(xm + xh * node));
     }
 

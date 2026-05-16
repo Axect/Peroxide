@@ -54,19 +54,19 @@ pub fn choose_shorter_string(x1: String, x2: String) -> String {
     }
 }
 
-pub fn choose_shorter_vec(x1: &Vec<f64>, x2: &Vec<f64>) -> Vec<f64> {
+pub fn choose_shorter_vec(x1: &[f64], x2: &[f64]) -> Vec<f64> {
     if x1.len() > x2.len() {
-        x2.clone()
+        x2.to_vec()
     } else {
-        x1.clone()
+        x1.to_vec()
     }
 }
 
-pub fn choose_longer_vec(x1: &Vec<f64>, x2: &Vec<f64>) -> Vec<f64> {
+pub fn choose_longer_vec(x1: &[f64], x2: &[f64]) -> Vec<f64> {
     if x1.len() <= x2.len() {
-        x2.clone()
+        x2.to_vec()
     } else {
-        x1.clone()
+        x1.to_vec()
     }
 }
 
@@ -79,9 +79,9 @@ where
         v[0]
     } else {
         let mut t = if v[0] >= v[1] { v[0] } else { v[1] };
-        for i in 2..v.len() {
-            if v[i] > t {
-                t = v[i];
+        for &x in v.iter().skip(2) {
+            if x > t {
+                t = x;
             }
         }
         t
@@ -97,9 +97,9 @@ where
         v[0]
     } else {
         let mut t = if v[0] <= v[1] { v[0] } else { v[1] };
-        for i in 2..v.len() {
-            if v[i] < t {
-                t = v[i];
+        for &x in v.iter().skip(2) {
+            if x < t {
+                t = x;
             }
         }
         t
@@ -108,7 +108,7 @@ where
 
 /// Signum function
 pub fn sgn(x: usize) -> f64 {
-    if x % 2 == 0 {
+    if x.is_multiple_of(2) {
         1f64
     } else {
         -1f64
@@ -134,7 +134,7 @@ pub fn eq_vec(x: &[f64], y: &[f64], tol: f64) -> bool {
 /// let a_zipped = auto_zip(&a);
 /// assert_eq!(a_zipped, vec![(1, 2), (2, 3)]);
 /// ```
-pub fn auto_zip<T: Clone>(x: &Vec<T>) -> Vec<(T, T)> {
+pub fn auto_zip<T: Clone>(x: &[T]) -> Vec<(T, T)> {
     let x_head = x[0..x.len() - 1].to_vec();
     let x_tail = x[1..x.len()].to_vec();
     x_head.into_iter().zip(x_tail).collect()
@@ -158,7 +158,7 @@ pub fn auto_zip<T: Clone>(x: &Vec<T>) -> Vec<(T, T)> {
 ///
 /// assert_eq!(find_interval(&x, 11), 3);
 /// ```
-pub fn find_interval<T: PartialOrd + PartialEq>(sorted_intervals: &Vec<(T, T)>, x: T) -> usize {
+pub fn find_interval<T: PartialOrd + PartialEq>(sorted_intervals: &[(T, T)], x: T) -> usize {
     let mut i = 0;
     let mut j = sorted_intervals.len() - 1;
 

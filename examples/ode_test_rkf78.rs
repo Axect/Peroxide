@@ -29,6 +29,7 @@ struct Test;
 
 impl ODEProblem for Test {
     fn rhs(&self, t: f64, y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
-        Ok(dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp())
+        dy[0] = (5f64 * t.powi(2) - y[0]) / (t + y[0]).exp();
+        Ok(())
     }
 }

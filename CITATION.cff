@@ -13,6 +13,30 @@ authors:
     email: axect.tg@proton.me
     affiliation: Fudan University / RIKEN iTHEMS
     orcid: 'https://orcid.org/0009-0000-4229-2935'
+  - given-names: Giorgio
+    family-names: Comitini
+    affiliation: Università degli Studi di Catania
+    orcid: 'https://orcid.org/0000-0002-1758-7878'
+  - given-names: Jonas
+    family-names: Grage
+    affiliation: Independent Researcher
+    orcid: 'https://orcid.org/0009-0000-9279-7683'
+  - given-names: Benjamin
+    family-names: Joens
+    affiliation: Independent Researcher
+    orcid: 'https://orcid.org/0009-0002-7922-0884'
+  - given-names: Marc
+    family-names: Schreiber
+    affiliation: Independent Researcher
+    orcid: 'https://orcid.org/0000-0003-2564-6126'
+  - given-names: Soumya
+    family-names: Sen
+    affiliation: Independent Researcher
+    orcid: 'https://orcid.org/0009-0008-0337-9964'
+  - given-names: Johanna
+    family-names: Sörngård
+    affiliation: Independent Researcher
+    orcid: 'https://orcid.org/0000-0002-8660-9989'
   - name: Peroxide contributors
 identifiers:
   - type: doi

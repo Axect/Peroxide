@@ -21,7 +21,7 @@ fn example() {
     println!("Sample var: {}", b_sample.var());
     println!("PDF at x = 1: {}", b.pdf(1));
     println!("PDF at x = 0: {}", b.pdf(0));
-    println!("");
+    println!();
 
     let m = 0;
     let s = 1;
@@ -34,7 +34,7 @@ fn example() {
     println!("Theoretical var: {}", norm.var());
     println!("Sample var: {}", norm_sample.var());
     println!("PDF at x = mean: {}", norm.pdf(0f64));
-    println!("");
+    println!();
 
     let alpha = 3;
     let beta = 2;
@@ -48,7 +48,7 @@ fn example() {
     println!("Sample var: {}", be_sample.var());
     println!("PDF at x = mean: {}", be.pdf(0.6));
     println!("PDF at x = mode: {}", be.pdf(2f64 / 3f64));
-    println!("");
+    println!();
 
     let alpha2 = 4;
     let beta2 = 6;
@@ -62,7 +62,7 @@ fn example() {
     println!("Sample var: {}", g_sample.var());
     println!("PDF at x = mean: {}", g.pdf(0.666666));
     println!("PDF at x = mode: {}", g.pdf(0.5));
-    println!("");
+    println!();
 
     let m = 1.0;
     let s = 1.0;
@@ -74,7 +74,7 @@ fn example() {
     println!("Sample mean: {}", lognorm_sample.mean());
     println!("Theoretical var: {}", lognorm.var());
     println!("Sample var: {}", lognorm_sample.var());
-    println!("PDF at x = mean: {}", lognorm.pdf(2.718281828459045));
+    println!("PDF at x = mean: {}", lognorm.pdf(std::f64::consts::E));
     println!("PDF at x = mode: {}", lognorm.pdf(1.0));
-    println!("");
+    println!();
 }

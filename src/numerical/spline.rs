@@ -43,7 +43,7 @@
 //!   * `fn clamped(degree: usize, knots: Vec<f64>, control_points: Vec<Vec<f64>>) -> Result<Self>`
 //!     : Create a clamped B-Spline
 //!   * `fn cox_de_boor(t: f64, i: f64)` : Cox-de Boor recursion formula (Here, use iteration
-//!   instead of recursion)
+//!     instead of recursion)
 //!
 //! ## Usage (Cubic Spline Family)
 //!
@@ -94,7 +94,7 @@
 //!
 //! ## Usage (B-Spline)
 //!
-//! ```rust
+//! ```no_run
 //! use peroxide::fuga::*;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -616,9 +616,9 @@ impl CubicSpline {
     }
 }
 
-impl Into<Vec<Polynomial>> for CubicSpline {
-    fn into(self) -> Vec<Polynomial> {
-        self.polynomials
+impl From<CubicSpline> for Vec<Polynomial> {
+    fn from(val: CubicSpline) -> Self {
+        val.polynomials
             .into_iter()
             .map(|(_, polynomial)| polynomial)
             .collect()
@@ -631,9 +631,9 @@ impl From<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
     }
 }
 
-impl Into<Vec<(Range<f64>, Polynomial)>> for CubicSpline {
-    fn into(self) -> Vec<(Range<f64>, Polynomial)> {
-        self.polynomials
+impl From<CubicSpline> for Vec<(Range<f64>, Polynomial)> {
+    fn from(val: CubicSpline) -> Self {
+        val.polynomials
     }
 }
 
@@ -764,9 +764,9 @@ impl CubicHermiteSpline {
     }
 }
 
-impl Into<Vec<Polynomial>> for CubicHermiteSpline {
-    fn into(self) -> Vec<Polynomial> {
-        self.polynomials
+impl From<CubicHermiteSpline> for Vec<Polynomial> {
+    fn from(val: CubicHermiteSpline) -> Self {
+        val.polynomials
             .into_iter()
             .map(|(_, polynomial)| polynomial)
             .collect()
@@ -779,9 +779,9 @@ impl From<Vec<(Range<f64>, Polynomial)>> for CubicHermiteSpline {
     }
 }
 
-impl Into<Vec<(Range<f64>, Polynomial)>> for CubicHermiteSpline {
-    fn into(self) -> Vec<(Range<f64>, Polynomial)> {
-        self.polynomials
+impl From<CubicHermiteSpline> for Vec<(Range<f64>, Polynomial)> {
+    fn from(val: CubicHermiteSpline) -> Self {
+        val.polynomials
     }
 }
 
@@ -971,7 +971,7 @@ impl UnitCubicBasis {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```no_run
 /// use peroxide::fuga::*;
 /// use core::ops::Range;
 ///

@@ -33,12 +33,11 @@ use crate::structure::matrix::*;
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let mut rng = smallrng_from_seed(42);
+/// let mut rng = smallrng_from_seed(42);
 ///
-///     let n = Normal(0f64, 1f64);
-///     n.sample_with_rng(&mut rng, 10).print();
-/// }
+/// let n = Normal(0f64, 1f64);
+/// n.sample_with_rng(&mut rng, 10).print();
+/// ```
 pub fn smallrng_from_seed(seed: u64) -> SmallRng {
     SmallRng::seed_from_u64(seed)
 }
@@ -49,12 +48,11 @@ pub fn smallrng_from_seed(seed: u64) -> SmallRng {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let mut rng = stdrng_from_seed(42);
+/// let mut rng = stdrng_from_seed(42);
 ///
-///     let n = Normal(0f64, 1f64);
-///     n.sample_with_rng(&mut rng, 10).print();
-/// }
+/// let n = Normal(0f64, 1f64);
+/// n.sample_with_rng(&mut rng, 10).print();
+/// ```
 pub fn stdrng_from_seed(seed: u64) -> StdRng {
     StdRng::seed_from_u64(seed)
 }
@@ -97,7 +95,7 @@ pub fn marsaglia_polar(rng: &mut ThreadRng, m: f64, s: f64) -> f64 {
     let y1 = x1 * w;
     _y2 = x2 * w;
 
-    return m + y1 * s;
+    m + y1 * s
 }
 
 // =============================================================================

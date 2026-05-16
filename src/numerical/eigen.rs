@@ -101,7 +101,7 @@ impl JacobiTemp {
             }
             if sm == 0f64 {
                 eigsrt(d, v);
-                return ();
+                return ;
             }
             let tresh = if i < 4 {
                 0.2 * sm / (n.pow(2) as f64)
@@ -156,7 +156,7 @@ impl JacobiTemp {
                 z[ip] = 0f64;
             }
         }
-        assert!(false, "Too many iterations in routine jacobi");
+        panic!("Too many iterations in routine jacobi");
     }
 }
 
@@ -170,7 +170,7 @@ fn rot(a: &mut Matrix, s: f64, tau: f64, i: usize, j: usize, k: usize, l: usize)
 /// Given eigenvalue & eigenvector, sorts thod eigenvalues into descending order
 ///
 /// * Reference : Press, William H., and William T. Vetterling. *Numerical Recipes.* Cambridge: Cambridge Univ. Press, 2007.
-fn eigsrt(d: &mut Vec<f64>, v: &mut Matrix) {
+fn eigsrt(d: &mut [f64], v: &mut Matrix) {
     let mut k: usize;
     let n = d.len();
     for i in 0..n - 1 {

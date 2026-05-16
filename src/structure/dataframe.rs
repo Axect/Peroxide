@@ -1101,25 +1101,11 @@ where
 impl DType {
     /// Check for static numeric type
     pub fn is_numeric(&self) -> bool {
-        match self {
-            Bool => false,
-            Str => false,
-            Char => false,
-            USIZE => false,
-            ISIZE => false,
-            _ => true,
-        }
+        !matches!(self, Bool | Str | Char | USIZE | ISIZE)
     }
 
     pub fn is_integer(&self) -> bool {
-        match self {
-            Bool => false,
-            Str => false,
-            Char => false,
-            F32 => false,
-            F64 => false,
-            _ => true,
-        }
+        !matches!(self, Bool | Str | Char | F32 | F64)
     }
 }
 
@@ -1179,6 +1165,11 @@ impl Scalar {
         dtype_match!(self.dtype, vec![self.unwrap()], Series::new; Vec)
     }
 
+    // The inherent `to_string` returns the raw value (no dtype annotation),
+    // while `Display::to_string` adds `, dtype:...`. Clippy flags the name
+    // collision; renaming would be a public API break, so silence the lint
+    // for now and revisit when bumping the major version.
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(self) -> String {
         dtype_match!(self.dtype, self.unwrap(), to_string)
     }
@@ -1207,6 +1198,11 @@ impl Series {
     /// Length for Series
     pub fn len(&self) -> usize {
         dtype_match!(self.dtype, self.as_slice().to_vec(), len; Vec)
+    }
+
+    /// True if the Series has no elements.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Explicit type casting for Series
@@ -1325,7 +1321,7 @@ impl Series {
 
     /// Minimum value, preserving original type
     pub fn min(&self) -> anyhow::Result<Scalar> {
-        anyhow::ensure!(self.len() > 0, "Cannot compute min of empty Series");
+        anyhow::ensure!(!self.is_empty(), "Cannot compute min of empty Series");
 
         macro_rules! typed_min {
             ($v:expr, $dtype:ident) => {{
@@ -1355,7 +1351,7 @@ impl Series {
 
     /// Maximum value, preserving original type
     pub fn max(&self) -> anyhow::Result<Scalar> {
-        anyhow::ensure!(self.len() > 0, "Cannot compute max of empty Series");
+        anyhow::ensure!(!self.is_empty(), "Cannot compute max of empty Series");
 
         macro_rules! typed_max {
             ($v:expr, $dtype:ident) => {{
@@ -1994,7 +1990,7 @@ impl DataFrame {
     pub fn describe(&self) -> DataFrame {
         use crate::statistics::stat::Statistics;
 
-        let stat_labels = vec!["count", "mean", "sd", "min", "max"];
+        let stat_labels = ["count", "mean", "sd", "min", "max"];
         let mut result = DataFrame::new(vec![]);
         result.push("stat", Series::new(stat_labels.iter().map(|s| s.to_string()).collect::<Vec<String>>()));
 
@@ -2128,17 +2124,17 @@ impl WithCSV for DataFrame {
             .from_path(file_path)?;
 
         let headers_vec = rdr.headers()?;
-        let headers = headers_vec.iter().map(|x| x).collect::<Vec<&str>>();
+        let headers = headers_vec.iter().collect::<Vec<&str>>();
         let mut result = DataFrame::new(vec![]);
         for h in headers.iter() {
-            result.push(*h, Series::new(Vec::<String>::new()));
+            result.push(h, Series::new(Vec::<String>::new()));
         }
 
         for rec in rdr.deserialize() {
             let record: HashMap<String, String> = rec?;
             for head in record.keys() {
                 let value = &record[head];
-                if value.len() > 0 {
+                if !value.is_empty() {
                     result[head.as_str()].push(value.to_string());
                 }
             }

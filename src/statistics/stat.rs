@@ -118,32 +118,30 @@
 //! ```rust
 //! use peroxide::fuga::*;
 //!
-//! fn main() {
-//!     let y     = vec![1usize, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0];
-//!     let y_hat = vec![0usize, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0];
-//!     let true_val = 1usize;
+//! let y     = vec![1usize, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0];
+//! let y_hat = vec![0usize, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0];
+//! let true_val = 1usize;
 //!
-//!     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
-//!     cm.print();
-//!     //         c[0]    c[1]
-//!     // r[0]       6       2
-//!     // r[1]       1       3
+//! let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+//! cm.print();
+//! //         c[0]    c[1]
+//! // r[0]       6       2
+//! // r[1]       1       3
 //!
-//!     // to matrix
-//!     let cm_mat = cm.to_matrix();
-//!     
-//!     // Calculate accuracy
-//!     cm.ACC().print(); // 0.75
+//! // to matrix
+//! let cm_mat = cm.to_matrix();
 //!
-//!     // Calculate TPR (Sensitivity or Recall)
-//!     cm.TPR().print(); // 0.6666....
+//! // Calculate accuracy
+//! cm.ACC().print(); // 0.75
 //!
-//!     // Calculate some metrics
-//!     let metrics = cm.calc_metrics(&[ACC, TPR, TNR, F1]);
+//! // Calculate TPR (Sensitivity or Recall)
+//! cm.TPR().print(); // 0.6666....
 //!
-//!     // Print some metrics
-//!     cm.summary(&[ACC, TPR, TNR, F1]);
-//! }
+//! // Calculate some metrics
+//! let metrics = cm.calc_metrics(&[ACC, TPR, TNR, F1]);
+//!
+//! // Print some metrics
+//! cm.summary(&[ACC, TPR, TNR, F1]);
 //! ```
 
 use std::fmt;
@@ -511,13 +509,13 @@ impl Statistics for Matrix {
 ///     assert!(nearly_eq(cov(&v1, &v2), -1f64));
 /// }
 /// ```
-pub fn cov(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
+pub fn cov(v1: &[f64], v2: &[f64]) -> f64 {
     let mut ss = 0f64;
     let mut sx = 0f64;
     let mut sy = 0f64;
     let mut l = 0f64;
 
-    for (x, y) in v1.into_iter().zip(v2) {
+    for (x, y) in v1.iter().zip(v2) {
         ss += x * y;
         sx += *x;
         sy += *y;
@@ -679,32 +677,30 @@ pub fn quantile(v: &Vec<f64>, qtype: QType) -> Vec<f64> {
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let y           = vec![1usize, 1, 1, 0, 0, 0];
-///     let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
-///     let true_val    = 1usize;
+/// let y           = vec![1usize, 1, 1, 0, 0, 0];
+/// let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
+/// let true_val    = 1usize;
 ///
-///     // Create Confusion Matrix
-///     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+/// // Create Confusion Matrix
+/// let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
 ///
-///     // Print
-///     cm.print();
-///     //        c[0]  c[1]
-///     // r[0]  2.0000  1.0000
-///     // r[1]  1.0000  2.0000
+/// // Print
+/// cm.print();
+/// //        c[0]  c[1]
+/// // r[0]  2.0000  1.0000
+/// // r[1]  1.0000  2.0000
 ///
-///     // To Matrix
-///     let cm_mat = cm.to_matrix();
+/// // To Matrix
+/// let cm_mat = cm.to_matrix();
 ///
-///     // Calculate Accuracy
-///     let acc = cm.ACC();
+/// // Calculate Accuracy
+/// let acc = cm.ACC();
 ///
-///     // Calculate for some metrics
-///     let metrics = cm.calc_metrics(&[ACC, TPR, FPR, F1]);
+/// // Calculate for some metrics
+/// let metrics = cm.calc_metrics(&[ACC, TPR, FPR, F1]);
 ///
-///     // Print summary for some metrics
-///     cm.summary(&[ACC, TPR, FPR, F1]);
-/// }
+/// // Print summary for some metrics
+/// cm.summary(&[ACC, TPR, FPR, F1]);
 /// ```
 #[allow(non_snake_case)]
 #[derive(Debug, Clone, PartialEq)]
@@ -722,21 +718,18 @@ impl ConfusionMatrix {
     /// ```
     /// use peroxide::fuga::*;
     ///
-    /// fn main() {
-    ///     let y           = vec![1usize, 1, 1, 0, 0, 0];
-    ///     let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
-    ///     let true_val    = 1usize;
+    /// let y           = vec![1usize, 1, 1, 0, 0, 0];
+    /// let y_hat       = vec![1usize, 0, 1, 0, 0, 1];
+    /// let true_val    = 1usize;
     ///
-    ///     let true_val = 1usize;
-    ///     let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
-    ///     cm.print();
-    ///     //        c[0]  c[1]
-    ///     // r[0]  2.0000  1.0000
-    ///     // r[1]  1.0000  2.0000
-    /// }
+    /// let cm = ConfusionMatrix::new(&y, &y_hat, true_val);
+    /// cm.print();
+    /// //        c[0]  c[1]
+    /// // r[0]  2.0000  1.0000
+    /// // r[1]  1.0000  2.0000
     /// ```
     #[allow(non_snake_case)]
-    pub fn new<T: PartialEq + Clone + Copy>(y: &Vec<T>, y_hat: &Vec<T>, true_val: T) -> Self {
+    pub fn new<T: PartialEq + Clone + Copy>(y: &[T], y_hat: &[T], true_val: T) -> Self {
         let mut TP = 0;
         let mut TN = 0;
         let mut FP = 0;

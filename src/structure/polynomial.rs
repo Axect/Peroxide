@@ -501,8 +501,8 @@ impl Calculus for Polynomial {
         let l = self.coef.len() - 1;
         let mut result = vec![0f64; l];
 
-        for i in 0..l {
-            result[i] = self.coef[i] * (l - i) as f64;
+        for (i, slot) in result.iter_mut().enumerate() {
+            *slot = self.coef[i] * (l - i) as f64;
         }
         Self::new(result)
     }
@@ -511,8 +511,8 @@ impl Calculus for Polynomial {
         let l = self.coef.len();
         let mut result = vec![0f64; l + 1];
 
-        for i in 0..l {
-            result[i] = self.coef[i] / (l - i) as f64;
+        for (i, slot) in result.iter_mut().take(l).enumerate() {
+            *slot = self.coef[i] / (l - i) as f64;
         }
         Self::new(result)
     }
@@ -560,14 +560,12 @@ pub fn lagrange_polynomial(node_x: Vec<f64>, node_y: Vec<f64>) -> Polynomial {
             let prod = node_y[i];
             let mut id = poly(vec![1f64]);
 
-            for j in 0..l {
+            for (j, &target_val) in node_x.iter().enumerate().take(l) {
                 if j == i {
                     continue;
-                } else {
-                    let target_val = node_x[j];
-                    let denom = fixed_val - target_val;
-                    id = id * (poly(vec![1f64, -target_val]) / denom);
                 }
+                let denom = fixed_val - target_val;
+                id = id * (poly(vec![1f64, -target_val]) / denom);
             }
             result = result + (id * prod);
         }

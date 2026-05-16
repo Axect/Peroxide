@@ -8,7 +8,7 @@ repository = "https://github.com/Axect/Peroxide"
 license = "MIT OR Apache-2.0"
 categories = ["science"]
 readme = "README.md"
-documentation = "https://axect.github.io/Peroxide_Doc"
+documentation = "https://docs.rs/peroxide"
 keywords = ["Numeric", "Science", "Dataframe", "Plot", "LinearAlgebra"]
 exclude = [
   "example_data/",
@@ -44,6 +44,8 @@ pyo3 = { version = "0.27.1", optional = true, features = [
 ] }
 blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
+blas-src = { version = "0.14", optional = true, default-features = false }
+lapack-src = { version = "0.13", optional = true, default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 rkyv = { version = "0.8", optional = true }
 json = { version = "0.12", optional = true }
@@ -54,11 +56,34 @@ num-complex = { version = "0.4", optional = true }
 rayon = { version = "1.10", optional = true }
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--html-in-header", "katex-header.html", "--cfg", "docsrs"]
+rustdoc-args = ["--html-in-header", "katex-header.html"]
+features = [
+  "arrow",
+  "blas",
+  "complex",
+  "csv",
+  "indexmap",
+  "json",
+  "lapack",
+  "num-complex",
+  "parallel",
+  "parquet",
+  "pyo3",
+  "rayon",
+  "rkyv",
+  "serde",
+]
 
 [features]
 default = []
+# Bare BLAS / LAPACK FFI; downstream binary must also pull in a
+# `blas-src` / `lapack-src` backend to resolve the link symbols.
 O3 = ["blas", "lapack"]
+# Convenience flags that bundle a backend choice for `O3`.
+O3-openblas   = ["O3", "blas-src/openblas",   "lapack-src/openblas"]
+O3-accelerate = ["O3", "blas-src/accelerate", "lapack-src/accelerate"]
+O3-mkl        = ["O3", "blas-src/intel-mkl-dynamic-parallel", "lapack-src/intel-mkl-dynamic-parallel"]
+O3-netlib     = ["O3", "blas-src/netlib",     "lapack-src/netlib"]
 plot = ["pyo3"]
 nc = ["netcdf"]
 parquet = ["dep:parquet", "arrow", "indexmap"]

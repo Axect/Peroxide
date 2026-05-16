@@ -3,13 +3,59 @@ name: Github
 on: [push, pull_request]
 
 jobs:
-  build:
-
+  default:
+    name: Default features
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v1
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+
+  o3:
+    name: O3 (BLAS / LAPACK via OpenBLAS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenBLAS / LAPACK
+        run: sudo apt-get update && sudo apt-get install -y libopenblas-dev liblapack-dev gfortran
+      - name: Build
+        run: cargo build --verbose --features O3-openblas
+      - name: Run tests
+        run: cargo test --verbose --features O3-openblas
+
+  pure-rust:
+    name: Pure-Rust feature set
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
+      - name: Run tests
+        run: cargo test --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
+
+  plot:
+    name: plot (pyo3 + matplotlib)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install matplotlib
+        run: pip install matplotlib
+      - name: Build
+        run: cargo build --verbose --features plot
+      - name: Run tests (compile-only doctests via no_run)
+        run: cargo test --verbose --features plot
+
+  clippy:
+    name: Clippy (all targets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenBLAS / LAPACK
+        run: sudo apt-get update && sudo apt-get install -y libopenblas-dev liblapack-dev gfortran
+      - name: Run clippy
+        run: cargo clippy --all-targets --no-deps --features O3-openblas
