@@ -308,14 +308,14 @@ where
                         break;
                     }
 
-                    let h: Matrix;
+                    
 
                     let b_lu = (jtj.clone() + lambda * jtj.to_diag()).lu();
                     if b_lu.det() == 0f64 {
                         break;
                     }
                     let b = b_lu.inv();
-                    h = b * j.t() * (&y - &y_hat);
+                    let h: Matrix = b * j.t() * (&y - &y_hat);
 
                     let p_temp = &p + &h;
                     match unsafe_f(p_temp.data.to_ad_vec()) {

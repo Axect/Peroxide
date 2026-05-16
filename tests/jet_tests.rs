@@ -97,6 +97,7 @@ fn test_ad2_internal_storage() {
 }
 
 #[test]
+#[allow(non_snake_case)]
 fn test_AD0_constructor() {
     let j = AD0(9.0);
     assert_close(j.value(), 9.0);
@@ -105,6 +106,7 @@ fn test_AD0_constructor() {
 }
 
 #[test]
+#[allow(non_snake_case)]
 fn test_AD1_constructor() {
     let j = AD1(3.0, 1.0);
     assert_close(j.value(), 3.0);
@@ -113,6 +115,7 @@ fn test_AD1_constructor() {
 }
 
 #[test]
+#[allow(non_snake_case)]
 fn test_AD2_constructor() {
     let j = AD2(5.0, 3.0, 4.0);
     assert_close(j.value(), 5.0);
@@ -897,8 +900,10 @@ fn test_real_trait_polynomial_ad() {
 
 #[test]
 fn test_jet0_constant_only() {
-    let j = ad0(3.14);
-    assert_close(j.value(), 3.14);
+    // Use an arbitrary, non-mathematical-constant value so that clippy's
+    // approx_constant lint does not mis-flag this as PI.
+    let j = ad0(1.5);
+    assert_close(j.value(), 1.5);
     // No derivatives in Jet<0>
     assert_close(j.dx(), 0.0);
     assert_close(j.ddx(), 0.0);
@@ -1027,14 +1032,14 @@ fn test_partial_ord_by_value() {
 fn test_display_jet1() {
     let j = ad1(3.0, 1.0);
     let s = format!("{}", j);
-    assert!(s.contains("3"), "display should contain value: {s}");
+    assert!(s.contains("3"), "display should contain value: {}", s);
 }
 
 #[test]
 fn test_display_jet0() {
     let j = ad0(2.5);
     let s = format!("{}", j);
-    assert!(s.contains("2.5"), "display should contain value: {s}");
+    assert!(s.contains("2.5"), "display should contain value: {}", s);
 }
 
 // =============================================================================

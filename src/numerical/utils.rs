@@ -38,7 +38,7 @@ use crate::util::non_macro::{cat, zeros};
 /// }
 /// ```
 #[allow(non_snake_case)]
-pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &Vec<f64>) -> Matrix {
+pub fn jacobian<F: Fn(&Vec<AD>) -> Vec<AD>>(f: F, x: &[f64]) -> Matrix {
     let l = x.len();
     let mut x_ad: Vec<AD> = x.iter().map(|&x| AD1(x, 0f64)).collect();
     let l2 = f(&x_ad).len();
@@ -125,8 +125,8 @@ pub fn tdma(a_input: Vec<f64>, b_input: Vec<f64>, c_input: Vec<f64>, y_input: Ve
     let mut w = vec![0f64; n];
     for i in 1..n {
         w[i] = a[i] / b[i - 1];
-        b[i] = b[i] - w[i] * c[i - 1];
-        y[i] = y[i] - w[i] * y[i - 1];
+        b[i] -= w[i] * c[i - 1];
+        y[i] -= w[i] * y[i - 1];
     }
 
     // Backward substitution

@@ -1,4 +1,16 @@
-//! `peroxide` is comprehensive numerical library for Rust.
+//! `peroxide` is a comprehensive numerical computing library for Rust.
+//!
+//! Scientific computing workflows rarely stay inside a single numerical domain: a typical pipeline may solve an ODE, interpolate the result onto an irregular grid, evaluate a quadrature, find a root of a derived quantity, and serialize the output for downstream analysis.
+//! In Python, the SciPy + NumPy stack consolidates these capabilities under one namespace.
+//! In Rust the equivalent functionality is spread across specialist crates whose type systems and trait hierarchies do not always align.
+//!
+//! Peroxide fills that integration gap.
+//! It bundles linear algebra (with optional BLAS / LAPACK acceleration), ODE integrators, quadrature, splines, root finding, optimization, statistics and distributions, const-generic forward-mode automatic differentiation (`Jet<N>`), a `DataFrame` with parquet / NetCDF / CSV I/O, and an R / MATLAB / Python style macro surface.
+//! All of these are designed to interoperate through a shared `Real` trait and a compile-time-constant Butcher-tableau interface.
+//!
+//! The crate is aimed at researchers and engineers who want a batteries-included numerical toolbox in Rust without composing several specialist crates and reconciling their conventions.
+//!
+//! See the [`examples/`](https://github.com/Axect/Peroxide/tree/master/examples) directory for 40+ self-contained programs spanning every component, and the companion [Peroxide_Gallery](https://github.com/Axect/Peroxide_Gallery) repository for longer worked examples (plotting, splines, ODE applications, ...).
 //!
 //! ## Components
 //!
@@ -37,7 +49,7 @@
 //!   - Incomplete Beta
 //!   - Lambert W
 //! - Automatic Differentiation
-//!   - [Const-generic `Jet<N>` forward AD](structure/ad/index.html) — arbitrary-order Taylor mode
+//!   - [Const-generic `Jet<N>` forward AD](structure/ad/index.html) (arbitrary-order Taylor mode)
 //!   - Type aliases: `Dual = Jet<1>`, `HyperDual = Jet<2>`
 //!   - `#[ad_function]` proc macro for automatic gradient/hessian
 //! - Numerical Utils
@@ -93,41 +105,6 @@
 //!   - [Number & Real](traits/num/index.html)
 //!   - [Pointer](traits/pointer/index.html)
 //!   - [Stable](traits/stable/index.html)
-//! ## Quick Start
-//!
-//! ### Cargo.toml
-//!
-//! * Run below commands in your project directory
-//!
-//! 1. Default
-//!     ```bash
-//!     cargo add peroxide
-//!     ```
-//! 2. OpenBLAS
-//!     ```bash
-//!     cargo add peroxide --features O3
-//!     ```
-//! 3. Plot
-//!     ```bash
-//!     cargo add peroxide --features plot
-//!     ```
-//! 4. NetCDF dependency for DataFrame
-//!     ```bash
-//!     cargo add peroxide --features nc
-//!     ```
-//! 5. CSV dependency for DataFrame
-//!     ```bash
-//!     cargo add peroxide --features csv
-//!     ```
-//! 6. Parquet dependency for DataFrame
-//!     ```bash
-//!     cargo add peroxide --features parquet
-//!     ```
-//! 7. All features
-//!     ```bash
-//!     cargo add peroxide --features "O3 plot nc csv parquet"
-//!     ```
-//!
 //! ## Import all at once
 //!
 //! Peroxide has two options.
@@ -174,13 +151,20 @@
 //!     * A template for Python code that works with netcdf files can be found in the [Socialst](https://github.com/Axect/Socialst/blob/master/Templates/PyPlot_Template/nc_plot.py) repository.
 
 //!
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "O3")]
 extern crate blas;
 
 #[cfg(feature = "O3")]
 extern crate lapack;
+
+// Force link-directive propagation when a backend convenience feature
+// (`O3-openblas` / `O3-accelerate` / `O3-mkl` / `O3-netlib`) activates
+// `blas-src` / `lapack-src` via Cargo's optional-dep feature shim.
+#[cfg(feature = "blas-src")]
+extern crate blas_src as _;
+#[cfg(feature = "lapack-src")]
+extern crate lapack_src as _;
 
 #[cfg(feature = "plot")]
 extern crate pyo3;

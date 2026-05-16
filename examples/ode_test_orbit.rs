@@ -111,14 +111,14 @@ pub enum OrbitType {
     Molniya,
 }
 
-impl ToString for OrbitType {
-    fn to_string(&self) -> String {
-        match self {
+impl std::fmt::Display for OrbitType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
             OrbitType::LEO => "LEO",
             OrbitType::GEO => "GEO",
             OrbitType::Molniya => "Molniya",
-        }
-        .to_string()
+        };
+        write!(f, "{s}")
     }
 }
 
@@ -178,7 +178,7 @@ impl Orbit {
             0f64,
         ];
 
-        let Q = perifocal_to_eci_matrix(&self);
+        let Q = perifocal_to_eci_matrix(self);
         let r_eci = &Q * &r_pf;
         let v_eci = &Q * &v_pf;
 

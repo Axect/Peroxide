@@ -27,7 +27,7 @@ impl SPMatrix {
             col,
             nnz,
             col_ptr: vec![0usize; col + 1],
-            row_ics: vec![0usize, nnz],
+            row_ics: vec![0usize; nnz],
             data: vec![0f64; nnz],
         }
     }
@@ -94,14 +94,13 @@ impl SPMatrix {
         let mut result = Self::new(col, row, nnz);
 
         for i in 0..col {
-            for j in col_ptr[i]..col_ptr[i + 1] {
-                let k = row_ics[j];
+            for &k in &row_ics[col_ptr[i]..col_ptr[i + 1]] {
                 count[k] += 1;
             }
         }
-        for j in 0..row {
-            result.col_ptr[j + 1] = result.col_ptr[j] + count[j];
-            count[j] = 0;
+        for (j, c) in count.iter_mut().enumerate().take(row) {
+            result.col_ptr[j + 1] = result.col_ptr[j] + *c;
+            *c = 0;
         }
         for i in 0..col {
             for j in col_ptr[i]..col_ptr[i + 1] {
@@ -210,21 +209,21 @@ impl Mul<Vec<f64>> for SPMatrix {
 }
 
 /// Reference version of matrix multiplication with vector
-impl<'a, 'b> Mul<&'b Vec<f64>> for &'a SPMatrix {
+impl<'b> Mul<&'b Vec<f64>> for &SPMatrix {
     type Output = Vec<f64>;
     fn mul(self, rhs: &'b Vec<f64>) -> Self::Output {
         self.apply(rhs)
     }
 }
 
-impl Into<Matrix> for SPMatrix {
-    fn into(self) -> Matrix {
-        self.to_dense()
+impl From<SPMatrix> for Matrix {
+    fn from(val: SPMatrix) -> Self {
+        val.to_dense()
     }
 }
 
-impl Into<SPMatrix> for Matrix {
-    fn into(self) -> SPMatrix {
-        SPMatrix::from_dense(&self)
+impl From<Matrix> for SPMatrix {
+    fn from(val: Matrix) -> Self {
+        SPMatrix::from_dense(&val)
     }
 }

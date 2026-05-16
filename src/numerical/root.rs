@@ -820,7 +820,6 @@ impl RootFinder<1, 1, (f64, f64)> for FalsePositionMethod {
 ///     }
 /// }
 /// ```
-
 pub struct BroydenMethod {
     pub max_iter: usize,
     pub tol: f64,

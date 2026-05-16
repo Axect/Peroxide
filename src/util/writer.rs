@@ -41,6 +41,12 @@ pub struct SimpleWriter {
     to_write: HashMap<ToWriter, bool>,
 }
 
+impl Default for SimpleWriter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SimpleWriter {
     pub fn new() -> SimpleWriter {
         let mut default_to_write: HashMap<ToWriter, bool> = HashMap::new();

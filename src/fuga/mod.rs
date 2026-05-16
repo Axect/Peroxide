@@ -220,7 +220,7 @@ pub use crate::statistics::stat::QType::{
     Type1, Type2, Type3, Type4, Type5, Type6, Type7, Type8, Type9,
 };
 pub use crate::structure::dataframe::DType::*;
-pub use crate::traits::matrix::UPLO::{Lower, Upper};
+pub use crate::traits::matrix::UPLO::{self, Lower, Upper};
 pub use crate::traits::matrix::{
     Form::{Diagonal, Identity},
     SolveKind::{LU, WAZ},

@@ -26,8 +26,8 @@ pub fn ln_gamma_approx(z: f64) -> f64 {
     let z = z - 1f64;
     let base = z + G + 0.5;
     let mut s = 0f64;
-    for i in 1..N {
-        s += LG5N7[i] / (z + i as f64);
+    for (i, &c) in LG5N7.iter().enumerate().take(N).skip(1) {
+        s += c / (z + i as f64);
     }
     s += LG5N7[0];
     (2f64 * PI).sqrt().ln() + s.ln() - base + base.ln() * (z + 0.5)
@@ -114,8 +114,8 @@ fn f(g: f64, n: usize) -> f64 {
 
 fn f_gen(g: f64, n: usize) -> Vec<f64> {
     let mut v = vec![0f64; n + 1];
-    for i in 0..n + 1 {
-        v[i] = f(g, i);
+    for (i, slot) in v.iter_mut().enumerate() {
+        *slot = f(g, i);
     }
     v
 }

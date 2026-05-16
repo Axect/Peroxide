@@ -428,10 +428,8 @@ impl Printable for ConfusionMatrix {
 /// ```rust
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let x = 123.456;
-///     assert_eq!(x.fmt_lower_exp(2), "1.23e+2");
-/// }
+/// let x = 123.456;
+/// assert_eq!(x.fmt_lower_exp(2), "1.23e+2");
 /// ```
 pub trait LowerExpWithPlus: LowerExp {
     fn fmt_lower_exp(&self, precision: usize) -> String {
@@ -457,10 +455,8 @@ impl LowerExpWithPlus for f64 {}
 /// ```rust
 /// use peroxide::fuga::*;
 ///
-/// fn main() {
-///     let x = 123.456;
-///     assert_eq!(x.fmt_upper_exp(2), "1.23E+2");
-/// }
+/// let x = 123.456;
+/// assert_eq!(x.fmt_upper_exp(2), "1.23E+2");
 /// ```
 pub trait UpperExpWithPlus: UpperExp {
     fn fmt_upper_exp(&self, precision: usize) -> String {

@@ -41,6 +41,7 @@ struct Test {
 
 impl ODEProblem for Test {
     fn rhs(&self, t: f64, _y: &[f64], dy: &mut [f64]) -> anyhow::Result<()> {
-        Ok(dy[0] = self.cs.eval(t))
+        dy[0] = self.cs.eval(t);
+        Ok(())
     }
 }

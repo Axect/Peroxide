@@ -259,7 +259,22 @@ impl Mul<Redox<Vec<f64>>> for &SPMatrix {
 // =============================================================================
 /// Pointer for col or row
 pub trait MatrixPtr {
+    /// Returns raw const pointers to the elements of row `idx`.
+    ///
+    /// # Safety
+    ///
+    /// `idx` must be a valid row index for the matrix. The returned
+    /// pointers borrow from `self` and are invalidated if the matrix
+    /// is reallocated or mutated through another reference.
     unsafe fn row_ptr(&self, idx: usize) -> Vec<*const f64>;
+
+    /// Returns raw const pointers to the elements of column `idx`.
+    ///
+    /// # Safety
+    ///
+    /// `idx` must be a valid column index for the matrix. The returned
+    /// pointers borrow from `self` and are invalidated if the matrix
+    /// is reallocated or mutated through another reference.
     unsafe fn col_ptr(&self, idx: usize) -> Vec<*const f64>;
 }
 

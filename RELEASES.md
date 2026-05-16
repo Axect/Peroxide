@@ -1,3 +1,32 @@
+# Release 0.41.1 (2026-05-16)
+
+## JOSS review (#10366) cycle
+
+### Bug fix
+- Allocate `row_ics` with the correct `nnz` length in `SPMatrix::new` ([9723fde](https://github.com/Axect/Peroxide/commit/9723fde))
+
+### Build
+- Add `O3-openblas` / `O3-netlib` / `O3-accelerate` / `O3-intel-mkl` convenience features that select the BLAS/LAPACK link backend in one go ([#98](https://github.com/Axect/Peroxide/issues/98))
+
+### Documentation
+- Restructure `README.md`, add quickstart and source layout ([#99](https://github.com/Axect/Peroxide/issues/99))
+- Expand optional feature documentation, document O3 backend selection and HDF5 1.x constraint ([#98](https://github.com/Axect/Peroxide/issues/98))
+- Point `documentation` URL to docs.rs, add Statement of need and examples links to the crate landing page
+- Fix docs.rs build ([#97](https://github.com/Axect/Peroxide/issues/97))
+- Expand `CONTRIBUTING.md`
+
+### CI / Lint
+- Test optional features in separate jobs ([#98](https://github.com/Axect/Peroxide/issues/98))
+- Promote `cargo clippy --all-targets` to a blocking job and clear all warnings across crate / tests / examples
+- Add `examples/clippy_verify.rs` determinism oracle for the Phase 2 lint refactor
+
+### Test
+- Strengthen `tests/optimize.rs` and `tests/integral.rs` suites
+
+### Paper
+- Add JOSS paper sources (`paper/paper.md`, `paper/paper.bib`), co-authors, and Acknowledgements
+- Add citations and trade-off discussion (lapack, ndarray, enzyme, openblas)
+
 # Release 0.41.0 (2026-03-15)
 
 ## Replace `enum AD` with const-generic `Jet<N>` (**Breaking Change**)
