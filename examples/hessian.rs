@@ -16,16 +16,16 @@ fn main() {
     let y = Jet::<2>::constant(1.0);
     let result_x = f(x, y);
     println!("At (1, 1):");
-    println!("  f(1, 1)   = {}", result_x.value());  // 0
-    println!("  df/dx     = {}", result_x.dx());      // 0
-    println!("  d²f/dx²   = {}", result_x.ddx());     // 42
+    println!("  f(1, 1)   = {}", result_x.value()); // 0
+    println!("  df/dx     = {}", result_x.dx()); // 0
+    println!("  d²f/dx²   = {}", result_x.ddx()); // 42
 
     // df/dy and d²f/dy² at (1, 1): seed y as variable, keep x constant.
     let x = Jet::<2>::constant(1.0);
     let y = Jet::<2>::var(1.0);
     let result_y = f(x, y);
-    println!("  df/dy     = {}", result_y.dx());      // 0
-    println!("  d²f/dy²   = {}", result_y.ddx());     // 10
+    println!("  df/dy     = {}", result_y.dx()); // 0
+    println!("  d²f/dy²   = {}", result_y.ddx()); // 10
 }
 
 fn f(x: Jet<2>, y: Jet<2>) -> Jet<2> {
