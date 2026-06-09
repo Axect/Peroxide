@@ -6,13 +6,23 @@ const P_TRUE: [f64; 3] = [1.0, 2.0, 3.0];
 // y = p[0] * t^2 + p[1] * t + p[2]
 #[allow(clippy::ptr_arg)]
 fn quadratic(x: &Vec<f64>, p: Vec<AD>) -> Option<Vec<AD>> {
-    Some(x.iter().map(|t| AD1(*t, 0f64)).map(|t| p[0] * t.powi(2) + p[1] * t + p[2]).collect())
+    Some(
+        x.iter()
+            .map(|t| AD1(*t, 0f64))
+            .map(|t| p[0] * t.powi(2) + p[1] * t + p[2])
+            .collect(),
+    )
 }
 
 // y = p[0] * exp(p[1] * t)
 #[allow(clippy::ptr_arg)]
 fn exp_decay(x: &Vec<f64>, p: Vec<AD>) -> Option<Vec<AD>> {
-    Some(x.iter().map(|t| AD1(*t, 0f64)).map(|t| p[0] * (p[1] * t).exp()).collect())
+    Some(
+        x.iter()
+            .map(|t| AD1(*t, 0f64))
+            .map(|t| p[0] * (p[1] * t).exp())
+            .collect(),
+    )
 }
 
 #[test]
@@ -23,7 +33,8 @@ fn test_LM_quadratic_recovers_parameters() {
     let data = hstack!(x, y);
 
     let mut opt = Optimizer::new(data, quadratic);
-    let p = opt.set_init_param(vec![1f64, 1f64, 1f64])
+    let p = opt
+        .set_init_param(vec![1f64, 1f64, 1f64])
         .set_max_iter(50)
         .set_method(LevenbergMarquardt)
         .set_lambda_init(1e-3)
@@ -44,7 +55,8 @@ fn test_GD_quadratic_makes_progress() {
     let p_init = [1f64, 1f64, 1f64];
 
     let mut opt = Optimizer::new(data, quadratic);
-    let p = opt.set_init_param(p_init.to_vec())
+    let p = opt
+        .set_init_param(p_init.to_vec())
         .set_max_iter(1000)
         .set_method(GradientDescent)
         .set_lr(1e-6)
@@ -68,7 +80,8 @@ fn test_LM_exponential_recovers_parameters() {
     let data = hstack!(x, y);
 
     let mut opt = Optimizer::new(data, exp_decay);
-    let p = opt.set_init_param(vec![1.0_f64, -0.1_f64])
+    let p = opt
+        .set_init_param(vec![1.0_f64, -0.1_f64])
         .set_max_iter(100)
         .set_method(LevenbergMarquardt)
         .set_lambda_init(1e-3)

@@ -8,7 +8,9 @@ fn assert_close(actual: f64, expected: f64) {
     assert!(
         (actual - expected).abs() < TOL,
         "actual = {:.17e}, expected = {:.17e}, diff = {:.3e}",
-        actual, expected, (actual - expected).abs()
+        actual,
+        expected,
+        (actual - expected).abs()
     );
 }
 

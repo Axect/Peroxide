@@ -3569,7 +3569,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                     Some(obj) => obj,
                 };
                 let x = &wazd.w.t() * &b.to_vec();
-                
+
                 &wazd.z * &x
             }
         }
@@ -3616,7 +3616,7 @@ impl LinearAlgebra<Matrix> for Matrix {
                     Some(obj) => obj,
                 };
                 let x = &wazd.w.t() * m;
-                
+
                 &wazd.z * &x
             }
         }

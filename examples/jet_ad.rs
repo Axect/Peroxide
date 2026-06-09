@@ -6,16 +6,16 @@ fn main() {
     let x = Jet::<1>::var(2.0);
     let y = x.powi(3);
     println!("f(x) = x^3 at x = 2");
-    println!("  f(2)  = {}", y.value());  // 8
-    println!("  f'(2) = {}", y.dx());     // 12
+    println!("  f(2)  = {}", y.value()); // 8
+    println!("  f'(2) = {}", y.dx()); // 12
 
     // 2. Second-order: f(x) = sin(x) at x = pi/4
     let x = Jet::<2>::var(std::f64::consts::FRAC_PI_4);
     let y = x.sin();
     println!("\nf(x) = sin(x) at x = pi/4");
-    println!("  f(pi/4)   = {:.6}", y.value());  //  0.707107
-    println!("  f'(pi/4)  = {:.6}", y.dx());     //  0.707107  (cos(pi/4))
-    println!("  f''(pi/4) = {:.6}", y.ddx());    // -0.707107  (-sin(pi/4))
+    println!("  f(pi/4)   = {:.6}", y.value()); //  0.707107
+    println!("  f'(pi/4)  = {:.6}", y.dx()); //  0.707107  (cos(pi/4))
+    println!("  f''(pi/4) = {:.6}", y.ddx()); // -0.707107  (-sin(pi/4))
 
     // 3. Higher-order: f(x) = exp(x) at x = 0
     //    All derivatives of exp are 1 at 0, so f^(k)(0) = 1 for every k.
@@ -43,15 +43,15 @@ fn main() {
     let x: Dual = Dual::var(1.0);
     let y = x.ln();
     println!("\nUsing Dual alias: f(x) = ln(x) at x = 1");
-    println!("  f(1)  = {}", y.value());  // 0
-    println!("  f'(1) = {}", y.dx());     // 1
+    println!("  f(1)  = {}", y.value()); // 0
+    println!("  f'(1) = {}", y.dx()); // 1
 
     let x: HyperDual = HyperDual::var(1.0);
     let y = x.ln();
     println!("\nUsing HyperDual alias: f(x) = ln(x) at x = 1");
     println!("  f(1)   = {}", y.value()); // 0
-    println!("  f'(1)  = {}", y.dx());    // 1
-    println!("  f''(1) = {}", y.ddx());   // -1
+    println!("  f'(1)  = {}", y.dx()); // 1
+    println!("  f''(1) = {}", y.ddx()); // -1
 
     // 6. Backward-compat constructors (AD0 / AD1 / AD2)
     //    AD is an alias for Jet<2>; AD1 and AD2 set derivatives directly.
