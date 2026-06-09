@@ -3,6 +3,16 @@ name: Github
 on: [push, pull_request]
 
 jobs:
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+      - name: Check formatting
+        run: cargo fmt --all --check
+
   default:
     name: Default features
     runs-on: ubuntu-latest
