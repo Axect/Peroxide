@@ -308,8 +308,6 @@ where
                         break;
                     }
 
-                    
-
                     let b_lu = (jtj.clone() + lambda * jtj.to_diag()).lu();
                     if b_lu.det() == 0f64 {
                         break;

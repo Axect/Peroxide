@@ -981,16 +981,13 @@ impl ParallelVectorProduct for Vec<f64> {
                 v[0] = self[0] * other[1] - self[1] * other[0];
                 v
             }
-            3 => {
-                
-                (0..3)
-                    .into_par_iter()
-                    .map(|index| {
-                        self[(index + 1) % 3] * other[(index + 2) % 3]
-                            - self[(index + 2) % 3] * other[(index + 1) % 3]
-                    })
-                    .collect::<Vec<f64>>()
-            }
+            3 => (0..3)
+                .into_par_iter()
+                .map(|index| {
+                    self[(index + 1) % 3] * other[(index + 2) % 3]
+                        - self[(index + 2) % 3] * other[(index + 1) % 3]
+                })
+                .collect::<Vec<f64>>(),
             _ => {
                 panic!("Cross product can be defined only in 2 or 3 dimension")
             }
