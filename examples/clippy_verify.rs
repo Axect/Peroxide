@@ -61,10 +61,7 @@ fn check_integral() {
     let f = |x: f64| x.cos() + 0.25 * x * x;
     for &n in &[15_usize, 21, 31, 41, 51, 61] {
         let r: f64 = kronrod_quadrature(f, n, (0.0, 1.7));
-        print_kv(
-            &format!("kronrod_quadrature n={}", n),
-            format!("{r:.17e}"),
-        );
+        print_kv(&format!("kronrod_quadrature n={}", n), format!("{r:.17e}"));
         // also exercise with a different smooth integrand to widen coverage
         let r2: f64 = kronrod_quadrature(|x: f64| (-x * x).exp(), n, (-2.5, 1.5));
         print_kv(
@@ -78,17 +75,17 @@ fn check_chebyshev_lagrange() {
     // chebyshev_nodes carries one of the affected loops directly.
     for &n in &[4_usize, 8, 16, 32] {
         let nodes = chebyshev_nodes(n, -2.0, 3.5);
-        print_kv(
-            &format!("chebyshev_nodes(n={n}) hash"),
-            hash_f64s(&nodes),
-        );
+        print_kv(&format!("chebyshev_nodes(n={n}) hash"), hash_f64s(&nodes));
     }
     // lagrange_polynomial uses divided-difference loops touched by clippy.
     let xs = vec![0.0_f64, 0.5, 1.1, 1.7, 2.4, 3.0];
     let ys: Vec<f64> = xs.iter().map(|x| x.sin() + 0.5 * x).collect();
     let p = lagrange_polynomial(xs.clone(), ys.clone());
     for &q in &[0.1_f64, 0.7, 1.3, 1.9, 2.5] {
-        print_kv(&format!("lagrange.eval({q})"), format!("{:.17e}", p.eval(q)));
+        print_kv(
+            &format!("lagrange.eval({q})"),
+            format!("{:.17e}", p.eval(q)),
+        );
     }
     print_kv(
         "lagrange.derivative coeffs",
@@ -212,10 +209,7 @@ fn check_polynomial() {
     print_kv("poly.derivative", hash_f64s(&p.derivative().coef));
     print_kv("poly.integral", hash_f64s(&p.integral().coef));
     for &x in &[-1.0_f64, -0.25, 0.0, 0.5, 1.5, 2.7] {
-        print_kv(
-            &format!("poly.eval({x})"),
-            format!("{:.17e}", p.eval(x)),
-        );
+        print_kv(&format!("poly.eval({x})"), format!("{:.17e}", p.eval(x)));
     }
 }
 
