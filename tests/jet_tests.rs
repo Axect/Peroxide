@@ -658,11 +658,7 @@ fn test_sin_at_zero_jet10_derivative_cycle() {
     let y = x.sin();
     let expected = [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0];
     for (k, &exp) in expected.iter().enumerate() {
-        assert_close_eps(
-            y.derivative(k),
-            exp,
-            1e-10,
-        );
+        assert_close_eps(y.derivative(k), exp, 1e-10);
     }
 }
 
@@ -696,11 +692,7 @@ fn test_cos_at_zero_jet10_derivative_cycle() {
     let y = x.cos();
     let expected = [1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0];
     for (k, &exp) in expected.iter().enumerate() {
-        assert_close_eps(
-            y.derivative(k),
-            exp,
-            1e-10,
-        );
+        assert_close_eps(y.derivative(k), exp, 1e-10);
     }
 }
 
@@ -978,9 +970,9 @@ fn test_index_operator_jet1() {
 #[test]
 fn test_index_operator_jet2() {
     let j = ad2(5.0, 3.0, 4.0);
-    assert_close(j[0], 5.0);     // value
-    assert_close(j[1], 3.0);     // deriv[0] = dx
-    assert_close(j[2], 2.0);     // deriv[1] = ddx/2 = 4/2 = 2
+    assert_close(j[0], 5.0); // value
+    assert_close(j[1], 3.0); // deriv[0] = dx
+    assert_close(j[2], 2.0); // deriv[1] = ddx/2 = 4/2 = 2
 }
 
 #[test]
@@ -1111,26 +1103,19 @@ fn test_fpvector_fmap_jet1() {
 
 #[test]
 fn test_fpvector_sum_jet1() {
-    let v: Vec<Jet<1>> = vec![
-        ad1(1.0, 1.0),
-        ad1(2.0, 2.0),
-        ad1(3.0, 3.0),
-    ];
+    let v: Vec<Jet<1>> = vec![ad1(1.0, 1.0), ad1(2.0, 2.0), ad1(3.0, 3.0)];
     let s = v.sum();
     // FPVector::sum uses reduce(self[0], +) which double-counts first element
-    assert_close(s.value(), 7.0);  // 1 + (1+2+3)
+    assert_close(s.value(), 7.0); // 1 + (1+2+3)
     assert_close(s.dx(), 7.0);
 }
 
 #[test]
 fn test_fpvector_prod_jet1() {
-    let v: Vec<Jet<1>> = vec![
-        Jet::<1>::constant(2.0),
-        Jet::<1>::constant(3.0),
-    ];
+    let v: Vec<Jet<1>> = vec![Jet::<1>::constant(2.0), Jet::<1>::constant(3.0)];
     let p = v.prod();
     // FPVector::prod uses reduce(self[0], *) which double-counts first element
-    assert_close(p.value(), 12.0);  // 2 * (2*3)
+    assert_close(p.value(), 12.0); // 2 * (2*3)
 }
 
 // =============================================================================
