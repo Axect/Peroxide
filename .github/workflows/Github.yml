@@ -45,6 +45,34 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
 
+  feature-combinations:
+    name: Feature combinations (cargo-hack)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenBLAS / LAPACK
+        run: sudo apt-get update && sudo apt-get install -y libopenblas-dev liblapack-dev gfortran
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+      # Every feature (including the optional-dependency features) must build on
+      # its own. Linear in the number of features, so the cached target dir stays
+      # bounded. The non-OpenBLAS backends (Accelerate / MKL / netlib) and the
+      # HDF5 features (nc / netcdf) are excluded because they need an external
+      # toolchain (vendor BLAS, HDF5 headers) or a non-Linux platform rather than
+      # being a code problem; plot / pyo3 are exercised by the dedicated plot job.
+      - name: Each feature builds on its own
+        run: >
+          cargo hack build --each-feature --optional-deps --keep-going
+          --exclude-features O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src
+      # Pairwise (depth 2) coverage over the pure-Rust / numerical features. The
+      # heavy compile units (arrow / parquet) and the backend / HDF5 / Python
+      # features are excluded so the target dir does not blow up on a CI runner.
+      - name: Pairwise feature powerset (pure-Rust / numerical)
+        run: >
+          cargo hack build --feature-powerset --depth 2 --optional-deps --keep-going
+          --exclude-features O3,O3-openblas,O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src,arrow,parquet
+
   plot:
     name: plot (pyo3 + matplotlib)
     runs-on: ubuntu-latest
