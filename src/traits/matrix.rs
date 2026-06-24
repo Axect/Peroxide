@@ -28,6 +28,7 @@ pub trait MatrixTrait:
     fn to_diag(&self) -> Self;
     fn submat(&self, start: (usize, usize), end: (usize, usize)) -> Self;
     fn subs_mat(&mut self, start: (usize, usize), end: (usize, usize), m: &Self);
+    fn shape(&self) -> (usize, usize);
 }
 
 // ┌─────────────────────────────────────────────────────────┐

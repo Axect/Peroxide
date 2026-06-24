@@ -706,6 +706,10 @@ impl MatrixTrait for ComplexMatrix {
             }
         }
     }
+
+    fn shape(&self) -> (usize, usize) {
+        (self.row, self.col)
+    }
 }
 
 // =============================================================================
