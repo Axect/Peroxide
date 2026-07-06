@@ -1272,6 +1272,10 @@ impl MatrixTrait for Matrix {
             }
         }
     }
+
+    fn shape(&self) -> (usize, usize) {
+        (self.row, self.col)
+    }
 }
 
 impl Matrix {
