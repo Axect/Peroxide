@@ -678,17 +678,22 @@ impl fmt::Display for Shape {
 
 /// R-like matrix structure
 ///
+/// The fields are private to protect the invariant `data.len() == row * col`,
+/// which the internal unsafe code (raw pointers, BLAS calls) relies on.
+/// Construct matrices with [`matrix`], the `ml_matrix!` / `py_matrix!` style
+/// constructors, or [`MatrixTrait::from_index`], and read the dimensions back
+/// with [`Matrix::nrow`], [`Matrix::ncol`], [`MatrixTrait::shape`], and
+/// [`Matrix::layout`].
+///
 /// # Examples
 ///
 /// ```
 /// use peroxide::fuga::*;
 ///
-/// let a = Matrix {
-///     data: vec![1f64,2f64,3f64,4f64],
-///     row: 2,
-///     col: 2,
-///     shape: Row,
-/// }; // [[1,2],[3,4]]
+/// let a = matrix(vec![1f64, 2f64, 3f64, 4f64], 2, 2, Row); // [[1,2],[3,4]]
+/// assert_eq!(a.nrow(), 2);
+/// assert_eq!(a.ncol(), 2);
+/// assert_eq!(a.layout(), Row);
 /// ```
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -697,10 +702,32 @@ impl fmt::Display for Shape {
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
 )]
 pub struct Matrix {
-    pub data: Vec<f64>,
-    pub row: usize,
-    pub col: usize,
-    pub shape: Shape,
+    pub(crate) data: Vec<f64>,
+    pub(crate) row: usize,
+    pub(crate) col: usize,
+    pub(crate) shape: Shape,
+}
+
+impl Matrix {
+    /// Number of rows
+    pub fn nrow(&self) -> usize {
+        self.row
+    }
+
+    /// Number of columns
+    pub fn ncol(&self) -> usize {
+        self.col
+    }
+
+    /// Storage order of the underlying buffer (row-major or column-major)
+    pub fn layout(&self) -> Shape {
+        self.shape
+    }
+
+    /// Consume the matrix and return the underlying buffer in storage order
+    pub fn into_vec(self) -> Vec<f64> {
+        self.data
+    }
 }
 
 // =============================================================================
@@ -724,8 +751,17 @@ pub fn matrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> Matrix
 where
     T: Into<f64>,
 {
+    let data = v.into_iter().map(|t| t.into()).collect::<Vec<f64>>();
+    assert_eq!(
+        data.len(),
+        r * c,
+        "matrix: data length ({}) does not match row * col ({} * {})",
+        data.len(),
+        r,
+        c
+    );
     Matrix {
-        data: v.into_iter().map(|t| t.into()).collect::<Vec<f64>>(),
+        data,
         row: r,
         col: c,
         shape,
@@ -879,9 +915,9 @@ impl MatrixTrait for Matrix {
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
-    /// assert_eq!(a.shape, Row);
+    /// assert_eq!(a.layout(), Row);
     /// let b = a.change_shape();
-    /// assert_eq!(b.shape, Col);
+    /// assert_eq!(b.layout(), Col);
     /// ```
     fn change_shape(&self) -> Self {
         let r = self.row;
@@ -920,9 +956,9 @@ impl MatrixTrait for Matrix {
     /// use peroxide::fuga::*;
     ///
     /// let a = matrix(vec![1,2,3,4],2,2,Row);
-    /// assert_eq!(a.shape, Row);
+    /// assert_eq!(a.layout(), Row);
     /// let b = a.change_shape();
-    /// assert_eq!(b.shape, Col);
+    /// assert_eq!(b.layout(), Col);
     /// ```
     fn change_shape_mut(&mut self) {
         let r = self.row;
