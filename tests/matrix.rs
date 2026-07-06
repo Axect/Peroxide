@@ -170,3 +170,11 @@ fn test_matrix_rejects_length_mismatch() {
     // row * col must be impossible to construct from safe code.
     let _ = matrix(vec![1, 2, 3], 2, 2, Row);
 }
+
+#[test]
+fn test_trace() {
+    let a = ml_matrix("1 2; 3 4");
+    assert_eq!(a.trace(), 5f64);
+    // layout independence
+    assert_eq!(a.change_shape().trace(), 5f64);
+}

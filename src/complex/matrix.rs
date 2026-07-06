@@ -12,7 +12,7 @@ use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     complex::C64,
-    structure::matrix::Shape,
+    structure::matrix::{matrix, Matrix, Shape},
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
@@ -73,6 +73,91 @@ impl ComplexMatrix {
     /// Consume the matrix and return the underlying buffer in storage order
     pub fn into_vec(self) -> Vec<C64> {
         self.data
+    }
+
+    /// Trace of a square complex matrix (sum of the diagonal entries)
+    ///
+    /// # Panics
+    /// Panics if the matrix is not square.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![
+    ///     C64::new(1f64, 1f64),
+    ///     C64::new(2f64, 2f64),
+    ///     C64::new(3f64, 3f64),
+    ///     C64::new(4f64, -1f64),
+    /// ], 2, 2, Row);
+    /// assert_eq!(a.trace(), C64::new(5f64, 0f64));
+    /// ```
+    pub fn trace(&self) -> C64 {
+        self.diag().into_iter().sum()
+    }
+
+    /// Hermitian conjugate (conjugate transpose)
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![
+    ///     C64::new(1f64, 1f64),
+    ///     C64::new(2f64, -1f64),
+    ///     C64::new(0f64, 2f64),
+    ///     C64::new(3f64, 0f64),
+    /// ], 2, 2, Row);
+    /// let ah = a.h();
+    /// assert_eq!(ah[(0, 1)], C64::new(0f64, -2f64));
+    /// assert_eq!(ah[(1, 0)], C64::new(2f64, 1f64));
+    /// ```
+    pub fn h(&self) -> Self {
+        let mut m = self.transpose();
+        for x in m.as_mut_slice() {
+            *x = x.conj();
+        }
+        m
+    }
+
+    /// Real part as a real matrix
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![C64::new(1f64, 2f64), C64::new(3f64, 4f64)], 1, 2, Row);
+    /// assert_eq!(a.real()[(0, 1)], 3f64);
+    /// ```
+    pub fn real(&self) -> Matrix {
+        matrix(
+            self.data.iter().map(|c| c.re).collect::<Vec<f64>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+
+    /// Imaginary part as a real matrix
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![C64::new(1f64, 2f64), C64::new(3f64, 4f64)], 1, 2, Row);
+    /// assert_eq!(a.imag()[(0, 1)], 4f64);
+    /// ```
+    pub fn imag(&self) -> Matrix {
+        matrix(
+            self.data.iter().map(|c| c.im).collect::<Vec<f64>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
     }
 }
 

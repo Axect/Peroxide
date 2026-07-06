@@ -728,6 +728,22 @@ impl Matrix {
     pub fn into_vec(self) -> Vec<f64> {
         self.data
     }
+
+    /// Trace of a square matrix (sum of the diagonal entries)
+    ///
+    /// # Panics
+    /// Panics if the matrix is not square.
+    ///
+    /// # Examples
+    /// ```
+    /// use peroxide::fuga::*;
+    ///
+    /// let a = ml_matrix("1 2; 3 4");
+    /// assert_eq!(a.trace(), 5f64);
+    /// ```
+    pub fn trace(&self) -> f64 {
+        self.diag().iter().sum()
+    }
 }
 
 // =============================================================================
