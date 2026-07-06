@@ -500,29 +500,46 @@ where
     let K = kronrod_sum * xh;
 
     // 6. Calculate Gauss sum (G) using stored evaluations and Gauss weights
-    // Assumes G(g) nodes are subset of K(k), g is odd, standard mapping: +/- xg_j maps to +/- xk_{2j}.
+    // The Gauss nodes are a subset of the Kronrod nodes, but their position
+    // relative to the Kronrod center node (0.0) depends on the parity of g:
+    // - odd g: 0.0 is a Gauss node; +/- xg_j maps to Kronrod indices center +/- 2j
+    // - even g: 0.0 is a Kronrod-only node; +/- xg_j maps to center +/- (2j - 1)
     let kronrod_center_idx = k / 2; // Index of 0.0 node in Kronrod/f_evals
-    let gauss_center_idx = g / 2; // Index of 0.0 weight in Gauss weights
-    let num_gauss_pairs = (g - 1) / 2;
 
-    // Contribution from center node (0.0)
-    let mut gauss_sum = f_evals[kronrod_center_idx].clone() * gauss_weights[gauss_center_idx];
+    let mut gauss_sum;
+    let num_gauss_pairs;
+    let node_offset_parity; // Kronrod offset of pair j is 2j - node_offset_parity
+    let gauss_weight_base; // Gauss weight index of pair j is gauss_weight_base + j
+    if g % 2 == 1 {
+        // Center node contribution with the true center Gauss weight
+        gauss_sum = f_evals[kronrod_center_idx].clone() * gauss_weights[g / 2];
+        num_gauss_pairs = (g - 1) / 2;
+        node_offset_parity = 0;
+        gauss_weight_base = g / 2;
+    } else {
+        // Even-order Gauss rules have no node at 0.0: every node is paired
+        gauss_sum = Y::ZERO;
+        num_gauss_pairs = g / 2;
+        node_offset_parity = 1;
+        gauss_weight_base = g / 2 - 1;
+    }
 
     // Contribution from paired Gauss nodes (+/- xg_j)
     for j in 1..=num_gauss_pairs {
-        if 2 * j > kronrod_center_idx {
+        let offset = 2 * j - node_offset_parity;
+        if offset > kronrod_center_idx {
             panic!(
                 "Kronrod node index underflow. k={}, center_idx={}, j={}",
                 k, kronrod_center_idx, j
             );
         }
 
-        // Indices in f_evals corresponding to Kronrod nodes +/- xk_{2j}
-        let kronrod_node_pos_idx = kronrod_center_idx + 2 * j;
-        let kronrod_node_neg_idx = kronrod_center_idx - 2 * j;
+        // Indices in f_evals corresponding to the Kronrod nodes hosting +/- xg_j
+        let kronrod_node_pos_idx = kronrod_center_idx + offset;
+        let kronrod_node_neg_idx = kronrod_center_idx - offset;
 
         // Index in gauss_weights for the symmetric weight of the pair +/- xg_j
-        let gauss_weight_pair_idx = gauss_center_idx + j;
+        let gauss_weight_pair_idx = gauss_weight_base + j;
 
         // Safety checks
         if kronrod_node_pos_idx >= k || kronrod_node_neg_idx >= k {
@@ -2192,3 +2209,56 @@ const KRONROD_WEIGHTS_61: [f64; 61] = [
     0.003890461127099884,
     0.001389013698677008,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const GK_ORDERS: [(usize, usize); 6] =
+        [(7, 15), (10, 21), (15, 31), (20, 41), (25, 51), (30, 61)];
+
+    #[test]
+    fn gauss_sum_reconstruction_is_exact_for_low_degree_polynomials() {
+        // Both G and K integrate a cubic exactly, so the reconstructed Gauss
+        // sum must match the Kronrod sum to round-off. Regression test for #93:
+        // the even-order reconstruction added a spurious center term and used
+        // wrong node offsets, so |G - K| stayed O(1) instead of vanishing.
+        let f = |x: f64| 1.0 + x + x * x + x * x * x;
+        let exact = 1.0 + 0.5 + 1.0 / 3.0 + 0.25;
+        for (g, k) in GK_ORDERS {
+            let (g_sum, k_sum, err): (f64, f64, f64) =
+                compute_gauss_kronrod_sums_stored(f, (0.0, 1.0), g, k);
+            assert!(
+                (g_sum - k_sum).abs() < 1e-13,
+                "G{}K{}: G = {:.17e}, K = {:.17e}",
+                g,
+                k,
+                g_sum,
+                k_sum
+            );
+            assert!((k_sum - exact).abs() < 1e-13);
+            assert!(err.abs() < 1e-13);
+        }
+    }
+
+    #[test]
+    fn gauss_sum_reconstruction_matches_direct_gauss_legendre() {
+        // For an arbitrary smooth integrand the Gauss sum reconstructed from
+        // the stored Kronrod evaluations must equal the directly computed
+        // Gauss-Legendre quadrature of the same order.
+        let f = |x: f64| (1.5 * x).sin() + (-x).exp();
+        for (g, k) in GK_ORDERS {
+            let (g_sum, _, _): (f64, f64, f64) =
+                compute_gauss_kronrod_sums_stored(f, (0.3, 2.1), g, k);
+            let direct: f64 = gauss_legendre_quadrature(f, g, (0.3, 2.1));
+            assert!(
+                (g_sum - direct).abs() < 1e-13,
+                "G{}K{}: reconstructed = {:.17e}, direct = {:.17e}",
+                g,
+                k,
+                g_sum,
+                direct
+            );
+        }
+    }
+}

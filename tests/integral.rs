@@ -96,6 +96,65 @@ fn test_oscillatory() {
 }
 
 #[test]
+fn test_early_exit_on_low_degree_polynomials() {
+    // A G_gK_k rule integrates polynomials of degree <= 2g - 1 exactly, so the
+    // very first |G - K| check must pass and the whole integration must finish
+    // with exactly k function evaluations (one interval, no subdivision).
+    // Regression test for #93: the even-order rules (G10K21, G20K41, G30K61
+    // and their R variants) never early-exited and subdivided to max_iter.
+    use std::cell::Cell;
+    let methods = [
+        (G7K15(1e-8, 20), 15),
+        (G10K21(1e-8, 20), 21),
+        (G15K31(1e-8, 20), 31),
+        (G20K41(1e-8, 20), 41),
+        (G25K51(1e-8, 20), 51),
+        (G30K61(1e-8, 20), 61),
+        (G7K15R(1e-8, 20), 15),
+        (G10K21R(1e-8, 20), 21),
+        (G15K31R(1e-8, 20), 31),
+        (G20K41R(1e-8, 20), 41),
+        (G25K51R(1e-8, 20), 51),
+        (G30K61R(1e-8, 20), 61),
+    ];
+    for (m, k) in methods {
+        let count = Cell::new(0u32);
+        let f = |x: f64| {
+            count.set(count.get() + 1);
+            x.powi(3)
+        };
+        let r: f64 = integrate(f, (0.0, 1.0), m);
+        assert_close(r, 0.25);
+        assert_eq!(
+            count.get(),
+            k,
+            "{:?} did not early-exit on a cubic: {} evaluations instead of {}",
+            m,
+            count.get(),
+            k
+        );
+    }
+}
+
+#[test]
+fn test_optimized_matches_reference_gauss_kronrod() {
+    // The evaluation-reusing path must agree with the straightforward
+    // independent-evaluation path on a generic smooth integrand.
+    let f = |x: f64| (2.0 * x).sin() * (-x).exp();
+    for m in gk_methods(1e-10) {
+        let opt: f64 = gauss_kronrod_quadrature_optimized(f, (0.0, 2.0), m);
+        let reference: f64 = gauss_kronrod_quadrature(f, (0.0, 2.0), m);
+        assert!(
+            (opt - reference).abs() < 1e-9,
+            "{:?}: optimized = {:.17e}, reference = {:.17e}",
+            m,
+            opt,
+            reference
+        );
+    }
+}
+
+#[test]
 fn test_endpoint_independence() {
     let m = || G10K21R(1e-10, 20);
     let f = |x: f64| (-x).exp() + x.sin();
