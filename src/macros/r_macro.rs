@@ -144,17 +144,17 @@ macro_rules! cbind {
     ( $x:expr, $y:expr ) => {
         {
             let mut temp = $x;
-            if temp.shape != Col {
+            if temp.layout() != Col {
                 temp = temp.change_shape();
             }
 
-            let mut v: Vec<f64> = temp.data;
-            let mut c: usize = temp.col;
-            let r: usize = temp.row;
+            let r: usize = temp.nrow();
+            let mut c: usize = temp.ncol();
+            let mut v: Vec<f64> = temp.into_vec();
 
-            assert_eq!(r, $y.row);
-            v.extend(&$y.data.clone());
-            c += &$y.col;
+            assert_eq!(r, $y.nrow());
+            v.extend($y.as_slice());
+            c += $y.ncol();
             matrix(v, r, c, Col)
         }
     };
@@ -163,22 +163,22 @@ macro_rules! cbind {
     ( $x0:expr, $( $x: expr ),* ) => {
         {
             let mut temp0 = $x0;
-            if temp0.shape != Col {
+            if temp0.layout() != Col {
                 temp0 = temp0.change_shape();
             }
-            let mut v: Vec<f64> = temp0.data;
-            let mut c: usize = temp0.col;
-            let r: usize = temp0.row;
+            let r: usize = temp0.nrow();
+            let mut c: usize = temp0.ncol();
+            let mut v: Vec<f64> = temp0.into_vec();
             $(
                 let mut temp = $x;
-                if temp.shape != Col {
+                if temp.layout() != Col {
                     temp = temp.change_shape();
                 }
                 // Must equal row
-                assert_eq!(r, temp.row);
+                assert_eq!(r, temp.nrow());
                 // Add column
-                c += temp.col;
-                v.extend(&temp.data.clone());
+                c += temp.ncol();
+                v.extend(temp.as_slice());
             )*
             matrix(v, r, c, Col)
         }
@@ -207,22 +207,22 @@ macro_rules! rbind {
     ( $x:expr, $y:expr ) => {
         {
             let mut temp = $x;
-            if temp.shape != Row {
+            if temp.layout() != Row {
                 temp = temp.change_shape();
             }
 
             let mut temp2 = $y;
-            if temp2.shape != Row {
+            if temp2.layout() != Row {
                 temp2 = temp2.change_shape();
             }
 
-            let mut v: Vec<f64> = temp.data;
-            let c: usize = temp.col;
-            let mut r: usize = temp.row;
+            let c: usize = temp.ncol();
+            let mut r: usize = temp.nrow();
+            let mut v: Vec<f64> = temp.into_vec();
 
-            assert_eq!(c, temp2.col);
-            v.extend(&temp2.data.clone());
-            r += temp2.row;
+            assert_eq!(c, temp2.ncol());
+            r += temp2.nrow();
+            v.extend(temp2.as_slice());
             matrix(v, r, c, Row)
         }
     };
@@ -231,22 +231,22 @@ macro_rules! rbind {
     ( $x0:expr, $( $x: expr ),* ) => {
         {
             let mut temp0 = $x0;
-            if temp0.shape != Row {
+            if temp0.layout() != Row {
                 temp0 = temp0.change_shape();
             }
-            let mut v: Vec<f64> = temp0.data;
-            let c: usize = temp0.col;
-            let mut r: usize = temp0.row;
+            let c: usize = temp0.ncol();
+            let mut r: usize = temp0.nrow();
+            let mut v: Vec<f64> = temp0.into_vec();
             $(
                 let mut temp = $x;
-                if temp.shape != Row {
+                if temp.layout() != Row {
                     temp = temp.change_shape();
                 }
                 // Must equal row
-                assert_eq!(c, temp.col);
+                assert_eq!(c, temp.ncol());
                 // Add column
-                r += temp.row;
-                v.extend(&temp.data.clone());
+                r += temp.nrow();
+                v.extend(temp.as_slice());
             )*
             matrix(v, r, c, Row)
         }

@@ -12,7 +12,7 @@ use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     complex::C64,
-    structure::matrix::Shape,
+    structure::matrix::{matrix, Matrix, Shape},
     traits::fp::{FPMatrix, FPVector},
     traits::general::Algorithm,
     traits::math::{InnerProduct, LinearOp, MatrixProduct, Norm, Normed, Vector},
@@ -25,30 +25,140 @@ use crate::{
 
 /// R-like complex matrix structure
 ///
+/// The fields are private to protect the invariant `data.len() == row * col`,
+/// which the internal unsafe code relies on. Construct complex matrices with
+/// [`cmatrix`] and friends, and read the dimensions back with
+/// [`ComplexMatrix::nrow`], [`ComplexMatrix::ncol`], and
+/// [`ComplexMatrix::layout`].
+///
 /// # Examples
 ///
 /// ```rust
 /// use peroxide::fuga::*;
-/// use peroxide::complex::matrix::ComplexMatrix;
+/// use peroxide::complex::matrix::cmatrix;
 ///
-/// let v1 = ComplexMatrix {
-/// data: vec![
+/// let v1 = cmatrix(vec![
 ///     C64::new(1f64, 1f64),
 ///     C64::new(2f64, 2f64),
 ///     C64::new(3f64, 3f64),
 ///     C64::new(4f64, 4f64),
-/// ],
-/// row: 2,
-/// col: 2,
-/// shape: Row,
-/// }; // [[1+1i,2+2i],[3+3i,4+4i]]
+/// ], 2, 2, Row); // [[1+1i,2+2i],[3+3i,4+4i]]
+/// assert_eq!(v1.nrow(), 2);
+/// assert_eq!(v1.ncol(), 2);
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct ComplexMatrix {
-    pub data: Vec<C64>,
-    pub row: usize,
-    pub col: usize,
-    pub shape: Shape,
+    pub(crate) data: Vec<C64>,
+    pub(crate) row: usize,
+    pub(crate) col: usize,
+    pub(crate) shape: Shape,
+}
+
+impl ComplexMatrix {
+    /// Number of rows
+    pub fn nrow(&self) -> usize {
+        self.row
+    }
+
+    /// Number of columns
+    pub fn ncol(&self) -> usize {
+        self.col
+    }
+
+    /// Storage order of the underlying buffer (row-major or column-major)
+    pub fn layout(&self) -> Shape {
+        self.shape
+    }
+
+    /// Consume the matrix and return the underlying buffer in storage order
+    pub fn into_vec(self) -> Vec<C64> {
+        self.data
+    }
+
+    /// Trace of a square complex matrix (sum of the diagonal entries)
+    ///
+    /// # Panics
+    /// Panics if the matrix is not square.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![
+    ///     C64::new(1f64, 1f64),
+    ///     C64::new(2f64, 2f64),
+    ///     C64::new(3f64, 3f64),
+    ///     C64::new(4f64, -1f64),
+    /// ], 2, 2, Row);
+    /// assert_eq!(a.trace(), C64::new(5f64, 0f64));
+    /// ```
+    pub fn trace(&self) -> C64 {
+        self.diag().into_iter().sum()
+    }
+
+    /// Hermitian conjugate (conjugate transpose)
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![
+    ///     C64::new(1f64, 1f64),
+    ///     C64::new(2f64, -1f64),
+    ///     C64::new(0f64, 2f64),
+    ///     C64::new(3f64, 0f64),
+    /// ], 2, 2, Row);
+    /// let ah = a.h();
+    /// assert_eq!(ah[(0, 1)], C64::new(0f64, -2f64));
+    /// assert_eq!(ah[(1, 0)], C64::new(2f64, 1f64));
+    /// ```
+    pub fn h(&self) -> Self {
+        let mut m = self.transpose();
+        for x in m.as_mut_slice() {
+            *x = x.conj();
+        }
+        m
+    }
+
+    /// Real part as a real matrix
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![C64::new(1f64, 2f64), C64::new(3f64, 4f64)], 1, 2, Row);
+    /// assert_eq!(a.real()[(0, 1)], 3f64);
+    /// ```
+    pub fn real(&self) -> Matrix {
+        matrix(
+            self.data.iter().map(|c| c.re).collect::<Vec<f64>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
+
+    /// Imaginary part as a real matrix
+    ///
+    /// # Examples
+    /// ```rust
+    /// use peroxide::fuga::*;
+    /// use peroxide::complex::matrix::cmatrix;
+    ///
+    /// let a = cmatrix(vec![C64::new(1f64, 2f64), C64::new(3f64, 4f64)], 1, 2, Row);
+    /// assert_eq!(a.imag()[(0, 1)], 4f64);
+    /// ```
+    pub fn imag(&self) -> Matrix {
+        matrix(
+            self.data.iter().map(|c| c.im).collect::<Vec<f64>>(),
+            self.row,
+            self.col,
+            self.shape,
+        )
+    }
 }
 
 // =============================================================================
@@ -70,14 +180,23 @@ pub struct ComplexMatrix {
 ///                    C64::new(4f64, 4f64)],
 ///                 2, 2, Row
 ///  );
-///  a.col.print(); // Print matrix column
+///  a.ncol().print(); // Print number of columns
 /// ```
 pub fn cmatrix<T>(v: Vec<T>, r: usize, c: usize, shape: Shape) -> ComplexMatrix
 where
     T: Into<C64>,
 {
+    let data = v.into_iter().map(|t| t.into()).collect::<Vec<C64>>();
+    assert_eq!(
+        data.len(),
+        r * c,
+        "cmatrix: data length ({}) does not match row * col ({} * {})",
+        data.len(),
+        r,
+        c
+    );
     ComplexMatrix {
-        data: v.into_iter().map(|t| t.into()).collect::<Vec<C64>>(),
+        data,
         row: r,
         col: c,
         shape,
@@ -271,9 +390,9 @@ impl MatrixTrait for ComplexMatrix {
     ///                                 C64::new(4f64, 4f64)],
     ///                             2, 2, Row
     ///     );
-    /// assert_eq!(a.shape, Row);
+    /// assert_eq!(a.layout(), Row);
     /// let b = a.change_shape();
-    /// assert_eq!(b.shape, Col);
+    /// assert_eq!(b.layout(), Col);
     /// ```
     fn change_shape(&self) -> Self {
         let r = self.row;
@@ -320,9 +439,9 @@ impl MatrixTrait for ComplexMatrix {
     ///     ],
     ///     2, 2, Row
     /// );
-    /// assert_eq!(a.shape, Row);
+    /// assert_eq!(a.layout(), Row);
     /// a.change_shape_mut();
-    /// assert_eq!(a.shape, Col);
+    /// assert_eq!(a.layout(), Col);
     /// ```
     fn change_shape_mut(&mut self) {
         let r = self.row;
@@ -705,6 +824,10 @@ impl MatrixTrait for ComplexMatrix {
                 self[(start.0 + i, start.1 + j)] = m[(i, j)];
             }
         }
+    }
+
+    fn shape(&self) -> (usize, usize) {
+        (self.row, self.col)
     }
 }
 

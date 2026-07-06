@@ -39,11 +39,11 @@ fn hash_f64s(v: &[f64]) -> String {
 
 fn hash_matrix(m: &Matrix) -> String {
     let mut h = DefaultHasher::new();
-    m.row.hash(&mut h);
-    m.col.hash(&mut h);
-    // m.shape is an enum without Hash; use Debug as a stable surrogate
-    format!("{:?}", m.shape).hash(&mut h);
-    for x in &m.data {
+    m.nrow().hash(&mut h);
+    m.ncol().hash(&mut h);
+    // the layout enum has no Hash impl; use Debug as a stable surrogate
+    format!("{:?}", m.layout()).hash(&mut h);
+    for x in m.as_slice() {
         x.to_bits().hash(&mut h);
     }
     format!("{:016x}", h.finish())

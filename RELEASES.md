@@ -1,3 +1,42 @@
+# Release 0.42.0 (2026-07-06)
+
+## Breaking changes
+
+- Encapsulate `Matrix` / `ComplexMatrix` fields to fix a soundness hole ([#101](https://github.com/Axect/Peroxide/issues/101), [2874984](https://github.com/Axect/Peroxide/commit/2874984))
+  - Safe code could set `row` / `col` / `data` directly and reach heap out-of-bounds reads and writes through the internal raw-pointer and BLAS paths
+  - Fields are now private and the `matrix()` / `cmatrix()` constructors assert `data.len() == row * col`
+  - Migration guide:
+    - `m.row` -> `m.nrow()`
+    - `m.col` -> `m.ncol()`
+    - `m.shape` -> `m.layout()`
+    - `m.data` -> `m.as_slice()` / `m.as_mut_slice()` / `m.into_vec()`
+    - `Matrix { data, row, col, shape }` literal -> `matrix(data, row, col, shape)`
+  - Known follow-up: `serde` / `rkyv` deserialization can still bypass the constructor validation; tracked separately
+
+## Bug fixes
+
+- Fix even-order adaptive Gauss-Kronrod rules (`G10K21` / `G20K41` / `G30K61` and their `R` variants) never early-exiting ([#93](https://github.com/Axect/Peroxide/issues/93), [febd4e2](https://github.com/Axect/Peroxide/commit/febd4e2))
+  - The Gauss-sum reconstruction assumed the odd-order node layout, so even-order rules produced a corrupted error estimate and always subdivided to `max_iter`, even for constant integrands
+  - Integrating a cubic over `[0, 1]` with `G10K21(1e-8, 20)` drops from about 87 ms to about 70 ns
+
+## New features
+
+- `MatrixTrait::shape()` returning `(usize, usize)` ([#86](https://github.com/Axect/Peroxide/issues/86), [#103](https://github.com/Axect/Peroxide/pull/103) by [@ferxades12](https://github.com/ferxades12))
+- `Matrix::trace()` and `ComplexMatrix::trace()` ([#87](https://github.com/Axect/Peroxide/issues/87), [523185d](https://github.com/Axect/Peroxide/commit/523185d))
+- `ComplexMatrix::h()`: Hermitian conjugate (conjugate transpose) ([#87](https://github.com/Axect/Peroxide/issues/87))
+- `ComplexMatrix::real()` / `imag()`: extract the real or imaginary part as a real `Matrix` ([#87](https://github.com/Axect/Peroxide/issues/87))
+- New accessors on both matrix types: `nrow()`, `ncol()`, `layout()`, `into_vec()` ([#101](https://github.com/Axect/Peroxide/issues/101))
+
+## CI / Lint
+
+- Add cargo-hack feature-combinations job: every feature builds alone, plus the pairwise powerset of the pure-Rust features ([#98](https://github.com/Axect/Peroxide/issues/98), [fcfd012](https://github.com/Axect/Peroxide/commit/fcfd012))
+- Add a blocking `cargo fmt --all --check` job and format the files added after [#96](https://github.com/Axect/Peroxide/pull/96) ([bd36784](https://github.com/Axect/Peroxide/commit/bd36784), [ec37e61](https://github.com/Axect/Peroxide/commit/ec37e61))
+
+## Documentation
+
+- Promote the Quickstart to the top of `README.md`, condense the feature inventory, and trim the `CONTRIBUTING.md` source layout to a directory-level table ([#99](https://github.com/Axect/Peroxide/issues/99), [72a9e56](https://github.com/Axect/Peroxide/commit/72a9e56))
+- Document that `O3-accelerate` only builds on Apple targets, with cargo-hack exclusion guidance ([#98](https://github.com/Axect/Peroxide/issues/98), [6d99f2f](https://github.com/Axect/Peroxide/commit/6d99f2f))
+
 # Release 0.41.2 (2026-05-16)
 
 ## Packaging

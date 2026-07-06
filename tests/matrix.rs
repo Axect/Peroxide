@@ -155,10 +155,26 @@ fn test_rref_unstable() {
 
     // creating a row like "0 0 0 0 0 0 0 0 1" will "prove" 0 == 1
     // which is a tell of numeric instability
-    for row in 0..b.row {
-        let ends_in_1 = (b[(row, b.col - 1)] - 1.0).abs() < epsilon;
-        let rest_zeroes = (0..b.col - 1).all(|col| b[(row, col)].abs() < epsilon);
+    for row in 0..b.nrow() {
+        let ends_in_1 = (b[(row, b.ncol() - 1)] - 1.0).abs() < epsilon;
+        let rest_zeroes = (0..b.ncol() - 1).all(|col| b[(row, col)].abs() < epsilon);
 
         assert!(!(ends_in_1 && rest_zeroes));
     }
+}
+
+#[test]
+#[should_panic(expected = "does not match row * col")]
+fn test_matrix_rejects_length_mismatch() {
+    // Regression test for #101: a Matrix whose buffer is shorter than
+    // row * col must be impossible to construct from safe code.
+    let _ = matrix(vec![1, 2, 3], 2, 2, Row);
+}
+
+#[test]
+fn test_trace() {
+    let a = ml_matrix("1 2; 3 4");
+    assert_eq!(a.trace(), 5f64);
+    // layout independence
+    assert_eq!(a.change_shape().trace(), 5f64);
 }
