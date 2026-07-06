@@ -45,6 +45,20 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
 
+  # The deterministic core (no `rand` stack) must keep building for sandboxed
+  # targets such as Typst / wasm plugins (#88).
+  no-rand-wasm:
+    name: No-rand core (wasm32)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Test without the rand stack
+        run: cargo test --verbose --no-default-features
+      - name: Build for wasm32
+        run: cargo build --verbose --no-default-features --target wasm32-unknown-unknown
+
   feature-combinations:
     name: Feature combinations (cargo-hack)
     runs-on: ubuntu-latest

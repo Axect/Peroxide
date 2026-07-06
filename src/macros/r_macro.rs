@@ -269,6 +269,7 @@ macro_rules! rbind {
 ///     println!("{:?}", b);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! runif {
     ( $x0:expr, $start:expr, $end:expr ) => {{
@@ -304,6 +305,7 @@ macro_rules! runif {
 ///     println!("{:?}", b);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! rnorm {
     ( $n:expr, $mean:expr, $sd:expr ) => {{
@@ -333,6 +335,7 @@ macro_rules! rnorm {
 ///     println!("{:?}", b);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! dnorm {
     ( $x:expr, $mean: expr, $sd:expr ) => {{
@@ -364,6 +367,7 @@ macro_rules! dnorm {
 ///     println!("{:?}", b);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! pnorm {
     ( $x:expr, $mean:expr, $sd:expr ) => {{
@@ -392,6 +396,7 @@ macro_rules! pnorm {
 ///     println!("{:?}", a);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! rt {
     ( $n:expr, $df:expr ) => {{
@@ -414,6 +419,7 @@ macro_rules! rt {
 ///     println!("{:?}", a);
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! dt {
     ( $x:expr, $df:expr ) => {{
@@ -437,6 +443,7 @@ macro_rules! dt {
 ///     println!("{:?}", a); // 0.5
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! pt {
     ( $x:expr, $df:expr ) => {{

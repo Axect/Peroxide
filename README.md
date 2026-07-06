@@ -363,6 +363,7 @@ The remaining single-crate flags exist so advanced users can pull in just one op
 | `json`           | (pure Rust)             | JSON I/O for `DataFrame`                                      |
 | `serde`          | (pure Rust)             | `serde` (de)serialization                                     |
 | `rkyv`           | (pure Rust)             | `rkyv` zero-copy (de)serialization                            |
+| `rand`           | (pure Rust)             | Random sampling stack: distributions, RNG wrappers, `rand()` constructors. **On by default**; disable with `default-features = false` to get the deterministic core (ODE, integration, splines, linear algebra) for sandboxed targets like wasm32 |
 
 <details>
 <summary><b>Advanced: single-crate flags</b></summary>

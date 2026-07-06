@@ -53,6 +53,7 @@
 //! use peroxide::fuga::*;
 //!
 //! fn main() {
+//!     # #[cfg(feature = "rand")] {
 //!     // To prepare noise
 //!     let normal = Normal(0f64, 0.1f64);
 //!     let normal2 = Normal(0f64, 100f64);
@@ -94,6 +95,7 @@
 //!     //        .set_marker(vec![Point, Line])
 //!     //        .savefig().expect("Can't draw a plot");
 //!     //}
+//!     # }
 //! }
 //!
 //! fn quad(x: &Vec<f64>, n: Vec<AD>) -> Option<Vec<AD>> {

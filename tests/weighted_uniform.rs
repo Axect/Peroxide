@@ -1,3 +1,5 @@
+#![cfg(feature = "rand")]
+
 extern crate peroxide;
 use peroxide::fuga::*;
 
