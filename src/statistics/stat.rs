@@ -552,6 +552,7 @@ pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
 /// use peroxide::fuga::*;
 ///
 /// fn main() {
+///     # #[cfg(feature = "rand")] {
 ///     let a: Matrix = c!(1,2,3,4,5).into();
 ///     let noise: Matrix = Normal(0,1).sample(5).into();
 ///     let b: Matrix = &a + &noise;
@@ -560,6 +561,7 @@ pub fn cor(v1: &Vec<f64>, v2: &Vec<f64>) -> f64 {
 ///     //        c[0]
 ///     // r[0] 0.7219
 ///     // r[1] 0.8058
+///     # }
 /// }
 /// ```
 pub fn lm(input: &Matrix, target: &Matrix) -> Matrix {

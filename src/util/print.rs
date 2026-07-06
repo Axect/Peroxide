@@ -1,5 +1,6 @@
 //! Easy to print any structures
 
+#[cfg(feature = "rand")]
 use crate::statistics::dist::*;
 use crate::statistics::stat::ConfusionMatrix;
 #[allow(unused_imports)]
@@ -10,8 +11,11 @@ use crate::structure::{
     multinomial::Multinomial,
     polynomial::Polynomial,
 };
+#[cfg(feature = "rand")]
 use rand_distr::uniform::SampleUniform;
-use std::fmt::{Debug, LowerExp, UpperExp};
+#[cfg(feature = "rand")]
+use std::fmt::Debug;
+use std::fmt::{LowerExp, UpperExp};
 
 pub trait Printable {
     fn print(&self);
@@ -355,12 +359,14 @@ impl Printable for Multinomial {
 //    }
 //}
 
+#[cfg(feature = "rand")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for OPDist<T> {
     fn print(&self) {
         println!("{:?}", self);
     }
 }
 
+#[cfg(feature = "rand")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPDist<T> {
     fn print(&self) {
         println!("{:?}", self);

@@ -172,6 +172,7 @@ extern crate pyo3;
 #[cfg(feature = "serde")]
 extern crate serde;
 
+#[cfg(feature = "rand")]
 extern crate rand;
 
 // extern crate json;

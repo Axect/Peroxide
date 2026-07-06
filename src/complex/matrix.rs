@@ -7,8 +7,8 @@ use std::{
 use anyhow::{bail, Result};
 use matrixmultiply::CGemmOption;
 use num_complex::Complex;
+use num_traits::{One, Zero};
 use peroxide_num::{ExpLogOps, PowOps, TrigOps};
-use rand_distr::num_traits::{One, Zero};
 
 use crate::{
     complex::C64,
