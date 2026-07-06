@@ -9,6 +9,34 @@
 
 Rust numeric library contains linear algebra, numerical analysis, statistics and machine learning tools with R, MATLAB, Python like macros.
 
+## Quickstart
+
+```bash
+cargo add peroxide   # default profile is pure Rust, no system libraries needed
+```
+
+```rust
+#[macro_use]
+extern crate peroxide;
+use peroxide::fuga::*;
+
+fn main() {
+    // R / MATLAB-style matrix literals
+    let a = ml_matrix("1 2; 3 4");
+    let b = c!(5, 6);
+
+    // matrix-vector product (BLAS-dispatched when an `O3-*` feature is on)
+    let c = &a * &b;
+
+    a.print(); // pretty-formatted matrix
+    c.print(); // [17, 39]
+    a.det().print(); // -2
+    a.inv().print();
+}
+```
+
+For accelerated linear algebra, plotting, or DataFrame I/O, enable the matching feature flag (see [Install](#install) and [Available features](#available-features)).
+
 ## Table of Contents
 
 - [Peroxide](#peroxide)
@@ -24,7 +52,6 @@ Rust numeric library contains linear algebra, numerical analysis, statistics and
   - [Pre-requisite](#pre-requisite)
   - [Install](#install)
     - [Most common combinations](#most-common-combinations)
-    - [Hello, Peroxide](#hello-peroxide)
     - [Available features](#available-features)
   - [Examples](#examples)
   - [Release notes](#release-notes)
@@ -150,91 +177,20 @@ fn main() {
 
 Peroxide can do many things. 
 
-- Linear Algebra
-  - Effective Matrix structure
-  - Transpose, Determinant, Diagonal
-  - LU Decomposition, Inverse matrix, Block partitioning
-  - QR Decomposition (`O3` feature)
-  - Singular Value Decomposition (SVD) (`O3` feature)
-  - Cholesky Decomposition (`O3` feature)
-  - Reduced Row Echelon form
-  - Column, Row operations
-  - Eigenvalue, Eigenvector
-- Functional Programming
-  - Easier functional programming with `Vec<f64>`
-  - For matrix, there are three maps
-    - `fmap` : map for all elements
-    - `col_map` : map for column vectors
-    - `row_map` : map for row vectors
-- Automatic Differentiation
-  - Const-generic `Jet<N>` type for arbitrary-order forward AD
-  - Type aliases: `Dual` (1st order), `HyperDual` (2nd order)
-  - Normalized Taylor coefficients (no binomial overhead)
-  - `#[ad_function]` proc macro for automatic gradient/hessian generation
-  - Exact Jacobian via `jacobian()` function
-  - `Real` trait to constrain for `f64` and `Jet<N>`
+- Linear Algebra: effective `Matrix` structure, LU / QR / SVD / Cholesky decompositions (`O3` feature for the last three), determinant, inverse, block partitioning, reduced row echelon form, eigenvalue & eigenvector
+- Functional Programming: easier functional programming with `Vec<f64>`; matrix maps (`fmap`, `col_map`, `row_map`)
+- Automatic Differentiation: const-generic `Jet<N>` for arbitrary-order forward AD (`Dual`, `HyperDual` aliases), `#[ad_function]` proc macro, exact Jacobian via `jacobian()`, `Real` trait over `f64` and `Jet<N>`
 - Numerical Analysis
-  - Lagrange interpolation
-  - Splines
-    - Cubic Spline
-    - Cubic Hermite Spline
-      - Estimate slope via Akima
-      - Estimate slope via Quadratic interpolation
-    - B-Spline
-  - Non-linear regression
-    - Gradient Descent
-    - Levenberg Marquardt
-  - Ordinary Differential Equation (trait-based since `v0.36.0`)
-    - Explicit: Ralston 3rd / Runge-Kutta 4th / Ralston 4th / Runge-Kutta 5th
-    - Embedded: Bogacki-Shampine 3(2) / Runge-Kutta-Fehlberg 5(4) / Dormand-Prince 5(4) / Tsitouras 5(4) / Runge-Kutta-Fehlberg 8(7)
-    - Implicit: Gauss-Legendre 4th order
-  - Numerical Integration
-    - Newton-Cotes Quadrature
-    - Gauss-Legendre Quadrature (up to 30 order)
-    - Gauss-Kronrod Quadrature, adaptive: G7K15 / G10K21 / G15K31 / G20K41 / G25K51 / G30K61
-    - Gauss-Kronrod Quadrature, relative tolerance: G7K15R / G10K21R / G15K31R / G20K41R / G25K51R / G30K61R
-  - Root Finding (trait-based since `v0.37.0`): Bisection / False Position / Secant / Newton / Broyden
-- Statistics
-  - More easy random with `rand` crate
-  - Ordered Statistics
-    - Median
-    - Quantile (Matched with R quantile)
-  - Probability Distributions
-    - Bernoulli
-    - Uniform
-    - Binomial
-    - Normal
-    - Gamma
-    - Beta
-    - Student's-t
-    - Weighted Uniform
-    - LogNormal
-  - RNG algorithms
-    - Acceptance Rejection
-    - Marsaglia Polar
-    - Ziggurat
-    - Wrapper for `rand-dist` crate
-    - Piecewise Rejection Sampling
-  - Confusion Matrix & Metrics
-- Special functions
-  - Wrapper for `puruspe` crate (pure rust)
-- Utils
-  - R-like macro & functions
-  - Matlab-like macro & functions
-  - Numpy-like macro & functions
-  - Julia-like macro & functions
-- Plotting
-  - With `pyo3` & `matplotlib`
-- DataFrame
-  - Support various types simultaneously
-  - Read & Write `csv` files (`csv` feature)
-  - Read & Write `netcdf` files (`nc` feature)
-  - Read & Write `parquet` files (`parquet` feature)
-  - Shape & info: `nrow`, `ncol`, `shape`, `dtypes`, `is_empty`, `contains`
-  - Row operations: `head`, `tail`, `slice`
-  - Column operations: `select`, `rename`, `column_names`, `select_dtypes`
-  - Series statistics: `sum`, `mean`, `var`, `sd`, `min`, `max`
-  - DataFrame statistics: `describe`, `sum`, `mean`
+  - Interpolation & splines: Lagrange interpolation, Cubic / Cubic Hermite (Akima, quadratic slope estimation) / B-Spline
+  - Non-linear regression: Gradient Descent, Levenberg-Marquardt
+  - ODE (trait-based since `v0.36.0`): explicit (Ralston 3rd & 4th, Runge-Kutta 4th & 5th), embedded (Bogacki-Shampine 3(2), Runge-Kutta-Fehlberg 5(4) & 8(7), Dormand-Prince 5(4), Tsitouras 5(4)), implicit (Gauss-Legendre 4th)
+  - Numerical integration: Newton-Cotes, Gauss-Legendre (up to 30th order), adaptive Gauss-Kronrod (G7K15 through G30K61, absolute & relative tolerance variants)
+  - Root finding (trait-based since `v0.37.0`): Bisection, False Position, Secant, Newton, Broyden
+- Statistics: probability distributions (Bernoulli, Uniform, Binomial, Normal, Gamma, Beta, Student's-t, LogNormal, Weighted Uniform), RNG algorithms (Acceptance-Rejection, Marsaglia Polar, Ziggurat, Piecewise Rejection Sampling), ordered statistics (median, R-compatible quantile), confusion matrix & metrics
+- Special functions: wrapper of the pure-Rust `puruspe` crate
+- Utils: R / MATLAB / NumPy / Julia style macros & functions
+- Plotting: matplotlib-based `Plot2D` via `pyo3` (`plot` feature)
+- DataFrame: mixed-type columns; CSV / NetCDF / Parquet I/O (`csv` / `nc` / `parquet` features); shape & info, row / column operations, series & frame statistics (`describe`, `mean`, ...)
 
 ### 6. Compatible with Mathematics
 
@@ -331,6 +287,8 @@ System libraries still need to be present on the host for `O3-openblas` and `O3-
 
 `O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework and Intel's redistributable, respectively), so they need no further system packages.
 
+> **Note:** `O3-accelerate` only builds on Apple targets. Enabling it on Linux or Windows fails while compiling `accelerate-src` with ``error: library kind `framework` is only supported on Apple targets``; pick `O3-openblas`, `O3-mkl`, or `O3-netlib` instead. For the same reason, exclude `O3-accelerate` (and `O3-mkl` / `O3-netlib` unless their toolchains are installed) when running tools like `cargo hack --each-feature` on Linux.
+
 ### `plot` / `pyo3`: Python 3 + matplotlib
 
 `plot` enables the high-level `Plot2D` API, which renders figures by delegating to matplotlib through [`pyo3`](https://crates.io/crates/pyo3).
@@ -382,28 +340,6 @@ cargo add peroxide --features "<FEATURES>"      # opt-in features
 | DataFrame + Parquet I/O                           | `cargo add peroxide --features parquet`                                   |
 | Full Linux scientific stack                       | `cargo add peroxide --features "O3-openblas plot nc csv parquet serde"`   |
 | Full macOS scientific stack                       | `cargo add peroxide --features "O3-accelerate plot nc csv parquet serde"` |
-
-### Hello, Peroxide
-
-```rust
-#[macro_use]
-extern crate peroxide;
-use peroxide::fuga::*;
-
-fn main() {
-    // R / MATLAB-style matrix literals
-    let a = ml_matrix("1 2; 3 4");
-    let b = c!(5, 6);
-
-    // matrix-vector product (BLAS-dispatched when an `O3-*` feature is on)
-    let c = &a * &b;
-
-    a.print();    // pretty-formatted matrix
-    c.print();    // [17, 39]
-    a.det().print();
-    a.inv().print();
-}
-```
 
 ### Available features
 
