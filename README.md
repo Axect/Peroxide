@@ -287,6 +287,8 @@ System libraries still need to be present on the host for `O3-openblas` and `O3-
 
 `O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework and Intel's redistributable, respectively), so they need no further system packages.
 
+> **Note:** `O3-accelerate` only builds on Apple targets. Enabling it on Linux or Windows fails while compiling `accelerate-src` with ``error: library kind `framework` is only supported on Apple targets``; pick `O3-openblas`, `O3-mkl`, or `O3-netlib` instead. For the same reason, exclude `O3-accelerate` (and `O3-mkl` / `O3-netlib` unless their toolchains are installed) when running tools like `cargo hack --each-feature` on Linux.
+
 ### `plot` / `pyo3`: Python 3 + matplotlib
 
 `plot` enables the high-level `Plot2D` API, which renders figures by delegating to matplotlib through [`pyo3`](https://crates.io/crates/pyo3).
