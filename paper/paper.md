@@ -27,6 +27,9 @@ authors:
   - name: Soumya Sen
     orcid: 0009-0008-0337-9964
     affiliation: 4
+  - name: Russell R P Senthamarai
+    orcid: 0000-0002-8061-5480
+    affiliation: 4
   - name: Johanna Sörngård
     orcid: 0000-0002-8660-9989
     affiliation: 4
