@@ -25,7 +25,7 @@ fn test_dirichlet() {
     assert!(nearly_eq(v[0], 5.0 / 252.0)); // 1 * 5 / (36 * 7)
     assert!(nearly_eq(v[1], 8.0 / 252.0)); // 2 * 4 / (36 * 7)
     assert!(nearly_eq(v[2], 9.0 / 252.0)); // 3 * 3 / (36 * 7)
-    
+
     let pdf_val = dir.pdf(&[0.33333, 0.33333, 0.33333]);
     assert!(nearly_eq(pdf_val, 2.222155556222205));
 }

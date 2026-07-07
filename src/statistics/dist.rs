@@ -250,6 +250,8 @@
 //!     * `ln_pdf` : Calculate log-pdf value at specific point
 //!     ```no_run
 //!     use rand::Rng;
+//!     use peroxide::fuga::*;
+//!
 //!     pub trait MVRNG {
 //!         /// Extract samples of multivariate distributions
 //!         fn sample(&self, n: usize) -> Matrix;
@@ -297,6 +299,7 @@ use rand_distr::weighted::WeightedAliasIndex;
 
 use self::rand::prelude::*;
 use self::rand_distr::uniform::SampleUniform;
+pub use self::MVDist::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;
@@ -304,9 +307,9 @@ use crate::traits::fp::FPVector;
 //use statistics::rand::ziggurat;
 use self::WeightedUniformError::*;
 use crate::statistics::{ops::C, stat::Statistics};
+use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
-use crate::structure::matrix::{matrix, Matrix, Row};
 use anyhow::{bail, Result};
 use std::f64::consts::E;
 
@@ -1077,7 +1080,7 @@ pub trait MVRNG {
     fn pdf(&self, x: &[f64]) -> f64 {
         self.ln_pdf(x).exp()
     }
-    
+
     /// Log Probability Density Function
     fn ln_pdf(&self, x: &[f64]) -> f64;
 }
@@ -1140,7 +1143,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> Statistics for MVDist<T> 
         let cov_matrix = self.cov();
         let sd_vec = self.sd();
         let k = sd_vec.len();
-        
+
         let mut cor_data = vec![0f64; k * k];
 
         for i in 0..k {
@@ -1164,7 +1167,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> MVRNG for MVDist<T> {
                 for i in 0..n {
                     let mut sum = 0f64;
                     let mut y = vec![0f64; k];
-                    
+
                     for j in 0..k {
                         let gamma_dist = rand_distr::Gamma::new(alpha[j], 1.0).unwrap();
                         y[j] = gamma_dist.sample(rng);
@@ -1185,7 +1188,11 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> MVRNG for MVDist<T> {
         match self {
             MVDist::Dirichlet(alpha_t) => {
                 let alpha: Vec<f64> = alpha_t.iter().map(|&a| a.into()).collect();
-                assert_eq!(alpha.len(), x.len(), "Arguments must have correct dimensions.");
+                assert_eq!(
+                    alpha.len(),
+                    x.len(),
+                    "Arguments must have correct dimensions."
+                );
 
                 let mut term = 0f64;
                 let mut sum_x = 0f64;
@@ -1194,16 +1201,16 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> MVRNG for MVDist<T> {
 
                 for (&x_i, &alpha_i) in x.iter().zip(alpha.iter()) {
                     assert!(x_i > 0f64 && x_i < 1f64, "Arguments must be in (0, 1)");
-                    
+
                     term += (alpha_i - 1.0) * x_i.ln();
-                    sum_alpha_ln_gamma += gamma(alpha_i).ln(); 
+                    sum_alpha_ln_gamma += ln_gamma(alpha_i);
                     sum_x += x_i;
                     alpha0 += alpha_i;
                 }
 
                 assert!((sum_x - 1.0).abs() < 1e-4, "Arguments must sum up to 1");
 
-                term + gamma(alpha0).ln() - sum_alpha_ln_gamma
+                term + ln_gamma(alpha0) - sum_alpha_ln_gamma
             }
         }
     }
