@@ -1,6 +1,6 @@
 #![cfg(feature = "rand")]
 
-extern crate peroxide;
+use peroxide::c;
 use peroxide::fuga::*;
 
 #[test]
@@ -28,4 +28,102 @@ fn test_dirichlet() {
 
     let pdf_val = dir.pdf(&[0.33333, 0.33333, 0.33333]);
     assert!(nearly_eq(pdf_val, 2.222155556222205));
+}
+
+#[test]
+fn test_wishart() {
+    #[cfg(feature = "O3")]
+    {
+        // Define Scale Matrix V:
+        // [ 1.0  0.5 ]
+        // [ 0.5  1.0 ]
+        let scale = matrix(c!(1.0, 0.5, 0.5, 1.0), 2, 2, Row);
+
+        // Wishart with 5 degrees of freedom
+        let w = MatDist::Wishart(5.0, scale);
+
+        // Test Sampling
+        let samples = w.sample(10);
+        samples.print();
+        assert_eq!(samples.len(), 10);
+        assert_eq!(samples[0].nrow(), 2);
+        assert_eq!(samples[0].ncol(), 2);
+
+        // Test Mean (E[X] = df * V)
+        let m = w.mean();
+        assert!(nearly_eq(m[(0, 0)], 5.0));
+        assert!(nearly_eq(m[(0, 1)], 2.5));
+        assert!(nearly_eq(m[(1, 0)], 2.5));
+        assert!(nearly_eq(m[(1, 1)], 5.0));
+
+        // Test Variance (Element-wise: Var(X_ij) = df * (V_ij^2 + V_ii * V_jj))
+        let v = w.var();
+        assert!(nearly_eq(v[(0, 0)], 10.0)); // 5 * (1^2 + 1*1)
+        assert!(nearly_eq(v[(0, 1)], 6.25)); // 5 * (0.5^2 + 1*1) = 5 * 1.25
+        assert!(nearly_eq(v[(1, 0)], 6.25));
+        assert!(nearly_eq(v[(1, 1)], 10.0));
+
+        // Test Covariance (Vectorized 4x4 matrix)
+        // Cov(X_ij, X_kl) = df * (V_ik * V_jl + V_il * V_jk)
+        let cov = w.cov();
+        assert_eq!(cov.nrow(), 4);
+        assert_eq!(cov.ncol(), 4);
+
+        // Cov(X_00, X_00) -> mapped to index (0, 0)
+        assert!(nearly_eq(cov[(0, 0)], 10.0));
+
+        // Cov(X_00, X_11) -> mapped to index (0, 3)
+        // 5 * (V_01 * V_01 + V_01 * V_01) = 5 * (0.25 + 0.25) = 2.5
+        assert!(nearly_eq(cov[(0, 3)], 2.5));
+
+        // Cov(X_01, X_01) -> mapped to index (1, 1)
+        // 5 * (V_00 * V_11 + V_01 * V_10) = 5 * (1 + 0.25) = 6.25
+        assert!(nearly_eq(cov[(1, 1)], 6.25));
+
+        // Cov(X_01, X_10) -> mapped to index (1, 2)
+        // 5 * (V_01 * V_10 + V_00 * V_11) = 5 * (0.25 + 1.0) = 6.25
+        assert!(nearly_eq(cov[(1, 2)], 6.25));
+
+        // 5. Test PDF against an exact closed-form calculation
+        // Let test_x = [ 2.0  0.0 ]
+        //              [ 0.0  2.0 ]
+        let test_x = matrix(c!(2.0, 0.0, 0.0, 2.0), 2, 2, Row);
+        let pdf_val = w.pdf(&test_x);
+
+        // Exact closed-form math for this specific test case:
+        // Numerator:   |X|^1 * exp(-0.5 * tr(V^-1 * X)) = 4 * exp(-8/3)
+        // Denominator: 2^5 * |V|^2.5 * Gamma_2(2.5) = 32 * (0.75)^2.5 * (0.75 * pi)
+        // Which simplifies cleanly to: 16 * exp(-8/3) / (27 * sqrt(3) * pi)
+        let expected_pdf =
+            16.0 * (-8.0f64 / 3.0).exp() / (27.0 * 3.0f64.sqrt() * std::f64::consts::PI);
+
+        assert!(nearly_eq(pdf_val, expected_pdf));
+    }
+}
+
+#[test]
+fn test_wishart_1d_chi_square() {
+    #[cfg(feature = "O3")]
+    {
+        let df = 5.0;
+        let scale = matrix(c!(1.0), 1, 1, Row);
+        let w = MatDist::Wishart(df, scale);
+
+        // A Chi-Square(df) distribution has Mean = df, Variance = 2*df
+        let m = w.mean();
+        let v = w.var();
+
+        assert!(nearly_eq(m[(0, 0)], df));
+        assert!(nearly_eq(v[(0, 0)], 2.0 * df));
+
+        // Check PDF Convergence
+        let x_val = 3.0;
+        let test_x = matrix(c!(x_val), 1, 1, Row);
+        let wishart_pdf = w.pdf(&test_x);
+
+        let chi_pdf = (x_val.powf(df / 2.0 - 1.0) * (-x_val / 2.0).exp())
+            / (2.0f64.powf(df / 2.0) * gamma(df / 2.0));
+
+        assert!(nearly_eq(wishart_pdf, chi_pdf));
+    }
 }

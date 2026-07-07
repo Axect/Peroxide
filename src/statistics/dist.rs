@@ -241,6 +241,7 @@
 //!     * Mean: $e^{\mu + \frac{\sigma^2}{2}}$
 //!     * Var: $(e^{\sigma^2} - 1)e^{2\mu + \sigma^2}$
 //! * To generate log-normal random samples, Peroxide uses the `rand_distr::LogNormal` distribution from the `rand_distr` crate.
+//!
 //! ### `MVRNG` trait
 //!
 //! * `MVRNG` trait is composed of four fields
@@ -270,8 +271,8 @@
 //! ### Dirichlet Distribution
 //!
 //! * Definition
-//!     $$ \text{Dir}(\mathbf{x} | \boldsymbol{\alpha}) = \frac{1}{\text{B}(\boldsymbol{\alpha})} \prod_{i=1}^K x_i^{\alpha_i - 1} $$
-//!     where $\text{B}(\boldsymbol{\alpha}) = \frac{\prod_{i=1}^K \Gamma(\alpha_i)}{\Gamma(\sum_{i=1}^K \alpha_i)}$
+//!   $$ \text{Dir}(\mathbf{x} | \boldsymbol{\alpha}) = \frac{1}{\text{B}(\boldsymbol{\alpha})} \prod_{i=1}^K x_i^{\alpha_i - 1} $$
+//!   where $\text{B}(\boldsymbol{\alpha}) = \frac{\prod_{i=1}^K \Gamma(\alpha_i)}{\Gamma(\sum_{i=1}^K \alpha_i)}$
 //! * Representative value
 //!     * Mean: $\frac{\alpha_i}{\alpha_0}$
 //!     * Var : $\frac{\alpha_i(\alpha_0 - \alpha_i)}{\alpha_0^2(\alpha_0 + 1)}$
@@ -292,6 +293,68 @@
 //!         a.cov().print();                            // Covariance matrix
 //!     }
 //!     ```
+//!
+//! ### `MatRNG` trait
+//!
+//! * `MatRNG` trait is composed of four fields for Matrix-Variate distributions
+//!     * `sample`: Extract samples
+//!     * `sample_with_rng`: Extract samples with specific rng
+//!     * `pdf` : Calculate pdf value at specific point
+//!     * `ln_pdf` : Calculate log-pdf value at specific point
+//!     ```no_run
+//!     use rand::Rng;
+//!     use peroxide::fuga::*;
+//!
+//!     pub trait MatRNG {
+//!         /// Extract samples of matrix-variate distributions
+//!         fn sample(&self, n: usize) -> Vec<Matrix>;
+//!
+//!         /// Extract samples of distributions with specific rng
+//!         fn sample_with_rng<R: Clone + Rng>(&self, rng: &mut R, n: usize) -> Vec<Matrix>;
+//!
+//!         /// Probability Density Function
+//!         fn pdf(&self, x: &Matrix) -> f64;
+//!
+//!         /// Log Probability Density Function
+//!         fn ln_pdf(&self, x: &Matrix) -> f64;
+//!     }
+//!     ```
+//!
+//! ### Wishart Distribution
+//!
+//! * Definition
+//!   $$ \mathcal{W}_p(\nu, \mathbf{V}) = \frac{|\mathbf{X}|^{(\nu - p - 1)/2} \exp\left(-\frac{1}{2}\text{tr}(\mathbf{V}^{-1}\mathbf{X})\right)}{2^{\nu p / 2} |\mathbf{V}|^{\nu/2} \Gamma_p\left(\frac{\nu}{2}\right)} $$
+//!   where $\nu$ is the degrees of freedom (`df`), $\mathbf{V}$ is the $p \times p$ scale matrix, and $\Gamma_p$ is the multivariate Gamma function.
+//! * Representative value
+//!     * Mean: $\nu \mathbf{V}$
+//!     * Variance: $\nu(V_{ij}^2 + V_{ii}V_{jj})$ (Element-wise)
+//!     * Covariance: $\text{Cov}(X_{ij}, X_{kl}) = \nu(V_{ik}V_{jl} + V_{il}V_{jk})$ (Vectorized to $p^2 \times p^2$)
+//! * To generate Wishart random samples, Peroxide uses the Bartlett Decomposition: $\mathbf{X} = \mathbf{L} \mathbf{A} \mathbf{A}^T \mathbf{L}^T$.
+//! * **Caution**: `MatDist` utilizes the existing `Statistics` trait. Covariance and correlation are returned as flattened $p^2 \times p^2$ matrices.
+//!
+//!     ```rust
+//!     use peroxide::fuga::*;
+//!
+//!     fn main() {
+//!         // Ensure O3 feature is enabled for LAPACK operations
+//!         #[cfg(feature = "O3")]
+//!         {
+//!             let mut rng = smallrng_from_seed(42);
+//!             let scale = matrix(vec![1.0, 0.5, 0.5, 1.0], 2, 2, Row);
+//!             let w = MatDist::Wishart(5.0, scale);       // Wishart(df, V)
+//!             
+//!             w.sample(10)[0].print();                    // Print first sample
+//!             w.sample_with_rng(&mut rng, 10)[0].print(); // Generate with specific rng
+//!             
+//!             let test_x = matrix(vec![2.0, 0.0, 0.0, 2.0], 2, 2, Row);
+//!             w.pdf(&test_x).print();                     // Probability density
+//!             
+//!             w.mean().print();                           // Mean matrix
+//!             w.var().print();                            // Element-wise variance matrix
+//!             w.cov().print();                            // Vectorized p^2 x p^2 covariance
+//!         }
+//!     }
+//!     ```
 
 extern crate rand;
 extern crate rand_distr;
@@ -303,15 +366,18 @@ pub use self::MVDist::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;
-use crate::traits::fp::FPVector;
+use crate::traits::fp::{FPMatrix, FPVector};
 //use statistics::rand::ziggurat;
 use self::WeightedUniformError::*;
 use crate::statistics::{ops::C, stat::Statistics};
 use crate::structure::matrix::{matrix, Matrix, Row};
-use crate::util::non_macro::{linspace, seq};
+use crate::util::non_macro::{linspace, seq, zeros};
 use crate::util::useful::{auto_zip, find_interval};
 use anyhow::{bail, Result};
 use std::f64::consts::E;
+
+#[cfg(feature = "O3")]
+use crate::traits::matrix::{LinearAlgebra, MatrixTrait, UPLO};
 
 /// One parameter distribution
 ///
@@ -345,6 +411,15 @@ pub enum TPDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
 #[derive(Debug, Clone)]
 pub enum MVDist<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
     Dirichlet(Vec<T>),
+}
+
+/// Matrix-Variate Distribution
+///
+/// # Distributions
+/// * `Wishart(df, scale)`: Wishart distribution
+#[derive(Debug, Clone)]
+pub enum MatDist {
+    Wishart(f64, Matrix),
 }
 
 pub struct WeightedUniform<T: PartialOrd + SampleUniform + Copy + Into<f64>> {
@@ -1214,4 +1289,205 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> MVRNG for MVDist<T> {
             }
         }
     }
+}
+
+/// Matrix-Variate Random Number Generator Trait
+pub trait MatRNG {
+    /// Extract samples of matrix-variate distributions
+    fn sample(&self, n: usize) -> Vec<Matrix> {
+        let mut rng = rand::rng();
+        self.sample_with_rng(&mut rng, n)
+    }
+
+    /// Extract samples of distributions with specific rng
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<Matrix>;
+
+    /// Probability Density Function
+    fn pdf(&self, x: &Matrix) -> f64 {
+        self.ln_pdf(x).exp()
+    }
+
+    /// Log Probability Density Function
+    fn ln_pdf(&self, x: &Matrix) -> f64;
+}
+
+impl Statistics for MatDist {
+    type Array = Matrix;
+    type Value = Matrix;
+
+    fn mean(&self) -> Self::Value {
+        match self {
+            MatDist::Wishart(df, scale) => scale.clone() * *df,
+        }
+    }
+
+    fn var(&self) -> Self::Value {
+        match self {
+            MatDist::Wishart(df, scale) => {
+                let p = scale.row;
+                let mut v = matrix(vec![0f64; p * p], p, p, Row);
+                for i in 0..p {
+                    for j in 0..p {
+                        v[(i, j)] = *df * (scale[(i, j)].powi(2) + scale[(i, i)] * scale[(j, j)]);
+                    }
+                }
+                v
+            }
+        }
+    }
+
+    fn sd(&self) -> Self::Value {
+        self.var().fmap(|x| x.sqrt())
+    }
+
+    fn cov(&self) -> Self::Array {
+        match self {
+            MatDist::Wishart(df, scale) => {
+                let p = scale.row;
+                let p_sq = p * p;
+
+                // Allocate a flattened p^2 x p^2 covariance matrix
+                let mut cov_mat = zeros(p_sq, p_sq);
+
+                for i in 0..p {
+                    for j in 0..p {
+                        for k in 0..p {
+                            for l in 0..p {
+                                let row_idx = i * p + j;
+                                let col_idx = k * p + l;
+
+                                cov_mat[(row_idx, col_idx)] = *df
+                                    * (scale[(i, k)] * scale[(j, l)]
+                                        + scale[(i, l)] * scale[(j, k)]);
+                            }
+                        }
+                    }
+                }
+                cov_mat
+            }
+        }
+    }
+
+    fn cor(&self) -> Self::Array {
+        let cov_mat = self.cov();
+        let sd_mat = self.sd();
+        let p = sd_mat.row;
+        let p_sq = p * p;
+
+        let mut cor_mat = zeros(p_sq, p_sq);
+
+        for i in 0..p {
+            for j in 0..p {
+                for k in 0..p {
+                    for l in 0..p {
+                        let row_idx = i * p + j;
+                        let col_idx = k * p + l;
+
+                        // Scale the covariance element by the standard deviations
+                        cor_mat[(row_idx, col_idx)] =
+                            cov_mat[(row_idx, col_idx)] / (sd_mat[(i, j)] * sd_mat[(k, l)]);
+                    }
+                }
+            }
+        }
+        cor_mat
+    }
+}
+
+impl MatRNG for MatDist {
+    #[cfg_attr(not(feature = "O3"), allow(unused))]
+    fn sample_with_rng<R: Rng + Clone>(&self, rng: &mut R, n: usize) -> Vec<Matrix> {
+        match self {
+            MatDist::Wishart(df, scale) => {
+                let p = scale.row;
+
+                #[cfg(feature = "O3")]
+                {
+                    // Bartlett Decomposition Requires Cholesky on the Scale Matrix
+                    let l_mat = scale.cholesky(UPLO::Lower);
+                    let mut samples = Vec::with_capacity(n);
+                    let normal = rand_distr::StandardNormal;
+
+                    for _ in 0..n {
+                        let mut a_mat = matrix(vec![0f64; p * p], p, p, Row);
+
+                        // Populate the Bartlett Matrix A
+                        for i in 0..p {
+                            for j in 0..=i {
+                                if i == j {
+                                    let chi = rand_distr::ChiSquared::new(*df - i as f64).unwrap();
+                                    a_mat[(i, i)] = chi.sample(rng).sqrt();
+                                } else {
+                                    a_mat[(i, j)] = rng.sample(normal);
+                                }
+                            }
+                        }
+
+                        // Compute X = L * A * A^T * L^T
+                        let la = &l_mat * &a_mat;
+                        let x = &la * &la.t();
+
+                        samples.push(x);
+                    }
+
+                    samples
+                }
+                #[cfg(not(feature = "O3"))]
+                {
+                    unimplemented!(
+                        "Wishart sampling requires the 'O3' feature for Cholesky decomposition."
+                    );
+                }
+            }
+        }
+    }
+
+    #[cfg_attr(not(feature = "O3"), allow(unused))]
+    fn ln_pdf(&self, x: &Matrix) -> f64 {
+        match self {
+            MatDist::Wishart(df, scale) => {
+                #[cfg(feature = "O3")]
+                {
+                    let p_usize = scale.row;
+                    let p = p_usize as f64;
+
+                    let det_x = x.det();
+                    let det_v = scale.det();
+                    let inv_v = scale.inv();
+
+                    // Trace of (V^-1 * X)
+                    let v_inv_x = &inv_v * x;
+                    let tr_v_inv_x = v_inv_x.diag().iter().sum::<f64>();
+
+                    let term1 = (*df - p - 1.0) / 2.0 * det_x.ln();
+                    let term2 = -0.5 * tr_v_inv_x;
+                    let term3 = -(*df * p) / 2.0 * 2f64.ln();
+                    let term4 = -(*df / 2.0) * det_v.ln();
+                    let term5 = -mv_ln_gamma(p_usize, *df / 2.0);
+
+                    term1 + term2 + term3 + term4 + term5
+                }
+                #[cfg(not(feature = "O3"))]
+                {
+                    unimplemented!("Wishart PDF calculation requires the 'O3' feature for matrix inversion and determinants.");
+                }
+            }
+        }
+    }
+}
+
+#[cfg_attr(not(feature = "O3"), allow(unused))]
+fn mv_ln_gamma(p: usize, a: f64) -> f64 {
+    let p_f64 = p as f64;
+
+    if a <= (p_f64 - 1.0) / 2.0 {
+        return f64::NAN;
+    }
+
+    let mut sum = p_f64 * (p_f64 - 1.0) / 4.0 * std::f64::consts::PI.ln();
+    for j in 1..=p {
+        sum += ln_gamma(a + (1.0 - j as f64) / 2.0);
+    }
+
+    sum
 }
