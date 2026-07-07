@@ -23,6 +23,10 @@ const LG5N7: [f64; 7] = [
 ];
 
 pub fn ln_gamma_approx(z: f64) -> f64 {
+    if z < 0.5 {
+        return PI.ln() - (PI * z).sin().abs().ln() - ln_gamma_approx(1.0 - z);
+    }
+
     let z = z - 1f64;
     let base = z + G + 0.5;
     let mut s = 0f64;
