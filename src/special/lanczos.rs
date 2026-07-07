@@ -50,6 +50,16 @@ pub fn gamma_approx(z: f64) -> f64 {
         }
     }
 
+    if z > 1.0 && z.fract() == 0.0 {
+        let mut result = 1.0;
+        let n = (z - 1.0) as u64;
+        for i in 2..=n {
+            result *= i as f64;
+        }
+
+        return result;
+    }
+
     if z < 0.5 {
         return PI / ((PI * z).sin() * gamma_approx(1f64 - z));
     }
