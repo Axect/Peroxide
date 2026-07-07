@@ -373,6 +373,7 @@ impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPD
     }
 }
 
+#[cfg(feature = "rand")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for MVDist<T> {
     fn print(&self) {
         println!("{:?}", self);
