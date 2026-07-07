@@ -26,7 +26,7 @@ pub fn ln_gamma_approx(z: f64) -> f64 {
     if z <= 0.0 && z.fract() == 0.0 {
         return f64::INFINITY;
     }
-    
+
     if z < 0.5 {
         return PI.ln() - (PI * z).sin().abs().ln() - ln_gamma_approx(1.0 - z);
     }
@@ -42,18 +42,19 @@ pub fn ln_gamma_approx(z: f64) -> f64 {
 }
 
 pub fn gamma_approx(z: f64) -> f64 {
-    if z > 1f64 {
-        let z_int = z as usize;
-        if z - (z_int as f64) == 0f64 {
-            return factorial(z_int - 1) as f64;
+    if z <= 0.0 && z.fract() == 0.0 {
+        if z == 0.0 {
+            return f64::INFINITY;
+        } else {
+            return f64::NAN;
         }
     }
 
     if z < 0.5 {
-        PI / ((PI * z).sin() * gamma_approx(1f64 - z))
-    } else {
-        ln_gamma_approx(z).exp()
+        return PI / ((PI * z).sin() * gamma_approx(1f64 - z));
     }
+
+    ln_gamma_approx(z).exp()
 }
 
 /// Lanczos Approximation Coefficient
