@@ -4709,6 +4709,43 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
     H
 }
 
+pub fn bidiagonalize(a: &Matrix) -> (Matrix, Matrix, Matrix) {
+    let m = a.row;
+    let n = a.col;
+
+    let mut b = a.clone();
+    let mut u = eye(m);
+    let mut v = eye(n);
+
+    for k in 0..min(n, m) {
+        // Zero subdiagonal
+        if k < min(m - 1, n) {
+            let x = b.col(k).skip(k);
+            let hk = gen_householder(&x);
+
+            let mut uk = eye(m);
+            uk.subs_mat((k, k), (m - 1, m - 1), &hk);
+
+            b = &uk * &b;
+            u = &u * &uk;
+        }
+
+        // Zero over superdiagonal
+        if k < n - 2 {
+            let x = b.row(k).skip(k + 1);
+            let hk = gen_householder(&x);
+
+            let mut vk = eye(n);
+            vk.subs_mat((k + 1, k + 1), (n - 1, n - 1), &hk);
+
+            b = &b * &vk;
+            v = &v * &vk
+        }
+    }
+
+    (u, b, v)
+}
+
 /// LU via Gaussian Elimination with Partial Pivoting
 #[allow(dead_code)]
 fn gepp(m: &mut Matrix) -> Vec<usize> {
