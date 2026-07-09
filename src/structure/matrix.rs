@@ -634,7 +634,9 @@ use crate::util::{
 use peroxide_num::{ExpLogOps, Numeric, PowOps, TrigOps};
 use std::cmp::{max, min};
 pub use std::error::Error;
+use std::f32::consts::TAU;
 use std::fmt;
+use std::intrinsics::sqrtf64;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub type Perms = Vec<(usize, usize)>;
@@ -4744,6 +4746,31 @@ pub fn bidiagonalize(a: &Matrix) -> (Matrix, Matrix, Matrix) {
     }
 
     (u, b, v)
+}
+
+pub fn givens(vec: Vec<f64>) -> Matrix {
+    if vec.len() != 2 {
+        panic!("Givens rotations needs a 2x1 vectors")
+    }
+
+    let a = vec[0];
+    let b = vec[1];
+
+    let (s, c) = if b == 0.0 {
+        (0.0, 1.0)
+    } else if b.abs() > a.abs() {
+        let tau = a / b;
+        let s = 1.0 / (1.0 + tau * tau).sqrt();
+        let c = s * tau;
+        (s, c)
+    } else {
+        let tau = b / a;
+        let c = 1.0 / (1.0 + tau * tau).sqrt();
+        let s = c * tau;
+        (s, c)
+    };
+
+    matrix(vec![c, s, -s, c], 2, 2, Row)
 }
 
 /// LU via Gaussian Elimination with Partial Pivoting
