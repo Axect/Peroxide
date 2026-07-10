@@ -1,3 +1,5 @@
+//! Complex vectors, matrices, and integrals, enabled by the `complex` feature
+
 use num_complex::Complex;
 
 pub type C64 = Complex<f64>;

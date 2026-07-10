@@ -1,8 +1,8 @@
-//! Main structures for peroxide
+//! Core data structures: `Matrix`, `Vec<f64>` extensions, `DataFrame`, `Polynomial`, and const-generic forward-mode AD (`Jet<N>`)
 //!
-//! * Matrix
+//! * Matrix (dense & sparse)
 //! * Vector
-//! * Automatic derivatives
+//! * Automatic differentiation (`Jet<N>`)
 //! * Polynomial
 //! * DataFrame
 //! * Multinomial (not yet implemented)

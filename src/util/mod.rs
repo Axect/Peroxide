@@ -1,4 +1,4 @@
-//! Utility - plot, print, pickle and etc.
+//! Utilities: constructors, printing, plotting, and low-level helpers
 
 pub mod api;
 pub mod non_macro;
