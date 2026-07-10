@@ -1,3 +1,5 @@
+//! Shared trait definitions: mathematics, functional programming, mutability, pointers, and numeric abstractions
+
 pub mod float;
 pub mod fp;
 pub mod general;

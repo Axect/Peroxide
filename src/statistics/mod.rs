@@ -1,4 +1,4 @@
-//! Statistical Modules
+//! Probability distributions, random sampling, and statistical operations
 //!
 //! * Basic statistical tools - `stat.rs`
 //! * Popular distributions - `dist.rs` (`rand` feature)
