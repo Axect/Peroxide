@@ -41,21 +41,8 @@ Peroxide follows the [Gitflow workflow]. A few practical rules:
 
 ## Source layout
 
-A high-level map of `src/`; see each module's `mod.rs` and the [API docs](https://docs.rs/peroxide) for details.
-
-| Module | Purpose |
-| ------------------ | ------------------------------------------------------------------ |
-| [`structure`](src/structure) | Core data structures: `Matrix`, `Vec<f64>` extensions, `DataFrame`, `Polynomial`, `Jet<N>` forward AD |
-| [`numerical`](src/numerical) | Numerical algorithms: ODE solvers, integration, interpolation, splines, root finding, optimization, eigenvalues |
-| [`statistics`](src/statistics) | Probability distributions, RNG wrappers, ordered statistics |
-| [`complex`](src/complex) | Complex vectors, matrices, and integrals (`complex` feature) |
-| [`special`](src/special) | Special functions (wrapper of `puruspe`) |
-| [`traits`](src/traits) | Shared trait definitions (math, functional programming, pointers) |
-| [`macros`](src/macros) | R / MATLAB / Julia style macros |
-| [`fuga`](src/fuga), [`prelude`](src/prelude) | The two user-facing import styles (explicit vs simple) |
-| [`util`](src/util) | Constructors, printing, plotting, low-level helpers |
-| [`ml`](src/ml) | Basic machine learning tools (beta) |
-| [`grave`](src/grave) | Retired implementations kept for reference; not compiled |
+The directories under `src/` map one-to-one to the public modules, so the module index in the [API docs](https://docs.rs/peroxide) doubles as the source map; start from a module's documentation and its `mod.rs`.
+The only exception is `src/grave/`, which holds retired implementations kept for reference and is excluded from compilation.
 
 ## Code of conduct
 
