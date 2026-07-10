@@ -47,6 +47,9 @@ blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
 blas-src = { version = "0.14", optional = true, default-features = false }
 lapack-src = { version = "0.13", optional = true, default-features = false }
+# Only used to forward the `system` feature to the `openblas-src` instance
+# that `blas-src` / `lapack-src` already pull in (see `O3-openblas-system`).
+openblas-src = { version = "0.10", optional = true, default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 rkyv = { version = "0.8", optional = true }
 json = { version = "0.12", optional = true }
@@ -106,6 +109,9 @@ rand = ["dep:rand", "dep:rand_distr"]
 O3 = ["blas", "lapack"]
 # Convenience flags that bundle a backend choice for `O3`.
 O3-openblas   = ["O3", "blas-src/openblas",   "lapack-src/openblas"]
+# Same as `O3-openblas`, but links the OpenBLAS already installed on the
+# system (found via pkg-config) instead of compiling OpenBLAS from source.
+O3-openblas-system = ["O3-openblas", "openblas-src/system"]
 O3-accelerate = ["O3", "blas-src/accelerate", "lapack-src/accelerate"]
 O3-mkl        = ["O3", "blas-src/intel-mkl-dynamic-parallel", "lapack-src/intel-mkl-dynamic-parallel"]
 O3-netlib     = ["O3", "blas-src/netlib",     "lapack-src/netlib"]
