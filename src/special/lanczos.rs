@@ -1,6 +1,6 @@
 //! Lanczos approximation Coefficient generator
 
-use crate::statistics::ops::{double_factorial, factorial, C};
+use crate::statistics::ops::{double_factorial, C};
 use crate::structure::matrix::Matrix;
 use crate::traits::matrix::MatrixTrait;
 use crate::traits::pointer::{Oxide, RedoxCommon};
@@ -23,6 +23,14 @@ const LG5N7: [f64; 7] = [
 ];
 
 pub fn ln_gamma_approx(z: f64) -> f64 {
+    if z <= 0.0 && z.fract() == 0.0 {
+        return f64::INFINITY;
+    }
+
+    if z < 0.5 {
+        return PI.ln() - (PI * z).sin().abs().ln() - ln_gamma_approx(1.0 - z);
+    }
+
     let z = z - 1f64;
     let base = z + G + 0.5;
     let mut s = 0f64;
@@ -34,18 +42,33 @@ pub fn ln_gamma_approx(z: f64) -> f64 {
 }
 
 pub fn gamma_approx(z: f64) -> f64 {
-    if z > 1f64 {
-        let z_int = z as usize;
-        if z - (z_int as f64) == 0f64 {
-            return factorial(z_int - 1) as f64;
+    if z <= 0.0 && z.fract() == 0.0 {
+        if z == 0.0 {
+            return f64::INFINITY;
+        } else {
+            return f64::NAN;
         }
     }
 
-    if z < 0.5 {
-        PI / ((PI * z).sin() * gamma_approx(1f64 - z))
-    } else {
-        ln_gamma_approx(z).exp()
+    if z > 0.0 && z.fract() == 0.0 {
+        if z > 171.0 {
+            return f64::INFINITY;
+        }
+
+        let mut result = 1.0;
+        let n = (z - 1.0) as u64;
+        for i in 2..=n {
+            result *= i as f64;
+        }
+
+        return result;
     }
+
+    if z < 0.5 {
+        return PI / ((PI * z).sin() * gamma_approx(1f64 - z));
+    }
+
+    ln_gamma_approx(z).exp()
 }
 
 /// Lanczos Approximation Coefficient
