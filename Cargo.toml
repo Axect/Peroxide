@@ -1,6 +1,6 @@
 [package]
 name = "peroxide"
-version = "0.42.0"
+version = "0.43.0"
 authors = ["axect <axect@outlook.kr>"]
 edition = "2018"
 description = "Rust comprehensive scientific computation library contains linear algebra, numerical analysis, statistics and machine learning tools with familiar syntax"
@@ -30,8 +30,8 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [dependencies]
 csv = { version = "1.3", optional = true, default-features = false }
-rand = { version = "0.9", features = ["small_rng"] }
-rand_distr = "0.5"
+rand = { version = "0.9", features = ["small_rng"], optional = true }
+rand_distr = { version = "0.5", optional = true }
 order-stat = "0.1"
 puruspe = "0.4"
 matrixmultiply = { version = "0.3", features = ["threading"] }
@@ -47,6 +47,9 @@ blas = { version = "0.22", optional = true }
 lapack = { version = "0.19", optional = true }
 blas-src = { version = "0.14", optional = true, default-features = false }
 lapack-src = { version = "0.13", optional = true, default-features = false }
+# Only used to forward the `system` feature to the `openblas-src` instance
+# that `blas-src` / `lapack-src` already pull in (see `O3-openblas-system`).
+openblas-src = { version = "0.10", optional = true, default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 rkyv = { version = "0.8", optional = true }
 json = { version = "0.12", optional = true }
@@ -54,6 +57,7 @@ parquet = { version = "55", features = ["arrow", "snap"], optional = true }
 arrow = { version = "55", optional = true }
 indexmap = { version = "1", optional = true }
 num-complex = { version = "0.4", optional = true }
+num-traits = { version = "0.2", optional = true }
 rayon = { version = "1.10", optional = true }
 
 [package.metadata.docs.rs]
@@ -75,18 +79,44 @@ features = [
   "serde",
 ]
 
+# Examples that exercise the random sampling stack are skipped when the
+# `rand` feature is disabled.
+[[example]]
+name = "dist"
+required-features = ["rand"]
+
+[[example]]
+name = "matmul"
+required-features = ["rand"]
+
+[[example]]
+name = "optim"
+required-features = ["rand"]
+
+[[example]]
+name = "clippy_verify"
+required-features = ["rand"]
+
 [features]
-default = []
+default = ["rand"]
+# Random sampling stack (`rand` / `rand_distr`): probability distributions,
+# RNG wrappers, and random constructors. Enabled by default; disable with
+# `default-features = false` for the deterministic core (ODE, integration,
+# splines, linear algebra), e.g. for wasm32 sandboxes without IO.
+rand = ["dep:rand", "dep:rand_distr"]
 # Bare BLAS / LAPACK FFI; downstream binary must also pull in a
 # `blas-src` / `lapack-src` backend to resolve the link symbols.
 O3 = ["blas", "lapack"]
 # Convenience flags that bundle a backend choice for `O3`.
 O3-openblas   = ["O3", "blas-src/openblas",   "lapack-src/openblas"]
+# Same as `O3-openblas`, but links the OpenBLAS already installed on the
+# system (found via pkg-config) instead of compiling OpenBLAS from source.
+O3-openblas-system = ["O3-openblas", "openblas-src/system"]
 O3-accelerate = ["O3", "blas-src/accelerate", "lapack-src/accelerate"]
 O3-mkl        = ["O3", "blas-src/intel-mkl-dynamic-parallel", "lapack-src/intel-mkl-dynamic-parallel"]
 O3-netlib     = ["O3", "blas-src/netlib",     "lapack-src/netlib"]
 plot = ["pyo3"]
 nc = ["netcdf"]
 parquet = ["dep:parquet", "arrow", "indexmap"]
-complex = ["num-complex", "matrixmultiply/cgemm"]
+complex = ["num-complex", "num-traits", "matrixmultiply/cgemm"]
 parallel = ["rayon"]

@@ -30,10 +30,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install OpenBLAS / LAPACK
         run: sudo apt-get update && sudo apt-get install -y libopenblas-dev liblapack-dev gfortran
-      - name: Build
+      - name: Build (OpenBLAS from source)
         run: cargo build --verbose --features O3-openblas
-      - name: Run tests
+      - name: Run tests (OpenBLAS from source)
         run: cargo test --verbose --features O3-openblas
+      - name: Build (system OpenBLAS via pkg-config)
+        run: cargo build --verbose --features O3-openblas-system
+      - name: Run tests (system OpenBLAS via pkg-config)
+        run: cargo test --verbose --features O3-openblas-system
 
   pure-rust:
     name: Pure-Rust feature set
@@ -44,6 +48,20 @@ jobs:
         run: cargo build --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
       - name: Run tests
         run: cargo test --verbose --features "arrow complex csv indexmap json num-complex parallel parquet rayon rkyv serde"
+
+  # The deterministic core (no `rand` stack) must keep building for sandboxed
+  # targets such as Typst / wasm plugins (#88).
+  no-rand-wasm:
+    name: No-rand core (wasm32)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Test without the rand stack
+        run: cargo test --verbose --no-default-features
+      - name: Build for wasm32
+        run: cargo build --verbose --no-default-features --target wasm32-unknown-unknown
 
   feature-combinations:
     name: Feature combinations (cargo-hack)
@@ -61,17 +79,19 @@ jobs:
       # HDF5 features (nc / netcdf) are excluded because they need an external
       # toolchain (vendor BLAS, HDF5 headers) or a non-Linux platform rather than
       # being a code problem; plot / pyo3 are exercised by the dedicated plot job.
+      # openblas-src alone (default-features = false) has no TLS backend for its
+      # source download, so it is only meaningful through O3-openblas-system.
       - name: Each feature builds on its own
         run: >
           cargo hack build --each-feature --optional-deps --keep-going
-          --exclude-features O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src
+          --exclude-features O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src,openblas-src
       # Pairwise (depth 2) coverage over the pure-Rust / numerical features. The
       # heavy compile units (arrow / parquet) and the backend / HDF5 / Python
       # features are excluded so the target dir does not blow up on a CI runner.
       - name: Pairwise feature powerset (pure-Rust / numerical)
         run: >
           cargo hack build --feature-powerset --depth 2 --optional-deps --keep-going
-          --exclude-features O3,O3-openblas,O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src,arrow,parquet
+          --exclude-features O3,O3-openblas,O3-openblas-system,O3-accelerate,O3-mkl,O3-netlib,nc,netcdf,plot,pyo3,blas-src,lapack-src,openblas-src,arrow,parquet
 
   plot:
     name: plot (pyo3 + matplotlib)

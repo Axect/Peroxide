@@ -39,6 +39,7 @@ macro_rules! zeros {
 ///     println!("{}", a);  // 2 x 2 random matrix (0 ~ 1)
 /// }
 /// ```
+#[cfg(feature = "rand")]
 #[macro_export]
 macro_rules! rand {
     () => {{

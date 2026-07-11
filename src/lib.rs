@@ -140,7 +140,7 @@
 //!
 //! ## Useful tips for features
 //!
-//! * If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, you should use the `O3` feature. These decompositions are not implemented in the `default` feature.
+//! * If you want to use _QR_, _SVD_, or _Cholesky Decomposition_, enable one of the BLAS backend features: `O3-openblas` (compiles OpenBLAS from source), `O3-openblas-system` (links the system-installed OpenBLAS), `O3-accelerate`, `O3-mkl`, or `O3-netlib`. These decompositions are not implemented in the `default` feature. The bare `O3` flag is an advanced escape hatch that expects you to supply a `blas-src` / `lapack-src` backend yourself.
 //!
 //! * If you want to save your numerical results, consider using the `parquet` or `nc` features, which correspond to the `parquet` and `netcdf` file formats, respectively. These formats are much more efficient than `csv` and `json`.
 //!
@@ -165,6 +165,10 @@ extern crate lapack;
 extern crate blas_src as _;
 #[cfg(feature = "lapack-src")]
 extern crate lapack_src as _;
+// `O3-openblas-system` re-exposes `openblas-src` directly so its `system`
+// feature can be forwarded; link the crate here for the same reason.
+#[cfg(feature = "openblas-src")]
+extern crate openblas_src as _;
 
 #[cfg(feature = "plot")]
 extern crate pyo3;
@@ -172,6 +176,7 @@ extern crate pyo3;
 #[cfg(feature = "serde")]
 extern crate serde;
 
+#[cfg(feature = "rand")]
 extern crate rand;
 
 // extern crate json;

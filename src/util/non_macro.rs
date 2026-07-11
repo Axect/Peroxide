@@ -30,7 +30,9 @@
 //! - concat
 //! - cat
 
+#[cfg(feature = "rand")]
 extern crate rand;
+#[cfg(feature = "rand")]
 use self::rand::prelude::*;
 use crate::structure::{
     matrix::Shape::{Col, Row},
@@ -39,6 +41,7 @@ use crate::structure::{
 use crate::traits::float::FloatWithPrecision;
 use crate::traits::matrix::MatrixTrait;
 use anyhow::{bail, Result};
+#[cfg(feature = "rand")]
 use rand_distr::{Distribution, Uniform};
 
 #[derive(Debug, Copy, Clone)]
@@ -322,6 +325,7 @@ where
 /// # Description
 ///
 /// Range = from 0 to 1
+#[cfg(feature = "rand")]
 pub fn rand(r: usize, c: usize) -> Matrix {
     let mut rng = rand::rng();
     rand_with_rng(r, c, &mut rng)
@@ -332,6 +336,7 @@ pub fn rand(r: usize, c: usize) -> Matrix {
 /// # Description
 ///
 /// Range = from 0 to 1
+#[cfg(feature = "rand")]
 pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
     let uniform = Uniform::new_inclusive(0f64, 1f64).unwrap();
     rand_with_dist(r, c, rng, uniform)
@@ -342,6 +347,7 @@ pub fn rand_with_rng<R: Rng>(r: usize, c: usize, rng: &mut R) -> Matrix {
 /// # Description
 ///
 /// Any range
+#[cfg(feature = "rand")]
 pub fn rand_with_dist<T: Into<f64>, R: Rng, D: Distribution<T>>(
     r: usize,
     c: usize,

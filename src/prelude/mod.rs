@@ -191,10 +191,18 @@ pub use crate::complex::{integral::*, matrix::*, vector::*, C64};
 pub use simpler::{solve, SimplerLinearAlgebra};
 
 #[allow(unused_imports)]
-pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*, wrapper::*};
+pub use crate::util::{api::*, low_level::*, non_macro::*, print::*, useful::*};
+
+#[cfg(feature = "rand")]
+#[allow(unused_imports)]
+pub use crate::util::wrapper::*;
 
 #[allow(unused_imports)]
-pub use crate::statistics::{dist::*, ops::*, rand::*, stat::*};
+pub use crate::statistics::{ops::*, stat::*};
+
+#[cfg(feature = "rand")]
+#[allow(unused_imports)]
+pub use crate::statistics::{dist::*, rand::*};
 
 #[allow(unused_imports)]
 pub use crate::special::function::{
@@ -228,4 +236,5 @@ pub use crate::util::plot::*;
 
 pub use anyhow;
 pub use paste;
+#[cfg(feature = "rand")]
 pub use rand::prelude::*;

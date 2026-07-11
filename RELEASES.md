@@ -1,3 +1,28 @@
+# Release 0.43.0 (2026-07-11)
+
+## Breaking changes
+
+- Make the `rand` / `rand_distr` sampling stack optional behind the default-on `rand` feature ([#88](https://github.com/Axect/Peroxide/issues/88), [#104](https://github.com/Axect/Peroxide/pull/104))
+  - Existing default-feature users are unchanged.
+  - `default-features = false` now provides a deterministic core without RNG dependencies; sampling APIs require the `rand` feature.
+  - This is a breaking change for users who already disabled default features and relied on sampling APIs.
+
+## New features
+
+- Add the `Dirichlet(α)` probability distribution ([#95](https://github.com/Axect/Peroxide/pull/95))
+- Add `O3-openblas-system` for linking a system-installed OpenBLAS through `pkg-config` ([#98](https://github.com/Axect/Peroxide/issues/98), [#107](https://github.com/Axect/Peroxide/pull/107))
+
+## Documentation
+
+- Clarify BLAS/LAPACK backend selection, OpenBLAS source versus system builds, TLS prerequisites, and HDF5 constraints ([#98](https://github.com/Axect/Peroxide/issues/98))
+- Remove the stale `Peroxide_BLAS` setup link from the main README; the archived repository is retained for historical reference
+- Replace the hand-maintained source-layout table with module-level docs.rs pointers and improve module descriptions ([#99](https://github.com/Axect/Peroxide/issues/99), [#108](https://github.com/Axect/Peroxide/pull/108))
+
+## CI / Lint
+
+- Add cargo-hack coverage for individual features and pairwise pure-Rust feature combinations ([#98](https://github.com/Axect/Peroxide/issues/98))
+- Add dedicated CI coverage for system/source OpenBLAS, no-rand `wasm32`, plotting, formatting, and clippy
+
 # Release 0.42.0 (2026-07-06)
 
 ## Breaking changes

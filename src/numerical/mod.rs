@@ -1,4 +1,4 @@
-//! Differential equations & Numerical Analysis tools
+//! Numerical algorithms: ODE solvers, quadrature, interpolation, splines, root finding, optimization, and eigenvalue computation
 
 pub mod eigen;
 pub mod integral;

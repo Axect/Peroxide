@@ -1,4 +1,4 @@
-//! Useful macros
+//! R / MATLAB / Julia style macros
 
 pub mod julia_macro;
 pub mod matlab_macro;

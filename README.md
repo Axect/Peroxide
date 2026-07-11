@@ -66,7 +66,7 @@ For accelerated linear algebra, plotting, or DataFrame I/O, enable the matching 
 Peroxide provides various features.
 
 - `default` - Pure Rust (No dependencies of architecture - Perfect cross compilation)
-- `O3` - BLAS & LAPACK (Perfect performance but little bit hard to set-up - Strongly recommend to look [Peroxide with BLAS](https://github.com/Axect/Peroxide_BLAS))
+- `O3-openblas` / `O3-openblas-system` / `O3-accelerate` / `O3-mkl` / `O3-netlib` - BLAS & LAPACK accelerated linear algebra; pick one backend flag (see [Pre-requisite](#pre-requisite))
 - `plot` - With matplotlib of python, we can draw any plots.
 - `complex` - With complex numbers (vector, matrix and integral)
 - `parallel` - With some parallel functions
@@ -76,7 +76,7 @@ Peroxide provides various features.
 - `serde` - serialization with [Serde](https://serde.rs/).
 - `rkyv` - serialization with [rkyv](https://rkyv.org).
 
-If you want to do high performance computation and more linear algebra, then choose `O3` feature.
+If you want to do high performance computation and more linear algebra, then choose one of the `O3-*` backend features.
 If you don't want to depend C/C++ or Fortran libraries, then choose `default` feature.
 If you want to draw plot with some great templates, then choose `plot` feature.
 
@@ -267,25 +267,27 @@ The three groups below depend on external libraries or runtimes; install the rel
 Those crates only provide function signatures, so the link backend that supplies the actual `dgemv_` / `dpotrf_` / ... symbols must be selected separately.
 The simplest path is to enable one of the convenience flags below; each pulls in [`blas-src`](https://crates.io/crates/blas-src) and [`lapack-src`](https://crates.io/crates/lapack-src) with the matching backend.
 
-| Convenience flag  | Backend            | Typical platform / use case             |
-| ----------------- | ------------------ | --------------------------------------- |
-| `O3-openblas`     | OpenBLAS           | Linux, Windows, macOS via Homebrew      |
-| `O3-accelerate`   | Apple Accelerate   | macOS (no extra system install)         |
-| `O3-mkl`          | Intel MKL          | Intel CPUs, vendor-tuned performance    |
-| `O3-netlib`       | Netlib reference   | Portability, lowest performance         |
+| Convenience flag     | Backend                       | Build-time requirements                          |
+| -------------------- | ----------------------------- | ------------------------------------------------ |
+| `O3-openblas`        | OpenBLAS, compiled from source | C + Fortran toolchain, `make`, network access    |
+| `O3-openblas-system` | System-installed OpenBLAS      | `pkg-config` + the OpenBLAS system package       |
+| `O3-accelerate`      | Apple Accelerate               | macOS only (no extra system install)             |
+| `O3-mkl`             | Intel MKL                      | Intel's redistributable (fetched automatically)  |
+| `O3-netlib`          | Netlib reference, compiled from source | `cmake` + Fortran toolchain (lowest performance) |
 
-If you need a backend not in the list above (for example BLIS or R's BLAS), enable the bare `O3` flag and add `blas-src` / `lapack-src` to your downstream binary's `Cargo.toml` with the appropriate features yourself.
+`O3-openblas` does **not** use a system-installed OpenBLAS: the [`openblas-src`](https://crates.io/crates/openblas-src) crate downloads the OpenBLAS source tarball during the cargo build and compiles it, so it needs `gcc`, `gfortran`, `make`, and network access, but no BLAS system package.
+The download happens over HTTPS through `openblas-src`'s default `rustls` TLS backend; if you depend on `openblas-src` directly with `default-features = false` (as some older guides suggest), you must re-enable one of its `rustls` / `native-tls` features yourself or the build will fail.
 
-System libraries still need to be present on the host for `O3-openblas` and `O3-netlib`; install them with:
+`O3-openblas-system` skips the source build and links the OpenBLAS already installed on the host, discovered via `pkg-config`:
 
 | Platform              | Install                                              |
 | --------------------- | ---------------------------------------------------- |
-| Debian / Ubuntu       | `sudo apt install libopenblas-dev liblapack-dev`     |
-| Fedora / RHEL         | `sudo dnf install openblas-devel lapack-devel`       |
-| Arch Linux            | `sudo pacman -S openblas lapack`                     |
-| macOS (Homebrew)      | `brew install openblas lapack`                       |
+| Debian / Ubuntu       | `sudo apt install libopenblas-dev`                   |
+| Fedora / RHEL         | `sudo dnf install openblas-devel`                    |
+| Arch Linux            | `sudo pacman -S openblas`                            |
+| macOS (Homebrew)      | `brew install openblas`                              |
 
-`O3-accelerate` and `O3-mkl` ship their own backend (Apple's framework and Intel's redistributable, respectively), so they need no further system packages.
+If you need a backend not in the list above (for example BLIS or R's BLAS), enable the bare `O3` flag and add `blas-src` / `lapack-src` to your downstream binary's `Cargo.toml` with the appropriate features yourself.
 
 > **Note:** `O3-accelerate` only builds on Apple targets. Enabling it on Linux or Windows fails while compiling `accelerate-src` with ``error: library kind `framework` is only supported on Apple targets``; pick `O3-openblas`, `O3-mkl`, or `O3-netlib` instead. For the same reason, exclude `O3-accelerate` (and `O3-mkl` / `O3-netlib` unless their toolchains are installed) when running tools like `cargo hack --each-feature` on Linux.
 
@@ -335,6 +337,7 @@ cargo add peroxide --features "<FEATURES>"      # opt-in features
 | Goal                                              | Command                                                                   |
 | ------------------------------------------------- | ------------------------------------------------------------------------- |
 | Linear algebra on Linux / Windows                 | `cargo add peroxide --features O3-openblas`                               |
+| Linear algebra with system OpenBLAS               | `cargo add peroxide --features O3-openblas-system`                        |
 | Linear algebra on macOS                           | `cargo add peroxide --features O3-accelerate`                             |
 | Plotting via Python / matplotlib                  | `cargo add peroxide --features plot`                                      |
 | DataFrame + Parquet I/O                           | `cargo add peroxide --features parquet`                                   |
@@ -350,7 +353,8 @@ The remaining single-crate flags exist so advanced users can pull in just one op
 
 | Flag             | Requires                | Purpose                                                       |
 | ---------------- | ----------------------- | ------------------------------------------------------------- |
-| `O3-openblas`    | OpenBLAS                | BLAS / LAPACK accelerated linear algebra (Linux / Windows)    |
+| `O3-openblas`    | OpenBLAS (from source)  | BLAS / LAPACK accelerated linear algebra (Linux / Windows)    |
+| `O3-openblas-system` | OpenBLAS (system)   | Same, linking the system-installed OpenBLAS via pkg-config    |
 | `O3-accelerate`  | Apple Accelerate        | Same, using the Accelerate framework on macOS                 |
 | `O3-mkl`         | Intel MKL               | Same, using Intel MKL                                         |
 | `O3-netlib`      | Netlib                  | Same, using the reference Netlib BLAS                         |
@@ -363,6 +367,7 @@ The remaining single-crate flags exist so advanced users can pull in just one op
 | `json`           | (pure Rust)             | JSON I/O for `DataFrame`                                      |
 | `serde`          | (pure Rust)             | `serde` (de)serialization                                     |
 | `rkyv`           | (pure Rust)             | `rkyv` zero-copy (de)serialization                            |
+| `rand`           | (pure Rust)             | Random sampling stack: distributions, RNG wrappers, `rand()` constructors. **On by default**; disable with `default-features = false` to get the deterministic core (ODE, integration, splines, linear algebra) for sandboxed targets like wasm32 |
 
 <details>
 <summary><b>Advanced: single-crate flags</b></summary>

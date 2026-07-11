@@ -351,8 +351,10 @@
 //!         let b = eye(2);
 //!         assert_eq!(b, ml_matrix("1 0;0 1"));
 //!
+//!         # #[cfg(feature = "rand")] {
 //!         let c = rand(2, 2);
 //!         c.print(); // Random 2x2 matrix
+//!         # }
 //!     }
 //!     ```
 //! # Linear Algebra
