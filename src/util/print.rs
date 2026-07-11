@@ -356,29 +356,7 @@ impl Printable for Vec<Matrix> {
 
 impl Printable for &Vec<Matrix> {
     fn print(&self) {
-        if self.is_empty() {
-            println!("[]");
-            return;
-        }
-
-        println!("[");
-
-        for i in 0..self.len() {
-            let mat_str = self[i].to_string();
-            let indented = mat_str
-                .lines()
-                .map(|line| format!("  {}", line))
-                .collect::<Vec<_>>()
-                .join("\n");
-
-            if i != self.len() - 1 {
-                println!("{},\n", indented);
-            } else {
-                println!("{}", indented);
-            }
-        }
-
-        println!("]");
+        (*self).print();
     }
 }
 

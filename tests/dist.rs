@@ -127,3 +127,80 @@ fn test_wishart_1d_chi_square() {
         assert!(nearly_eq(wishart_pdf, chi_pdf));
     }
 }
+
+#[test]
+fn test_wishart_support_and_invalid_inputs() {
+    let scale = matrix(c!(1.0, 0.5, 0.5, 1.0), 2, 2, Row);
+    let w = MatDist::Wishart(5.0, scale);
+
+    // x = -I (Negative Definite) -> ln_pdf should be -inf, pdf should be 0
+    let test_x_neg = matrix(c!(-1.0, 0.0, 0.0, -1.0), 2, 2, Row);
+    assert_eq!(w.ln_pdf(&test_x_neg), std::f64::NEG_INFINITY);
+    assert_eq!(w.pdf(&test_x_neg), 0.0);
+
+    // x = Asymmetric -> ln_pdf should be -inf
+    let test_x_asym = matrix(c!(1.0, 0.8, 0.2, 1.0), 2, 2, Row);
+    assert_eq!(w.ln_pdf(&test_x_asym), std::f64::NEG_INFINITY);
+}
+
+#[test]
+#[should_panic]
+fn test_wishart_invalid_df_panic() {
+    // df = 0.5, but p = 2. This is invalid and should panic
+    let scale = matrix(c!(1.0, 0.0, 0.0, 1.0), 2, 2, Row);
+    let w = MatDist::Wishart(0.5, scale);
+
+    // We only need a valid SPD matrix to pass the bounds check and trigger the df panic
+    let test_x = matrix(c!(1.0, 0.0, 0.0, 1.0), 2, 2, Row);
+    w.ln_pdf(&test_x);
+}
+
+#[test]
+fn test_wishart_reproducibility() {
+    #[cfg(feature = "O3")]
+    {
+        let mut rng1 = smallrng_from_seed(42);
+        let mut rng2 = smallrng_from_seed(42);
+
+        let scale = matrix(c!(1.0, 0.5, 0.5, 1.0), 2, 2, Row);
+        let w = MatDist::Wishart(5.0, scale);
+
+        let s1 = w.sample_with_rng(&mut rng1, 1);
+        let s2 = w.sample_with_rng(&mut rng2, 1);
+
+        for i in 0..2 {
+            for j in 0..2 {
+                assert_eq!(s1[0][(i, j)], s2[0][(i, j)]);
+            }
+        }
+    }
+}
+
+#[test]
+fn test_wishart_empirical_convergence() {
+    #[cfg(feature = "O3")]
+    {
+        let mut rng = smallrng_from_seed(42);
+        let scale = matrix(c!(1.0, 0.5, 0.5, 1.0), 2, 2, Row);
+        let w = MatDist::Wishart(5.0, scale);
+
+        let n_samples = 10_000;
+        let samples = w.sample_with_rng(&mut rng, n_samples);
+
+        let mut emp_mean = zeros(2, 2);
+        for s in &samples {
+            emp_mean = &emp_mean + s;
+        }
+
+        let n_f64 = n_samples as f64;
+        let theo_mean = w.mean();
+
+        // Ensure empirical mean is within a small epsilon of theoretical mean
+        for i in 0..2 {
+            for j in 0..2 {
+                emp_mean[(i, j)] /= n_f64;
+                assert!((emp_mean[(i, j)] - theo_mean[(i, j)]).abs() < 0.1);
+            }
+        }
+    }
+}

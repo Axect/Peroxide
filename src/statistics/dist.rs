@@ -366,7 +366,10 @@ pub use self::MVDist::*;
 pub use self::OPDist::*;
 pub use self::TPDist::*;
 use crate::special::function::*;
-use crate::traits::fp::{FPMatrix, FPVector};
+use crate::traits::{
+    fp::{FPMatrix, FPVector},
+    matrix::{LinearAlgebra, MatrixTrait},
+};
 //use statistics::rand::ziggurat;
 use self::WeightedUniformError::*;
 use crate::statistics::{ops::C, stat::Statistics};
@@ -377,7 +380,7 @@ use anyhow::{bail, Result};
 use std::f64::consts::E;
 
 #[cfg(feature = "O3")]
-use crate::traits::matrix::{LinearAlgebra, MatrixTrait, UPLO};
+use crate::traits::matrix::UPLO;
 
 /// One parameter distribution
 ///
@@ -1442,35 +1445,60 @@ impl MatRNG for MatDist {
         }
     }
 
-    #[cfg_attr(not(feature = "O3"), allow(unused))]
     fn ln_pdf(&self, x: &Matrix) -> f64 {
         match self {
             MatDist::Wishart(df, scale) => {
-                #[cfg(feature = "O3")]
-                {
-                    let p_usize = scale.row;
-                    let p = p_usize as f64;
+                let p_usize = scale.row;
+                let p = p_usize as f64;
 
-                    let det_x = x.det();
-                    let det_v = scale.det();
-                    let inv_v = scale.inv();
+                assert!(
+                    *df > p - 1.0,
+                    "Degrees of freedom must be greater than p - 1"
+                );
 
-                    // Trace of (V^-1 * X)
-                    let v_inv_x = &inv_v * x;
-                    let tr_v_inv_x = v_inv_x.diag().iter().sum::<f64>();
+                assert_eq!(
+                    x.row, p_usize,
+                    "Input matrix X dimensions must match scale matrix V"
+                );
 
-                    let term1 = (*df - p - 1.0) / 2.0 * det_x.ln();
-                    let term2 = -0.5 * tr_v_inv_x;
-                    let term3 = -(*df * p) / 2.0 * 2f64.ln();
-                    let term4 = -(*df / 2.0) * det_v.ln();
-                    let term5 = -mv_ln_gamma(p_usize, *df / 2.0);
+                assert_eq!(x.col, p_usize, "Input matrix X must be a square matrix");
 
-                    term1 + term2 + term3 + term4 + term5
+                // X must be symmetric and have strictly positive diagonals
+                for i in 0..p_usize {
+                    // A positive definite matrix must have strictly positive diagonal elements
+                    if x[(i, i)] <= 0f64 {
+                        return std::f64::NEG_INFINITY;
+                    }
+
+                    for j in 0..i {
+                        if (x[(i, j)] - x[(j, i)]).abs() > 1e-7 {
+                            return std::f64::NEG_INFINITY;
+                        }
+                    }
                 }
-                #[cfg(not(feature = "O3"))]
-                {
-                    unimplemented!("Wishart PDF calculation requires the 'O3' feature for matrix inversion and determinants.");
+
+                // X must have a positive determinant
+                let det_x = x.det();
+                if det_x <= 0f64 {
+                    return std::f64::NEG_INFINITY;
                 }
+
+                let det_v = scale.det();
+                assert!(det_v > 0f64, "Scale matrix V must be positive definite");
+
+                let inv_v = scale.inv();
+
+                // Trace of (V^-1 * X)
+                let v_inv_x = &inv_v * x;
+                let tr_v_inv_x = v_inv_x.diag().iter().sum::<f64>();
+
+                let term1 = (*df - p - 1.0) / 2.0 * det_x.ln();
+                let term2 = -0.5 * tr_v_inv_x;
+                let term3 = -(*df * p) / 2.0 * 2f64.ln();
+                let term4 = -(*df / 2.0) * det_v.ln();
+                let term5 = -mv_ln_gamma(p_usize, *df / 2.0);
+
+                term1 + term2 + term3 + term4 + term5
             }
         }
     }
