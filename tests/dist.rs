@@ -184,22 +184,73 @@ fn test_wishart_empirical_convergence() {
         let scale = matrix(c!(1.0, 0.5, 0.5, 1.0), 2, 2, Row);
         let w = MatDist::Wishart(5.0, scale);
 
-        let n_samples = 10_000;
+        let n_samples = 20_000;
         let samples = w.sample_with_rng(&mut rng, n_samples);
 
-        let mut emp_mean = zeros(2, 2);
+        let p = 2;
+        let p_sq = p * p;
+        let n_f64 = n_samples as f64;
+
+        let mut emp_mean = zeros(p, p);
         for s in &samples {
             emp_mean = &emp_mean + s;
         }
 
-        let n_f64 = n_samples as f64;
+        for i in 0..p {
+            for j in 0..p {
+                emp_mean[(i, j)] /= n_f64;
+            }
+        }
+
+        let mut emp_cov = zeros(p_sq, p_sq);
+        for s in &samples {
+            for i in 0..p {
+                for j in 0..p {
+                    for k in 0..p {
+                        for l in 0..p {
+                            let row_idx = i * p + j;
+                            let col_idx = k * p + l;
+
+                            let diff1 = s[(i, j)] - emp_mean[(i, j)];
+                            let diff2 = s[(k, l)] - emp_mean[(k, l)];
+
+                            emp_cov[(row_idx, col_idx)] += diff1 * diff2;
+                        }
+                    }
+                }
+            }
+        }
+
+        for i in 0..p_sq {
+            for j in 0..p_sq {
+                emp_cov[(i, j)] /= n_f64 - 1.0;
+            }
+        }
+
         let theo_mean = w.mean();
+        let theo_cov = w.cov();
 
         // Ensure empirical mean is within a small epsilon of theoretical mean
-        for i in 0..2 {
-            for j in 0..2 {
-                emp_mean[(i, j)] /= n_f64;
-                assert!((emp_mean[(i, j)] - theo_mean[(i, j)]).abs() < 0.1);
+        for i in 0..p {
+            for j in 0..p {
+                assert!(
+                    (emp_mean[(i, j)] - theo_mean[(i, j)]).abs() < 0.1,
+                    "Mean failed to converge at ({}, {})",
+                    i,
+                    j
+                );
+            }
+        }
+
+        // We have a slightly higher epsilon as covariance uses higher moments
+        for i in 0..p_sq {
+            for j in 0..p_sq {
+                assert!(
+                    (emp_cov[(i, j)] - theo_cov[(i, j)]).abs() < 0.5,
+                    "Covariance failed to converge at ({}, {})",
+                    i,
+                    j
+                );
             }
         }
     }
