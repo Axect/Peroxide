@@ -1504,7 +1504,6 @@ impl MatRNG for MatDist {
     }
 }
 
-#[cfg_attr(not(feature = "O3"), allow(unused))]
 fn mv_ln_gamma(p: usize, a: f64) -> f64 {
     let p_f64 = p as f64;
 
