@@ -51,6 +51,10 @@ pub fn gamma_approx(z: f64) -> f64 {
     }
 
     if z > 0.0 && z.fract() == 0.0 {
+        if z > 171.0 {
+            return f64::INFINITY;
+        }
+
         let mut result = 1.0;
         let n = (z - 1.0) as u64;
         for i in 2..=n {
