@@ -634,9 +634,7 @@ use crate::util::{
 use peroxide_num::{ExpLogOps, Numeric, PowOps, TrigOps};
 use std::cmp::{max, min};
 pub use std::error::Error;
-use std::f32::consts::TAU;
 use std::fmt;
-use std::intrinsics::sqrtf64;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub type Perms = Vec<(usize, usize)>;
@@ -4711,46 +4709,50 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
     H
 }
 
-pub fn bidiagonalize(a: &Matrix) -> (Matrix, Matrix, Matrix) {
-    let m = a.row;
-    let n = a.col;
+/// Returns U, B, V such that A = U·B·V^t with B upper bidiagonal and U, V orthogonal
+#[allow(non_snake_case)]
+pub fn bidiagonalize(A: &Matrix) -> (Matrix, Matrix, Matrix) {
+    let m = A.row;
+    let n = A.col;
 
-    let mut b = a.clone();
-    let mut u = eye(m);
-    let mut v = eye(n);
+    let mut B = A.clone();
+    let mut U = eye(m);
+    let mut V = eye(n);
 
     for k in 0..min(n, m) {
         // Zero subdiagonal
         if k < min(m - 1, n) {
-            let x = b.col(k).skip(k);
+            let x = B.col(k).skip(k);
             let hk = gen_householder(&x);
 
             let mut uk = eye(m);
             uk.subs_mat((k, k), (m - 1, m - 1), &hk);
 
-            b = &uk * &b;
-            u = &u * &uk;
+            B = &uk * &B;
+            U = &U * &uk;
         }
 
         // Zero over superdiagonal
         if k < n - 2 {
-            let x = b.row(k).skip(k + 1);
+            let x = B.row(k).skip(k + 1);
             let hk = gen_householder(&x);
 
             let mut vk = eye(n);
             vk.subs_mat((k + 1, k + 1), (n - 1, n - 1), &hk);
 
-            b = &b * &vk;
-            v = &v * &vk
+            B = &B * &vk;
+            V = &V * &vk
         }
     }
 
-    (u, b, v)
+    (U, B, V)
 }
 
+/// Performs a Givens rotation.
+/// Returns G orthogonal such that G·[a b] = [r 0]
 pub fn givens(vec: Vec<f64>) -> Matrix {
     if vec.len() != 2 {
-        panic!("Givens rotations needs a 2x1 vectors")
+        panic!("Givens rotations needs a 2x1 vector")
     }
 
     let a = vec[0];
