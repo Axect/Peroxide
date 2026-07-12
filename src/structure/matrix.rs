@@ -4775,6 +4775,34 @@ pub fn givens(vec: Vec<f64>) -> Matrix {
     matrix(vec![c, s, -s, c], 2, 2, Row)
 }
 
+/// Returns the wilkinson shift, i.e, the eigenvalue of the 2x2 bottom right sub-matrix of B^t·B that is closer to the last element of it
+/// The input must be a bidiagonal matrix
+#[allow(non_snake_case)]
+pub fn wilkinson_shift(B: &Matrix) -> f64 {
+    let n = min(B.row, B.col);
+
+    // Diagonal and superdiagonal elements
+    let d_n = B[(n - 1, n - 1)];
+    let d_n_minus_1 = B[(n - 2, n - 2)];
+    let s_n_minus_1 = B[(n - 2, n - 1)];
+    let s_n_minus_2 = if n > 2 { B[(n - 3, n - 2)] } else { 0.0 };
+
+    // Bottom right 2x2 sub-matrix
+    let a = d_n_minus_1.powi(2) + s_n_minus_2.powi(2);
+    let b = d_n_minus_1 * s_n_minus_1;
+    let c = d_n.powi(2) + s_n_minus_1.powi(2);
+
+    if b == 0.0 {
+        return c; // Already diagonal
+    }
+
+    let sigma = (a - c) / 2.0;
+    let sign = if sigma == 0.0 { 1.0 } else { sigma.signum() };
+    let right_term = (sign * b.powi(2)) / (sigma.abs() + (sigma.powi(2) + b.powi(2)).sqrt());
+
+    c - right_term
+}
+
 /// LU via Gaussian Elimination with Partial Pivoting
 #[allow(dead_code)]
 fn gepp(m: &mut Matrix) -> Vec<usize> {
