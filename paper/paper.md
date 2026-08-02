@@ -150,17 +150,17 @@ let area = integrate(|x| x.sin(), (0.0, PI), GaussLegendre(15));
 
 # Research impact statement
 
-Peroxide has been on crates.io since 2018, with over 1,100,000 downloads and 700 GitHub stars.
+Peroxide has been on crates.io since 2018, with over 1,250,000 downloads and more than 700 GitHub stars.
 Independent researchers have adopted Peroxide in peer-reviewed work: @comitini2025 used its Gauss-Kronrod quadrature for QCD screened massive expansion calculations, and @steuteville2024 identified Peroxide as one of the three most widely used Rust ODE solver packages in a survey conducted at the U.S. National Renewable Energy Laboratory.
 The author's own work has used Peroxide's implicit Gauss-Legendre ODE solver for symplectic reference solutions [@neural_hamilton], for dataset generation [@hyperboliclr], and for primordial black hole axion spectra via Gauss-Kronrod quadrature and cubic Hermite splines [@jho2026].
 The Zenodo archive [@peroxide] ensures long-term citability and reproducibility.
 
 # Validation
 
-We maintain a test suite of 26 modules; the AD module alone has 115 unit tests verifying `Jet<N>` at orders $N = 1$ through $10$ against symbolic reference values.
+We maintain 22 integration test modules with 225 tests and 255 documentation tests; the AD module alone has 115 unit tests verifying `Jet<N>` at orders $N = 1$ through $10$ against symbolic reference values.
 `Jet<N>` achieves machine-epsilon relative errors ($\sim 10^{-15}$) across all tested orders, while central finite differences degrade to $O(1)$ by order four due to the truncation/cancellation trade-off [@press2007].
 ODE integrators are tested against analytic solutions, with continuous integration on every push via GitHub Actions.
-The repository provides 41 standalone examples; API documentation (with KaTeX-rendered mathematics) is published on [docs.rs/peroxide](https://docs.rs/peroxide).
+The repository provides 42 standalone examples; API documentation (with KaTeX-rendered mathematics) is published on [docs.rs/peroxide](https://docs.rs/peroxide).
 Community guidelines are available in `CONTRIBUTING.md`.
 
 # Limitations
