@@ -4767,6 +4767,100 @@ pub fn gen_householder(a: &Vec<f64>) -> Matrix {
     H
 }
 
+/// Returns U, B, V such that A = U·B·V^t with B upper bidiagonal and U, V orthogonal
+#[allow(non_snake_case)]
+pub fn bidiagonalize(A: &Matrix) -> (Matrix, Matrix, Matrix) {
+    let m = A.row;
+    let n = A.col;
+
+    let mut B = A.clone();
+    let mut U = eye(m);
+    let mut V = eye(n);
+
+    for k in 0..min(n, m) {
+        // Zero subdiagonal
+        if k < min(m - 1, n) {
+            let x = B.col(k).skip(k);
+            let hk = gen_householder(&x);
+
+            let mut uk = eye(m);
+            uk.subs_mat((k, k), (m - 1, m - 1), &hk);
+
+            B = &uk * &B;
+            U = &U * &uk;
+        }
+
+        // Zero over superdiagonal
+        if k < n - 2 {
+            let x = B.row(k).skip(k + 1);
+            let hk = gen_householder(&x);
+
+            let mut vk = eye(n);
+            vk.subs_mat((k + 1, k + 1), (n - 1, n - 1), &hk);
+
+            B = &B * &vk;
+            V = &V * &vk
+        }
+    }
+
+    (U, B, V)
+}
+
+/// Performs a Givens rotation.
+/// Returns G orthogonal such that G·[a b] = [r 0]
+pub fn givens(vec: Vec<f64>) -> Matrix {
+    if vec.len() != 2 {
+        panic!("Givens rotations needs a 2x1 vector")
+    }
+
+    let a = vec[0];
+    let b = vec[1];
+
+    let (s, c) = if b == 0.0 {
+        (0.0, 1.0)
+    } else if b.abs() > a.abs() {
+        let tau = a / b;
+        let s = 1.0 / (1.0 + tau * tau).sqrt();
+        let c = s * tau;
+        (s, c)
+    } else {
+        let tau = b / a;
+        let c = 1.0 / (1.0 + tau * tau).sqrt();
+        let s = c * tau;
+        (s, c)
+    };
+
+    matrix(vec![c, s, -s, c], 2, 2, Row)
+}
+
+/// Returns the wilkinson shift, i.e, the eigenvalue of the 2x2 bottom right sub-matrix of B^t·B that is closer to the last element of it
+/// The input must be a bidiagonal matrix
+#[allow(non_snake_case)]
+pub fn wilkinson_shift(B: &Matrix) -> f64 {
+    let n = min(B.row, B.col);
+
+    // Diagonal and superdiagonal elements
+    let d_n = B[(n - 1, n - 1)];
+    let d_n_minus_1 = B[(n - 2, n - 2)];
+    let s_n_minus_1 = B[(n - 2, n - 1)];
+    let s_n_minus_2 = if n > 2 { B[(n - 3, n - 2)] } else { 0.0 };
+
+    // Bottom right 2x2 sub-matrix
+    let a = d_n_minus_1.powi(2) + s_n_minus_2.powi(2);
+    let b = d_n_minus_1 * s_n_minus_1;
+    let c = d_n.powi(2) + s_n_minus_1.powi(2);
+
+    if b == 0.0 {
+        return c; // Already diagonal
+    }
+
+    let sigma = (a - c) / 2.0;
+    let sign = if sigma == 0.0 { 1.0 } else { sigma.signum() };
+    let right_term = (sign * b.powi(2)) / (sigma.abs() + (sigma.powi(2) + b.powi(2)).sqrt());
+
+    c - right_term
+}
+
 /// LU via Gaussian Elimination with Partial Pivoting
 #[allow(dead_code)]
 fn gepp(m: &mut Matrix) -> Vec<usize> {
