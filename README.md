@@ -2,6 +2,7 @@
 
 [![On crates.io](https://img.shields.io/crates/v/peroxide.svg)](https://crates.io/crates/peroxide)
 [![On docs.rs](https://docs.rs/peroxide/badge.svg)](https://docs.rs/peroxide)
+[![JOSS](https://joss.theoj.org/papers/10.21105/joss.10366/status.svg)](https://doi.org/10.21105/joss.10366)
 [![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
 ![github](https://github.com/Axect/Peroxide/workflows/Github/badge.svg)
 
@@ -412,11 +413,29 @@ Hey there!
 If you're using Peroxide in your research or project, you're not required to cite us.
 But if you do, we'd be really grateful! 😊
 
-To make citing Peroxide easy, we've created a DOI through Zenodo. Just click on this badge:
+Peroxide is described in a paper published in the [Journal of Open Source Software](https://doi.org/10.21105/joss.10366):
+
+[![JOSS](https://joss.theoj.org/papers/10.21105/joss.10366/status.svg)](https://doi.org/10.21105/joss.10366)
+
+```bibtex
+@article{Kim2026,
+  author    = {Kim, Tae-Geun and Comitini, Giorgio and Grage, Jonas and Joens, Benjamin and Schreiber, Marc and Sen, Soumya and Senthamarai, Russell R P and S\"{o}rng\r{a}rd, Johanna},
+  title     = {Peroxide: A Batteries-Included Numerical Computing Library for {R}ust},
+  journal   = {Journal of Open Source Software},
+  publisher = {The Open Journal},
+  volume    = {11},
+  number    = {124},
+  pages     = {10366},
+  year      = {2026},
+  doi       = {10.21105/joss.10366},
+  url       = {https://doi.org/10.21105/joss.10366}
+}
+```
+
+To cite one specific release rather than the paper, use the Zenodo archive:
 
 [![DOI](https://zenodo.org/badge/130400565.svg)](https://zenodo.org/doi/10.5281/zenodo.10815823)
 
-This will take you to the Zenodo page for Peroxide.
-At the bottom, you'll find the citation information in various formats like BibTeX, RIS, and APA.
+That badge resolves to the newest deposit, and each release page carries citation information in BibTeX, RIS, and APA.
 
 So, if you want to acknowledge the work we've put into Peroxide, citing us would be a great way to do it! Thanks for considering it, we appreciate your support! 👍

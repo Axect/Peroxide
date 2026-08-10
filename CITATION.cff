@@ -44,6 +44,10 @@ authors:
 identifiers:
   - type: doi
     value: 10.5281/zenodo.10815823
+    description: Concept DOI of the Zenodo software archive
+  - type: doi
+    value: 10.21105/joss.10366
+    description: DOI of the Journal of Open Source Software paper
 repository-code: 'https://github.com/Axect/Peroxide'
 url: 'https://crates.io/crates/peroxide'
 abstract: >-
@@ -69,3 +73,50 @@ keywords:
   - Linear algebra
   - Differential equation
 license: MIT
+preferred-citation:
+  type: article
+  title: "Peroxide: A Batteries-Included Numerical Computing Library for Rust"
+  authors:
+    - given-names: Tae-Geun
+      family-names: Kim
+      email: axect.tg@proton.me
+      affiliation: Fudan University / RIKEN iTHEMS
+      orcid: 'https://orcid.org/0009-0000-4229-2935'
+    - given-names: Giorgio
+      family-names: Comitini
+      affiliation: Università degli Studi di Catania
+      orcid: 'https://orcid.org/0000-0002-1758-7878'
+    - given-names: Jonas
+      family-names: Grage
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0009-0000-9279-7683'
+    - given-names: Benjamin
+      family-names: Joens
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0009-0002-7922-0884'
+    - given-names: Marc
+      family-names: Schreiber
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0000-0003-2564-6126'
+    - given-names: Soumya
+      family-names: Sen
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0009-0008-0337-9964'
+    - given-names: Russell R P
+      family-names: Senthamarai
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0000-0002-8061-5480'
+    - given-names: Johanna
+      family-names: Sörngård
+      affiliation: Independent Researcher
+      orcid: 'https://orcid.org/0000-0002-8660-9989'
+  journal: Journal of Open Source Software
+  publisher:
+    name: The Open Journal
+  volume: 11
+  issue: 124
+  start: 10366
+  year: 2026
+  month: 8
+  doi: 10.21105/joss.10366
+  url: 'https://doi.org/10.21105/joss.10366'
