@@ -306,7 +306,7 @@ use crate::special::function::*;
 use crate::traits::fp::FPVector;
 //use statistics::rand::ziggurat;
 use self::WeightedUniformError::*;
-use crate::statistics::{ops::C, stat::Statistics};
+use crate::statistics::stat::Statistics;
 use crate::structure::matrix::{matrix, Matrix, Row};
 use crate::util::non_macro::{linspace, seq};
 use crate::util::useful::{auto_zip, find_interval};
@@ -653,10 +653,13 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
     fn pdf<S: PartialOrd + SampleUniform + Copy + Into<f64>>(&self, x: S) -> f64 {
         match self {
             Bernoulli(prob) => {
-                if x.into() == 1f64 {
+                let x: f64 = x.into();
+                if x == 1f64 {
                     (*prob).into()
-                } else {
+                } else if x == 0f64 {
                     1f64 - (*prob).into()
+                } else {
+                    0f64
                 }
             }
             StudentT(nu) => {
@@ -690,7 +693,7 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for OPDist<T> {
                     let x_t = nu / (x.powi(2) + nu);
                     1f64 - 0.5 * inc_beta(even_nu, 0.5, x_t)
                 } else if x < 0f64 {
-                    self.cdf(-x) - 0.5
+                    1f64 - self.cdf(-x)
                 } else {
                     0.5
                 }
@@ -814,8 +817,22 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
             Binomial(n, mu) => {
                 let n = *n;
                 let mu = (*mu).into();
-                let m = x.into() as usize;
-                (C(n, m) as f64) * mu.powi(m as i32) * (1f64 - mu).powi((n - m) as i32)
+                let x: f64 = x.into();
+                if x < 0f64 || x > n as f64 || x.fract() != 0f64 {
+                    return 0f64;
+                }
+                let m = x as usize;
+                // log-space: C(n, m) as an integer overflows from n = 63
+                let ln_c = ln_gamma(n as f64 + 1f64)
+                    - ln_gamma(m as f64 + 1f64)
+                    - ln_gamma((n - m) as f64 + 1f64);
+                let succ = if m == 0 { 0f64 } else { m as f64 * mu.ln() };
+                let fail = if m == n {
+                    0f64
+                } else {
+                    (n - m) as f64 * (1f64 - mu).ln()
+                };
+                (ln_c + succ + fail).exp()
             }
             Normal(m, s) => {
                 let mean = (*m).into();
@@ -869,8 +886,14 @@ impl<T: PartialOrd + SampleUniform + Copy + Into<f64>> RNG for TPDist<T> {
                 let n = *n;
                 let p = (*mu).into();
                 let q = 1f64 - p;
-                let k: f64 = x;
-                inc_beta(n as f64 - k, k + 1f64, q)
+                let k = x.floor();
+                if k < 0f64 {
+                    0f64
+                } else if k >= n as f64 {
+                    1f64
+                } else {
+                    inc_beta(n as f64 - k, k + 1f64, q)
+                }
             }
             Normal(m, s) => phi((x - (*m).into()) / (*s).into()),
             Beta(a, b) => {
