@@ -702,12 +702,22 @@ impl Plot for Plot2D {
 
             if self.tight {
                 plot_string
-                    .push_str(&format!("plt.savefig(pa, dpi={}, bbox_inches='tight')", dpi)[..]);
+                    .push_str(&format!("plt.savefig(pa, dpi={}, bbox_inches='tight')\n", dpi)[..]);
             } else {
-                plot_string.push_str(&format!("plt.savefig(pa, dpi={})", dpi)[..]);
+                plot_string.push_str(&format!("plt.savefig(pa, dpi={})\n", dpi)[..]);
             }
 
-            py.run(&CString::new(plot_string)?, Some(&globals), None)?;
+            // The embedded interpreter persists across calls, so style/rc changes must not
+            // leak into the next plot (#69), and the figure must be closed even on error.
+            let mut script = String::from("try:\n    with plt.rc_context():\n");
+            for line in plot_string.lines() {
+                script.push_str("        ");
+                script.push_str(line);
+                script.push('\n');
+            }
+            script.push_str("finally:\n    plt.close()\n");
+
+            py.run(&CString::new(script)?, Some(&globals), None)?;
             Ok(())
         })
     }
