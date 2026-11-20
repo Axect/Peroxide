@@ -326,6 +326,40 @@ impl Printable for Matrix {
     }
 }
 
+impl Printable for Vec<Matrix> {
+    fn print(&self) {
+        if self.is_empty() {
+            println!("[]");
+            return;
+        }
+
+        println!("[");
+
+        for i in 0..self.len() {
+            let mat_str = self[i].to_string();
+            let indented = mat_str
+                .lines()
+                .map(|line| format!("  {}", line))
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            if i != self.len() - 1 {
+                println!("{},\n", indented);
+            } else {
+                println!("{}", indented);
+            }
+        }
+
+        println!("]");
+    }
+}
+
+impl Printable for &Vec<Matrix> {
+    fn print(&self) {
+        (*self).print();
+    }
+}
+
 impl Printable for Polynomial {
     fn print(&self) {
         println!("{}", self);
@@ -375,6 +409,13 @@ impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for TPD
 
 #[cfg(feature = "rand")]
 impl<T: Debug + PartialOrd + SampleUniform + Copy + Into<f64>> Printable for MVDist<T> {
+    fn print(&self) {
+        println!("{:?}", self);
+    }
+}
+
+#[cfg(feature = "rand")]
+impl Printable for MatDist {
     fn print(&self) {
         println!("{:?}", self);
     }
