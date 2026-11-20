@@ -100,7 +100,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          # PyO3 0.27 supports up to Python 3.14; "3.x" now resolves to 3.15
+          python-version: "3.14"
       - name: Install matplotlib
         run: pip install matplotlib
       - name: Build
